@@ -1,0 +1,21 @@
+<Project>
+  <!--
+    OpenBlasSharp — только обёртка; без libopenblas.dll рядом с процессом BLAS не загружается.
+    Транзитивный PackageReference не копирует нативный DLL в выходную папку приложения.
+    Копируем явно после Build (надёжнее, чем динамический Content).
+  -->
+  <PropertyGroup>
+    <OpenBlasSharpWindowsVersion Condition="'$(OpenBlasSharpWindowsVersion)' == ''">2026.1.17</OpenBlasSharpWindowsVersion>
+  </PropertyGroup>
+  <Target Name="AI_CopyLibOpenBlasWindows"
+          AfterTargets="Build"
+          Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(OS)' == 'Windows_NT' And '$(OutputPath)' != ''">
+    <PropertyGroup>
+      <_LibOpenBlasWin64>$(NuGetPackageRoot)openblassharp.windows\$(OpenBlasSharpWindowsVersion)\runtimes\win-x64\native\libopenblas.dll</_LibOpenBlasWin64>
+    </PropertyGroup>
+    <Copy SourceFiles="$(_LibOpenBlasWin64)"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_LibOpenBlasWin64)')" />
+  </Target>
+</Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+	<!-- LangVersion наследуется из Directory.Build.props (12.0) -->
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.DSP\AI.DSP.csproj" />
+    <ProjectReference Include="..\AI.KNN\AI.KNN.csproj" />
+    <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
+    <ProjectReference Include="..\AI.NLP\AI.NLP.csproj" />
+    <ProjectReference Include="..\AI.Fuzzy\AI.Fuzzy.csproj" />
+  </ItemGroup>
+
+</Project>

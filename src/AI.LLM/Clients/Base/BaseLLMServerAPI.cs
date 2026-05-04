@@ -1,0 +1,127 @@
+﻿using AI.LLM.Core.Models.Common.Generation;
+using AI.LLM.Core.Models.Providers.LocalServer;
+using System.Net;
+using System.Net.Http.Json;
+
+namespace AI.LLM.API.LocalServer;
+
+/// <summary>
+/// Represents a base API client for interacting with a local server that provides LLM (Large Language Models) functionalities.
+/// </summary>
+[Serializable]
+public class BaseLLMServerAPI : IDisposable
+{
+    private readonly HttpClient _client;
+    private int _disposed; // 0 = not disposed, 1 = disposed
+
+    /// <summary>
+    /// The base URL of the local server.
+    /// </summary>
+    public string Host { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BaseAPI"/> class with an optional host URL.
+    /// </summary>
+    /// <param name="host">The base URL of the local server.</param>
+    public BaseLLMServerAPI(string host = "http://127.0.0.1:8080/")
+    {
+        Host = host;
+        _client = new HttpClient
+        {
+            Timeout = TimeSpan.FromMinutes(7)
+        };
+    }
+
+    /// <summary>
+    /// Sets the LLM model by specifying its name and type.
+    /// </summary>
+    /// <param name="modelName">The name of the model.</param>
+    /// <param name="modelType">The type of the model.</param>
+    /// <returns>The HTTP status code indicating the result of the operation.</returns>
+    public async Task<HttpStatusCode> SetLLM(string modelName, string modelType)
+    {
+        var uri = $"{Host}load_llm_model/";
+        var modelData = new { model_name = modelName, model_type = modelType };
+        var response = await _client.PostAsJsonAsync(uri, modelData).ConfigureAwait(false);
+        return response.StatusCode;
+    }
+
+    /// <summary>
+    /// Generates text based on a given prompt and optional parameters.
+    /// </summary>
+    /// <param name="prompt">The input prompt for text generation.</param>
+    /// <param name="maxLen">The maximum length of the generated text.</param>
+    /// <param name="temperature">The temperature for controlling randomness.</param>
+    /// <param name="topK">The number of top-k tokens considered at each step.</param>
+    /// <param name="topP">The cumulative probability for top-p sampling.</param>
+    /// <param name="noRepeatNgramSize">The size of n-grams that must not repeat.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <returns>The generated text or null if the operation failed.</returns>
+    public async Task<string> TextGeneration(string prompt, int maxLen = 50, double temperature = 0.6, int topK = 15, double topP = 0.8, int noRepeatNgramSize = 3, CancellationToken cancellationToken = default)
+    {
+        var uri = $"{Host}text_generation/";
+        var requestData = new
+        {
+            prompt = prompt,
+            max_length = maxLen,
+            temperature = temperature,
+            top_k = topK,
+            top_p = topP,
+            no_repeat_ngram_size = noRepeatNgramSize
+        };
+        
+        // Локальный таймаут 60 секунд для ReadFromJsonAsync
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+        
+        var response = await _client.PostAsJsonAsync(uri, requestData, cancellationToken).ConfigureAwait(false);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadFromJsonAsync<TextGenerationJSON>(cancellationToken: linkedCts.Token).ConfigureAwait(false);
+            return content?.Answer;
+        }
+        
+        var errorBody = "";
+        try { errorBody = await response.Content.ReadAsStringAsync(linkedCts.Token).ConfigureAwait(false); } catch { }
+        throw new HttpRequestException($"TextGeneration failed with status {response.StatusCode}: {errorBody}");
+    }
+
+
+    /// <summary>
+    /// Generates text based on a given prompt and optional parameters.
+    /// </summary>
+    /// <param name="prompt">The input prompt for text generation.</param>
+    /// <param name="generationParametrs">Optional parameters to customize the generation process.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <returns>The generated text or null if the operation failed.</returns>
+    public async Task<string> TextGeneration(string prompt, GenerationParametrs generationParametrs, CancellationToken cancellationToken = default)
+    {
+        if (generationParametrs == null) generationParametrs = new GenerationParametrs();
+
+        return await TextGeneration(prompt, generationParametrs.MaxLen, generationParametrs.Temperature,
+            generationParametrs.TopK, generationParametrs.TopP, generationParametrs.NoRepeatNgramSize, cancellationToken);
+    }
+
+    /// <summary>
+    /// Освобождает ресурсы, используемые HttpClient.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+    }
+
+    /// <summary>
+    /// Освобождает управляемые и неуправляемые ресурсы.
+    /// </summary>
+    /// <param name="disposing">Если true, освобождаются управляемые ресурсы.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0) return;
+        
+        if (disposing)
+        {
+            _client?.Dispose();
+        }
+    }
+}

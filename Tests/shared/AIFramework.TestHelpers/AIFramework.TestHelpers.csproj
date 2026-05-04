@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>AIFramework.TestHelpers</RootNamespace>
+    <AssemblyName>AIFramework.TestHelpers</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\AI.ClassicMath\AI.ClassicMath.csproj" />
+  </ItemGroup>
+
+</Project>

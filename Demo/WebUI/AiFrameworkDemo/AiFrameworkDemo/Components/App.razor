@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="@_theme">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, max-age=0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <base href="/" />
+    <link rel="stylesheet" href="/AIFrameworkUIKit/index.css?v=@_assetVer" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["AiFrameworkDemo.styles.css"]" />
+    <link rel="icon" type="image/png" href="ai3_0_logo.png" />
+
+    <!-- Anti-flash: куки читаются первыми; localStorage — фоллбэк для демо-страниц -->
+    <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+    <!-- KaTeX: высококачественный LaTeX-рендер -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+    <!-- highlight.js: подсветка кода (github-dark, устойчивая к тёмной теме) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/[email protected]/build/styles/github-dark-dimmed.min.css" />
+    <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/[email protected]/build/highlight.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/[email protected]/build/languages/csharp.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/[email protected]/build/languages/python.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/[email protected]/build/languages/bash.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/[email protected]/build/languages/json.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/[email protected]/build/languages/yaml.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/[email protected]/build/languages/xml.min.js"></script>
+
+    <!-- Plotly.js: интерактивные 3D-графики -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+
+    <!-- Mermaid: диаграммы и графы -->
+    <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+    <HeadOutlet />
+</head>
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script defer src="AIFrameworkUIKit/utils/render-math.js?v=@_assetVer"></script>
+    <script src="AIFrameworkUIKit/utils/theme.js?v=@_assetVer"></script>
+    <script>@((MarkupString)AI.Charts.JS.PlotlyChartRenderer.GetInteropScript())</script>
+</body>
+</html>
+
+@code
+{
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    // Читаем куки на сервере → рендерим правильную тему с первого байта HTML
+    private string _theme => HttpContext?.Request.Cookies["aif-theme"] ?? "dark";
+
+    private static readonly string _assetVer = typeof(AI.Charts.JS.PlotlyChartRenderer)
+        .Assembly.GetName().Version?.ToString() ?? DateTime.UtcNow.Ticks.ToString();
+}

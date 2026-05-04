@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <AssemblyName>AI.SignalLab</AssemblyName>
+    <RootNamespace>AI.SignalLab</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.DSP\AI.DSP.csproj" />
+    <ProjectReference Include="..\AI\AI.csproj" />
+  </ItemGroup>
+
+</Project>

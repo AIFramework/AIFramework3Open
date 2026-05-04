@@ -1,0 +1,53 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Error Banner Component
+   Унифицированные стили для системных ошибок Blazor.
+
+   ВСЕ ЦВЕТА — через токены --aif-error-banner-*.
+   Переключение тёмная/светлая тема происходит автоматически.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Blazor системная ошибка (нижняя плашка) ───────────────────── */
+#blazor-error-ui {
+  background: var(--aif-error-banner-bg);
+  color: var(--aif-error-banner-color);
+  bottom: 0;
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  display: none;
+  left: 0;
+  padding: 0.75rem 1.5rem;
+  position: fixed;
+  width: 100%;
+  z-index: calc(var(--aif-z-overlay) + 100);
+  font-size: 0.875rem;
+  font-family: var(--aif-font-sans);
+}
+#blazor-error-ui .dismiss {
+  cursor: pointer;
+  position: absolute;
+  right: 1rem;
+  top: 0.6rem;
+  opacity: 0.7;
+}
+#blazor-error-ui .dismiss:hover { opacity: 1; }
+#blazor-error-ui .reload {
+  color: var(--aif-error-banner-link);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ─── Blazor error boundary (красная рамка) ─────────────────────── */
+.blazor-error-boundary {
+  background: var(--aif-error-bg);
+  border: 1px solid var(--aif-error-border);
+  color: var(--aif-error-text);
+  padding: 1rem 1.25rem;
+  margin: 0;
+  font-size: 0.875rem;
+  border-radius: var(--aif-r-md);
+  font-family: var(--aif-font-sans);
+}
+.blazor-error-boundary::after {
+  content: "Произошла ошибка при отображении компонента.";
+}

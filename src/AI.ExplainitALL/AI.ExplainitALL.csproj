@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.DataPrepaire\AI.DataPrepaire.csproj" />
+    <ProjectReference Include="..\AI.Fuzzy\AI.Fuzzy.csproj" />
+  </ItemGroup>
+
+</Project>

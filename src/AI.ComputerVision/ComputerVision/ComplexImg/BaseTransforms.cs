@@ -1,0 +1,111 @@
+using AI.DataStructs.Algebraic;
+using AI.DataStructs.WithComplexElements;
+using SkiaSharp;
+using System;
+using Complex = System.Numerics.Complex;
+using Vector = AI.DataStructs.Algebraic.Vector;
+
+namespace AI.ComputerVision.ComplexImg;
+
+/// <summary>
+/// Базовые преобразования изображений с использованием комплексных чисел
+/// </summary>
+[Serializable]
+public class BaseTransformsColorImg
+{
+    private readonly Vector[] _pixels = null;
+    private readonly Tensor _colorImg = null;
+
+    /// <summary>
+    /// Базовые преобразования изображений с использованием комплексных чисел
+    /// </summary>
+    protected BaseTransformsColorImg() { }
+
+    /// <summary>
+    /// Преобразование изображения
+    /// </summary>
+    public SKBitmap Transform(Func<Complex, Complex> func, int h, int w)
+    {
+        var cv = Img2Complex();
+        cv = Norm(cv);
+        cv = cv.Transform(func);
+        cv = Norm(cv, h - 1, w - 1);
+        return Compl2Img(cv, h, w);
+    }
+
+    /// <summary>
+    /// Базовые преобразования изображений с использованием комплексных чисел
+    /// </summary>
+    public BaseTransformsColorImg(SKBitmap bitmap)
+    {
+        _colorImg = ImageMatrixConverter.BmpToTensor(bitmap);
+        _pixels = new Vector[_colorImg.Width * _colorImg.Height];
+    }
+
+    /// <summary>
+    /// Базовые преобразования изображений с использованием комплексных чисел
+    /// </summary>
+    public BaseTransformsColorImg(string path)
+    {
+        _colorImg = ImageMatrixConverter.LoadAsTensor(path);
+        _pixels = new Vector[_colorImg.Width * _colorImg.Height];
+    }
+
+    /// <summary>
+    /// Получить пиксель
+    /// </summary>
+    public static Vector GetPixel(int x, int y, Tensor tensor)
+    {
+        Vector vect = new Vector(3);
+        for (int i = 0; i < 3; i++)
+            vect[i] = tensor[y, x, i];
+        return vect;
+    }
+
+    /// <summary>
+    /// Установить пиксель
+    /// </summary>
+    public static void SetPixel(int x, int y, Tensor tensor, Vector pixel)
+    {
+        for (int i = 0; i < 3; i++)
+            tensor[y, x, i] = pixel[i];
+    }
+
+    private ComplexVector Norm(ComplexVector complexes, int h = 1, int w = 1)
+    {
+        Vector hv = h * complexes.ImaginaryVector.Minimax();
+        Vector wv = w * complexes.RealVector.Minimax();
+        ComplexVector complexeVect = new ComplexVector(hv.Count);
+
+        for (int i = 0; i < complexeVect.Count; i++)
+            complexeVect[i] = new Complex(wv[i], hv[i]);
+
+        return complexeVect;
+    }
+
+    private ComplexVector Img2Complex()
+    {
+        int len = _colorImg.Width * _colorImg.Height;
+        ComplexVector complexes = new ComplexVector(len);
+
+        for (int i = 0, k = 0; i < _colorImg.Width; i++)
+            for (int j = 0; j < _colorImg.Height; j++)
+            {
+                complexes[k] = new Complex(i, j);
+                _pixels[k] = GetPixel(i, j, _colorImg);
+                k++;
+            }
+
+        return complexes;
+    }
+
+    private SKBitmap Compl2Img(ComplexVector complexes, int h, int w)
+    {
+        Tensor tensor = new Tensor(h, w, 3);
+
+        for (int i = 0; i < complexes.Count; i++)
+            SetPixel((int)complexes[i].Real, (int)complexes[i].Imaginary, tensor, _pixels[i]);
+
+        return ImageMatrixConverter.ToBitmap(tensor);
+    }
+}

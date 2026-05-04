@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Algo Layout</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="demo-section"><a href="../index.html" style="font-size:0.8rem;color:var(--aif-text-4);">← Все компоненты</a></div>
+
+<!-- ═══════ ALGO LAYOUT ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-algo-layout — двухколоночный макет алгоритма</p>
+</div>
+
+<div class="aif-algo-layout">
+
+  <!-- ——— ТЕОРИЯ ——— -->
+  <div class="aif-algo-theory">
+    <div class="aif-theory-card">
+      <div class="aif-theory-header">
+        <div class="aif-theory-bar aif-theory-bar--indigo"></div>
+        <div class="aif-theory-title-row">
+          <h2 class="aif-theory-title">MLP-классификатор</h2>
+          <code class="aif-mono-badge">AI.NeuralNetworks.V2.Nn.Sequential</code>
+        </div>
+        <p class="aif-theory-sub">Многослойный перцептрон для задач классификации на плоскости</p>
+      </div>
+      <div class="aif-theory-body">
+        <div class="aif-prose">
+          <p>MLP — классическая нейросеть с полносвязными слоями. Функция активации ReLU и оптимизатор Adam обеспечивают быстрое обучение.</p>
+          <pre><code class="language-csharp">var model = new Sequential(
+    new Linear(2, 16),
+    new ReLU(),
+    new Linear(16, 2)
+);</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ——— ДЕМО ——— -->
+  <div class="aif-algo-demo">
+
+    <!-- Панель параметров -->
+    <div class="aif-params-panel">
+      <div class="aif-params-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Параметры
+      </div>
+      <div class="aif-params-body">
+        <div class="aif-param-row">
+          <div class="aif-param-label-row">
+            <label class="aif-param-label">Число нейронов</label>
+            <span class="aif-param-unit">шт.</span>
+            <span class="aif-param-val aif-param-val--indigo">16</span>
+          </div>
+          <div class="aif-param-controls">
+            <input type="range" class="aif-slider" min="4" max="64" value="16" />
+            <input type="number" class="aif-num-input" value="16" min="4" max="64" />
+          </div>
+        </div>
+        <div class="aif-param-row">
+          <div class="aif-param-label-row">
+            <label class="aif-param-label">Эпохи</label>
+            <span class="aif-param-val aif-param-val--emerald">80</span>
+          </div>
+          <div class="aif-param-controls">
+            <input type="range" class="aif-slider" min="10" max="400" value="80" />
+            <input type="number" class="aif-num-input" value="80" min="10" max="400" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="aif-btn-row">
+      <button class="aif-btn aif-btn--indigo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Запустить
+      </button>
+      <button class="aif-btn-ghost">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        Сброс
+      </button>
+    </div>
+
+    <!-- Пустое состояние -->
+    <div class="aif-empty aif-empty--dashed" style="padding:2rem 1rem;">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.3"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <p>Нажмите «Запустить» для визуализации</p>
+    </div>
+
+  </div>
+</div>
+
+<div class="demo-spacer"></div>
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

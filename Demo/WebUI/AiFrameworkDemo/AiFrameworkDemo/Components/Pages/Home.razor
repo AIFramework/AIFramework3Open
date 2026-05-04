@@ -1,0 +1,175 @@
+@page "/"
+@using AiFrameworkDemo.Core
+
+<PageTitle>AIFramework — SDK для AI-агентов и интеллектуальных систем на .NET</PageTitle>
+
+@* ═══════════════════════ HERO / LANDING ═══════════════════════ *@
+<section class="aif-hero aif-hero--landing">
+
+    @* Aurora-блобы *@
+    <div class="aif-hero-aurora" aria-hidden="true">
+        <div class="aif-aurora-blob aif-aurora-blob--1"></div>
+        <div class="aif-aurora-blob aif-aurora-blob--2"></div>
+        <div class="aif-aurora-blob aif-aurora-blob--3"></div>
+    </div>
+
+    @* Бейдж *@
+    <div class="aif-hero-badge">
+        <span class="aif-hero-badge-dot"></span>
+        Open Source &nbsp;·&nbsp; C# &nbsp;·&nbsp; .NET 10 &nbsp;·&nbsp; Apache 2.0
+    </div>
+
+    @* Логотип *@
+    <div class="aif-hero-logo-wrap">
+        <img class="aif-hero-logo"
+             src="ai3_0_logo.png"
+             alt="AIFramework 3.0 Open" />
+        <span class="aif-version-badge aif-version-badge--float">3.0 OPEN</span>
+    </div>
+
+    @* Заголовок *@
+    <h1 class="aif-hero-title">
+        <span class="aif-gradient-text">AI</span>Framework
+        <span class="aif-version-badge" style="font-size:0.42em;vertical-align:middle;margin-left:0.5em;">v3.0</span>
+    </h1>
+
+    @* Подзаголовок *@
+    <p class="aif-hero-sub">
+        Универсальный open-source SDK для создания AI-агентов и интеллектуальных систем
+        на .NET — от нейросетей и DSP до LLM-интеграции и MCP, с @AlgoSearchIndex.All.Count+ алгоритмами из коробки.
+    </p>
+
+    @* CTA-кнопки *@
+    <div class="aif-hero-actions">
+        <a class="aif-btn aif-btn--indigo" href="/browse">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Библиотеки
+        </a>
+        <a class="aif-btn aif-btn--violet" href="/catalog">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            Каталог алгоритмов
+        </a>
+        <a class="aif-btn-ghost" href="https://github.com/AIFramework/AIFramework3Open"
+           target="_blank" rel="noopener noreferrer" style="margin-left:0;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+            </svg>
+            GitHub
+        </a>
+    </div>
+
+    @* Статистика *@
+    <div class="aif-stat-grid">
+        <div class="aif-stat-card">
+            <span class="aif-stat-value">@AlgoSearchIndex.All.Count</span>
+            <span class="aif-stat-label">Алгоритмов</span>
+        </div>
+        <div class="aif-stat-card">
+            <span class="aif-stat-value">@LibraryRegistry.Modules.Count</span>
+            <span class="aif-stat-label">Библиотек</span>
+        </div>
+        <div class="aif-stat-card">
+            <span class="aif-stat-value">C#</span>
+            <span class="aif-stat-label">Язык</span>
+        </div>
+        <div class="aif-stat-card">
+            <span class="aif-stat-value" style="font-size:1rem;">Apache</span>
+            <span class="aif-stat-label">Лицензия 2.0</span>
+        </div>
+    </div>
+
+    @* Tech pills *@
+    <div class="aif-tech-pills">
+        <span class="aif-tech-pill aif-tech-pill--accent">AI Agents</span>
+        <span class="aif-tech-pill aif-tech-pill--accent">LLM</span>
+        <span class="aif-tech-pill aif-tech-pill--accent">MCP</span>
+        <span class="aif-tech-pill">Semantic Kernel</span>
+        <span class="aif-tech-pill">Neural Networks</span>
+        <span class="aif-tech-pill">ML</span>
+        <span class="aif-tech-pill">DSP</span>
+        <span class="aif-tech-pill">NLP · BM25</span>
+        <span class="aif-tech-pill">Computer Vision</span>
+        <span class="aif-tech-pill">ONNX</span>
+        <span class="aif-tech-pill">FAISS</span>
+        <span class="aif-tech-pill">Control Systems</span>
+        <span class="aif-tech-pill">Geometry</span>
+    </div>
+
+</section>
+
+@* ═══════════════════════ FEATURES ═══════════════════════ *@
+<section class="aif-features">
+    <h2 class="aif-features-title">Возможности платформы</h2>
+    <p class="aif-features-sub">Всё необходимое для построения AI-систем любой сложности</p>
+
+    <div class="aif-features-grid">
+
+        <div class="aif-feature-card">
+            <div class="aif-feature-icon aif-feature-icon--indigo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07 2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/>
+                </svg>
+            </div>
+            <h3>AI-агенты</h3>
+            <p>Автономный ReAct-цикл с function calling, prompt fallback, памятью и гардами безопасности.</p>
+        </div>
+
+        <div class="aif-feature-card">
+            <div class="aif-feature-icon aif-feature-icon--violet">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+            </div>
+            <h3>LLM-интеграция</h3>
+            <p>OpenAI, OpenRouter, DeepSeek, Google AI — потоковая генерация, мультимодальность, биллинг.</p>
+        </div>
+
+        <div class="aif-feature-card">
+            <div class="aif-feature-icon aif-feature-icon--emerald">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+            </div>
+            <h3>@AlgoSearchIndex.All.Count+ алгоритмов</h3>
+            <p>Нейросети, ML, DSP, NLP, CV, графы, геометрия, нечёткая логика и системы управления.</p>
+        </div>
+
+        <div class="aif-feature-card">
+            <div class="aif-feature-icon aif-feature-icon--cyan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
+                </svg>
+            </div>
+            <h3>MCP-сервер</h3>
+            <p>Любой алгоритм фреймворка как инструмент для Cursor, Claude Desktop и других MCP-клиентов.</p>
+        </div>
+
+        <div class="aif-feature-card">
+            <div class="aif-feature-icon aif-feature-icon--pink">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                </svg>
+            </div>
+            <h3>Semantic Kernel</h3>
+            <p>IChatCompletionService-обёртка поверх ILLMClient — оркестрация SK с сохранением биллинга.</p>
+        </div>
+
+        <div class="aif-feature-card">
+            <div class="aif-feature-icon aif-feature-icon--amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+            </div>
+            <h3>GPU-ускорение</h3>
+            <p>ILGPU/CUDA, cuFFT, OpenBLAS — высокопроизводительные вычисления на GPU и CPU.</p>
+        </div>
+
+    </div>
+</section>

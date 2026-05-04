@@ -1,0 +1,454 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Theme Toggle</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+  <!-- Anti-flash: читаем сохранённую тему до первой отрисовки -->
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+  <script src="../../utils/theme.js"></script>
+
+  <style>
+    .demo-wrap {
+      max-width: var(--aif-max-w-default);
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+    .demo-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+      color: var(--aif-text-4);
+      text-decoration: none;
+      margin-bottom: 2rem;
+      transition: color 0.15s;
+    }
+    .demo-back:hover { color: var(--aif-text-2); }
+
+    .demo-section { margin-bottom: 2.5rem; }
+    .demo-section-title {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--aif-text-5);
+      margin: 0 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--aif-border-dark);
+    }
+    .demo-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .demo-label {
+      font-size: 0.68rem;
+      color: var(--aif-text-5);
+      font-family: var(--aif-font-mono);
+      margin-top: 0.25rem;
+    }
+
+    /* ── Предпросмотр текущей темы ───────────────────────────────── */
+    .theme-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--aif-text-2);
+      background: var(--aif-surface-1);
+      border: 1px solid var(--aif-border);
+      border-radius: var(--aif-r-lg);
+      padding: 0.6rem 1rem;
+    }
+    .theme-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--aif-accent-light);
+      flex-shrink: 0;
+    }
+    #theme-label { transition: color 0.25s; }
+
+    /* ── Карточка-превью темы ─────────────────────────────────────── */
+    .theme-preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      max-width: 48rem;
+    }
+    @media (max-width: 600px) {
+      .theme-preview-grid { grid-template-columns: 1fr; }
+    }
+    .theme-preview {
+      border-radius: var(--aif-r-card);
+      border: 1px solid var(--aif-border);
+      overflow: hidden;
+    }
+    .theme-preview-header {
+      padding: 0.65rem 1rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .theme-preview--dark .theme-preview-header {
+      background: rgba(5, 6, 14, 0.9);
+      color: #64748b;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .theme-preview--light .theme-preview-header {
+      background: rgba(244, 245, 251, 0.94);
+      color: #94a3b8;
+      border-bottom: 1px solid rgba(0,0,40,0.08);
+    }
+    .theme-preview-body {
+      padding: 1rem;
+    }
+    .theme-preview--dark .theme-preview-body {
+      background: #080b17;
+    }
+    .theme-preview--light .theme-preview-body {
+      background: #e2e5f2;
+    }
+    .preview-swatch-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .preview-swatch {
+      height: 1.75rem;
+      flex: 1;
+      border-radius: 0.45rem;
+    }
+    .preview-text-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .preview-text {
+      height: 0.45rem;
+      border-radius: 0.25rem;
+    }
+    /* Тёмная тема — свотчи */
+    .theme-preview--dark .ps-bg   { background: #02030a; }
+    .theme-preview--dark .ps-card { background: rgba(14,17,38,0.97); border: 1px solid rgba(255,255,255,0.08); }
+    .theme-preview--dark .ps-acc  { background: #6366f1; }
+    .theme-preview--dark .pt-1    { background: #f8fafc; width: 75%; }
+    .theme-preview--dark .pt-2    { background: #94a3b8; width: 55%; }
+    .theme-preview--dark .pt-3    { background: #475569; width: 40%; }
+    /* Светлая тема — свотчи */
+    .theme-preview--light .ps-bg   { background: #f0f2fc; }
+    .theme-preview--light .ps-card { background: #ffffff; border: 1px solid rgba(0,0,40,0.10); }
+    .theme-preview--light .ps-acc  { background: #6366f1; }
+    .theme-preview--light .pt-1    { background: #0f172a; width: 75%; }
+    .theme-preview--light .pt-2    { background: #334155; width: 55%; }
+    .theme-preview--light .pt-3    { background: #94a3b8; width: 40%; }
+
+    /* ── Таблица токенов ─────────────────────────────────────────── */
+    .token-table {
+      width: 100%;
+      max-width: 48rem;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .token-table th {
+      text-align: left;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--aif-text-5);
+      border-bottom: 1px solid var(--aif-border);
+    }
+    .token-table td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--aif-border-dark);
+      color: var(--aif-text-3);
+      font-family: var(--aif-font-mono);
+      font-size: 0.72rem;
+      vertical-align: middle;
+    }
+    .token-table td:first-child { color: var(--aif-accent-light); }
+    .token-swatch {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 0.25rem;
+      border: 1px solid var(--aif-border);
+      vertical-align: middle;
+      margin-right: 0.45rem;
+    }
+
+    /* ── Пример в хедере ─────────────────────────────────────────── */
+    .demo-header-mock {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      height: 3.75rem;
+      border-radius: var(--aif-r-card);
+      background: var(--aif-topbar-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--aif-border);
+      max-width: 48rem;
+      transition: background 0.25s, border-color 0.25s;
+    }
+    .demo-header-brand {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--aif-text-1);
+    }
+    .demo-header-brand span { color: var(--aif-accent-light); }
+    .demo-header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+  </style>
+</head>
+<body>
+<div class="demo-wrap">
+
+  <a href="../index.html" class="demo-back">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Все компоненты
+  </a>
+
+  <!-- ═══ 1. Кнопка переключения ═══ -->
+  <div class="demo-section">
+    <p class="demo-section-title">.aif-theme-toggle — кнопка переключения темы</p>
+
+    <div class="demo-row">
+      <button class="aif-theme-toggle"
+              onclick="aifTheme.toggle(); updateStatus();"
+              title="Переключить тему"
+              aria-label="Переключить тему">
+        <!-- Солнце — отображается в тёмной теме (предложить перейти на светлую) -->
+        <svg class="aif-theme-icon aif-theme-icon--sun" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1"  x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22"   x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1"  y1="12" x2="3"  y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78"  x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <!-- Луна — отображается в светлой теме (предложить перейти на тёмную) -->
+        <svg class="aif-theme-icon aif-theme-icon--moon" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+
+      <span class="theme-status">
+        <span class="theme-status-dot"></span>
+        Активная тема: <strong id="theme-label">—</strong>
+      </span>
+    </div>
+
+    <p class="demo-label">.aif-theme-toggle · .aif-theme-icon--sun / --moon · управляется через [data-theme] на &lt;html&gt;</p>
+  </div>
+
+  <!-- ═══ 2. Пример в хедере ═══ -->
+  <div class="demo-section">
+    <p class="demo-section-title">Кнопка в контексте хедера</p>
+
+    <div class="demo-header-mock">
+      <div class="demo-header-brand"><span>AI</span>Framework</div>
+      <div class="demo-header-right">
+        <span class="aif-chip aif-chip--link" style="text-decoration:none;">Библиотеки</span>
+        <span class="aif-chip aif-chip--link" style="text-decoration:none;">Каталог</span>
+        <button class="aif-theme-toggle"
+                onclick="aifTheme.toggle(); updateStatus();"
+                title="Переключить тему"
+                aria-label="Переключить тему">
+          <svg class="aif-theme-icon aif-theme-icon--sun" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="aif-theme-icon aif-theme-icon--moon" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <p class="demo-label">.aif-header / .aif-header-right / .aif-theme-toggle</p>
+  </div>
+
+  <!-- ═══ 3. Превью обоих вариантов ═══ -->
+  <div class="demo-section">
+    <p class="demo-section-title">Превью — тёмная и светлая темы</p>
+
+    <div class="theme-preview-grid">
+      <!-- Тёмная -->
+      <div class="theme-preview theme-preview--dark">
+        <div class="theme-preview-header">Тёмная тема (dark)</div>
+        <div class="theme-preview-body">
+          <div class="preview-swatch-row">
+            <div class="preview-swatch ps-bg"   title="--aif-bg-void: #02030a"></div>
+            <div class="preview-swatch ps-card" title="--aif-card-bg"></div>
+            <div class="preview-swatch ps-acc"  title="--aif-accent: #6366f1"></div>
+          </div>
+          <div class="preview-text-row">
+            <div class="preview-text pt-1"></div>
+            <div class="preview-text pt-2"></div>
+            <div class="preview-text pt-3"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Светлая -->
+      <div class="theme-preview theme-preview--light">
+        <div class="theme-preview-header">Светлая тема (light)</div>
+        <div class="theme-preview-body">
+          <div class="preview-swatch-row">
+            <div class="preview-swatch ps-bg"   title="--aif-bg-void: #f0f2fc"></div>
+            <div class="preview-swatch ps-card" title="--aif-card-bg: white"></div>
+            <div class="preview-swatch ps-acc"  title="--aif-accent: #6366f1"></div>
+          </div>
+          <div class="preview-text-row">
+            <div class="preview-text pt-1"></div>
+            <div class="preview-text pt-2"></div>
+            <div class="preview-text pt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="demo-label">Акцентный цвет (#6366f1) одинаков в обеих темах — меняются только фон, поверхности и текст</p>
+  </div>
+
+  <!-- ═══ 4. Ключевые токены ═══ -->
+  <div class="demo-section">
+    <p class="demo-section-title">Ключевые токены светлой темы ([data-theme="light"])</p>
+
+    <table class="token-table">
+      <thead>
+        <tr>
+          <th>Токен</th>
+          <th>Тёмная тема</th>
+          <th>Светлая тема</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>--aif-bg-void</td>
+          <td><span class="token-swatch" style="background:#02030a;"></span>#02030a</td>
+          <td><span class="token-swatch" style="background:#f0f2fc; border-color:rgba(0,0,40,.15);"></span>#f0f2fc</td>
+        </tr>
+        <tr>
+          <td>--aif-bg</td>
+          <td><span class="token-swatch" style="background:#080b17;"></span>#080b17</td>
+          <td><span class="token-swatch" style="background:#e2e5f2; border-color:rgba(0,0,40,.15);"></span>#e2e5f2</td>
+        </tr>
+        <tr>
+          <td>--aif-card-bg</td>
+          <td><span class="token-swatch" style="background:rgba(14,17,38,.97);"></span>gradient dark</td>
+          <td><span class="token-swatch" style="background:#fff; border-color:rgba(0,0,40,.15);"></span>gradient white</td>
+        </tr>
+        <tr>
+          <td>--aif-text-1</td>
+          <td><span class="token-swatch" style="background:#f8fafc;"></span>#f8fafc</td>
+          <td><span class="token-swatch" style="background:#0f172a;"></span>#0f172a</td>
+        </tr>
+        <tr>
+          <td>--aif-text-3</td>
+          <td><span class="token-swatch" style="background:#94a3b8;"></span>#94a3b8</td>
+          <td><span class="token-swatch" style="background:#334155;"></span>#334155</td>
+        </tr>
+        <tr>
+          <td>--aif-border</td>
+          <td><span class="token-swatch" style="background:rgba(255,255,255,.08);"></span>rgba(255,255,255,.08)</td>
+          <td><span class="token-swatch" style="background:rgba(0,0,40,.10); border-color:rgba(0,0,40,.15);"></span>rgba(0,0,40,.10)</td>
+        </tr>
+        <tr>
+          <td>--aif-accent</td>
+          <td><span class="token-swatch" style="background:#6366f1;"></span>#6366f1</td>
+          <td><span class="token-swatch" style="background:#6366f1;"></span>#6366f1 (без изм.)</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="demo-label">Акцентные цвета, радиусы, шрифты и z-индексы не меняются между темами</p>
+  </div>
+
+  <!-- ═══ 5. JS API ═══ -->
+  <div class="demo-section">
+    <p class="demo-section-title">JS API — utils/theme.js</p>
+
+    <div class="aif-theory-card" style="max-width:42rem;">
+      <div class="aif-theory-title-row" style="padding-bottom:0.5rem;">
+        <code class="aif-mono-badge">window.aifTheme</code>
+      </div>
+      <div class="aif-theory-body">
+        <pre style="margin:0;font-family:var(--aif-font-mono);font-size:0.78rem;color:var(--aif-text-3);line-height:1.7;">aifTheme.get()      // → 'dark' | 'light'
+aifTheme.set('light') // применяет тему и сохраняет в localStorage
+aifTheme.toggle()   // переключает, возвращает новую тему
+aifTheme.apply()    // читает localStorage и применяет</pre>
+      </div>
+    </div>
+
+    <p class="demo-label" style="margin-top:0.5rem;">
+      Тема сохраняется в localStorage['aif-theme']. Anti-flash: inline-скрипт в &lt;head&gt; применяет тему до первой отрисовки.
+    </p>
+  </div>
+
+  <!-- ═══ 6. Разметка переключателя ═══ -->
+  <div class="demo-section">
+    <p class="demo-section-title">Разметка переключателя</p>
+    <div class="aif-theory-card" style="max-width:42rem;">
+      <div class="aif-theory-body">
+<pre style="margin:0;font-family:var(--aif-font-mono);font-size:0.74rem;color:var(--aif-text-3);line-height:1.7;">&lt;!-- В &lt;head&gt;: anti-flash --&gt;
+&lt;script&gt;(function(){
+  var t = localStorage.getItem('aif-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+})();&lt;/script&gt;
+
+&lt;!-- Перед &lt;/body&gt; --&gt;
+&lt;script src="AIFrameworkUIKit/utils/theme.js"&gt;&lt;/script&gt;
+
+&lt;!-- Кнопка --&gt;
+&lt;button class="aif-theme-toggle"
+        onclick="aifTheme.toggle()"
+        title="Переключить тему"&gt;
+  &lt;svg class="aif-theme-icon aif-theme-icon--sun" ...&gt;...&lt;/svg&gt;
+  &lt;svg class="aif-theme-icon aif-theme-icon--moon" ...&gt;...&lt;/svg&gt;
+&lt;/button&gt;</pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function updateStatus() {
+    var label = document.getElementById('theme-label');
+    if (label) {
+      var t = document.documentElement.getAttribute('data-theme') || 'dark';
+      label.textContent = t === 'light' ? 'светлая (light)' : 'тёмная (dark)';
+    }
+  }
+  // Установить статус при загрузке
+  document.addEventListener('DOMContentLoaded', updateStatus);
+</script>
+</body>
+</html>
+

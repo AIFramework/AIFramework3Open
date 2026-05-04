@@ -1,0 +1,9 @@
+<Project>
+  <!-- Подключите в AI.ML.csproj: <Import Project="StyleCop.props" /> после настройки подавлений SA*. -->
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

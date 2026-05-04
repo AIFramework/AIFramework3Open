@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Form Controls</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ HEADER ═══════ -->
+<header class="aif-header">
+  <div class="aif-header-inner">
+    <a class="aif-brand" href="../index.html">
+      <span class="aif-brand-text"><span class="aif-brand-prefix">AI</span>Framework</span>
+      <span class="aif-version-badge">v3.0</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span style="font-size:0.75rem;color:var(--aif-text-5);">UI Kit — Form Controls</span>
+      <a class="aif-gh-btn" href="https://github.com/AIFramework/AIFramework3Open" target="_blank">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════ Params Panel ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">Params Panel — полный пример</p>
+  <div style="max-width:28rem;">
+    <div class="aif-params-panel">
+      <div class="aif-params-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Параметры
+      </div>
+      <div class="aif-params-body">
+        <!-- Slider + num-input с param-val indigo -->
+        <div class="aif-param-row">
+          <div class="aif-param-label-row">
+            <label class="aif-param-label">Число точек</label>
+            <span class="aif-param-unit">шт.</span>
+            <span class="aif-tip" data-tip="Суммарный объём обучающей выборки">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </span>
+            <span class="aif-param-val aif-param-val--indigo">160</span>
+          </div>
+          <div class="aif-param-controls">
+            <input type="range" class="aif-slider" min="40" max="400" value="160" />
+            <input type="number" class="aif-num-input" value="160" min="40" max="400" />
+          </div>
+        </div>
+
+        <!-- Slider + num-input с param-val emerald -->
+        <div class="aif-param-row">
+          <div class="aif-param-label-row">
+            <label class="aif-param-label">Скорость обучения</label>
+            <span class="aif-param-val aif-param-val--emerald">0.01</span>
+          </div>
+          <div class="aif-param-controls">
+            <input type="range" class="aif-slider" min="0.001" max="0.05" step="0.001" value="0.01" />
+            <input type="number" class="aif-num-input" value="0.01" />
+          </div>
+        </div>
+
+        <!-- Code input -->
+        <div class="aif-param-row">
+          <label class="aif-param-label">Выражение</label>
+          <textarea class="aif-code-input" rows="3" spellcheck="false">sin(1.5*x) + 0.5*x</textarea>
+        </div>
+
+        <!-- Text input -->
+        <div class="aif-param-row">
+          <label class="aif-param-label">Текстовый параметр</label>
+          <textarea class="aif-text-input" rows="2" placeholder="Введите текст..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ Param Values — все цвета ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">Param Value — цветовые варианты</p>
+  <div class="demo-row" style="align-items:center;">
+    <div class="demo-col">
+      <span class="aif-param-val aif-param-val--sky">42</span>
+      <span class="demo-label">--sky</span>
+    </div>
+    <div class="demo-col">
+      <span class="aif-param-val aif-param-val--indigo">160</span>
+      <span class="demo-label">--indigo</span>
+    </div>
+    <div class="demo-col">
+      <span class="aif-param-val aif-param-val--violet">0.95</span>
+      <span class="demo-label">--violet</span>
+    </div>
+    <div class="demo-col">
+      <span class="aif-param-val aif-param-val--emerald">0.01</span>
+      <span class="demo-label">--emerald</span>
+    </div>
+    <div class="demo-col">
+      <span class="aif-param-val aif-param-val--amber">256</span>
+      <span class="demo-label">--amber</span>
+    </div>
+    <div class="demo-col">
+      <span class="aif-param-val aif-param-val--pink">3.14</span>
+      <span class="demo-label">--pink</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ Standalone inputs ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">Standalone inputs</p>
+  <div style="max-width:28rem;">
+    <div class="demo-col" style="gap:1rem;">
+      <div class="demo-col">
+        <span class="demo-label">.aif-slider</span>
+        <input type="range" class="aif-slider" min="0" max="100" value="50" />
+      </div>
+      <div class="demo-col">
+        <span class="demo-label">.aif-num-input</span>
+        <input type="number" class="aif-num-input" value="80" />
+      </div>
+      <div class="demo-col">
+        <span class="demo-label">.aif-code-input</span>
+        <textarea class="aif-code-input" rows="2" spellcheck="false">Math.Pow(x, 2) + 1</textarea>
+      </div>
+      <div class="demo-col">
+        <span class="demo-label">.aif-text-input</span>
+        <textarea class="aif-text-input" rows="2" placeholder="Введите значение...">Пример текста</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="demo-spacer"></div>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer class="aif-footer">
+  <div class="aif-footer-inner">
+    <a class="aif-footer-link" href="../index.html">← Все компоненты</a>
+    <span class="aif-footer-sep">·</span>
+    <span>AI<span style="color:var(--aif-accent-light);">Framework</span> <span style="color:var(--aif-accent-light);">3.0</span> UI Kit</span>
+    <span class="aif-footer-sep">·</span>
+    <a class="aif-footer-link" href="https://github.com/AIFramework/AIFramework3Open" target="_blank">GitHub</a>
+  </div>
+</footer>
+
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

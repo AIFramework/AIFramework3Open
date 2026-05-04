@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Hero Section</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="demo-section"><a href="../index.html" style="font-size:0.8rem;color:var(--aif-text-4);">← Все компоненты</a></div>
+
+<!-- ═══════ HERO FULL ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-hero — полный вариант</p>
+
+  <div class="aif-hero">
+    <div class="aif-hero-logo-wrap">
+      <div style="width:120px;height:120px;border-radius:1.25rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);"></div>
+    </div>
+    <h1 class="aif-hero-title">
+      <span class="aif-gradient-text">AI</span>Framework
+      <span class="aif-version-badge">v3.0</span>
+    </h1>
+    <p class="aif-hero-sub">Библиотека алгоритмов машинного обучения, нейронных сетей и цифровой обработки сигналов для платформы .NET</p>
+    <div class="aif-hero-meta">
+      <span class="aif-chip">Apache-2.0</span>
+      <span class="aif-chip">.NET 8+</span>
+      <span class="aif-chip">C#</span>
+    </div>
+  </div>
+  <span class="demo-label">.aif-hero / -logo-wrap / -title / -sub / -meta + .aif-gradient-text + .aif-version-badge + .aif-chip</span>
+</div>
+
+<!-- ═══════ HERO COMPACT ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-hero--sm — компактный вариант</p>
+
+  <div class="aif-hero aif-hero--sm">
+    <a class="aif-hero-back" href="#">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      AI.NeuralNetworks
+    </a>
+    <div class="aif-icon-pill aif-icon-pill--lg aif-icon-pill--indigo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="5" cy="6" r="1.8"/><circle cx="5" cy="12" r="1.8"/><circle cx="5" cy="18" r="1.8"/><circle cx="12" cy="8" r="1.8"/><circle cx="12" cy="16" r="1.8"/><circle cx="19" cy="12" r="1.8"/><line x1="6.6" y1="6" x2="10.4" y2="8"/><line x1="6.6" y1="12" x2="10.4" y2="8"/><line x1="6.6" y1="12" x2="10.4" y2="16"/><line x1="6.6" y1="18" x2="10.4" y2="16"/><line x1="13.6" y1="8" x2="17.4" y2="12"/><line x1="13.6" y1="16" x2="17.4" y2="12"/></svg>
+    </div>
+    <h1 class="aif-hero-title aif-hero-title--sm">MLP-классификатор</h1>
+    <p class="aif-hero-desc">Многослойный перцептрон для задач бинарной и многоклассовой классификации на плоскости.</p>
+  </div>
+  <span class="demo-label">.aif-hero--sm / .aif-hero-back / .aif-icon-pill--lg / .aif-hero-title--sm / .aif-hero-desc</span>
+</div>
+
+<!-- ═══════ SUMMARY ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-summary</p>
+  <div class="aif-summary" style="max-width:48rem;">
+    MLP (многослойный перцептрон) — это нейронная сеть прямого распространения, состоящая из входного, одного или нескольких скрытых слоёв и выходного слоя. Каждый нейрон применяет взвешенную сумму входов и нелинейную функцию активации. Обучение происходит по алгоритму обратного распространения ошибки с использованием градиентного спуска.
+  </div>
+  <span class="demo-label">.aif-summary</span>
+</div>
+
+<!-- ═══════ LANDING HERO ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-hero--landing — лендинг с aurora, badge, actions, stats, tech-pills</p>
+
+  <div class="aif-hero aif-hero--landing" style="position:relative;">
+    <!-- Aurora -->
+    <div class="aif-hero-aurora" aria-hidden="true">
+      <div class="aif-aurora-blob aif-aurora-blob--1"></div>
+      <div class="aif-aurora-blob aif-aurora-blob--2"></div>
+      <div class="aif-aurora-blob aif-aurora-blob--3"></div>
+    </div>
+
+    <!-- Badge -->
+    <div class="aif-hero-badge">
+      <span class="aif-hero-badge-dot"></span>
+      Open Source &nbsp;·&nbsp; C# &nbsp;·&nbsp; .NET 10 &nbsp;·&nbsp; Apache 2.0
+    </div>
+
+    <!-- Logo placeholder -->
+    <div class="aif-hero-logo-wrap">
+      <div style="width:120px;height:120px;border-radius:1.25rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.4rem;">AI</div>
+      <span class="aif-version-badge aif-version-badge--float">3.0 OPEN</span>
+    </div>
+
+    <!-- Title -->
+    <h1 class="aif-hero-title">
+      <span class="aif-gradient-text">AI</span>Framework
+      <span class="aif-version-badge" style="font-size:0.42em;vertical-align:middle;margin-left:0.5em;">v3.0</span>
+    </h1>
+
+    <!-- Sub -->
+    <p class="aif-hero-sub">
+      Открытая библиотека алгоритмов ИИ для .NET: нейронные сети, DSP, NLP, компьютерное зрение, классическая математика.
+    </p>
+
+    <!-- Actions -->
+    <div class="aif-hero-actions">
+      <button class="aif-btn aif-btn--indigo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Библиотеки
+      </button>
+      <button class="aif-btn aif-btn--violet">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Каталог алгоритмов
+      </button>
+      <button class="aif-btn-ghost">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        GitHub
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="aif-stat-grid">
+      <div class="aif-stat-card">
+        <span class="aif-stat-value">42</span>
+        <span class="aif-stat-label">Алгоритмов</span>
+      </div>
+      <div class="aif-stat-card">
+        <span class="aif-stat-value">8</span>
+        <span class="aif-stat-label">Библиотек</span>
+      </div>
+      <div class="aif-stat-card">
+        <span class="aif-stat-value">C#</span>
+        <span class="aif-stat-label">Язык</span>
+      </div>
+      <div class="aif-stat-card">
+        <span class="aif-stat-value" style="font-size:1rem;">Apache</span>
+        <span class="aif-stat-label">Лицензия 2.0</span>
+      </div>
+    </div>
+
+    <!-- Tech pills -->
+    <div class="aif-tech-pills">
+      <span class="aif-tech-pill">Neural Networks</span>
+      <span class="aif-tech-pill">Classic Math</span>
+      <span class="aif-tech-pill">DSP</span>
+      <span class="aif-tech-pill">NLP · BM25</span>
+      <span class="aif-tech-pill">ONNX</span>
+      <span class="aif-tech-pill">Computer Vision</span>
+      <span class="aif-tech-pill">ML</span>
+      <span class="aif-tech-pill">FAISS</span>
+      <span class="aif-tech-pill">Control Systems</span>
+      <span class="aif-tech-pill">Geometry</span>
+    </div>
+  </div>
+  <span class="demo-label">
+    .aif-hero--landing / .aif-hero-aurora / .aif-aurora-blob--1..3 / .aif-hero-badge / .aif-hero-badge-dot /
+    .aif-hero-actions / .aif-stat-grid / .aif-stat-card / .aif-stat-value / .aif-stat-label /
+    .aif-tech-pills / .aif-tech-pill
+  </span>
+</div>
+
+<div class="demo-spacer"></div>
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

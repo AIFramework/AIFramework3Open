@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>AI.Solvers.Math</RootNamespace>
+    <AssemblyName>AI.Solvers.Math</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+  </ItemGroup>
+
+</Project>

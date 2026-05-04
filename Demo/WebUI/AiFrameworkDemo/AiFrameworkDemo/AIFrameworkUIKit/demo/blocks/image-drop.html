@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Image Drop Zone</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="demo-section"><a href="../index.html" style="font-size:0.8rem;color:var(--aif-text-4);">← Все компоненты</a></div>
+
+<!-- ═══════ IMAGE DROP — пустой ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-img-drop — пустое состояние</p>
+  <div class="demo-row" style="gap:1.5rem;">
+    <div class="demo-col" style="max-width:20rem;">
+      <label class="aif-img-drop">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="opacity:0.35"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span class="aif-img-drop-text">Нажмите чтобы выбрать файл</span>
+        <span class="aif-img-drop-hint">PNG, JPG, BMP, любое изображение</span>
+      </label>
+      <span class="demo-label">.aif-img-drop / -text / -hint</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ IMAGE DROP — загружено ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-img-drop — загруженное состояние</p>
+  <div class="demo-row" style="gap:1.5rem;">
+    <div class="demo-col" style="max-width:20rem;">
+      <label class="aif-img-drop">
+        <div style="width:100%;height:140px;background:linear-gradient(135deg,#1a1a3e,#2a1a4e);border-radius:6px;"></div>
+        <span class="aif-img-drop-change">Нажмите чтобы заменить изображение</span>
+      </label>
+      <span class="demo-label">.aif-img-drop с .aif-img-drop-change</span>
+    </div>
+  </div>
+</div>
+
+<div class="demo-spacer"></div>
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

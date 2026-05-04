@@ -1,0 +1,416 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Catalog / Search Page</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+    body { background: var(--aif-bg); color: var(--aif-text-1); font-family: var(--aif-font-sans); }
+    .demo-page-title { font-size: 1.35rem; font-weight: 900; color: var(--aif-text-1); letter-spacing: -0.04em; margin: 2.5rem auto 0; padding: 0 1.5rem; max-width: var(--aif-max-w-default); }
+    .demo-page-desc { font-size: 0.82rem; color: var(--aif-text-4); padding: 0 1.5rem; max-width: var(--aif-max-w-default); margin: 0.4rem auto 2.5rem; }
+  </style>
+</head>
+<body>
+
+  <p class="demo-page-title"><span class="aif-gradient-text">AI</span>Framework UI Kit — Catalog / Search Page</p>
+  <p class="demo-page-desc">Компоненты страницы каталога с фасетным фильтром и полнотекстовым поиском (BM25). Файл стилей: <code style="font-family:var(--aif-font-mono);font-size:0.8em;color:var(--aif-accent-light)">catalog-page.css</code></p>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       1. SIDEBAR — FACET BUTTONS
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <p class="demo-section-title">1. Sidebar — Facet Buttons (.aif-facet-btn)</p>
+    <div class="demo-row" style="align-items:flex-start;">
+
+      <!-- Default sidebar -->
+      <div class="demo-col" style="width:220px;">
+        <span class="demo-label">.aif-catalog-sidebar</span>
+        <aside class="aif-catalog-sidebar" style="position:static;">
+          <p class="aif-catalog-sidebar-title">Библиотека</p>
+          <div class="aif-facet-group">
+            <button class="aif-facet-btn aif-facet-btn--active">
+              <span style="display:flex;align-items:center;justify-content:center;width:1.7rem;height:1.7rem;flex-shrink:0;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+              </span>
+              Все библиотеки
+              <span class="aif-facet-count">127</span>
+            </button>
+            <button class="aif-facet-btn aif-facet-btn--sky">
+              <div class="aif-icon-pill aif-icon-pill--sky">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </div>
+              AI.DSP
+              <span class="aif-facet-count">14</span>
+            </button>
+            <button class="aif-facet-btn aif-facet-btn--indigo aif-facet-btn--active">
+              <div class="aif-icon-pill aif-icon-pill--indigo">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+              </div>
+              AI.ClassicMath
+              <span class="aif-facet-count">32</span>
+            </button>
+            <button class="aif-facet-btn aif-facet-btn--violet">
+              <div class="aif-icon-pill aif-icon-pill--violet">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h16M4 10h10M4 14h12M4 18h8"/><circle cx="19" cy="16" r="3"/><line x1="21.5" y1="18.5" x2="23" y2="20"/></svg>
+              </div>
+              AI.NLP
+              <span class="aif-facet-count">8</span>
+            </button>
+            <button class="aif-facet-btn aif-facet-btn--emerald">
+              <div class="aif-icon-pill aif-icon-pill--emerald">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              AI.CV
+              <span class="aif-facet-count">11</span>
+            </button>
+            <button class="aif-facet-btn aif-facet-btn--amber">
+              <div class="aif-icon-pill aif-icon-pill--amber">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+              </div>
+              AI.Algorithms
+              <span class="aif-facet-count">20</span>
+            </button>
+            <button class="aif-facet-btn aif-facet-btn--pink">
+              <div class="aif-icon-pill aif-icon-pill--pink">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2m-3.5-7.5-1.5 1.5M7 17l-1.5 1.5m0-13L7 7m10 10 1.5 1.5"/></svg>
+              </div>
+              AI.ML
+              <span class="aif-facet-count">18</span>
+            </button>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Active states showcase -->
+      <div class="demo-col">
+        <span class="demo-label">Все цветовые состояния --active</span>
+        <div style="display:flex;flex-direction:column;gap:0.2rem;width:200px;">
+          <button class="aif-facet-btn aif-facet-btn--active">Default active</button>
+          <button class="aif-facet-btn aif-facet-btn--sky aif-facet-btn--active">Sky active</button>
+          <button class="aif-facet-btn aif-facet-btn--indigo aif-facet-btn--active">Indigo active</button>
+          <button class="aif-facet-btn aif-facet-btn--violet aif-facet-btn--active">Violet active</button>
+          <button class="aif-facet-btn aif-facet-btn--emerald aif-facet-btn--active">Emerald active</button>
+          <button class="aif-facet-btn aif-facet-btn--amber aif-facet-btn--active">Amber active</button>
+          <button class="aif-facet-btn aif-facet-btn--pink aif-facet-btn--active">Pink active</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="demo-spacer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       2. SEARCH BAR
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <p class="demo-section-title">2. Search Bar (.aif-catalog-search-bar)</p>
+    <div class="demo-col" style="max-width:560px;gap:0.75rem;">
+
+      <span class="demo-label">Пустой запрос</span>
+      <div class="aif-catalog-search-bar">
+        <svg class="aif-catalog-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="aif-catalog-search-input" type="text" placeholder="Поиск по алгоритмам, классам, темам…" />
+      </div>
+
+      <span class="demo-label">С запросом и кнопкой очистки</span>
+      <div class="aif-catalog-search-bar">
+        <svg class="aif-catalog-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="aif-catalog-search-input" type="text" value="нейронная сеть BM25" />
+        <button class="aif-catalog-search-clear" title="Очистить">X</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="demo-spacer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       3. CATALOG HEADER
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <p class="demo-section-title">3. Catalog Header (.aif-catalog-header)</p>
+    <div class="demo-col" style="gap:0.75rem;">
+
+      <span class="demo-label">Без фильтров</span>
+      <div class="aif-catalog-header">
+        <span class="aif-catalog-count">127 алгоритмов</span>
+      </div>
+
+      <span class="demo-label">С активным фасетом и BM25</span>
+      <div class="aif-catalog-header">
+        <span class="aif-catalog-count">8 алгоритмов · BM25</span>
+        <span class="aif-catalog-filter-tag">
+          AI.NLP
+          <span style="cursor:pointer;opacity:0.7;">X</span>
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="demo-spacer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       4. ALGORITHM RESULT CARDS
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <p class="demo-section-title">4. Algorithm Result Cards (.aif-algo-result-card)</p>
+
+    <div class="aif-catalog-results" style="max-width:900px;">
+
+      <a href="#" class="aif-algo-result-card aif-algo-result-card--violet">
+        <div class="aif-algo-result-card-header">
+          <div class="aif-icon-pill aif-icon-pill--violet" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h16M4 10h10M4 14h12M4 18h8"/><circle cx="19" cy="16" r="3"/><line x1="21.5" y1="18.5" x2="23" y2="20"/></svg>
+          </div>
+          <span class="aif-algo-result-card-lib">AI.NLP</span>
+          <span class="aif-algo-result-card-sep">·</span>
+          <span class="aif-algo-result-card-cat">TF-IDF</span>
+        </div>
+        <h3 class="aif-algo-result-card-title">BM25 и поиск</h3>
+        <p class="aif-algo-result-card-sub">Okapi BM25: ранжирование документов с насыщением TF и нормализацией длины; сравнение с TF-IDF</p>
+        <code class="aif-algo-result-card-api">AI.NLP.BM25</code>
+      </a>
+
+      <a href="#" class="aif-algo-result-card aif-algo-result-card--indigo">
+        <div class="aif-algo-result-card-header">
+          <div class="aif-icon-pill aif-icon-pill--indigo" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+          </div>
+          <span class="aif-algo-result-card-lib">AI.ClassicMath</span>
+          <span class="aif-algo-result-card-sep">·</span>
+          <span class="aif-algo-result-card-cat">Линейная алгебра</span>
+        </div>
+        <h3 class="aif-algo-result-card-title">QR-разложение</h3>
+        <p class="aif-algo-result-card-sub">Разложение матрицы на ортогональную и верхнетреугольную. Решение задач МНК и вычисление собственных значений.</p>
+        <code class="aif-algo-result-card-api">AI.DataStructs.Algebraic.Matrix</code>
+      </a>
+
+      <a href="#" class="aif-algo-result-card aif-algo-result-card--emerald">
+        <div class="aif-algo-result-card-header">
+          <div class="aif-icon-pill aif-icon-pill--emerald" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <span class="aif-algo-result-card-lib">AI.CV</span>
+          <span class="aif-algo-result-card-sep">·</span>
+          <span class="aif-algo-result-card-cat">Фильтрация</span>
+        </div>
+        <h3 class="aif-algo-result-card-title">Гауссов фильтр</h3>
+        <p class="aif-algo-result-card-sub">Размытие изображения ядром Гаусса. Сглаживание шума с сохранением краёв при малых σ.</p>
+        <code class="aif-algo-result-card-api">AI.CV.Filters.GaussianFilter</code>
+      </a>
+
+      <a href="#" class="aif-algo-result-card aif-algo-result-card--amber">
+        <div class="aif-algo-result-card-header">
+          <div class="aif-icon-pill aif-icon-pill--amber" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+          </div>
+          <span class="aif-algo-result-card-lib">AI.Algorithms</span>
+          <span class="aif-algo-result-card-sep">·</span>
+          <span class="aif-algo-result-card-cat">Сортировка</span>
+        </div>
+        <h3 class="aif-algo-result-card-title">QuickSort</h3>
+        <p class="aif-algo-result-card-sub">Быстрая сортировка разделением по опорному элементу. O(n log n) среднее, O(n²) худший случай.</p>
+        <code class="aif-algo-result-card-api">AI.Algorithms.Sorting.QuickSort</code>
+      </a>
+
+      <a href="#" class="aif-algo-result-card aif-algo-result-card--sky">
+        <div class="aif-algo-result-card-header">
+          <div class="aif-icon-pill aif-icon-pill--sky" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="aif-algo-result-card-lib">AI.DSP</span>
+          <span class="aif-algo-result-card-sep">·</span>
+          <span class="aif-algo-result-card-cat">Преобразования</span>
+        </div>
+        <h3 class="aif-algo-result-card-title">Быстрое преобразование Фурье</h3>
+        <p class="aif-algo-result-card-sub">FFT Кули-Тьюки: дискретное преобразование Фурье за O(n log n). Анализ спектра и фильтрация сигналов.</p>
+        <code class="aif-algo-result-card-api">AI.DSP.Transforms.FFT</code>
+      </a>
+
+      <a href="#" class="aif-algo-result-card aif-algo-result-card--pink">
+        <div class="aif-algo-result-card-header">
+          <div class="aif-icon-pill aif-icon-pill--pink" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <span class="aif-algo-result-card-lib">AI.ML</span>
+          <span class="aif-algo-result-card-sep">·</span>
+          <span class="aif-algo-result-card-cat">Кластеризация</span>
+        </div>
+        <h3 class="aif-algo-result-card-title">K-Means</h3>
+        <p class="aif-algo-result-card-sub">Итеративная кластеризация по минимуму квадратичных отклонений. Выбор числа кластеров k.</p>
+        <code class="aif-algo-result-card-api">AI.ML.Clustering.KMeans</code>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="demo-spacer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       5. FULL LAYOUT PREVIEW
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <p class="demo-section-title">5. Полный layout (.aif-catalog)</p>
+  </div>
+
+  <div class="aif-catalog">
+    <aside class="aif-catalog-sidebar" style="position:static;">
+      <p class="aif-catalog-sidebar-title">Библиотека</p>
+      <div class="aif-facet-group">
+        <button class="aif-facet-btn aif-facet-btn--active">
+          <span style="display:flex;align-items:center;justify-content:center;width:1.7rem;height:1.7rem;flex-shrink:0;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </span>
+          Все библиотеки
+          <span class="aif-facet-count">127</span>
+        </button>
+        <button class="aif-facet-btn aif-facet-btn--violet">
+          <div class="aif-icon-pill aif-icon-pill--violet">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h16M4 10h10M4 14h12M4 18h8"/><circle cx="19" cy="16" r="3"/><line x1="21.5" y1="18.5" x2="23" y2="20"/></svg>
+          </div>
+          AI.NLP
+          <span class="aif-facet-count">8</span>
+        </button>
+        <button class="aif-facet-btn aif-facet-btn--indigo">
+          <div class="aif-icon-pill aif-icon-pill--indigo">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+          </div>
+          AI.ClassicMath
+          <span class="aif-facet-count">32</span>
+        </button>
+        <button class="aif-facet-btn aif-facet-btn--emerald">
+          <div class="aif-icon-pill aif-icon-pill--emerald">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          AI.CV
+          <span class="aif-facet-count">11</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="aif-catalog-main">
+      <div class="aif-catalog-search-bar">
+        <svg class="aif-catalog-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="aif-catalog-search-input" type="text" value="нейронная сеть" />
+        <button class="aif-catalog-search-clear">X</button>
+      </div>
+      <div class="aif-catalog-header">
+        <span class="aif-catalog-count">3 алгоритма · BM25</span>
+      </div>
+      <div class="aif-catalog-results">
+        <a href="#" class="aif-algo-result-card aif-algo-result-card--violet">
+          <div class="aif-algo-result-card-header">
+            <div class="aif-icon-pill aif-icon-pill--violet" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h16M4 10h10M4 14h12M4 18h8"/><circle cx="19" cy="16" r="3"/><line x1="21.5" y1="18.5" x2="23" y2="20"/></svg>
+            </div>
+            <span class="aif-algo-result-card-lib">AI.NLP</span>
+            <span class="aif-algo-result-card-sep">·</span>
+            <span class="aif-algo-result-card-cat">TF-IDF</span>
+          </div>
+          <h3 class="aif-algo-result-card-title">BM25 и поиск</h3>
+          <p class="aif-algo-result-card-sub">Okapi BM25: ранжирование документов с насыщением TF и нормализацией длины</p>
+          <code class="aif-algo-result-card-api">AI.NLP.BM25</code>
+        </a>
+        <a href="#" class="aif-algo-result-card aif-algo-result-card--emerald">
+          <div class="aif-algo-result-card-header">
+            <div class="aif-icon-pill aif-icon-pill--emerald" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M5 20v-2a7 7 0 0114 0v2"/></svg>
+            </div>
+            <span class="aif-algo-result-card-lib">AI.NeuralNetworks</span>
+            <span class="aif-algo-result-card-sep">·</span>
+            <span class="aif-algo-result-card-cat">Слои</span>
+          </div>
+          <h3 class="aif-algo-result-card-title">Полносвязный слой</h3>
+          <p class="aif-algo-result-card-sub">Dense Layer: матричное умножение с функцией активации. Основа многослойных персептронов.</p>
+          <code class="aif-algo-result-card-api">AI.NeuralNetworks.Layers.DenseLayer</code>
+        </a>
+        <a href="#" class="aif-algo-result-card aif-algo-result-card--violet">
+          <div class="aif-algo-result-card-header">
+            <div class="aif-icon-pill aif-icon-pill--violet" style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h16M4 10h10M4 14h12M4 18h8"/></svg>
+            </div>
+            <span class="aif-algo-result-card-lib">AI.NLP</span>
+            <span class="aif-algo-result-card-sep">·</span>
+            <span class="aif-algo-result-card-cat">TF-IDF</span>
+          </div>
+          <h3 class="aif-algo-result-card-title">TF-IDF и поиск</h3>
+          <p class="aif-algo-result-card-sub">Вычисление TF, IDF, TF-IDF для корпуса; поиск релевантного документа по запросу</p>
+          <code class="aif-algo-result-card-api">AI.NLP.TFIDF</code>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-spacer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       6. BROWSE SECTION
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <p class="demo-section-title">6. Browse section (.aif-browse-section + .aif-browse-header)</p>
+  </div>
+
+  <div class="aif-browse-section">
+    <div class="aif-browse-header">
+      <div class="aif-browse-header-left">
+        <h2 class="aif-browse-title">Изучайте алгоритмы</h2>
+        <span class="aif-browse-meta">8 библиотек · 127 алгоритмов</span>
+      </div>
+      <div class="aif-seg" role="tablist">
+        <button class="aif-seg-btn aif-seg-btn--on" role="tab">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" style="margin-right:0.25rem;">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+          Библиотеки
+        </button>
+        <button class="aif-seg-btn" role="tab">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" style="margin-right:0.25rem;">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Каталог
+        </button>
+      </div>
+    </div>
+
+    <!-- placeholder для карточек -->
+    <div style="background:var(--aif-surface-1);border:1px dashed var(--aif-border);border-radius:var(--aif-r-card);padding:2rem;text-align:center;color:var(--aif-text-5);font-size:0.8rem;">
+      Здесь отображается .aif-cards-grid или .aif-catalog в зависимости от выбранного вида
+    </div>
+  </div>
+
+  <div class="demo-spacer"></div>
+
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

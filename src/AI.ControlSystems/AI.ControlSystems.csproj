@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPublishable>False</IsPublishable>
+    <RootNamespace>AI</RootNamespace>
+    <AssemblyName>AI.ControlSystems</AssemblyName>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
+    <ProjectReference Include="..\AI\AI.csproj" />
+  </ItemGroup>
+
+</Project>

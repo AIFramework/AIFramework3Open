@@ -1,0 +1,53 @@
+@page "/lib/{LibId}/cat/{CatId}"
+
+<PageTitle>@(_cat?.Title ?? CatId) — @(_mod?.Name ?? LibId)</PageTitle>
+
+@if (_mod is null || _cat is null)
+{
+    <div class="aif-empty"><p>Категория не найдена.</p><a href="/">← На главную</a></div>
+}
+else
+{
+    <nav class="aif-topbar aif-topbar--@_mod.Color">
+        <div class="aif-topbar-inner">
+            <a class="aif-topbar-back" href="/lib/@_mod.Id">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                </svg>
+                @_mod.Name
+            </a>
+            <span class="aif-topbar-sep">›</span>
+            <span class="aif-topbar-name">@_cat.Title</span>
+        </div>
+    </nav>
+
+    @if (!string.IsNullOrEmpty(_cat.Summary))
+    {
+        <p class="aif-summary">@_cat.Summary</p>
+    }
+
+    <div class="aif-cards-grid aif-cards-grid--xs">
+        @foreach (var algo in _cat.Algorithms)
+        {
+            <a href="/lib/@_mod.Id/algo/@algo.Key" class="aif-card aif-card--vertical aif-card--@_mod.Color"
+               title="@algo.ApiClass">
+                <h3 class="aif-card-title aif-card-title--sm">@algo.Title</h3>
+                <p class="aif-card-desc aif-card-desc--sm">@algo.Subtitle</p>
+            </a>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string LibId { get; set; } = "";
+    [Parameter] public string CatId { get; set; } = "";
+    private ILibraryModule? _mod;
+    private CategoryDef? _cat;
+
+    protected override void OnParametersSet()
+    {
+        _mod = LibraryRegistry.Get(LibId);
+        _cat = _mod?.Categories.FirstOrDefault(c => c.Id == CatId);
+    }
+}

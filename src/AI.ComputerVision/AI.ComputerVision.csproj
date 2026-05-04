@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>AI</RootNamespace>
+    <AssemblyName>AI.ComputerVision</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>disable</Nullable>
+    <LangVersion>12.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.116.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.DataPrepaire\AI.DataPrepaire.csproj" />
+    <ProjectReference Include="..\AI.DSP\AI.DSP.csproj" />
+    <ProjectReference Include="..\AI.ONNX\AI.ONNX.csproj" />
+    <ProjectReference Include="..\AI\AI.csproj" />
+  </ItemGroup>
+
+</Project>

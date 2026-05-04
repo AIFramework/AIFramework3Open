@@ -1,0 +1,136 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Overlay (Modal) Component
+   Источник: Demo/WebUI/.../AlgoPage.razor.css (строки 357–365)
+
+   ВСЕ ЦВЕТА — через токены из tokens.css (--aif-overlay-*, --aif-status-*).
+   Переключение тёмная/светлая тема происходит автоматически.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Фон overlay ────────────────────────────────────────────────── */
+.aif-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--aif-z-overlay);
+  background: var(--aif-overlay-scrim);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: aif-fade-up 0.18s ease both;
+}
+
+/* ─── Контейнер содержимого ──────────────────────────────────────── */
+.aif-overlay-box {
+  display: flex;
+  flex-direction: column;
+  max-width: min(94vw, 72rem);
+  max-height: 92vh;
+  width: 100%;
+  border-radius: 1.5rem;
+  border: 1px solid var(--aif-overlay-box-border);
+  background: var(--aif-overlay-box-bg);
+  box-shadow: 0 40px 120px -20px var(--aif-overlay-box-shadow);
+  overflow: hidden;
+}
+
+/* ─── Хедер overlay ──────────────────────────────────────────────── */
+.aif-overlay-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--aif-border);
+  flex-shrink: 0;
+}
+.aif-overlay-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--aif-text-1);
+  margin: 0 0 0.2rem;
+}
+
+/* ─── Область изображения ────────────────────────────────────────── */
+.aif-overlay-img-wrap {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: var(--aif-chart-inner-bg);
+}
+.aif-overlay-img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(92vh - 7rem);
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 60px -16px rgba(0, 0, 0, 0.7);
+}
+
+/* ─── Chart — отображение результата ────────────────────────────── */
+.aif-chart-wrap {
+  position: relative;
+  border-radius: 1.1rem;
+  overflow: hidden;
+  border: 1px solid var(--aif-border);
+  background: var(--aif-chart-zoom-bg);
+  cursor: zoom-in;
+  transition: border-color 0.2s, background 0.25s;
+  animation: aif-fade-up 0.25s ease both;
+}
+.aif-chart-wrap:hover { border-color: var(--aif-border-accent); }
+.aif-chart-img { display: block; width: 100%; height: auto; }
+
+/* Иконка «развернуть» */
+.aif-chart-expand {
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.6rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--aif-prose-math-bg);
+  border: 1px solid var(--aif-border-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--aif-accent-bright);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.aif-chart-wrap:hover .aif-chart-expand { opacity: 1; }
+
+/* ─── Текстовый результат ────────────────────────────────────────── */
+.aif-text-result {
+  border-radius: 1.1rem;
+  border: 1px solid var(--aif-border);
+  background: var(--aif-code-bg);
+  padding: 1rem 1.25rem;
+  animation: aif-fade-up 0.25s ease both;
+}
+.aif-text-result pre {
+  margin: 0;
+  font-family: var(--aif-font-mono);
+  font-size: 0.82rem;
+  color: var(--aif-text-3);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* Форматирование вывода: цвета через статус-токены */
+.aif-text-result .so-cmd    { color: var(--aif-text-4); }
+.aif-text-result .so-result { color: var(--aif-status-ok);  font-weight: 600; }
+.aif-text-result .so-error  { color: var(--aif-status-err); font-weight: 600; }
+
+/* ─── Интерактивный chart ────────────────────────────────────────── */
+.aif-chart-wrap--interactive { cursor: default; }
+
+/* ─── Plotly.js контейнер ────────────────────────────────────────── */
+.aif-plotly-container {
+  width: 100%;
+  min-height: 480px;
+  height: 520px;
+}

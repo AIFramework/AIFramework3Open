@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>RNNTest</RootNamespace>
+    <AssemblyName>RNNTest</AssemblyName>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AI.Charts\AI.Charts.csproj" />
+    <ProjectReference Include="..\..\src\AI.Charts.WinForms\AI.Charts.WinForms.csproj" />
+    <ProjectReference Include="..\..\src\AI.NeuralNetworks\AI.NeuralNetworks.csproj" />
+    <ProjectReference Include="..\..\src\AI.NeuralNetworks.Gpu\AI.NeuralNetworks.Gpu.csproj" />
+  </ItemGroup>
+</Project>

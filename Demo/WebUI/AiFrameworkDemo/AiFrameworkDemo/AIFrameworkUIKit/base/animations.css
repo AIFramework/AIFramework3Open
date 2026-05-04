@@ -1,0 +1,40 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Animations (@keyframes)
+   Источник: Demo/WebUI/AiFrameworkDemo/wwwroot/app.css (строки 112–138)
+             Home.razor.css (home-logo-float)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Вращение — используется в спиннере кнопки загрузки */
+@keyframes aif-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Пульсирующее кольцо — акцентный highlight */
+@keyframes aif-pulse-ring {
+  0%   { box-shadow: 0 0 0 0   rgba(99, 102, 241, 0.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(99, 102, 241, 0); }
+}
+
+/* Shimmer — скелетон-загрузка */
+@keyframes aif-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* Парение — для логотипа на главной */
+@keyframes aif-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* Появление снизу — карточки, результаты */
+@keyframes aif-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Вспомогательный класс для применения fade-up */
+.aif-fade-up {
+  animation: aif-fade-up 0.25s ease both;
+}

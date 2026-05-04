@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Prose / Typography</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+  <!-- KaTeX -->
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+  <!-- highlight.js -->
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/github-dark-dimmed.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js"></script>
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+  <script defer src="../../utils/render-math.js"></script>
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="demo-section"><a href="../index.html" style="font-size:0.8rem;color:var(--aif-text-4);">← Все компоненты</a></div>
+
+<!-- ═══════ PROSE ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-prose — типографика</p>
+
+  <div class="aif-prose" id="prose-demo" style="max-width:48rem;">
+
+    <h1>Заголовок H1 — Нейронные сети</h1>
+    <h2>Заголовок H2 — Архитектура</h2>
+    <h3>Заголовок H3 — Слои</h3>
+    <h4>Заголовок H4 — Параметры</h4>
+
+    <p>Параграф с <strong>жирным текстом</strong> и <em>курсивом</em>. Многослойный перцептрон (MLP) — классическая нейросеть с несколькими полносвязными слоями. Функция активации ReLU и оптимизатор Adam обеспечивают быстрое обучение.</p>
+
+    <p>Инлайн-код: <code>var model = new Sequential();</code> — создание модели.</p>
+
+    <h3>Блок кода</h3>
+    <pre><code class="language-csharp">var model = new Sequential(
+    new Linear(inputSize: 2, outputSize: hidden),
+    new ReLU(),
+    new Linear(inputSize: hidden, outputSize: 2)
+);
+
+var optimizer = new Adam(model.Parameters, lr: 0.01);
+
+for (int epoch = 0; epoch &lt; 80; epoch++)
+{
+    var loss = model.TrainStep(data, labels, optimizer);
+    Console.WriteLine($"Epoch {epoch}: Loss = {loss:F4}");
+}</code></pre>
+
+    <blockquote>Универсальная теорема аппроксимации: MLP с одним скрытым слоем может аппроксимировать любую непрерывную функцию на компактном множестве.</blockquote>
+
+    <h3>Маркированный список</h3>
+    <ul>
+      <li>Слои: <code>Linear → ReLU → Linear → Softmax</code></li>
+      <li>Оптимизатор: Adam</li>
+      <li>Функция потерь: CrossEntropy</li>
+    </ul>
+
+    <h3>Нумерованный список</h3>
+    <ol>
+      <li>Инициализация весов</li>
+      <li>Прямой проход (forward pass)</li>
+      <li>Вычисление функции потерь</li>
+      <li>Обратное распространение (backpropagation)</li>
+      <li>Обновление параметров</li>
+    </ol>
+
+    <h3>Таблица</h3>
+    <table>
+      <thead>
+        <tr><th>Параметр</th><th>По умолчанию</th><th>Диапазон</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Нейронов в скрытом слое</td><td><code>16</code></td><td>4 — 64</td></tr>
+        <tr><td>Learning rate</td><td><code>0.01</code></td><td>0.001 — 0.05</td></tr>
+        <tr><td>Эпохи</td><td><code>80</code></td><td>10 — 400</td></tr>
+      </tbody>
+    </table>
+
+    <hr />
+
+    <h3>Математика</h3>
+    <p>Кросс-энтропия: $$L = -\sum_{c=1}^{C} y_c \log(\hat{y}_c)$$</p>
+    <p>Инлайн: $\sigma(x) = \frac{1}{1+e^{-x}}$ — сигмоида.</p>
+    <div class="math math-display">L = -\frac{1}{N}\sum_{i=1}^{N}\sum_{c=1}^{C} y_{ic}\log(\hat{y}_{ic})</div>
+
+  </div>
+</div>
+
+<div class="demo-spacer"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.renderMath === 'function') {
+      renderMath('#prose-demo');
+    }
+  });
+</script>
+
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

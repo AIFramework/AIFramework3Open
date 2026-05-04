@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>AI.Charts.JS</RootNamespace>
+    <AssemblyName>AI.Charts.JS</AssemblyName>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.Charts\AI.Charts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="plotly-interop.js" LogicalName="AI.Charts.JS.plotly-interop.js" />
+  </ItemGroup>
+
+</Project>

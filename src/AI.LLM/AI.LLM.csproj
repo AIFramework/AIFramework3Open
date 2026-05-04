@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <RootNamespace>AI.LLM</RootNamespace>
+    <AssemblyName>AI.LLM</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.74.0" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="System.Net.Http.Json" Version="10.0.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Core\Exceptions\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.Algorithms\AI.Algorithms.csproj" />
+    <ProjectReference Include="..\AI.ExplainitALL\AI.ExplainitALL.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,243 @@
+@page "/solver"
+@using AiFrameworkDemo.Modules.SolversMath
+@inject SolversMathRunner Runner
+
+<PageTitle>Math Solver — AI.Solvers.Math</PageTitle>
+
+<div class="sm-root" data-color="amber">
+
+    @* ── Hero ── *@
+    <div class="sm-hero">
+        <div class="sm-hero-icon aif-icon-pill aif-icon-pill--amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7h16M4 12h10M4 17h13"/>
+                <path d="M18 15l3 3-3 3"/>
+            </svg>
+        </div>
+        <div class="sm-hero-text">
+            <h1 class="sm-hero-title">AI.Solvers.Math</h1>
+            <p class="sm-hero-sub">Символьный математический решатель в стиле Wolfram Alpha.
+                Интегрирование, дифференцирование, ОДУ/ЧУ, пределы, ряды, преобразования.</p>
+        </div>
+        <div class="sm-hero-badges">
+            <span class="aif-mono-badge">integrate</span>
+            <span class="aif-mono-badge">derivative of</span>
+            <span class="aif-mono-badge">solve</span>
+            <span class="aif-mono-badge">Laplace</span>
+            <span class="aif-mono-badge">limit</span>
+            <span class="aif-mono-badge">Taylor series</span>
+        </div>
+    </div>
+
+    <div class="sm-layout">
+
+        @* ── Левая панель: быстрые примеры ── *@
+        <aside class="sm-sidebar">
+            <p class="sm-sidebar-title">Примеры</p>
+
+            @foreach (var (category, examples) in SolversMathRunner.QuickExamples)
+            {
+                <div class="sm-example-group">
+                    <p class="sm-example-cat">@category</p>
+                    @foreach (var ex in examples)
+                    {
+                        <button class="sm-example-btn" @onclick="() => SetInput(ex)" title="Вставить пример">
+                            @ex
+                        </button>
+                    }
+                </div>
+            }
+
+            <button class="sm-help-btn" @onclick="ShowHelp">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                Полная справка (help)
+            </button>
+        </aside>
+
+        @* ── Правая панель: REPL ── *@
+        <section class="sm-repl-area">
+
+            @* История вычислений *@
+            <div class="sm-history" id="sm-history-box">
+                @if (Runner.History.Count == 0 && !_helpVisible)
+                {
+                    <div class="sm-empty-hint">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+                            <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/>
+                            <path d="M12 8v4l3 3"/>
+                        </svg>
+                        <p>Введите математическое выражение или выберите пример слева</p>
+                        <p class="sm-empty-sub">Например: <code>integrate x^2 from 0 to 3</code></p>
+                    </div>
+                }
+
+                @if (_helpVisible)
+                {
+                    <div class="sm-help-block">
+                        <div class="sm-help-header">
+                            <span>Справка по командам</span>
+                            <button class="sm-help-close" @onclick="() => _helpVisible = false" title="Закрыть">X</button>
+                        </div>
+                        <pre class="sm-help-pre">@_helpText</pre>
+                    </div>
+                }
+
+                @foreach (var entry in Runner.History)
+                {
+                    <div class="sm-entry">
+                        <div class="sm-entry-in">
+                            <span class="sm-prompt">In&nbsp;[@entry.Timestamp.ToString("HH:mm:ss")]</span>
+                            <code class="sm-in-code">@entry.Input</code>
+                            <button class="sm-rerun-btn" @onclick="() => SetInput(entry.Input)"
+                                    title="Повторить запрос">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                    <polyline points="1 4 1 10 7 10"/>
+                                    <path d="M3.51 15a9 9 0 1 0 .49-6.51"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="sm-entry-out @(entry.IsError ? "sm-entry-out--error" : "")">
+                            <span class="sm-prompt sm-prompt--out">Out</span>
+                            <pre class="sm-out-pre">@entry.Output</pre>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @* Поле ввода *@
+            <div class="sm-input-area">
+                <div class="sm-input-row">
+                    <span class="sm-in-label">In</span>
+                    <textarea class="sm-textarea"
+                              @bind="_currentInput"
+                              @bind:event="oninput"
+                              @onkeydown="OnKeyDown"
+                              placeholder="integrate x^2   |   derivative of sin(x)   |   solve y' + 2y = 0   |   help"
+                              rows="2"
+                              id="sm-main-input"
+                              aria-label="Математическое выражение"></textarea>
+                    <button class="sm-run-btn" @onclick="RunCurrent" disabled="@_busy" title="Вычислить (Enter)">
+                        @if (_busy)
+                        {
+                            <span class="sm-spinner"></span>
+                        }
+                        else
+                        {
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                        }
+                    </button>
+                </div>
+
+                <div class="sm-input-footer">
+                    <span class="sm-input-hint">Enter — вычислить &nbsp;·&nbsp; Shift+Enter — новая строка &nbsp;·&nbsp; Ctrl+L — очистить</span>
+                    <div class="sm-footer-actions">
+                        @if (Runner.History.Count > 0)
+                        {
+                            <button class="sm-footer-btn" @onclick="ClearHistory" title="Очистить историю">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2.3" stroke-linecap="round" aria-hidden="true">
+                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                                    <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                                </svg>
+                                Очистить
+                            </button>
+                        }
+                        @if (!string.IsNullOrEmpty(_error))
+                        {
+                            <span class="sm-error-msg">@_error</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </div>
+</div>
+
+@code {
+    private string _currentInput = "";
+    private bool _busy;
+    private bool _helpVisible;
+    private string _helpText = "";
+    private string _error = "";
+
+    private async Task RunCurrent()
+    {
+        var input = _currentInput.Trim();
+        if (string.IsNullOrEmpty(input)) return;
+
+        _busy = true;
+        _error = "";
+        StateHasChanged();
+
+        await Task.Yield(); // отдаём UI-поток перед тяжёлой операцией
+
+        try
+        {
+            var result = Runner.Evaluate(input);
+            if (result.Output == "__CLEARED__")
+            {
+                _currentInput = "";
+                _helpVisible = false;
+            }
+            else
+            {
+                _currentInput = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+            StateHasChanged();
+        }
+    }
+
+    private void SetInput(string text)
+    {
+        _currentInput = text;
+        _helpVisible = false;
+        StateHasChanged();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await RunCurrent();
+        }
+        else if (e.Key == "l" && e.CtrlKey)
+        {
+            ClearHistory();
+        }
+    }
+
+    private void ClearHistory()
+    {
+        Runner.Clear();
+        _helpVisible = false;
+        _error = "";
+        StateHasChanged();
+    }
+
+    private void ShowHelp()
+    {
+        _helpText = AI.Solvers.Math.MainFractalMathProcessor.GetHelpText();
+        _helpVisible = true;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Framework UI Kit — Component Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="../index.css" />
+  <style>
+    .demo-nav {
+      max-width: var(--aif-max-w-default);
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+    .demo-nav-title {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--aif-text-1);
+      letter-spacing: -0.04em;
+      margin: 0 0 0.5rem;
+    }
+    .demo-nav-sub {
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--aif-text-4);
+      margin: 0 0 2rem;
+    }
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.85rem;
+    }
+    .demo-link {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 1.1rem 1.25rem;
+      border-radius: 1rem;
+      border: 1px solid var(--aif-border);
+      background: var(--aif-card-bg);
+      text-decoration: none;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+    .demo-link:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px -8px rgba(99, 102, 241, 0.15);
+    }
+    .demo-link-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--aif-text-1);
+    }
+    .demo-link-desc {
+      font-size: 0.74rem;
+      color: var(--aif-text-4);
+      line-height: 1.45;
+    }
+    .demo-link-tag {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--aif-accent-light);
+      background: rgba(99, 102, 241, 0.1);
+      padding: 0.1rem 0.4rem;
+      border-radius: 0.25rem;
+      margin-top: 0.15rem;
+      align-self: flex-start;
+    }
+    .demo-link-tag--new {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-nav">
+    <h1 class="demo-nav-title"><span class="aif-gradient-text">AI</span>Framework UI Kit</h1>
+    <p class="demo-nav-sub">Витрина компонентов — выберите раздел для просмотра</p>
+
+    <div class="demo-grid">
+      <a href="blocks/badges.html" class="demo-link">
+        <span class="demo-link-title">Badges & Chips</span>
+        <span class="demo-link-desc">Mono badge, version badge, chip, gradient text</span>
+        <span class="demo-link-tag">badge.css</span>
+      </a>
+
+      <a href="blocks/icon-pills.html" class="demo-link">
+        <span class="demo-link-title">Icon Pills</span>
+        <span class="demo-link-desc">Иконки-пилюли во всех цветах и размерах</span>
+        <span class="demo-link-tag">icon-pill.css</span>
+      </a>
+
+      <a href="blocks/buttons.html" class="demo-link">
+        <span class="demo-link-title">Buttons</span>
+        <span class="demo-link-desc">Primary, ghost, seg, close, accordion, live badge</span>
+        <span class="demo-link-tag">button.css</span>
+      </a>
+
+      <a href="blocks/cards.html" class="demo-link">
+        <span class="demo-link-title">Cards</span>
+        <span class="demo-link-desc">Card, card--sm, card--vertical, cards grid</span>
+        <span class="demo-link-tag">card.css</span>
+      </a>
+
+      <a href="blocks/form-controls.html" class="demo-link">
+        <span class="demo-link-title">Form Controls</span>
+        <span class="demo-link-desc">Slider, num input, text input, code input, params panel</span>
+        <span class="demo-link-tag">form-controls.css</span>
+      </a>
+
+      <a href="blocks/choice-grid.html" class="demo-link">
+        <span class="demo-link-title">Choice Grid</span>
+        <span class="demo-link-desc">Кнопки выбора в сетке с иконками</span>
+        <span class="demo-link-tag">choice-grid.css</span>
+      </a>
+
+      <a href="blocks/topbar.html" class="demo-link">
+        <span class="demo-link-title">Header / Topbar / Footer</span>
+        <span class="demo-link-desc">Навигация, бренд, GitHub-кнопка, футер</span>
+        <span class="demo-link-tag">topbar.css</span>
+      </a>
+
+      <a href="blocks/overlay.html" class="demo-link">
+        <span class="demo-link-title">Overlay & Charts</span>
+        <span class="demo-link-desc">Chart wrap, text result, plotly container</span>
+        <span class="demo-link-tag">overlay.css</span>
+      </a>
+
+      <a href="blocks/empty-states.html" class="demo-link">
+        <span class="demo-link-title">Empty States</span>
+        <span class="demo-link-desc">Dashed placeholder, error block, 404, error page</span>
+        <span class="demo-link-tag">empty-state.css</span>
+      </a>
+
+      <a href="blocks/image-drop.html" class="demo-link">
+        <span class="demo-link-title">Image Drop</span>
+        <span class="demo-link-desc">Зона загрузки изображений</span>
+        <span class="demo-link-tag">image-drop.css</span>
+      </a>
+
+      <a href="blocks/typography.html" class="demo-link">
+        <span class="demo-link-title">Typography / Prose</span>
+        <span class="demo-link-desc">Markdown, KaTeX, highlight.js — все элементы</span>
+        <span class="demo-link-tag">typography.css</span>
+      </a>
+
+      <a href="blocks/hero.html" class="demo-link">
+        <span class="demo-link-title">Hero Section</span>
+        <span class="demo-link-desc">Главная hero-секция с логотипом и meta</span>
+        <span class="demo-link-tag demo-link-tag--new">new · hero.css</span>
+      </a>
+
+      <a href="blocks/algo-layout.html" class="demo-link">
+        <span class="demo-link-title">Algo Layout</span>
+        <span class="demo-link-desc">Двухколоночный layout: теория + демо</span>
+        <span class="demo-link-tag demo-link-tag--new">new · algo-layout.css</span>
+      </a>
+
+      <a href="blocks/catalog.html" class="demo-link">
+        <span class="demo-link-title">Catalog / Search Page</span>
+        <span class="demo-link-desc">Фасетный фильтр, BM25-поиск, карточки алгоритмов</span>
+        <span class="demo-link-tag demo-link-tag--new">new · catalog-page.css</span>
+      </a>
+
+      <a href="blocks/theme-toggle.html" class="demo-link">
+        <span class="demo-link-title">Theme Toggle</span>
+        <span class="demo-link-desc">Переключатель тёмной/светлой темы, токены, JS API, anti-flash</span>
+        <span class="demo-link-tag demo-link-tag--new">new · theme-toggle.css</span>
+      </a>
+    </div>
+  </div>
+  <script src="../utils/theme.js"></script>
+</body>
+</html>
+

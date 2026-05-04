@@ -1,0 +1,173 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Form Controls
+   Источник: Demo/WebUI/.../AlgoPage.razor.css (строки 195–287)
+
+   ВСЕ ЦВЕТА — через токены из tokens.css.
+   Переключение тёмная/светлая тема происходит автоматически.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Строка параметра ───────────────────────────────────────────── */
+.aif-param-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.aif-param-label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.aif-param-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--aif-text-3);
+  flex: 1;
+}
+.aif-param-unit {
+  font-size: 0.7rem;
+  color: var(--aif-text-5);
+  font-family: var(--aif-font-mono);
+}
+
+/* ─── Значение параметра (inline badge) ──────────────────────────── */
+.aif-param-val {
+  font-family: var(--aif-font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.06rem 0.4rem;
+  border-radius: var(--aif-r-xs);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.aif-param-val--sky     { color: var(--aif-c-sky);     background: var(--aif-c-sky-bg); }
+.aif-param-val--indigo  { color: var(--aif-c-indigo);  background: var(--aif-c-indigo-bg); }
+.aif-param-val--violet  { color: var(--aif-c-violet);  background: var(--aif-c-violet-bg); }
+.aif-param-val--emerald { color: var(--aif-c-emerald); background: var(--aif-c-emerald-bg); }
+.aif-param-val--amber   { color: var(--aif-c-amber);   background: var(--aif-c-amber-bg); }
+.aif-param-val--pink    { color: var(--aif-c-pink);    background: var(--aif-c-pink-bg); }
+
+/* ─── Контейнер для слайдера + числового поля ────────────────────── */
+.aif-param-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ─── Range-слайдер ──────────────────────────────────────────────── */
+.aif-slider {
+  flex: 1;
+  height: 4px;
+  cursor: pointer;
+  border-radius: 2px;
+  outline: none;
+  border: none;
+  background: var(--aif-surface-2);
+  accent-color: var(--aif-accent);
+}
+
+/* ─── Числовой input ─────────────────────────────────────────────── */
+.aif-num-input {
+  width: 5.5rem;
+  flex-shrink: 0;
+  border-radius: 0.45rem;
+  border: 1px solid var(--aif-input-border);
+  background: var(--aif-code-bg);
+  color: var(--aif-text-2);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  font-family: var(--aif-font-mono);
+  text-align: right;
+}
+.aif-num-input:focus {
+  outline: none;
+  border-color: var(--aif-input-focus-border);
+  box-shadow: 0 0 0 2px var(--aif-input-focus-ring);
+}
+
+/* ─── Текстовый ввод (textarea) ──────────────────────────────────── */
+.aif-text-input {
+  width: 100%;
+  border-radius: 0.45rem;
+  border: 1px solid var(--aif-input-border);
+  background: var(--aif-code-bg);
+  color: var(--aif-text-2);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+  font-family: var(--aif-font-mono);
+  resize: vertical;
+  line-height: 1.5;
+}
+.aif-text-input:focus {
+  outline: none;
+  border-color: var(--aif-input-focus-border);
+  box-shadow: 0 0 0 2px var(--aif-input-focus-ring);
+}
+
+/* ─── Редактор кода / выражений ──────────────────────────────────── */
+.aif-code-input {
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid var(--aif-prose-code-border);
+  background: var(--aif-code-input-bg);
+  color: var(--aif-code-input-color);
+  padding: 0.75rem 0.9rem;
+  font-size: 0.78rem;
+  font-family: var(--aif-font-mono);
+  resize: vertical;
+  line-height: 1.65;
+  tab-size: 4;
+}
+.aif-code-input:focus {
+  outline: none;
+  border-color: var(--aif-input-focus-border);
+  box-shadow: 0 0 0 3px var(--aif-input-focus-ring);
+}
+
+/* ─── Панель параметров ──────────────────────────────────────────── */
+.aif-params-panel {
+  border-radius: 1.1rem;
+  border: 1px solid var(--aif-border);
+  background: var(--aif-card-bg);
+  overflow: visible;
+  position: relative;
+}
+.aif-params-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--aif-border-subtle);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--aif-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 1.1rem 1.1rem 0 0;
+}
+.aif-params-header svg { color: var(--aif-text-5); flex-shrink: 0; }
+.aif-params-body {
+  padding: 0.85rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+/* ─── Аккордеон настроек ─────────────────────────────────────────── */
+.aif-settings-body {
+  padding: 0.65rem 1rem 0.85rem;
+  border-top: 1px solid var(--aif-border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+.aif-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.aif-settings-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--aif-text-4);
+  white-space: nowrap;
+}

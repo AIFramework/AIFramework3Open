@@ -1,0 +1,52 @@
+@page "/lib/{LibId}"
+
+<PageTitle>@(_mod?.Name ?? LibId) — AIFramework</PageTitle>
+
+@if (_mod is null)
+{
+    <div class="aif-empty"><p>Библиотека «@LibId» не найдена.</p><a href="/">← На главную</a></div>
+}
+else
+{
+    <section class="aif-hero aif-hero--sm">
+        <a class="aif-hero-back" href="/">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Все библиотеки
+        </a>
+        <div class="aif-icon-pill aif-icon-pill--lg aif-icon-pill--@_mod.Color">
+            @((MarkupString)_mod.IconSvg)
+        </div>
+        <h1 class="aif-hero-title aif-hero-title--sm">@_mod.Name</h1>
+        <p class="aif-hero-desc">@_mod.Description</p>
+    </section>
+
+    <div class="aif-cards-grid aif-cards-grid--sm">
+        @foreach (var cat in _mod.Categories)
+        {
+            <a href="/lib/@_mod.Id/cat/@cat.Id" class="aif-card aif-card--sm aif-card--@_mod.Color">
+                <div class="aif-card-body">
+                    <h2 class="aif-card-title aif-card-title--sm">@cat.Title</h2>
+                    @if (!string.IsNullOrEmpty(cat.Summary))
+                    {
+                        <p class="aif-card-desc aif-card-desc--sm">@cat.Summary</p>
+                    }
+                    <span class="aif-card-meta">@cat.Algorithms.Count алг.</span>
+                </div>
+                <svg class="aif-card-arrow" width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </a>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string LibId { get; set; } = "";
+    private ILibraryModule? _mod;
+
+    protected override void OnParametersSet() => _mod = LibraryRegistry.Get(LibId);
+}

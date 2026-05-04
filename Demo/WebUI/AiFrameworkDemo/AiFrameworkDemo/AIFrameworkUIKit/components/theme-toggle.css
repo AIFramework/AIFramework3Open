@@ -1,0 +1,60 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Theme Toggle Button
+   Кнопка переключения тёмной/светлой темы для хедера.
+
+   Использование:
+     <button class="aif-theme-toggle" onclick="aifTheme.toggle()" title="Сменить тему">
+       <svg class="aif-theme-icon aif-theme-icon--sun">...</svg>
+       <svg class="aif-theme-icon aif-theme-icon--moon">...</svg>
+     </button>
+
+   Видимость иконок управляется через [data-theme] на <html>:
+     Тёмная тема (default) → показываем солнце (предложение перейти на светлую)
+     Светлая тема          → показываем луну  (предложение перейти на тёмную)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.aif-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+  flex-shrink: 0;
+}
+.aif-theme-toggle:hover {
+  color: var(--aif-text-1);
+  border-color: rgba(129, 140, 248, 0.4);
+  background: rgba(99, 102, 241, 0.12);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .aif-theme-toggle {
+  border-color: rgba(0, 0, 40, 0.12);
+  background: rgba(0, 0, 40, 0.04);
+  color: #64748b;
+}
+[data-theme="light"] .aif-theme-toggle:hover {
+  color: #1e293b;
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+/* Иконки: показываем солнце в тёмной теме, луну — в светлой */
+.aif-theme-icon { display: block; }
+
+.aif-theme-icon--moon { display: none; }
+.aif-theme-icon--sun  { display: block; }
+
+[data-theme="light"] .aif-theme-icon--moon { display: block; }
+[data-theme="light"] .aif-theme-icon--sun  { display: none; }

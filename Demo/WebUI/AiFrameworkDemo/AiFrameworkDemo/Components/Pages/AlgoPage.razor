@@ -1,0 +1,431 @@
+@page "/lib/{LibId}/algo/{AlgoKey}"
+@using System.Globalization
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Forms
+@implements IDisposable
+
+<PageTitle>@(_algo?.Title ?? AlgoKey) — @(_mod?.Name ?? LibId)</PageTitle>
+
+@if (_mod is null || _algo is null || _cat is null)
+{
+    <div class="aif-empty"><p>Алгоритм «@AlgoKey» не найден.</p><a href="/">← Главная</a></div>
+}
+else
+{
+    <nav class="aif-topbar aif-topbar--wide aif-topbar--@_mod.Color">
+        <div class="aif-topbar-inner">
+            <a class="aif-topbar-back" href="/lib/@_mod.Id/cat/@_cat.Id">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                </svg>
+                @_cat.Title
+            </a>
+            <span class="aif-topbar-sep">›</span>
+            <span class="aif-topbar-name">@_algo.Title</span>
+            <code class="aif-mono-badge">@_algo.ApiClass</code>
+        </div>
+    </nav>
+
+    <div class="aif-algo-layout">
+        <!-- LEFT: THEORY -->
+        <aside class="aif-algo-theory">
+            <div class="aif-theory-card">
+                <div class="aif-theory-header">
+                    <div class="aif-theory-bar aif-theory-bar--@_mod.Color"></div>
+                    <div class="aif-theory-title-row">
+                        <h1 class="aif-theory-title">@_algo.Title</h1>
+                        <code class="aif-theory-subtitle">@_algo.ApiClass</code>
+                    </div>
+                    <div class="aif-theory-sub-row">
+                        <p class="aif-theory-sub">@_algo.Subtitle</p>
+                        @if (_theoryMode == TheoryMode.View)
+                        {
+                            <button type="button" class="aif-btn-ghost aif-btn-edit-theory"
+                                    title="@($"Редактировать {TheoryLoader.GetRelativePath(_mod.TutorialFolder, _algo.TheoryFile)}")"
+                                    @onclick="StartEditing">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                @if (_theoryMode == TheoryMode.View)
+                {
+                    <div class="aif-theory-body aif-prose">
+                        @((MarkupString)_theoryHtml)
+                    </div>
+                }
+                else if (_theoryMode == TheoryMode.Edit)
+                {
+                    <div class="aif-theory-editor">
+                        <div class="aif-editor-toolbar">
+                            <span class="aif-editor-path">@TheoryLoader.GetRelativePath(_mod.TutorialFolder, _algo.TheoryFile)</span>
+                            <div class="aif-editor-actions">
+                                <button type="button" class="aif-btn-sm aif-btn-sm--@_mod.Color" @onclick="ShowPreview">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    Предпросмотр
+                                </button>
+                                <button type="button" class="aif-btn-sm aif-btn-sm--save" @onclick="SaveTheory">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                                        <polyline points="17 21 17 13 7 13 7 21"/>
+                                        <polyline points="7 3 7 8 15 8"/>
+                                    </svg>
+                                    Сохранить
+                                </button>
+                                <button type="button" class="aif-btn-ghost" @onclick="CancelEditing">Отмена</button>
+                            </div>
+                        </div>
+                        <textarea class="aif-md-editor" spellcheck="false"
+                                  @bind="_rawMarkdown" @bind:event="oninput" />
+                    </div>
+                }
+                else
+                {
+                    <div class="aif-theory-editor">
+                        <div class="aif-editor-toolbar">
+                            <span class="aif-editor-path">Предпросмотр</span>
+                            <div class="aif-editor-actions">
+                                <button type="button" class="aif-btn-sm aif-btn-sm--@_mod.Color"
+                                        @onclick="@(() => _theoryMode = TheoryMode.Edit)">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    Редактировать
+                                </button>
+                                <button type="button" class="aif-btn-sm aif-btn-sm--save" @onclick="SaveTheory">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                                        <polyline points="17 21 17 13 7 13 7 21"/>
+                                        <polyline points="7 3 7 8 15 8"/>
+                                    </svg>
+                                    Сохранить
+                                </button>
+                                <button type="button" class="aif-btn-ghost" @onclick="CancelEditing">Отмена</button>
+                            </div>
+                        </div>
+                        <div class="aif-theory-body aif-prose">
+                            @((MarkupString)_previewHtml)
+                        </div>
+                    </div>
+                }
+            </div>
+        </aside>
+
+        <!-- RIGHT: PARAMS + DEMO -->
+        <section class="aif-algo-demo">
+            @if (_numericParams.Count > 0 || _textParams.Count > 0 || _needsImage)
+            {
+                <div class="aif-params-panel aif-card--accent-top aif-card--@_mod.Color">
+                    <div class="aif-params-header">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+                        </svg>
+                        <span>Параметры</span>
+                    </div>
+                    <div class="aif-params-body">
+                        @foreach (var p in _algo.Params)
+                        {
+                            @if (p.Key.StartsWith("_needsImage")) continue;
+                            @if (p.Key.StartsWith("_"))
+                            {
+                                <div class="aif-param-row">
+                                    <div class="aif-param-label-row">
+                                        <label class="aif-param-label">@((MarkupString)p.Label)</label>
+                                        @if (!string.IsNullOrEmpty(p.Hint))
+                                        {
+                                            <span class="aif-tip" data-tip="@p.Hint">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                            </span>
+                                        }
+                                    </div>
+                                    <textarea class="@(p.Key == "_expression" ? "aif-code-input" : "aif-text-input")"
+                                              rows="@(p.Key == "_expression" ? 14 : 3)"
+                                              placeholder="@p.Hint"
+                                              spellcheck="false"
+                                              @onchange="@(e => SetTextParam(p.Key, e.Value?.ToString() ?? ""))">@(_textParams.GetValueOrDefault(p.Key, ""))</textarea>
+                                </div>
+                            }
+                            else if (p.Choices is { Count: > 0 })
+                            {
+                                var pk = p.Key;
+                                var current = _numericParams[pk];
+                                <div class="aif-param-row">
+                                    <div class="aif-param-label-row">
+                                        <label class="aif-param-label">@((MarkupString)p.Label)</label>
+                                        @if (!string.IsNullOrEmpty(p.Hint))
+                                        {
+                                            <span class="aif-tip" data-tip="@p.Hint">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="aif-choice-grid">
+                                        @foreach (var ch in p.Choices)
+                                        {
+                                            var chVal = ch.Value;
+                                            var isOn = Math.Abs(current - chVal) < 1e-9;
+                                            <button type="button"
+                                                    class="aif-choice-btn aif-choice-btn--@_mod.Color @(isOn ? "aif-choice-btn--on" : "")"
+                                                    title="@ch.Label"
+                                                    @onclick="@(() => SetNumParam(pk, chVal.ToString(CultureInfo.InvariantCulture)))">
+                                                @if (!string.IsNullOrEmpty(ch.Icon))
+                                                {
+                                                    <span class="aif-choice-icon">@((MarkupString)ch.Icon)</span>
+                                                }
+                                                <span class="aif-choice-label">@ch.Label</span>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                var pk = p.Key;
+                                <div class="aif-param-row">
+                                    <div class="aif-param-label-row">
+                                        <label class="aif-param-label">@((MarkupString)p.Label)</label>
+                                        @if (!string.IsNullOrEmpty(p.Unit))
+                                        {
+                                            <span class="aif-param-unit">@p.Unit</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(p.Hint))
+                                        {
+                                            <span class="aif-tip" data-tip="@p.Hint">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                            </span>
+                                        }
+                                        <span class="aif-param-val aif-param-val--@_mod.Color">@_numericParams[pk].ToString("G4", CultureInfo.InvariantCulture)</span>
+                                    </div>
+                                    <div class="aif-param-controls">
+                                        <input type="range"
+                                               min="@p.Min.ToString("G6", CultureInfo.InvariantCulture)"
+                                               max="@p.Max.ToString("G6", CultureInfo.InvariantCulture)"
+                                               step="@p.Step.ToString("G6", CultureInfo.InvariantCulture)"
+                                               value="@_numericParams[pk].ToString("G6", CultureInfo.InvariantCulture)"
+                                               class="aif-slider"
+                                               @oninput="@(e => SetNumParam(pk, e.Value?.ToString()))" />
+                                        <input type="number"
+                                               min="@p.Min.ToString("G6", CultureInfo.InvariantCulture)"
+                                               max="@p.Max.ToString("G6", CultureInfo.InvariantCulture)"
+                                               step="@p.Step.ToString("G6", CultureInfo.InvariantCulture)"
+                                               value="@_numericParams[pk].ToString("G6", CultureInfo.InvariantCulture)"
+                                               class="aif-num-input"
+                                               @onchange="@(e => SetNumParam(pk, e.Value?.ToString()))" />
+                                    </div>
+                                </div>
+                            }
+                        }
+
+                        @if (_needsImage)
+                        {
+                            <div class="aif-param-row">
+                                <label class="aif-param-label">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" style="margin-right:0.3rem;vertical-align:-2px" aria-hidden="true">
+                                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <polyline points="21 15 16 10 5 21"/>
+                                    </svg>
+                                    Входное изображение
+                                </label>
+                                <label class="aif-img-drop">
+                                    @if (string.IsNullOrEmpty(_imagePreview))
+                                    {
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="opacity:0.35">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                                            <polyline points="21 15 16 10 5 21"/>
+                                        </svg>
+                                        <span class="aif-img-drop-text">Нажмите чтобы выбрать файл</span>
+                                        <span class="aif-img-drop-hint">PNG, JPG, BMP, любое изображение</span>
+                                    }
+                                    else
+                                    {
+                                        <img src="@_imagePreview" alt="preview" class="aif-img-preview" />
+                                        <span class="aif-img-drop-change">Нажмите чтобы сменить</span>
+                                    }
+                                    <InputFile OnChange="OnImageSelected" accept="image/*" class="aif-file-hidden" />
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Chart settings -->
+            <div class="aif-params-panel aif-card--accent-top aif-card--@_mod.Color">
+                <button type="button" class="aif-accordion-toggle" @onclick="() => _settingsOpen = !_settingsOpen">
+                    <span>Настройки отображения</span>
+                    <svg class="aif-accordion-arrow @(_settingsOpen ? "aif-accordion-arrow--open" : "")"
+                         width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+                @if (_settingsOpen)
+                {
+                    <div class="aif-settings-body">
+                        <div class="aif-settings-row">
+                            <label class="aif-settings-label">Ширина</label>
+                            <div class="aif-seg">
+                                @foreach (var w in new[] { 520, 680, 840 })
+                                {
+                                    <button type="button"
+                                            class="aif-seg-btn @(_settings.Width == w ? "aif-seg-btn--on" : "")"
+                                            @onclick="@(() => _settings = _settings with { Width = w })">@w</button>
+                                }
+                            </div>
+                        </div>
+                        <div class="aif-settings-row">
+                            <label class="aif-settings-label">Высота</label>
+                            <div class="aif-seg">
+                                @foreach (var h in new[] { 260, 360, 460 })
+                                {
+                                    <button type="button"
+                                            class="aif-seg-btn @(_settings.Height == h ? "aif-seg-btn--on" : "")"
+                                            @onclick="@(() => _settings = _settings with { Height = h })">@h</button>
+                                }
+                            </div>
+                        </div>
+                        <div class="aif-settings-row">
+                            <label class="aif-settings-label">Тема</label>
+                            <div class="aif-seg">
+                                <button type="button"
+                                        class="aif-seg-btn @(_settings.DarkTheme ? "aif-seg-btn--on" : "")"
+                                        @onclick="@(() => _settings = _settings with { DarkTheme = true })">Тёмная</button>
+                                <button type="button"
+                                        class="aif-seg-btn @(!_settings.DarkTheme ? "aif-seg-btn--on" : "")"
+                                        @onclick="@(() => _settings = _settings with { DarkTheme = false })">Светлая</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Run row -->
+            <div class="aif-btn-row">
+                <button type="button" class="aif-btn aif-btn--@_mod.Color"
+                        @onclick="RunAsync" disabled="@_busy">
+                    @if (_busy)
+                    {
+                        <span class="aif-btn-spinner"></span><span>Выполнение…</span>
+                    }
+                    else
+                    {
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                        <span>Запустить</span>
+                    }
+                </button>
+                @if (_elapsedMs > 0)
+                {
+                    <span class="aif-btn-meta">@_elapsedMs мс</span>
+                }
+                @if (_isLive)
+                {
+                    <span class="aif-live-badge" title="Параметры обновляются в реальном времени">
+                        <span class="aif-live-dot"></span> live
+                    </span>
+                }
+                <button type="button" class="aif-btn-ghost" @onclick="ResetParams" title="Сбросить">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                        <polyline points="1 4 1 10 7 10"/>
+                        <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+                    </svg>
+                    Сброс
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="aif-error-block">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    @_error
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(_plotlyJson))
+            {
+                <div class="aif-chart-wrap aif-chart-wrap--interactive">
+                    <div id="@_plotlyDivId" class="aif-plotly-container"
+                         style="width:100%;height:520px;min-height:480px"></div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(_pngDataUrl))
+            {
+                <div class="aif-chart-wrap" @onclick="@(() => _overlayOpen = true)" title="Нажмите для увеличения">
+                    <img src="@_pngDataUrl" alt="@_algo.Title" class="aif-chart-img" />
+                    <div class="aif-chart-expand" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                        </svg>
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(_textOutput))
+            {
+                <div class="aif-text-result">
+                    <pre>@((MarkupString)FormatScriptOutput(_textOutput))</pre>
+                </div>
+            }
+
+            @if (string.IsNullOrEmpty(_pngDataUrl) && string.IsNullOrEmpty(_plotlyJson) && string.IsNullOrEmpty(_textOutput) && !_busy && _elapsedMs == 0)
+            {
+                <div class="aif-empty aif-empty--dashed">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" aria-hidden="true" opacity="0.3">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    <p>Нажмите «Запустить» для выполнения</p>
+                </div>
+            }
+        </section>
+    </div>
+
+    @if (_overlayOpen && !string.IsNullOrEmpty(_pngDataUrl))
+    {
+        <div class="aif-overlay" @onclick="@(() => _overlayOpen = false)" role="dialog" aria-modal="true">
+            <div class="aif-overlay-box" @onclick:stopPropagation="true">
+                <div class="aif-overlay-header">
+                    <div>
+                        <h2 class="aif-overlay-title">@_algo.Title</h2>
+                        <code class="aif-mono-badge">@_algo.ApiClass</code>
+                    </div>
+                    <button type="button" class="aif-close-btn" @onclick="@(() => _overlayOpen = false)" aria-label="Закрыть">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="aif-overlay-img-wrap">
+                    <img src="@_pngDataUrl" alt="@_algo.Title" class="aif-overlay-img" />
+                </div>
+            </div>
+        </div>
+    }
+}
+

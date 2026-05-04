@@ -1,0 +1,98 @@
+@page "/browse"
+@using AiFrameworkDemo.Core
+
+<PageTitle>Библиотеки и алгоритмы — AIFramework</PageTitle>
+
+<section class="aif-browse-section">
+
+    <div class="aif-browse-header">
+        <div class="aif-browse-header-left">
+            <h1 class="aif-browse-title">Изучайте алгоритмы</h1>
+            <span class="aif-browse-meta">
+                @if (ShowCatalog)
+                {
+                    @:@AlgoSearchIndex.All.Count алгоритмов · полнотекстовый поиск BM25
+                }
+                else
+                {
+                    @:@LibraryRegistry.Modules.Count @NounLib(LibraryRegistry.Modules.Count) · @AlgoSearchIndex.All.Count алгоритмов
+                }
+            </span>
+        </div>
+
+        <div class="aif-seg" role="tablist" aria-label="Вид отображения">
+            <button class="aif-seg-btn @(!ShowCatalog ? "aif-seg-btn--on" : "")"
+                    role="tab" aria-selected="@(!ShowCatalog)"
+                    @onclick="() => ShowCatalog = false">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.3" stroke-linecap="round" aria-hidden="true" style="margin-right:0.25rem;">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                Библиотеки
+            </button>
+            <button class="aif-seg-btn @(ShowCatalog ? "aif-seg-btn--on" : "")"
+                    role="tab" aria-selected="@ShowCatalog"
+                    @onclick="() => ShowCatalog = true">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.3" stroke-linecap="round" aria-hidden="true" style="margin-right:0.25rem;">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                Каталог
+            </button>
+        </div>
+    </div>
+
+    @if (!ShowCatalog)
+    {
+        <div class="aif-cards-grid" style="margin:0;padding:0;max-width:100%;">
+            @foreach (var lib in LibraryRegistry.Modules)
+            {
+                <a href="/lib/@lib.Id" class="aif-card aif-card--@lib.Color">
+                    <div class="aif-icon-pill aif-icon-pill--@lib.Color">
+                        @((MarkupString)lib.IconSvg)
+                    </div>
+                    <div class="aif-card-body">
+                        <h3 class="aif-card-title">@lib.Name</h3>
+                        <p class="aif-card-desc">@lib.Description</p>
+                        <div class="aif-card-meta">
+                            <span>@lib.Categories.Count категорий</span>
+                            <span class="aif-card-meta-sep">·</span>
+                            <span>@lib.Categories.Sum(c => c.Algorithms.Count) алгоритмов</span>
+                        </div>
+                    </div>
+                    <svg class="aif-card-arrow" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </a>
+            }
+        </div>
+    }
+
+    @if (ShowCatalog)
+    {
+        <CatalogView />
+    }
+
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "mode")]
+    public string? Mode { get; set; }
+
+    private bool ShowCatalog { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ShowCatalog = Mode == "catalog";
+    }
+
+    private static string NounLib(int n)
+    {
+        int mod10  = n % 10;
+        int mod100 = n % 100;
+        if (mod100 is >= 11 and <= 14) return "библиотек";
+        return mod10 switch { 1 => "библиотека", 2 or 3 or 4 => "библиотеки", _ => "библиотек" };
+    }
+}

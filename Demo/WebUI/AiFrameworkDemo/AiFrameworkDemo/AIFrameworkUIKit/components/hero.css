@@ -1,0 +1,361 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Hero Component
+   Источник: Home.razor.css (.home-hero), LibraryPage.razor.css (.lp-hero)
+
+   Центрированная hero-секция с логотипом, заголовком, описанием
+   и строкой метаданных. Компактный вариант --sm для вложенных страниц.
+
+   Использование:
+     <section class="aif-hero">
+       <div class="aif-hero-logo-wrap">
+         <img class="aif-hero-logo" src="logo.png" />
+         <span class="aif-version-badge aif-version-badge--float">v3.0</span>
+       </div>
+       <h1 class="aif-hero-title">
+         <span class="aif-gradient-text">AI</span>Framework
+       </h1>
+       <p class="aif-hero-sub">Описание проекта</p>
+       <div class="aif-hero-meta">
+         <span class="aif-chip">Apache-2.0</span>
+       </div>
+     </section>
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Базовая hero-секция ──────────────────────────────────────── */
+.aif-hero {
+  text-align: center;
+  padding: 3rem 1.5rem 1rem;
+  position: relative;
+}
+.aif-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 30%,
+    rgba(99, 102, 241, 0.16) 0%,
+    rgba(99, 102, 241, 0.05) 35%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ─── Компактный вариант (LibraryPage) ─────────────────────────── */
+.aif-hero--sm {
+  padding: 2.5rem 1.5rem 1rem;
+}
+
+/* ─── Логотип ──────────────────────────────────────────────────── */
+.aif-hero-logo-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+.aif-hero-logo {
+  width: clamp(100px, 18vw, 160px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 40px rgba(99, 102, 241, 0.4));
+  animation: aif-float 6s ease-in-out infinite;
+}
+
+/* ─── Заголовок ────────────────────────────────────────────────── */
+.aif-hero-title {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 900;
+  color: var(--aif-text-1);
+  letter-spacing: -0.04em;
+  margin: 0;
+  line-height: 1.1;
+}
+.aif-hero-title--sm {
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+/* ─── Подзаголовок ─────────────────────────────────────────────── */
+.aif-hero-sub {
+  font-size: clamp(0.88rem, 1.5vw, 1.02rem);
+  color: var(--aif-text-3);
+  margin: 0.85rem auto 0;
+  max-width: 44rem;
+  line-height: 1.55;
+}
+
+/* ─── Описание библиотеки (LibraryPage) ────────────────────────── */
+.aif-hero-desc {
+  font-size: 0.85rem;
+  color: var(--aif-text-4);
+  margin: 0.5rem auto 0;
+  max-width: 42rem;
+}
+
+/* ─── Ссылка «назад» (вложенные страницы) ──────────────────────── */
+.aif-hero-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--aif-text-4);
+  text-decoration: none;
+  margin-bottom: 1.5rem;
+  transition: color 0.15s;
+}
+.aif-hero-back:hover { color: var(--aif-text-2); }
+
+/* ─── Строка метаданных (chips) ────────────────────────────────── */
+.aif-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.4rem;
+}
+
+/* ─── Краткое описание (CategoryPage summary) ─────────────────── */
+.aif-summary {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--aif-text-4);
+  margin: 1.5rem auto 0;
+  max-width: 48rem;
+  padding: 0 1.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LANDING HERO EXTENSIONS
+   Расширения для главной страницы-лендинга.
+   Используются совместно с .aif-hero через модификатор --landing.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Landing-вариант hero ─────────────────────────────────────── */
+.aif-hero--landing {
+  padding: 4.5rem 1.5rem 3.5rem;
+  overflow: hidden;
+  /* Создаём stacking context, чтобы z-index:-1 у aurora
+     был относительно hero (прозрачного), а не страницы */
+  isolation: isolate;
+}
+.aif-hero--landing::before {
+  background: radial-gradient(
+    ellipse at 50% 20%,
+    rgba(99, 102, 241, 0.22) 0%,
+    rgba(124, 58, 237, 0.08) 40%,
+    transparent 70%
+  );
+}
+
+/* ─── Aurora — анимированные размытые блобы ────────────────────── */
+.aif-hero-aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+.aif-aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.45;
+  animation: aif-aurora-drift 14s ease-in-out infinite alternate;
+}
+.aif-aurora-blob--1 {
+  width: 55vw; max-width: 700px;
+  height: 40vw; max-height: 450px;
+  background: radial-gradient(ellipse, rgba(99, 102, 241, 0.45) 0%, transparent 70%);
+  top: -8%; left: 10%;
+  animation-delay: 0s;
+}
+.aif-aurora-blob--2 {
+  width: 45vw; max-width: 560px;
+  height: 35vw; max-height: 380px;
+  background: radial-gradient(ellipse, rgba(139, 92, 246, 0.30) 0%, transparent 70%);
+  top: -4%; right: 5%;
+  animation-delay: -5s;
+}
+.aif-aurora-blob--3 {
+  width: 38vw; max-width: 480px;
+  height: 30vw; max-height: 340px;
+  background: radial-gradient(ellipse, rgba(14, 165, 233, 0.18) 0%, transparent 70%);
+  top: 45%; left: -3%;
+  animation-delay: -9s;
+}
+
+/* Блобы в светлой теме — слабее, чтобы не перекрывать белый фон */
+[data-theme="light"] .aif-aurora-blob { opacity: 0.18; }
+[data-theme="light"] .aif-aurora-blob--1 {
+  background: radial-gradient(ellipse, rgba(99, 102, 241, 0.35) 0%, transparent 70%);
+}
+[data-theme="light"] .aif-aurora-blob--2 {
+  background: radial-gradient(ellipse, rgba(124, 58, 237, 0.25) 0%, transparent 70%);
+}
+[data-theme="light"] .aif-aurora-blob--3 {
+  background: radial-gradient(ellipse, rgba(14, 165, 233, 0.20) 0%, transparent 70%);
+}
+@keyframes aif-aurora-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(28px, 18px) scale(1.07); }
+}
+
+/* ─── Badge (Open Source · C# · .NET) ─────────────────────────── */
+.aif-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.73rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  color: var(--aif-accent-light);
+  background: rgba(99, 102, 241, 0.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--aif-r-full);
+  padding: 0.3rem 0.85rem;
+  margin-bottom: 1.25rem;
+}
+[data-theme="light"] .aif-hero-badge {
+  color: #4f46e5;
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+.aif-hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--aif-accent-light);
+  flex-shrink: 0;
+  animation: aif-pulse-dot 2.2s ease-in-out infinite;
+}
+@keyframes aif-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.5); }
+  50%       { box-shadow: 0 0 0 5px rgba(129, 140, 248, 0); }
+}
+
+/* ─── Кнопки CTA ────────────────────────────────────────────────── */
+.aif-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 2rem;
+}
+/* Ghost-кнопка внутри hero actions не должна уходить вправо */
+.aif-hero-actions .aif-btn-ghost {
+  margin-left: 0;
+}
+
+/* ─── Статистика ────────────────────────────────────────────────── */
+.aif-stat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+}
+.aif-stat-card {
+  background: var(--aif-card-bg);
+  border: 1px solid var(--aif-border);
+  border-radius: var(--aif-r-card);
+  padding: 0.85rem 1.35rem;
+  text-align: center;
+  min-width: 5rem;
+}
+.aif-stat-value {
+  display: block;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--aif-text-1);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.aif-stat-label {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--aif-text-5);
+  margin-top: 0.3rem;
+}
+
+/* ─── Tech pills ────────────────────────────────────────────────── */
+.aif-tech-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 1.35rem;
+}
+.aif-tech-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--aif-text-4);
+  background: var(--aif-surface-1);
+  border: 1px solid var(--aif-border);
+  border-radius: var(--aif-r-full);
+  padding: 0.22rem 0.65rem;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.aif-tech-pill:hover {
+  color: var(--aif-text-2);
+  background: var(--aif-surface-2);
+  border-color: var(--aif-border-bright);
+}
+.aif-tech-pill--accent {
+  color: var(--aif-accent-bright);
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.30);
+}
+.aif-tech-pill--accent:hover {
+  color: #c7d2fe;
+  background: rgba(99, 102, 241, 0.20);
+  border-color: rgba(99, 102, 241, 0.45);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   МОБИЛЬНАЯ АДАПТАЦИЯ HERO
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .aif-hero--landing {
+    padding: 2.5rem 1rem 2.5rem;
+  }
+  .aif-stat-grid {
+    gap: 0.5rem;
+    margin-top: 1.75rem;
+  }
+  .aif-stat-card {
+    padding: 0.65rem 1rem;
+    min-width: 4.5rem;
+  }
+  .aif-stat-value {
+    font-size: 1.2rem;
+  }
+  .aif-hero-actions {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: 1.5rem;
+  }
+  .aif-hero-actions .aif-btn,
+  .aif-hero-actions .aif-btn-ghost {
+    width: 100%;
+    max-width: 20rem;
+    justify-content: center;
+  }
+  .aif-hero-badge {
+    font-size: 0.67rem;
+    padding: 0.25rem 0.65rem;
+  }
+  .aif-tech-pills {
+    gap: 0.35rem;
+    margin-top: 1rem;
+  }
+  .aif-tech-pill {
+    font-size: 0.62rem;
+    padding: 0.18rem 0.5rem;
+  }
+}

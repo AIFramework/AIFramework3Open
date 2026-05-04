@@ -1,0 +1,171 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Card Component
+   Объединяет: .home-card (Home.razor.css), .lp-card (LibraryPage.razor.css),
+               .cp-card (CategoryPage.razor.css)
+   Источники аудита: 3 файла с идентичным паттерном тёмной карточки.
+
+   Использование:
+     <a class="aif-card aif-card--indigo" href="/lib/ai">...</a>
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Базовая карточка ───────────────────────────────────────────── */
+.aif-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.35rem;
+  border-radius: var(--aif-r-card);
+  border: 1px solid var(--aif-border);
+  background: var(--aif-card-bg);
+  text-decoration: none;
+  transition:
+    border-color 0.2s,
+    box-shadow   0.2s,
+    transform    0.2s var(--aif-ease-spring);
+  cursor: pointer;
+}
+.aif-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--aif-shadow-md);
+}
+
+/* ─── Компактный вариант (категории, вложенные страницы) ─────────── */
+.aif-card--sm {
+  padding: 1.1rem 1.25rem;
+  border-radius: 1.1rem;
+  gap: 0.75rem;
+}
+.aif-card--sm:hover {
+  transform: translateY(-2px);
+}
+
+/* ─── Цветовые модификаторы hover-состояния ──────────────────────── */
+.aif-card--sky:hover {
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: 0 8px 32px -8px rgba(14, 165, 233, 0.15);
+}
+.aif-card--indigo:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 8px 32px -8px rgba(99, 102, 241, 0.15);
+}
+.aif-card--violet:hover {
+  border-color: rgba(124, 58, 237, 0.35);
+  box-shadow: 0 8px 32px -8px rgba(124, 58, 237, 0.15);
+}
+.aif-card--emerald:hover {
+  border-color: rgba(5, 150, 105, 0.35);
+  box-shadow: 0 8px 32px -8px rgba(5, 150, 105, 0.15);
+}
+.aif-card--amber:hover {
+  border-color: rgba(217, 119, 6, 0.35);
+  box-shadow: 0 8px 32px -8px rgba(217, 119, 6, 0.15);
+}
+.aif-card--pink:hover {
+  border-color: rgba(219, 39, 119, 0.35);
+  box-shadow: 0 8px 32px -8px rgba(219, 39, 119, 0.15);
+}
+
+/* ─── Акцентная полоса сверху карточки (для параметров/настроек) ─── */
+.aif-card--accent-top {
+  border-top-width: 2px;
+  border-top-style: solid;
+  border-radius: 1.1rem;
+}
+.aif-card--accent-top.aif-card--sky     { border-top-color: rgba(14, 165, 233, 0.45); }
+.aif-card--accent-top.aif-card--indigo  { border-top-color: rgba(79, 70, 229, 0.45); }
+.aif-card--accent-top.aif-card--violet  { border-top-color: rgba(124, 58, 237, 0.45); }
+.aif-card--accent-top.aif-card--emerald { border-top-color: rgba(5, 150, 105, 0.45); }
+.aif-card--accent-top.aif-card--amber   { border-top-color: rgba(217, 119, 6, 0.45); }
+.aif-card--accent-top.aif-card--pink    { border-top-color: rgba(219, 39, 119, 0.45); }
+
+/* ─── Вертикальная компоновка (CategoryPage) ──────────────────────── */
+.aif-card--vertical {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  padding: 1rem 1.15rem;
+  border-radius: 1rem;
+}
+.aif-card--vertical:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--aif-shadow-sm);
+}
+
+/* ─── Внутренние элементы ────────────────────────────────────────── */
+.aif-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.aif-card-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--aif-text-1);
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
+}
+.aif-card-title--sm {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.aif-card-desc {
+  font-size: 0.78rem;
+  color: var(--aif-text-3);
+  margin: 0 0 0.5rem;
+  line-height: 1.5;
+}
+.aif-card-desc--sm {
+  font-size: 0.76rem;
+  margin: 0 0 0.4rem;
+}
+.aif-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--aif-text-5);
+  font-weight: 500;
+}
+.aif-card-meta-sep { color: #1e293b; }
+
+/* ─── Стрелка (навигационный индикатор) ─────────────────────────── */
+.aif-card-arrow {
+  color: var(--aif-text-6);
+  flex-shrink: 0;
+  transition: color 0.15s, transform 0.15s;
+}
+.aif-card:hover .aif-card-arrow {
+  color: var(--aif-accent-light);
+  transform: translateX(4px);
+}
+.aif-card--sm:hover .aif-card-arrow {
+  transform: translateX(3px);
+}
+
+/* ─── Grid-контейнеры для карточек ──────────────────────────────── */
+.aif-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 1.25rem;
+  max-width: var(--aif-max-w-narrow);
+  margin: 1.5rem auto 4rem;
+  padding: 0 1.5rem;
+}
+.aif-cards-grid--sm {
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 1rem;
+  max-width: var(--aif-max-w-default);
+}
+.aif-cards-grid--xs {
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 1rem;
+  max-width: var(--aif-max-w-default);
+}
+
+@media (max-width: 480px) {
+  .aif-cards-grid {
+    padding: 0 1rem;
+    gap: 0.85rem;
+    margin-top: 1rem;
+  }
+}

@@ -1,0 +1,346 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Design Tokens
+   Версия: 1.0.0
+   Источник: Demo/WebUI/AiFrameworkDemo/wwwroot/app.css  +  AlgoPage.razor.css
+
+   Префикс --aif- (AIFramework), заменяет устаревший --cv-.
+   Все значения получены из аудита WebUI-проекта.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* ─── ФОН (Backgrounds) ─────────────────────────────────────────── */
+  --aif-bg-void:  #02030a;   /* самый тёмный слой — под body */
+  --aif-bg-deep:  #050710;   /* глубокий фон страниц */
+  --aif-bg:       #080b17;   /* основной фон */
+
+  /* ─── ПОВЕРХНОСТИ (Surfaces) ────────────────────────────────────── */
+  --aif-surface-1:      rgba(255, 255, 255, 0.04);
+  --aif-surface-2:      rgba(255, 255, 255, 0.07);
+  --aif-glass:          rgba(14, 17, 35, 0.85);
+  --aif-glass-strong:   rgba(10, 12, 26, 0.95);
+  --aif-card-bg:        linear-gradient(160deg, rgba(14, 17, 38, 0.97) 0%, rgba(8, 10, 24, 0.93) 100%);
+  --aif-topbar-bg:      rgba(5, 6, 16, 0.9);
+  --aif-code-bg:        rgba(3, 4, 14, 0.6);
+
+  /* ─── ГРАНИЦЫ (Borders) ─────────────────────────────────────────── */
+  --aif-border:         rgba(255, 255, 255, 0.08);
+  --aif-border-bright:  rgba(255, 255, 255, 0.14);
+  --aif-border-accent:  rgba(99, 102, 241, 0.3);
+  --aif-border-subtle:  rgba(255, 255, 255, 0.06);
+  --aif-border-dark:    rgba(255, 255, 255, 0.05);
+
+  /* ─── АКЦЕНТНЫЙ ЦВЕТ (Primary Accent — Indigo) ──────────────────── */
+  --aif-accent:         #6366f1;
+  --aif-accent-light:   #818cf8;
+  --aif-accent-bright:  #a5b4fc;
+
+  /* ─── СЕМАНТИЧЕСКИЕ ЦВЕТА (Semantic) ────────────────────────────── */
+  --aif-error:     #f43f5e;
+  --aif-error-bg:  rgba(244, 63, 94, 0.08);
+  --aif-error-border: rgba(244, 63, 94, 0.25);
+  --aif-error-text: #fb7185;
+
+  --aif-cyan:    #06b6d4;
+  --aif-cyan-light: #22d3ee;
+  --aif-violet:  #7c3aed;
+  --aif-emerald: #10b981;
+  --aif-amber:   #f59e0b;
+  --aif-pink:    #ec4899;
+  --aif-rose:    #f43f5e;
+
+  /* ─── ЦВЕТОВЫЕ АКЦЕНТЫ — 6 МОДУЛЕЙ (Module Colors) ─────────────── */
+  /* Каждый цвет имеет: base, bg, border для использования в компонентах */
+
+  --aif-c-sky:            #38bdf8;
+  --aif-c-sky-bg:         rgba(14, 165, 233, 0.1);
+  --aif-c-sky-border:     rgba(14, 165, 233, 0.22);
+  --aif-c-sky-rgb:        14, 165, 233;
+
+  --aif-c-indigo:         #818cf8;
+  --aif-c-indigo-bg:      rgba(79, 70, 229, 0.1);
+  --aif-c-indigo-border:  rgba(79, 70, 229, 0.25);
+  --aif-c-indigo-rgb:     79, 70, 229;
+
+  --aif-c-violet:         #a78bfa;
+  --aif-c-violet-bg:      rgba(124, 58, 237, 0.1);
+  --aif-c-violet-border:  rgba(124, 58, 237, 0.25);
+  --aif-c-violet-rgb:     124, 58, 237;
+
+  --aif-c-emerald:        #34d399;
+  --aif-c-emerald-bg:     rgba(5, 150, 105, 0.1);
+  --aif-c-emerald-border: rgba(5, 150, 105, 0.22);
+  --aif-c-emerald-rgb:    5, 150, 105;
+
+  --aif-c-amber:          #fbbf24;
+  --aif-c-amber-bg:       rgba(217, 119, 6, 0.1);
+  --aif-c-amber-border:   rgba(217, 119, 6, 0.25);
+  --aif-c-amber-rgb:      217, 119, 6;
+
+  --aif-c-pink:           #f472b6;
+  --aif-c-pink-bg:        rgba(219, 39, 119, 0.1);
+  --aif-c-pink-border:    rgba(219, 39, 119, 0.25);
+  --aif-c-pink-rgb:       219, 39, 119;
+
+  /* ─── ТЕКСТ (Text) ───────────────────────────────────────────────── */
+  --aif-text-1: #f8fafc;   /* primary — заголовки */
+  --aif-text-2: #e2e8f0;   /* secondary — подзаголовки, сильный текст */
+  --aif-text-3: #94a3b8;   /* muted — основной текст контента */
+  --aif-text-4: #64748b;   /* faint — метки, подписи */
+  --aif-text-5: #475569;   /* ghost — неактивный, placeholder */
+  --aif-text-6: #334155;   /* dim — разделители, стрелки */
+
+  /* ─── PROSE — типографика Markdown-контента ─────────────────────── */
+  --aif-prose-heading:          #f1f5f9;
+  --aif-prose-muted:            #cbd5e1;
+  --aif-prose-code-text:        #c4b5fd;
+  --aif-prose-code-bg:          rgba(99, 102, 241, 0.10);
+  --aif-prose-code-border:      rgba(99, 102, 241, 0.18);
+  --aif-prose-pre-bg:           #0d1117;          /* GitHub Dark — намеренно фикс. */
+  --aif-prose-pre-text:         #c9d1d9;
+  --aif-prose-link:             var(--aif-accent-bright);
+  --aif-prose-link-hover:       #c7d2fe;
+  --aif-prose-link-border:      rgba(165, 180, 252, 0.40);
+  --aif-prose-link-border-hover:rgba(199, 210, 254, 0.70);
+  --aif-prose-blockquote-color: #cbd5e1;
+  --aif-prose-blockquote-bg:    rgba(99, 102, 241, 0.06);
+  --aif-prose-table-bg:         rgba(3, 4, 14, 0.35);
+  --aif-prose-table-head-bg:    rgba(99, 102, 241, 0.12);
+  --aif-prose-table-head-border:rgba(99, 102, 241, 0.30);
+  --aif-prose-table-border:     rgba(99, 102, 241, 0.20);
+  --aif-prose-table-hover:      rgba(99, 102, 241, 0.05);
+  --aif-prose-hr:               rgba(99, 102, 241, 0.35);
+  --aif-prose-math-bg:          rgba(99, 102, 241, 0.04);
+  --aif-prose-math-border:      rgba(99, 102, 241, 0.40);
+
+  /* ─── INPUTS — поля ввода ────────────────────────────────────────── */
+  --aif-input-border:       rgba(255, 255, 255, 0.10);
+  --aif-input-focus-border: rgba(99, 102, 241, 0.40);
+  --aif-input-focus-ring:   rgba(99, 102, 241, 0.12);
+  --aif-code-input-bg:      rgba(2, 3, 12, 0.80);
+  --aif-code-input-color:   #c4d4f0;
+
+  /* ─── TOOLTIP ────────────────────────────────────────────────────── */
+  --aif-tooltip-bg:     #1e2235;
+  --aif-tooltip-color:  #cbd5e1;
+  --aif-tooltip-border: rgba(129, 140, 248, 0.25);
+  --aif-tooltip-shadow: rgba(0, 0, 0, 0.60);
+
+  /* ─── OVERLAY / CHART ────────────────────────────────────────────── */
+  --aif-overlay-scrim:    rgba(2, 3, 12, 0.88);
+  --aif-overlay-box-bg:   linear-gradient(160deg, rgba(14,17,38,0.98) 0%, rgba(8,10,24,0.98) 100%);
+  --aif-overlay-box-border: rgba(255, 255, 255, 0.10);
+  --aif-overlay-box-shadow: rgba(0, 0, 0, 0.80);
+  --aif-chart-inner-bg:   rgba(3, 4, 14, 0.50);
+  --aif-chart-zoom-bg:    #03040c;
+
+  /* ─── ERROR BANNER ───────────────────────────────────────────────── */
+  --aif-error-banner-bg:    #431407;
+  --aif-error-banner-color: #ffedd5;
+  --aif-error-banner-link:  #fdba74;
+
+  /* ─── STATUS (текст результата вычислений) ───────────────────────── */
+  --aif-status-ok:  #a5f3fc;
+  --aif-status-err: #f87171;
+
+  /* ─── РАДИУСЫ (Border Radius) ────────────────────────────────────── */
+  --aif-r-xs:   0.3rem;
+  --aif-r-sm:   0.375rem;
+  --aif-r-md:   0.625rem;
+  --aif-r-lg:   0.875rem;
+  --aif-r-xl:   1.125rem;
+  --aif-r-2xl:  1.5rem;
+  --aif-r-card: 1.25rem;   /* стандартный радиус карточек */
+  --aif-r-full: 999px;
+
+  /* ─── ТЕНИ (Shadows) ─────────────────────────────────────────────── */
+  --aif-shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --aif-shadow-sm: 0 2px 10px -2px rgba(0, 0, 0, 0.45);
+  --aif-shadow-md: 0 8px 32px -8px rgba(0, 0, 0, 0.55);
+  --aif-shadow-lg: 0 20px 60px -16px rgba(0, 0, 0, 0.65);
+  --aif-shadow-accent:    0 4px 24px -4px rgba(99, 102, 241, 0.4);
+  --aif-shadow-accent-lg: 0 8px 48px -8px rgba(99, 102, 241, 0.35);
+
+  /* ─── ТИПОГРАФИКА (Typography) ───────────────────────────────────── */
+  --aif-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --aif-font-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ─── АНИМАЦИИ — easing-кривые (Easing) ─────────────────────────── */
+  --aif-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --aif-ease-out:    cubic-bezier(0.21, 0.47, 0.32, 0.98);
+  --aif-ease-std:    cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ─── МАКЕТ — сетка (Layout) ─────────────────────────────────────── */
+  --aif-max-w-wide:    90rem;   /* AlgoPage layout */
+  --aif-max-w-default: 78rem;   /* Header, CategoryPage, footer */
+  --aif-max-w-narrow:  72rem;   /* Home grid, LibraryPage grid */
+  --aif-header-height: 3.75rem; /* Высота sticky-хедера */
+  --aif-topbar-height: 2.9rem;  /* Высота вторичного топбара */
+  --aif-topbar-top:    3.75rem; /* Offset: под хедером */
+
+  /* ─── Z-ИНДЕКСЫ (Z-Index) ────────────────────────────────────────── */
+  --aif-z-topbar:  40;
+  --aif-z-header:  50;
+  --aif-z-tooltip: 200;
+  --aif-z-overlay: 9000;
+
+  /* ═══════════════════════════════════════════════════════════════════
+     КОНТЕКСТНЫЙ ЦВЕТ (Current Color)
+     ─────────────────────────────────────────────────────────────────
+     Переменные --aif-cur-* описывают «активный цвет» текущего контекста.
+     По умолчанию: indigo (цвет системного акцента).
+
+     Переопределяются через атрибут [data-color] на любом родительском
+     элементе — все дочерние компоненты автоматически меняют цвет:
+
+       <section data-color="emerald">
+         <div class="aif-card">...</div>     ← станет изумрудным
+         <button class="aif-btn">...</button> ← станет изумрудным
+       </section>
+
+     Явные модификаторы (.aif-btn--amber) имеют приоритет над контекстом.
+     Подробнее: docs/theming.md
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* Базовый цвет (для текста, иконок, значений параметров) */
+  --aif-cur:                  #818cf8;
+
+  /* Фон и граница */
+  --aif-cur-bg:               rgba(79, 70, 229, 0.1);
+  --aif-cur-border:           rgba(79, 70, 229, 0.25);
+
+  /* Hover-состояние карточек */
+  --aif-cur-hover-border:     rgba(99, 102, 241, 0.35);
+  --aif-cur-hover-shadow:     rgba(99, 102, 241, 0.15);
+
+  /* Акцент-полоска сверху карточки */
+  --aif-cur-top-border:       rgba(79, 70, 229, 0.45);
+
+  /* Горизонтальная полоска заголовка теории (3px) */
+  --aif-cur-bar:              linear-gradient(90deg, #4f46e5, #818cf8);
+
+  /* Градиент кнопки .aif-btn */
+  --aif-cur-btn:              linear-gradient(135deg, #4f46e5, #6366f1);
+  --aif-cur-btn-shadow:       rgba(99, 102, 241, 0.4);
+
+  /* Градиент иконки .aif-icon-pill */
+  --aif-cur-icon:             linear-gradient(145deg, #6366f1, #4f46e5);
+  --aif-cur-icon-shadow:      rgba(99, 102, 241, 0.45);
+
+  /* Нижняя граница топбара .aif-topbar */
+  --aif-cur-topbar-border:    rgba(79, 70, 229, 0.25);
+
+  /* Активная кнопка выбора .aif-choice-btn--on */
+  --aif-cur-choice-active:    linear-gradient(150deg, rgba(99, 102, 241, 0.95), rgba(67, 56, 202, 0.95));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIGHT THEME — [data-theme="light"] на элементе <html>
+   Переопределяет токены фона, поверхностей, границ, текста и теней.
+   Акцентные цвета, радиусы, z-индексы, макет — не меняются.
+   ═══════════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+
+  /* ─── Фон — чистые нейтральные тона без фиолетового оттенка ──── */
+  --aif-bg-void:  #ffffff;   /* абсолютно белый (самый «светлый» слой) */
+  --aif-bg-deep:  #f8fafc;   /* slate-50                               */
+  --aif-bg:       #f1f5f9;   /* slate-100 — основной фон страниц       */
+
+  /* ─── Поверхности ────────────────────────────────────────────────── */
+  --aif-surface-1:      rgba(15, 23, 42, 0.04);
+  --aif-surface-2:      rgba(15, 23, 42, 0.08);
+  --aif-glass:          rgba(255, 255, 255, 0.92);
+  --aif-glass-strong:   rgba(255, 255, 255, 0.99);
+  --aif-card-bg:        linear-gradient(160deg, #ffffff 0%, #f8fafc 100%);
+  --aif-topbar-bg:      rgba(255, 255, 255, 0.96);
+  --aif-code-bg:        rgba(241, 245, 249, 0.95);
+
+  /* ─── Границы ────────────────────────────────────────────────────── */
+  --aif-border:         rgba(15, 23, 42, 0.10);
+  --aif-border-bright:  rgba(15, 23, 42, 0.18);
+  --aif-border-accent:  rgba(99, 102, 241, 0.30);
+  --aif-border-subtle:  rgba(15, 23, 42, 0.06);
+  --aif-border-dark:    rgba(15, 23, 42, 0.04);
+
+  /* ─── Текст ──────────────────────────────────────────────────────── */
+  --aif-text-1: #0f172a;   /* slate-900 — заголовки       */
+  --aif-text-2: #1e293b;   /* slate-800 — сильный текст   */
+  --aif-text-3: #334155;   /* slate-700 — основной текст  */
+  --aif-text-4: #64748b;   /* slate-500 — метки           */
+  --aif-text-5: #94a3b8;   /* slate-400 — второстепенный  */
+  --aif-text-6: #cbd5e1;   /* slate-300 — разделители     */
+
+  /* ─── Семантические ──────────────────────────────────────────────── */
+  --aif-error-bg:     rgba(244, 63, 94, 0.06);
+  --aif-error-border: rgba(244, 63, 94, 0.20);
+  --aif-error-text:   #e11d48;
+
+  /* ─── Тени — лёгкие, без тёмного разлива ────────────────────────── */
+  --aif-shadow-xs: 0 1px 3px rgba(15, 23, 42, 0.05);
+  --aif-shadow-sm: 0 2px 10px -2px rgba(15, 23, 42, 0.08);
+  --aif-shadow-md: 0 8px 32px -8px rgba(15, 23, 42, 0.11);
+  --aif-shadow-lg: 0 20px 60px -16px rgba(15, 23, 42, 0.15);
+  --aif-shadow-accent:    0 4px 24px -4px rgba(99, 102, 241, 0.20);
+  --aif-shadow-accent-lg: 0 8px 48px -8px rgba(99, 102, 241, 0.15);
+
+  /* ─── Контекстный акцент по умолчанию (indigo) — тёмный вариант ─── */
+  --aif-cur:              #4f46e5;
+  --aif-cur-bg:           rgba(79, 70, 229, 0.08);
+  --aif-cur-border:       rgba(79, 70, 229, 0.22);
+  --aif-cur-hover-border: rgba(99, 102, 241, 0.32);
+  --aif-cur-hover-shadow: rgba(99, 102, 241, 0.12);
+
+  /* ─── Ссылки (Links) ─────────────────────────────────────────────── */
+  --aif-link:               #4f46e5;
+  --aif-link-hover:         #3730a3;
+
+  /* ─── Prose (светлая тема) ───────────────────────────────────────── */
+  --aif-prose-heading:           var(--aif-text-1);
+  --aif-prose-muted:             var(--aif-text-3);
+  --aif-prose-code-text:         #4338ca;
+  --aif-prose-code-bg:           rgba(79, 70, 229, 0.07);
+  --aif-prose-code-border:       rgba(79, 70, 229, 0.18);
+  --aif-prose-link:              #4f46e5;
+  --aif-prose-link-hover:        #3730a3;
+  --aif-prose-link-border:       rgba(79, 70, 229, 0.35);
+  --aif-prose-link-border-hover: rgba(55, 48, 163, 0.60);
+  --aif-prose-blockquote-color:  var(--aif-text-3);
+  --aif-prose-blockquote-bg:     rgba(79, 70, 229, 0.05);
+  --aif-prose-table-bg:          rgba(248, 250, 252, 0.90);
+  --aif-prose-table-head-bg:     rgba(79, 70, 229, 0.08);
+  --aif-prose-table-head-border: rgba(79, 70, 229, 0.20);
+  --aif-prose-table-border:      rgba(79, 70, 229, 0.15);
+  --aif-prose-table-hover:       rgba(79, 70, 229, 0.04);
+  --aif-prose-hr:                rgba(79, 70, 229, 0.25);
+  --aif-prose-math-bg:           rgba(79, 70, 229, 0.04);
+  --aif-prose-math-border:       rgba(79, 70, 229, 0.35);
+
+  /* ─── Inputs (светлая тема) ──────────────────────────────────────── */
+  --aif-input-border:       rgba(15, 23, 42, 0.14);
+  --aif-input-focus-border: rgba(79, 70, 229, 0.40);
+  --aif-code-input-bg:      rgba(241, 245, 249, 0.95);
+  --aif-code-input-color:   var(--aif-text-2);
+
+  /* ─── Tooltip (светлая тема) ─────────────────────────────────────── */
+  --aif-tooltip-bg:     #ffffff;
+  --aif-tooltip-color:  var(--aif-text-2);
+  --aif-tooltip-border: rgba(15, 23, 42, 0.15);
+  --aif-tooltip-shadow: rgba(0, 0, 0, 0.15);
+
+  /* ─── Overlay / Chart (светлая тема) ────────────────────────────── */
+  --aif-overlay-scrim:      rgba(220, 225, 245, 0.92);
+  --aif-overlay-box-bg:     linear-gradient(160deg, rgba(255,255,255,0.99) 0%, rgba(238,241,252,0.98) 100%);
+  --aif-overlay-box-border: rgba(0, 0, 40, 0.10);
+  --aif-overlay-box-shadow: rgba(0, 0, 0, 0.18);
+  --aif-chart-inner-bg:     rgba(228, 232, 250, 0.60);
+  --aif-chart-zoom-bg:      #f0f2fc;
+
+  /* ─── Error banner (светлая тема) ───────────────────────────────── */
+  --aif-error-banner-bg:    #fef2f2;
+  --aif-error-banner-color: #7f1d1d;
+  --aif-error-banner-link:  #b91c1c;
+
+  /* ─── Status (светлая тема) ──────────────────────────────────────── */
+  --aif-status-ok:  #0369a1;
+  --aif-status-err: #dc2626;
+}

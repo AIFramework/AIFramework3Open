@@ -1,0 +1,75 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Entry Point
+   Версия: 1.0.0
+
+   ┌─ СТРАТЕГИЯ СТИЛИЗАЦИИ ─────────────────────────────────────────┐
+   │                                                                 │
+   │  1. [data-color] — один атрибут меняет цвет всего внутри       │
+   │                                                                 │
+   │       <section data-color="emerald">                            │
+   │         <div class="aif-card">...</div>   ← изумрудный          │
+   │         <button class="aif-btn">...</button> ← изумрудный       │
+   │       </section>                                                │
+   │                                                                 │
+   │  2. Токены в :root — глобальная кастомизация:                   │
+   │                                                                 │
+   │       :root { --aif-accent: #10b981; }                          │
+   │                                                                 │
+   │  3. @layer (опционально) — переопределение без !important:      │
+   │                                                                 │
+   │       Используйте index.layer.css вместо этого файла            │
+   │       для поддержки @layer (Chrome 99+, Firefox 97+)            │
+   │                                                                 │
+   │  Подробнее: docs/theming.md                                     │
+   └─────────────────────────────────────────────────────────────────┘
+
+   Порядок @import критически важен:
+   1. Tokens  — CSS custom properties (должны быть первыми)
+   2. Base    — reset, typography, animations
+   3. Components — от простых к сложным (нет зависимостей между файлами)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. TOKENS ────────────────────────────────────────────────────── */
+@import "./tokens/tokens.css";
+@import "./tokens/themes.css";
+
+/* ── 2. BASE ──────────────────────────────────────────────────────── */
+@import "./base/reset.css";
+@import "./base/animations.css";
+@import "./base/typography.css";
+
+/* ── 3. COMPONENTS ────────────────────────────────────────────────── */
+
+/* Атомарные / примитивные */
+@import "./components/badge.css";
+@import "./components/icon-pill.css";
+@import "./components/tooltip.css";
+
+/* Форм-контролы */
+@import "./components/form-controls.css";
+@import "./components/choice-grid.css";
+
+/* Кнопки */
+@import "./components/button.css";
+
+/* Навигация и структура */
+@import "./components/topbar.css";
+@import "./components/card.css";
+@import "./components/hero.css";
+@import "./components/features.css";
+@import "./components/algo-layout.css";
+
+/* Оверлеи и модальные окна */
+@import "./components/overlay.css";
+@import "./components/image-drop.css";
+
+/* Пустые состояния и ошибки */
+@import "./components/empty-state.css";
+@import "./components/error-banner.css";
+@import "./components/reconnect-modal.css";
+
+/* Страница каталога алгоритмов */
+@import "./components/catalog-page.css";
+
+/* Кнопка переключения темы */
+@import "./components/theme-toggle.css";

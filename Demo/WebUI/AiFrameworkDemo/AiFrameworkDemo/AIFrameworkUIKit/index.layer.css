@@ -1,0 +1,50 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Entry Point с поддержкой @layer
+   Версия: 1.0.0
+
+   Используйте ЭТОТ файл вместо index.css, если хотите:
+   • Переопределять стили кита без !important
+   • Гарантированно выигрывать у стилей кита через cascade layers
+
+   Требования к браузерам: Chrome 99+, Firefox 97+, Safari 15.4+
+   Для старых браузеров используйте index.css.
+
+   КАК РАБОТАЕТ:
+     Все стили кита — в @layer aif.
+     Стили БЕЗ слоя всегда побеждают:
+
+       /* ваш файл — никакого !important нужно */
+       .aif-btn { border-radius: 9999px; }
+
+   Порядок слоёв: aif-reset < aif < (без слоя)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Объявление порядка слоёв — стили без слоя всегда побеждают */
+@layer aif-reset, aif;
+
+/* ── Reset — в отдельном слое (применяется всегда, но с наименьшим приоритетом) */
+@import "./base/reset.css" layer(aif-reset);
+
+/* ── Всё остальное — в слое aif ──────────────────────────────────── */
+@import "./tokens/tokens.css"  layer(aif);
+@import "./tokens/themes.css"  layer(aif);
+
+@import "./base/animations.css" layer(aif);
+@import "./base/typography.css" layer(aif);
+
+@import "./components/badge.css"       layer(aif);
+@import "./components/icon-pill.css"   layer(aif);
+@import "./components/tooltip.css"     layer(aif);
+@import "./components/form-controls.css" layer(aif);
+@import "./components/choice-grid.css"   layer(aif);
+@import "./components/button.css"      layer(aif);
+@import "./components/topbar.css"      layer(aif);
+@import "./components/card.css"        layer(aif);
+@import "./components/hero.css"        layer(aif);
+@import "./components/features.css"    layer(aif);
+@import "./components/algo-layout.css" layer(aif);
+@import "./components/overlay.css"     layer(aif);
+@import "./components/image-drop.css"  layer(aif);
+@import "./components/empty-state.css"     layer(aif);
+@import "./components/error-banner.css"    layer(aif);
+@import "./components/reconnect-modal.css" layer(aif);

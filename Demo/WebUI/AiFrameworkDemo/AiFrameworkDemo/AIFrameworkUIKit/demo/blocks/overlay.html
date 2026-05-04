@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Overlay, Chart Wrap, Text Result</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="demo-section"><a href="../index.html" style="font-size:0.8rem;color:var(--aif-text-4);">← Все компоненты</a></div>
+
+<!-- ═══════ CHART WRAP ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-chart-wrap</p>
+  <div class="demo-row" style="gap:1.5rem;">
+    <div class="demo-col" style="flex:1;min-width:260px;">
+      <div class="aif-chart-wrap">
+        <div style="background:#03040c;height:200px;border-radius:4px;"></div>
+        <button class="aif-chart-expand">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
+      </div>
+      <span class="demo-label">.aif-chart-wrap + .aif-chart-expand</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CHART WRAP INTERACTIVE ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-chart-wrap--interactive</p>
+  <div class="demo-row" style="gap:1.5rem;">
+    <div class="demo-col" style="flex:1;min-width:260px;">
+      <div class="aif-chart-wrap aif-chart-wrap--interactive">
+        <div style="background:#03040c;height:200px;border-radius:4px;"></div>
+      </div>
+      <span class="demo-label">.aif-chart-wrap--interactive (no zoom cursor)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TEXT RESULT ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-text-result</p>
+  <div class="demo-row">
+    <div class="demo-col" style="flex:1;min-width:300px;">
+      <div class="aif-text-result">
+        <pre><span class="so-cmd">&gt;&gt; model.Train(epochs: 80)</span>
+<span class="so-result">=&gt; Loss: 0.0312, Accuracy: 97.5%</span>
+<span class="so-error">!!! Ошибка: превышен лимит памяти</span></pre>
+      </div>
+      <span class="demo-label">.aif-text-result &gt; pre &gt; .so-cmd / .so-result / .so-error</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PLOTLY CONTAINER ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-plotly-container</p>
+  <div class="demo-row">
+    <div class="demo-col" style="flex:1;min-width:260px;">
+      <div class="aif-plotly-container" style="min-height:120px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:0.75rem;color:var(--aif-text-5);font-family:var(--aif-font-mono);">Plotly chart placeholder</span>
+      </div>
+      <span class="demo-label">.aif-plotly-container</span>
+    </div>
+  </div>
+</div>
+
+<div class="demo-spacer"></div>
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Empty State Component
+   Объединяет три идентичных паттерна:
+   - .ap-notfound (AlgoPage.razor.css, line 367)
+   - .lp-notfound (LibraryPage.razor.css, line 98)
+   - .cp-notfound (CategoryPage.razor.css, line 98)
+   - .ap-chart-placeholder (AlgoPage.razor.css, line 354)
+
+   Использование:
+     <!-- Страница не найдена -->
+     <div class="aif-empty">
+       <p>Алгоритм не найден.</p>
+       <a href="/">← Главная</a>
+     </div>
+
+     <!-- Ожидание запуска демо -->
+     <div class="aif-empty aif-empty--dashed">
+       <svg><!-- play icon --></svg>
+       <p>Нажмите «Запустить» для выполнения</p>
+     </div>
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Базовый пустой экран ───────────────────────────────────────── */
+.aif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 5rem 1rem;
+  color: var(--aif-text-4);
+  font-size: 0.9rem;
+  text-align: center;
+}
+.aif-empty a {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--aif-accent-light);
+  text-decoration: none;
+}
+.aif-empty a:hover { color: var(--aif-accent-bright); }
+
+/* ─── Вариант «ожидание действия» (с пунктирной рамкой) ─────────── */
+.aif-empty--dashed {
+  padding: 4rem 1rem;
+  color: rgba(255, 255, 255, 0.1);
+  border-radius: 1.1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.07);
+}
+.aif-empty--dashed p {
+  font-size: 0.82rem;
+  color: var(--aif-text-5);
+  margin: 0;
+}
+
+/* ─── Блок ошибки выполнения ─────────────────────────────────────── */
+.aif-error-block {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.7rem;
+  background: var(--aif-error-bg);
+  border: 1px solid var(--aif-error-border);
+  font-size: 0.8rem;
+  color: var(--aif-error-text);
+}
+
+/* ─── 404 страница ───────────────────────────────────────────────── */
+.aif-404 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+}
+.aif-404-code {
+  font-size: 4rem;
+  font-weight: 900;
+  color: rgba(99, 102, 241, 0.2);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.aif-404-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--aif-text-3);
+  margin: 0;
+}
+.aif-404-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--aif-accent-light);
+  text-decoration: none;
+  margin-top: 0.5rem;
+}
+.aif-404-link:hover { color: var(--aif-accent-bright); }
+
+/* ─── Экран ошибки (Error.razor) ─────────────────────────────────── */
+.aif-error-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+.aif-error-page-icon  { color: var(--aif-error); opacity: 0.6; }
+.aif-error-page-title { font-size: 1.4rem; font-weight: 800; color: var(--aif-text-1); margin: 0; }
+.aif-error-page-msg   { font-size: 0.9rem; color: var(--aif-text-4); margin: 0; max-width: 28rem; }
+.aif-error-page-link  { font-size: 0.85rem; font-weight: 600; color: var(--aif-accent-light); text-decoration: none; }
+.aif-error-page-link:hover { color: var(--aif-accent-bright); }

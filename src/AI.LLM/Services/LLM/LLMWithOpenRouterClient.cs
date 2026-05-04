@@ -1,0 +1,36 @@
+﻿using AI.LLM.Clients.Base;
+using AI.LLM.Clients.OpenRouter;
+using AI.LLM.Core.Abstractions;
+
+namespace AI.LLM.Services.LLM;
+
+/// <summary>
+/// LLM на базе OpenRouter клиента
+/// </summary>
+public class LLMWithOpenRouterClient : LLMBase
+{
+    /// <summary>
+    /// LLM на базе OpenRouter клиента
+    /// </summary>
+    /// <param name="settingsLLM">Настройки LLM</param>
+    /// <param name="streamHandler">Обработчик потоковой передачи</param>
+    public LLMWithOpenRouterClient(LLMOptions settingsLLM, IStreamHandler streamHandler = null) 
+        : base(Init(settingsLLM, streamHandler), settingsLLM) { }
+
+    // Инициализация для конструктора
+    private static ChatLLMApi Init(LLMOptions openRouterSettings, IStreamHandler streamHandler)
+    {
+        OpenRouterModelApi client = new OpenRouterModelApi(
+            apiKey: openRouterSettings.ApiKey,
+            modelName: openRouterSettings.ModelName,
+            streamSender: streamHandler,
+            prompt: openRouterSettings.SystemPrompt
+            );
+
+        // Применяем провайдера если указан
+        if (openRouterSettings.PreferredProvider != null)
+            client.PreferredProvider = openRouterSettings.PreferredProvider;
+
+        return client;
+    }
+}

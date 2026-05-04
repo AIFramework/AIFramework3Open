@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPublishable>false</IsPublishable>
+    <RootNamespace>AI</RootNamespace>
+    <AssemblyName>AI.NeuralNetworks</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702</NoWarn>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="NeuralNetworks\**" />
+    <EmbeddedResource Remove="NeuralNetworks\**" />
+    <None Remove="NeuralNetworks\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenBlasSharp" Version="0.3.4" />
+    <PackageReference Include="OpenBlasSharp.Windows" Version="2026.1.17" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AI.NeuralNetworks.Gpu" />
+    <InternalsVisibleTo Include="AI.NeuralNetworks.Onnx" />
+    <InternalsVisibleTo Include="NNW.V2.Tests" />
+  </ItemGroup>
+
+</Project>

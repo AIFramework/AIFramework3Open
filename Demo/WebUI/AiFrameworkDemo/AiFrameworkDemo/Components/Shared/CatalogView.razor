@@ -1,0 +1,179 @@
+@using AiFrameworkDemo.Core
+
+<div class="aif-catalog">
+
+    @* ── Sidebar: фасетный поиск по библиотекам ── *@
+    <aside class="aif-catalog-sidebar">
+        <p class="aif-catalog-sidebar-title">Библиотека</p>
+        <div class="aif-facet-group">
+            <button class="aif-facet-btn @(SelectedLib == null ? "aif-facet-btn--active" : "")"
+                    @onclick="() => SelectLib(null)">
+                <span style="display:flex;align-items:center;justify-content:center;width:1.7rem;height:1.7rem;flex-shrink:0;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </span>
+                Все библиотеки
+                <span class="aif-facet-count">@AlgoSearchIndex.All.Count</span>
+            </button>
+
+            @foreach (var lib in LibraryRegistry.Modules)
+            {
+                var isActive = SelectedLib == lib.Id;
+                <button class="aif-facet-btn aif-facet-btn--@lib.Color @(isActive ? "aif-facet-btn--active" : "")"
+                        @onclick="() => SelectLib(lib.Id)">
+                    <div class="aif-icon-pill aif-icon-pill--@lib.Color">
+                        @((MarkupString)lib.IconSvg)
+                    </div>
+                    @lib.Name
+                    <span class="aif-facet-count">@AlgoSearchIndex.GetByLibrary(lib.Id).Count</span>
+                </button>
+            }
+        </div>
+    </aside>
+
+    @* ── Main: строка поиска + результаты ── *@
+    <div class="aif-catalog-main">
+
+        <div class="aif-catalog-search-bar">
+            <svg class="aif-catalog-search-icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input class="aif-catalog-search-input"
+                   type="text"
+                   placeholder="Поиск по алгоритмам, классам, темам…"
+                   value="@Query"
+                   @oninput="OnQueryInput"
+                   aria-label="Полнотекстовый поиск" />
+            @if (!string.IsNullOrEmpty(Query))
+            {
+                <button class="aif-catalog-search-clear" @onclick="ClearQuery" title="Очистить поиск" aria-label="Очистить">X</button>
+            }
+        </div>
+
+        <div class="aif-catalog-header">
+            <span class="aif-catalog-count">
+                @Results.Count @NounAlgo(Results.Count)
+                @if (!string.IsNullOrWhiteSpace(Query))
+                {
+                    <span> · BM25</span>
+                }
+            </span>
+            @if (SelectedLib != null)
+            {
+                var lib = LibraryRegistry.Get(SelectedLib);
+                if (lib != null)
+                {
+                    <span class="aif-catalog-filter-tag">
+                        @lib.Name
+                        <button style="background:none;border:none;cursor:pointer;color:inherit;padding:0;font-size:0.7rem;margin-left:0.2rem;"
+                                @onclick="() => SelectLib(null)" title="Снять фильтр" aria-label="Снять фильтр">X</button>
+                    </span>
+                }
+            }
+        </div>
+
+        @if (Results.Count == 0)
+        {
+            <div class="aif-empty-state aif-empty-state--dashed">
+                <svg class="aif-empty-state-icon" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/>
+                </svg>
+                <p class="aif-empty-state-text">Ничего не найдено</p>
+                <p class="aif-empty-state-hint">Попробуйте другой запрос или сбросьте фильтр библиотеки</p>
+            </div>
+        }
+        else
+        {
+            <div class="aif-catalog-results">
+                @foreach (var entry in Results)
+                {
+                    <a href="/lib/@entry.LibId/algo/@entry.AlgoKey"
+                       class="aif-algo-result-card aif-algo-result-card--@entry.LibColor"
+                       title="@entry.ApiClass">
+                        <div class="aif-algo-result-card-header">
+                            <div class="aif-icon-pill aif-icon-pill--@entry.LibColor"
+                                 style="width:1.55rem;height:1.55rem;border-radius:0.38rem;flex-shrink:0;">
+                                @((MarkupString)entry.LibIconSvg)
+                            </div>
+                            <span class="aif-algo-result-card-lib">@entry.LibName</span>
+                            <span class="aif-algo-result-card-sep">·</span>
+                            <span class="aif-algo-result-card-cat">@entry.CatTitle</span>
+                        </div>
+                        <h3 class="aif-algo-result-card-title">@entry.Title</h3>
+                        <p class="aif-algo-result-card-sub">@entry.Subtitle</p>
+                    </a>
+                }
+            </div>
+        }
+
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Если передан — каталог открывается сразу с выбранной библиотекой.
+    /// </summary>
+    [Parameter] public string? InitialLibId { get; set; }
+
+    private string? SelectedLib { get; set; }
+    private string Query { get; set; } = "";
+    private List<AlgoEntry> Results { get; set; } = [];
+
+    protected override void OnInitialized()
+    {
+        SelectedLib = InitialLibId;
+        UpdateResults();
+    }
+
+    private void SelectLib(string? libId)
+    {
+        SelectedLib = libId;
+        UpdateResults();
+    }
+
+    private void OnQueryInput(ChangeEventArgs e)
+    {
+        Query = e.Value?.ToString() ?? "";
+        UpdateResults();
+    }
+
+    private void ClearQuery()
+    {
+        Query = "";
+        UpdateResults();
+    }
+
+    private void UpdateResults()
+    {
+        bool hasQuery = !string.IsNullOrWhiteSpace(Query);
+
+        if (hasQuery)
+        {
+            Results = AlgoSearchIndex
+                .Search(Query, SelectedLib)
+                .Select(x => x.Entry)
+                .ToList();
+        }
+        else if (SelectedLib != null)
+        {
+            Results = AlgoSearchIndex.GetByLibrary(SelectedLib);
+        }
+        else
+        {
+            Results = [.. AlgoSearchIndex.All];
+        }
+    }
+
+    private static string NounAlgo(int n)
+    {
+        int mod10  = n % 10;
+        int mod100 = n % 100;
+        if (mod100 is >= 11 and <= 14) return "алгоритмов";
+        return mod10 switch { 1 => "алгоритм", 2 or 3 or 4 => "алгоритма", _ => "алгоритмов" };
+    }
+}

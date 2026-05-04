@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPublishable>false</IsPublishable>
+    <RootNamespace>AI</RootNamespace>
+    <AssemblyName>AI.KNN</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
+  </ItemGroup>
+
+</Project>

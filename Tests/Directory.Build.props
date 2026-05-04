@@ -1,0 +1,13 @@
+<Project>
+  <!-- Проекты под Tests/ часто ссылаются на AI.Fuzzy (в т.ч. FuzzyClassifier, LingVarGaussian); типы из AI и AI.ML не подтягиваются транзитивно при компиляции. -->
+  <PropertyGroup>
+    <_SlnPath>$([MSBuild]::GetPathOfFileAbove('AIFramework.sln', '$(MSBuildProjectDirectory)'))</_SlnPath>
+    <_TestsRepoRoot Condition="'$(_SlnPath)' != ''">$([System.IO.Path]::GetDirectoryName('$(_SlnPath)'))</_TestsRepoRoot>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(_TestsRepoRoot)' != ''">
+    <ProjectReference Include="$(_TestsRepoRoot)\src\AI\AI.csproj" />
+    <ProjectReference Include="$(_TestsRepoRoot)\src\AI.ML\AI.ML.csproj" />
+    <ProjectReference Include="$(_TestsRepoRoot)\src\AI.NeuralNetworks\AI.NeuralNetworks.csproj" />
+    <ProjectReference Include="$(_TestsRepoRoot)\src\AI.Fuzzy\AI.Fuzzy.csproj" />
+  </ItemGroup>
+</Project>

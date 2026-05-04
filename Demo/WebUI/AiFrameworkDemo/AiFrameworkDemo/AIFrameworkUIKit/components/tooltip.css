@@ -1,0 +1,74 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Tooltip Component
+   CSS-тултип, активируемый через атрибут data-tip.
+
+   ВСЕ ЦВЕТА — через токены --aif-tooltip-*.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.aif-tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: var(--aif-text-5);
+  cursor: default;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.aif-tip:hover { color: var(--aif-accent-light); }
+
+/* Текст подсказки */
+.aif-tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--aif-tooltip-bg);
+  color: var(--aif-tooltip-color);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  font-weight: 400;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--aif-tooltip-border);
+  box-shadow: 0 4px 20px var(--aif-tooltip-shadow);
+  white-space: normal;
+  width: max-content;
+  max-width: 260px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: var(--aif-z-tooltip);
+}
+
+/* Стрелка тултипа */
+.aif-tip::before {
+  content: '';
+  position: absolute;
+  right: calc(100% + 5px);
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-left-color: var(--aif-tooltip-border);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: calc(var(--aif-z-tooltip) + 1);
+}
+
+.aif-tip:hover::after,
+.aif-tip:hover::before {
+  opacity: 1;
+}
+
+/* Вариант: тултип справа */
+.aif-tip--right::after {
+  right: auto;
+  left: calc(100% + 10px);
+}
+.aif-tip--right::before {
+  right: auto;
+  left: calc(100% + 5px);
+  border-left-color: transparent;
+  border-right-color: var(--aif-tooltip-border);
+}

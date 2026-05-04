@@ -1,0 +1,224 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Algo Layout Component
+   Источник: AlgoPage.razor.css (.ap-layout, .ap-theory-card и т.д.)
+
+   Двухколоночный layout для страницы алгоритма:
+   слева — теория (sticky), справа — параметры + запуск + результат.
+
+   Использование:
+     <div class="aif-algo-layout">
+       <aside class="aif-algo-theory">
+         <div class="aif-theory-card">
+           <div class="aif-theory-header">
+             <div class="aif-theory-bar aif-theory-bar--indigo"></div>
+             <div class="aif-theory-title-row">
+               <h1 class="aif-theory-title">Название</h1>
+               <code class="aif-mono-badge">API.Class</code>
+             </div>
+             <p class="aif-theory-sub">Краткое описание</p>
+           </div>
+           <div class="aif-prose">
+             ...markdown...
+           </div>
+         </div>
+       </aside>
+       <section class="aif-algo-demo">
+         ...параметры, кнопки, результат...
+       </section>
+     </div>
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Двухколоночный layout ────────────────────────────────────── */
+.aif-algo-layout {
+  display: flex;
+  gap: 1.5rem;
+  max-width: var(--aif-max-w-wide);
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+  align-items: flex-start;
+}
+
+/* ─── Левая колонка: теория (sticky) ──────────────────────────── */
+.aif-algo-theory {
+  width: 42%;
+  min-width: 320px;
+  max-width: 680px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 7rem;
+  max-height: calc(100dvh - 7.5rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+}
+.aif-algo-theory::-webkit-scrollbar { width: 4px; }
+.aif-algo-theory::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 2px;
+}
+
+/* ─── Правая колонка: демо ────────────────────────────────────── */
+.aif-algo-demo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ─── Адаптив: переключение на одну колонку ───────────────────── */
+@media (max-width: 900px) {
+  .aif-algo-layout {
+    flex-direction: column;
+    padding-top: 1rem;
+  }
+  .aif-algo-theory {
+    position: static;
+    width: 100%;
+    max-height: none;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .aif-algo-layout {
+    padding: 0.5rem 0.9rem 3rem;
+  }
+}
+
+/* ─── Карточка теории ─────────────────────────────────────────── */
+.aif-theory-card {
+  border-radius: var(--aif-r-card);
+  border: 1px solid var(--aif-border);
+  background: var(--aif-card-bg);
+  overflow: hidden;
+}
+
+/* ─── Заголовочная часть карточки теории ──────────────────────── */
+.aif-theory-title-row {
+  padding: 1rem 1.25rem 0.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.aif-theory-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--aif-text-1);
+  letter-spacing: -0.03em;
+  margin: 0;
+  line-height: 1.2;
+}
+.aif-theory-subtitle {
+  font-family: var(--aif-font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--aif-accent-light);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--aif-r-xs);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+.aif-theory-sub {
+  margin: 0;
+  font-size: 0.77rem;
+  color: var(--aif-text-4);
+  line-height: 1.5;
+}
+.aif-theory-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 1.25rem 0.85rem;
+}
+.aif-btn-edit-theory {
+  margin-left: auto;
+  padding: 0.2rem 0.35rem;
+  border-radius: var(--aif-r-sm);
+  opacity: 0.45;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.aif-btn-edit-theory:hover { opacity: 1; }
+
+/* ─── Тело карточки (prose-содержимое) ────────────────────────── */
+.aif-theory-body {
+  padding: 0.5rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--aif-border-dark);
+}
+
+/* ─── Встроенный редактор Markdown ────────────────────────────── */
+.aif-theory-editor {
+  border-top: 1px solid var(--aif-border-dark);
+}
+.aif-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--aif-border-dark);
+  background: var(--aif-surface-2);
+  flex-wrap: wrap;
+}
+.aif-editor-path {
+  font-family: var(--aif-font-mono);
+  font-size: 0.68rem;
+  color: var(--aif-text-4);
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.aif-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+.aif-btn-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  border: 1px solid var(--aif-border);
+  border-radius: var(--aif-r-sm);
+  background: var(--aif-surface-2);
+  color: var(--aif-text-2);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.aif-btn-sm:hover {
+  background: var(--aif-surface-3);
+  border-color: var(--aif-text-4);
+}
+.aif-btn-sm--save {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.35);
+  color: #34d399;
+}
+.aif-btn-sm--save:hover {
+  background: rgba(52, 211, 153, 0.22);
+}
+.aif-md-editor {
+  display: block;
+  width: 100%;
+  min-height: 420px;
+  padding: 1rem 1.25rem;
+  font-family: 'JetBrains Mono', var(--aif-font-mono);
+  font-size: 0.78rem;
+  line-height: 1.65;
+  color: var(--aif-text-1);
+  background: var(--aif-surface-1);
+  border: none;
+  outline: none;
+  resize: vertical;
+  tab-size: 2;
+  box-sizing: border-box;
+}

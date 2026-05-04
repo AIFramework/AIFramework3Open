@@ -1,0 +1,228 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Typography
+   Базовые шрифтовые правила для Markdown-контента (теория алгоритмов).
+
+   ВСЕ ЦВЕТА — через семантические токены из tokens.css (--aif-prose-*).
+   Хардкод допустим ТОЛЬКО для:
+     - pre/code-блоков с намеренно тёмной темой (#0d1117 GitHub Dark)
+     - box-shadow с прозрачным чёрным (не зависит от темы)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Заголовки ──────────────────────────────────────────────────── */
+.aif-prose h1,
+.aif-prose h2,
+.aif-prose h3,
+.aif-prose h4,
+.aif-prose h5,
+.aif-prose h6 {
+  color: var(--aif-prose-heading);
+  margin: 1.35rem 0 0.55rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+.aif-prose h1 {
+  font-size: 1.22rem;
+  border-bottom: 1px solid var(--aif-border-dark);
+  padding-bottom: 0.35rem;
+}
+.aif-prose h2 { font-size: 1.05rem; color: var(--aif-text-2); }
+.aif-prose h3 { font-size: 0.92rem; color: var(--aif-prose-muted); }
+.aif-prose h4 {
+  font-size: 0.82rem;
+  color: var(--aif-accent-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Параграфы и базовый текст ──────────────────────────────────── */
+.aif-prose p {
+  font-size: 0.84rem;
+  line-height: 1.7;
+  color: var(--aif-text-3);
+  margin: 0 0 0.85rem;
+}
+.aif-prose strong { color: var(--aif-text-2); font-weight: 700; }
+.aif-prose em     { color: var(--aif-prose-muted); font-style: italic; }
+.aif-prose a {
+  color: var(--aif-prose-link);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--aif-prose-link-border);
+  transition: color 0.12s, border-color 0.12s;
+}
+.aif-prose a:hover {
+  color: var(--aif-prose-link-hover);
+  border-bottom-color: var(--aif-prose-link-border-hover);
+}
+
+/* ─── Inline-код ─────────────────────────────────────────────────── */
+.aif-prose code {
+  font-family: var(--aif-font-mono);
+  font-size: 0.78rem;
+  background: var(--aif-prose-code-bg);
+  padding: 0.1rem 0.38rem;
+  border-radius: var(--aif-r-xs);
+  color: var(--aif-prose-code-text);
+  border: 1px solid var(--aif-prose-code-border);
+}
+
+/* ─── Блоки кода (намеренно тёмная тема GitHub Dark — не меняется) ── */
+.aif-prose pre {
+  background: var(--aif-prose-pre-bg);   /* #0d1117 — GitHub Dark */
+  border: 1px solid var(--aif-prose-code-border);
+  border-radius: 0.6rem;
+  padding: 0;
+  overflow-x: auto;
+  margin: 0 0 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.aif-prose pre code,
+.aif-prose pre code.hljs {
+  display: block;
+  padding: 0.9rem 1rem;
+  background: transparent !important;
+  border: none;
+  font-family: var(--aif-font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--aif-prose-pre-text);   /* #c9d1d9 — GitHub Dark text */
+}
+
+/* ─── Списки ─────────────────────────────────────────────────────── */
+.aif-prose ul,
+.aif-prose ol {
+  font-size: 0.84rem;
+  color: var(--aif-text-3);
+  padding-left: 1.35rem;
+  margin: 0 0 0.85rem;
+  line-height: 1.65;
+}
+.aif-prose li { margin-bottom: 0.35rem; }
+.aif-prose li::marker        { color: var(--aif-accent); font-weight: 700; }
+.aif-prose ul li::marker     { color: var(--aif-accent-light); }
+
+/* Task lists (Markdig) */
+.aif-prose .contains-task-list { list-style: none; padding-left: 0.2rem; }
+.aif-prose .task-list-item     { display: flex; align-items: baseline; gap: 0.5rem; }
+.aif-prose .task-list-item input[type="checkbox"] {
+  accent-color: var(--aif-accent);
+  flex-shrink: 0;
+}
+
+/* ─── Цитаты ─────────────────────────────────────────────────────── */
+.aif-prose blockquote {
+  margin: 0 0 1rem;
+  padding: 0.65rem 1rem;
+  border-left: 3px solid var(--aif-accent);
+  background: var(--aif-prose-blockquote-bg);
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: var(--aif-prose-blockquote-color);
+  font-size: 0.82rem;
+  line-height: 1.65;
+  font-style: italic;
+}
+.aif-prose blockquote p:last-child { margin-bottom: 0; }
+
+/* ─── Таблицы ────────────────────────────────────────────────────── */
+.aif-prose table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--aif-prose-table-border);
+  border-radius: 0.55rem;
+  overflow: hidden;
+  background: var(--aif-prose-table-bg);
+}
+.aif-prose thead { background: var(--aif-prose-table-head-bg); }
+.aif-prose th {
+  padding: 0.55rem 0.85rem;
+  text-align: left;
+  color: var(--aif-text-2);
+  font-weight: 700;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--aif-prose-table-head-border);
+}
+.aif-prose td {
+  padding: 0.5rem 0.85rem;
+  color: var(--aif-text-3);
+  line-height: 1.55;
+  border-bottom: 1px solid var(--aif-border-dark);
+  vertical-align: top;
+}
+.aif-prose tbody tr:last-child td { border-bottom: none; }
+.aif-prose tbody tr:hover         { background: var(--aif-prose-table-hover); }
+.aif-prose td code,
+.aif-prose th code { font-size: 0.74rem; padding: 0.08rem 0.3rem; }
+
+/* ─── Горизонтальный разделитель ─────────────────────────────────── */
+.aif-prose hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--aif-prose-hr), transparent);
+  margin: 1.4rem 0;
+}
+
+/* ─── Изображения ────────────────────────────────────────────────── */
+.aif-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  border: 1px solid var(--aif-border);
+  margin: 0.5rem 0;
+}
+
+/* ─── KaTeX — математика ─────────────────────────────────────────── */
+.aif-prose .math.math-display,
+.aif-prose .katex-display {
+  margin: 0.85rem 0;
+  padding: 0.65rem 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--aif-prose-math-bg);
+  border-left: 3px solid var(--aif-prose-math-border);
+  border-radius: 0 0.4rem 0.4rem 0;
+}
+.aif-prose .katex              { font-size: 1.02em; color: var(--aif-text-2); }
+.aif-prose .katex-display > .katex { font-size: 1.08em; }
+
+/* ─── Сноски (Markdig footnotes) ─────────────────────────────────── */
+.aif-prose .footnotes {
+  font-size: 0.76rem;
+  color: var(--aif-text-4);
+  border-top: 1px solid var(--aif-border);
+  margin-top: 1.5rem;
+  padding-top: 0.85rem;
+}
+.aif-prose .footnotes ol { padding-left: 1.1rem; }
+
+/* ─── Mermaid — диаграммы ────────────────────────────────────────── */
+.aif-mermaid-wrap {
+  margin: 1rem 0;
+  padding: 0;
+  background: var(--aif-prose-math-bg);
+  border: 1px solid var(--aif-prose-code-border);
+  border-radius: 0.6rem;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  height: 550px;
+}
+.aif-mermaid-wrap svg {
+  width: 100%;
+  height: 100%;
+}
+
+.aif-prose pre code.language-mermaid,
+.aif-prose pre.language-mermaid {
+  display: none !important;
+}
+
+/* ─── Placeholder (теория не написана) ───────────────────────────── */
+.aif-prose .th-placeholder {
+  color: var(--aif-text-5);
+  font-style: italic;
+}

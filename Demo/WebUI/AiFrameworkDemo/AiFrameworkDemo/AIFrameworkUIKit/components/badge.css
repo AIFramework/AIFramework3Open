@@ -1,0 +1,109 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Badge Component
+   Объединяет 4 идентичных паттерна «mono badge» из разных файлов:
+   - .ap-topbar-api (AlgoPage.razor.css, line 24)
+   - .ap-theory-subtitle (AlgoPage.razor.css, line 44)
+   - .ap-overlay-api (AlgoPage.razor.css, line 361)
+   - .cp-card-api (CategoryPage.razor.css, line 88)
+
+   А также «version badge» из:
+   - .home-hero-version, .home-badge (Home.razor.css)
+   - .aif-cv-brand-badge (MainLayout.razor.css)
+
+   И «chip» из:
+   - .home-hero-chip (Home.razor.css)
+
+   Использование:
+     <code class="aif-mono-badge">AI.NeuralNetworks.V2.Nn.Sequential</code>
+     <span class="aif-version-badge">v3.0</span>
+     <span class="aif-chip">Apache-2.0</span>
+     <span class="aif-chip aif-chip--link">GitHub</span>
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Mono Badge (API-класс) ─────────────────────────────────────── */
+.aif-mono-badge {
+  font-family: var(--aif-font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--aif-accent-light);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--aif-r-xs);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Чуть крупнее — для заголовков */
+.aif-mono-badge--md {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+}
+
+/* ─── Version Badge (бейдж версии с градиентом) ──────────────────── */
+.aif-version-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.4rem;
+  padding: 0.22rem 0.48rem;
+  line-height: 1;
+  box-shadow: 0 2px 8px -2px rgba(99, 102, 241, 0.55);
+  text-transform: uppercase;
+  align-self: center;
+}
+
+/* Floating вариант (на главной странице поверх логотипа) */
+.aif-version-badge--float {
+  position: absolute;
+  bottom: -0.3rem;
+  right: -0.9rem;
+  transform: rotate(-4deg);
+  box-shadow: 0 4px 14px -3px rgba(99, 102, 241, 0.6);
+  font-size: 0.62rem;
+  padding: 0.28rem 0.55rem;
+}
+
+/* ─── Chip (метаданные, технологии, лицензия) ────────────────────── */
+.aif-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--aif-text-3);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--aif-border);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  letter-spacing: 0.01em;
+}
+[data-theme="light"] .aif-chip {
+  background: rgba(0, 0, 40, 0.04);
+}
+
+/* Chip-ссылка */
+.aif-chip--link {
+  color: var(--aif-accent-bright);
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.aif-chip--link:hover {
+  color: #fff;
+  border-color: rgba(129, 140, 248, 0.5);
+  background: rgba(99, 102, 241, 0.14);
+}
+[data-theme="light"] .aif-chip--link:hover {
+  color: var(--aif-accent);
+}
+
+/* ─── Hero gradient text (главный заголовок) ─────────────────────── */
+.aif-gradient-text {
+  background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 50%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

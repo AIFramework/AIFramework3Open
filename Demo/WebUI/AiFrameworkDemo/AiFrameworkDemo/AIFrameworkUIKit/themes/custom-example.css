@@ -1,0 +1,114 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Пример кастомной темы
+   Версия: 1.0.0
+
+   КАК ИСПОЛЬЗОВАТЬ:
+     1. Подключите index.css кита
+     2. Подключите ЭТОТ файл ПОСЛЕ него
+     3. Все ваши переопределения без @layer автоматически побеждают
+
+   HTML:
+     <link rel="stylesheet" href="aif-uikit/index.css" />
+     <link rel="stylesheet" href="your-theme.css" />
+
+   В бандлере:
+     import "aif-uikit/index.css";
+     import "./your-theme.css";
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────
+   ПРИМЕР 1: Смена основного акцента (всё приложение)
+   ────────────────────────────────────────────────────────────────── */
+/*
+:root {
+  -- Замените indigo на teal --
+  --aif-cur:               #2dd4bf;
+  --aif-cur-bg:            rgba(13, 148, 136, 0.1);
+  --aif-cur-border:        rgba(13, 148, 136, 0.25);
+  --aif-cur-hover-border:  rgba(20, 184, 166, 0.35);
+  --aif-cur-hover-shadow:  rgba(20, 184, 166, 0.15);
+  --aif-cur-top-border:    rgba(13, 148, 136, 0.45);
+  --aif-cur-bar:           linear-gradient(90deg, #0d9488, #2dd4bf);
+  --aif-cur-btn:           linear-gradient(135deg, #0d9488, #14b8a6);
+  --aif-cur-btn-shadow:    rgba(13, 148, 136, 0.4);
+  --aif-cur-icon:          linear-gradient(145deg, #2dd4bf, #0d9488);
+  --aif-cur-icon-shadow:   rgba(13, 148, 136, 0.45);
+  --aif-cur-topbar-border: rgba(13, 148, 136, 0.2);
+  --aif-cur-choice-active: linear-gradient(150deg, rgba(20,184,166,0.95), rgba(15,118,110,0.95));
+}
+*/
+
+/* ──────────────────────────────────────────────────────────────────
+   ПРИМЕР 2: Добавить новый цветовой контекст [data-color="teal"]
+   ────────────────────────────────────────────────────────────────── */
+/*
+[data-color="teal"] {
+  --aif-cur:               #2dd4bf;
+  --aif-cur-bg:            rgba(13, 148, 136, 0.1);
+  --aif-cur-border:        rgba(13, 148, 136, 0.25);
+  --aif-cur-hover-border:  rgba(20, 184, 166, 0.35);
+  --aif-cur-hover-shadow:  rgba(20, 184, 166, 0.15);
+  --aif-cur-top-border:    rgba(13, 148, 136, 0.45);
+  --aif-cur-bar:           linear-gradient(90deg, #0d9488, #2dd4bf);
+  --aif-cur-btn:           linear-gradient(135deg, #0d9488, #14b8a6);
+  --aif-cur-btn-shadow:    rgba(13, 148, 136, 0.4);
+  --aif-cur-icon:          linear-gradient(145deg, #2dd4bf, #0d9488);
+  --aif-cur-icon-shadow:   rgba(13, 148, 136, 0.45);
+  --aif-cur-topbar-border: rgba(13, 148, 136, 0.2);
+  --aif-cur-choice-active: linear-gradient(150deg, rgba(20,184,166,0.95), rgba(15,118,110,0.95));
+}
+*/
+
+/* ──────────────────────────────────────────────────────────────────
+   ПРИМЕР 3: Смена фона и поверхностей (тёмный вариант «чернее»)
+   ────────────────────────────────────────────────────────────────── */
+/*
+:root {
+  --aif-bg-void:   #000000;
+  --aif-bg-deep:   #020202;
+  --aif-bg:        #030303;
+  --aif-surface-1: rgba(255, 255, 255, 0.03);
+  --aif-surface-2: rgba(255, 255, 255, 0.05);
+}
+*/
+
+/* ──────────────────────────────────────────────────────────────────
+   ПРИМЕР 4: Переопределение радиуса скругления
+   Меняет все компоненты сразу через токен --aif-radius-*
+   ────────────────────────────────────────────────────────────────── */
+/*
+:root {
+  --aif-radius-sm:  2px;
+  --aif-radius:     4px;
+  --aif-radius-md:  6px;
+  --aif-radius-lg:  8px;
+  --aif-radius-xl:  12px;
+  --aif-radius-2xl: 16px;
+}
+*/
+
+/* ──────────────────────────────────────────────────────────────────
+   ПРИМЕР 5: Точечное переопределение одного компонента
+   Без @layer — всегда имеет приоритет над стилями кита
+   ────────────────────────────────────────────────────────────────── */
+/*
+.aif-btn {
+  border-radius: 9999px;  -- pill-shaped кнопки --
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.aif-card {
+  border-width: 2px;
+}
+*/
+
+/* ──────────────────────────────────────────────────────────────────
+   ПРИМЕР 6: Смена шрифта для всего приложения
+   ────────────────────────────────────────────────────────────────── */
+/*
+:root {
+  --aif-font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --aif-font-mono: "JetBrains Mono", "Fira Code", monospace;
+}
+*/

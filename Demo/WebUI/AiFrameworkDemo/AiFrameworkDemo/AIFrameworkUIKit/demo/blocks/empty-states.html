@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Empty States, 404, Error</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="demo-section"><a href="../index.html" style="font-size:0.8rem;color:var(--aif-text-4);">← Все компоненты</a></div>
+
+<!-- ═══════ EMPTY DASHED ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-empty--dashed</p>
+  <div class="demo-row">
+    <div style="flex:1;min-width:240px;">
+      <div class="aif-empty aif-empty--dashed" style="padding:2rem 1rem;">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.3"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <p>Нажмите «Запустить»</p>
+      </div>
+      <span class="demo-label">.aif-empty.aif-empty--dashed</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ERROR BLOCK ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-error-block</p>
+  <div class="demo-row">
+    <div style="flex:1;min-width:240px;">
+      <div class="aif-error-block">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Ошибка выполнения алгоритма
+      </div>
+      <span class="demo-label">.aif-error-block</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 404 ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-404</p>
+  <div class="demo-row">
+    <div style="flex:1;min-width:240px;">
+      <div class="aif-404">
+        <div class="aif-404-code">404</div>
+        <h1 class="aif-404-title">Страница не найдена</h1>
+        <a class="aif-404-link" href="#">← Вернуться на главную</a>
+      </div>
+      <span class="demo-label">.aif-404 / .aif-404-code / .aif-404-title / .aif-404-link</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ERROR PAGE ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">.aif-error-page</p>
+  <div class="demo-row">
+    <div style="flex:1;min-width:240px;">
+      <div class="aif-error-page">
+        <div class="aif-error-page-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h2 class="aif-error-page-title">Произошла ошибка</h2>
+        <p class="aif-error-page-msg">Не удалось загрузить данные алгоритма. Попробуйте обновить страницу или выберите другой алгоритм.</p>
+        <a class="aif-error-page-link" href="#">← Вернуться к списку алгоритмов</a>
+      </div>
+      <span class="demo-label">.aif-error-page / -icon / -title / -msg / -link</span>
+    </div>
+  </div>
+</div>
+
+<div class="demo-spacer"></div>
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

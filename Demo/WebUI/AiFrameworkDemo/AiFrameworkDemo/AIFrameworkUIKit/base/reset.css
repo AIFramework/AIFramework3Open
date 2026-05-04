@@ -1,0 +1,74 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Base Reset
+   Источник: Demo/WebUI/AiFrameworkDemo/wwwroot/app.css (строки 68–110)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Универсальный box-sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: none;   /* Firefox — скрыть скроллбар */
+}
+
+/* Chrome/Safari — скрыть скроллбар, оставить прокрутку */
+::-webkit-scrollbar {
+  display: none;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--aif-bg-void);
+  background-image:
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(79, 70, 229, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 35% at 90% 30%,  rgba(6, 182, 212, 0.08)  0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 5% 70%,   rgba(124, 58, 237, 0.07) 0%, transparent 50%);
+  color: var(--aif-text-3);
+  font-family: var(--aif-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.6;
+  transition:
+    background-color 0.25s ease,
+    background-image 0.25s ease,
+    color 0.25s ease;
+}
+
+/* Light theme: чистый белый с едва заметными пастельными градиентами */
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background-color: var(--aif-bg-void);   /* #ffffff */
+  background-image:
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 35% at 90% 30%,  rgba(14, 165, 233, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 5% 70%,   rgba(124, 58, 237, 0.025) 0%, transparent 50%);
+}
+
+/* Ссылки */
+a {
+  color: var(--aif-link, var(--aif-accent-light));
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+a:hover {
+  color: var(--aif-link-hover, var(--aif-accent-bright));
+}
+
+/* Акцентное выделение текста */
+::selection {
+  background: rgba(99, 102, 241, 0.30);
+  color: var(--aif-text-1);
+}
+[data-theme="light"] ::selection {
+  background: rgba(79, 70, 229, 0.20);
+}
+
+/* Убираем синий outline на заголовках при фокусе через JS */
+h1:focus {
+  outline: none;
+}

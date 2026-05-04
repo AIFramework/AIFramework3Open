@@ -1,0 +1,223 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Button Components
+   Источник: Demo/WebUI/.../AlgoPage.razor.css (строки 326–338)
+
+   Типы кнопок:
+   1. .aif-btn            — основная кнопка действия (Run / Запустить)
+   2. .aif-btn-ghost      — второстепенная кнопка (Сброс)
+   3. .aif-seg / .aif-seg-btn — сегментированный переключатель (ширина/высота/тема)
+
+   ВСЕ ЦВЕТА — через токены из tokens.css
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Основная кнопка действия ───────────────────────────────────── */
+.aif-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--aif-r-full);
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-family: var(--aif-font-sans);
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  transition:
+    filter     0.15s,
+    transform  0.15s var(--aif-ease-spring);
+  color: #fff;
+  background: var(--aif-cur); /* Дефолтный фон, если нет модификатора */
+  box-shadow: 0 4px 20px -4px var(--aif-cur-hover-shadow);
+}
+.aif-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  filter: grayscale(0.5);
+}
+.aif-btn:not(:disabled):hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+/* Спиннер внутри кнопки при загрузке */
+.aif-btn-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: aif-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Метка времени выполнения рядом с кнопкой */
+.aif-btn-meta {
+  font-size: 0.72rem;
+  color: var(--aif-text-5);
+}
+
+/* ─── Цветовые варианты основной кнопки ─────────────────────────── */
+.aif-btn--sky {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  box-shadow: 0 4px 20px -4px rgba(14, 165, 233, 0.4);
+}
+.aif-btn--indigo {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  box-shadow: 0 4px 20px -4px rgba(99, 102, 241, 0.4);
+}
+.aif-btn--violet {
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  box-shadow: 0 4px 20px -4px rgba(124, 58, 237, 0.4);
+}
+.aif-btn--emerald {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 4px 20px -4px rgba(5, 150, 105, 0.4);
+}
+.aif-btn--amber {
+  background: linear-gradient(135deg, #b45309, #d97706);
+  box-shadow: 0 4px 20px -4px rgba(217, 119, 6, 0.4);
+}
+.aif-btn--pink {
+  background: linear-gradient(135deg, #be185d, #ec4899);
+  box-shadow: 0 4px 20px -4px rgba(219, 39, 119, 0.4);
+}
+.aif-btn--cyan {
+  background: linear-gradient(135deg, #0e7490, #06b6d4);
+  box-shadow: 0 4px 20px -4px rgba(6, 182, 212, 0.4);
+}
+
+/* ─── Кнопка «Сброс» (ghost) ─────────────────────────────────────── */
+.aif-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--aif-r-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--aif-font-sans);
+  cursor: pointer;
+  border: 1px solid var(--aif-border);
+  background: var(--aif-surface-1);
+  color: var(--aif-text-5);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  margin-left: auto;
+}
+.aif-btn-ghost:hover {
+  background: var(--aif-surface-2);
+  border-color: var(--aif-border-bright);
+  color: var(--aif-text-3);
+}
+
+/* ─── Строка с кнопками действий ────────────────────────────────── */
+.aif-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Сегментированный переключатель ────────────────────────────── */
+.aif-seg {
+  display: inline-flex;
+  border-radius: 0.6rem;
+  border: 1px solid var(--aif-border);
+  overflow: hidden;
+  background: var(--aif-surface-1);
+}
+.aif-seg-btn {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.73rem;
+  font-weight: 600;
+  font-family: var(--aif-font-sans);
+  color: var(--aif-text-4);
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--aif-border-dark);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.aif-seg-btn:last-child { border-right: none; }
+.aif-seg-btn:hover {
+  background: var(--aif-cur-bg);
+  color: var(--aif-text-2);
+}
+.aif-seg-btn--on {
+  background: var(--aif-cur-bg) !important;
+  color: var(--aif-cur) !important;
+}
+
+/* ─── Кнопка закрытия (overlay, модальные окна) ─────────────────── */
+.aif-close-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--aif-border);
+  background: var(--aif-surface-1);
+  color: var(--aif-text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.aif-close-btn:hover {
+  background: var(--aif-error-bg);
+  border-color: var(--aif-error-border);
+  color: var(--aif-error-text);
+}
+
+/* ─── Кнопка-переключатель аккордеона ───────────────────────────── */
+.aif-accordion-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--aif-text-4);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--aif-font-sans);
+  transition: background 0.12s;
+}
+.aif-accordion-toggle:hover { background: var(--aif-surface-1); }
+.aif-accordion-arrow {
+  transition: transform 0.2s;
+  color: var(--aif-text-5);
+}
+.aif-accordion-arrow--open { transform: rotate(180deg); }
+
+/* ─── Live Badge (индикатор real-time обновления) ────────────── */
+.aif-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #34d399;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--aif-r-full);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.aif-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  animation: aif-live-pulse 1.5s ease-in-out infinite;
+}
+@keyframes aif-live-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}

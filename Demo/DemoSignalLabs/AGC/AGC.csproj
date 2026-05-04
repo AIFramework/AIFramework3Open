@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>AGC</RootNamespace>
+    <AssemblyName>AGC</AssemblyName>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\AI.Charts.WinForms\AI.Charts.WinForms.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.SignalLabs\AI.SignalLabs.csproj" />
+    <ProjectReference Include="..\..\..\src\AI\AI.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,106 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace AI.ClassicMath.Calculator;
+
+/// <summary>
+/// Распознает известные математические константы и выражения
+/// </summary>
+public static class KnownConstants
+{
+    private static readonly double[] Sqrts = InitSqrts();
+
+    private static double[] InitSqrts()
+    {
+        var s = new double[41];
+        for (int i = 2; i <= 40; i++)
+            s[i] = Math.Sqrt(i);
+        return s;
+    }
+
+    private static readonly List<(double Value, string Symbol, string Name)> Constants = new()
+    {
+        // Основные математические константы
+        (Math.PI, "π", "Pi"),
+        (Math.E, "e", "Euler's number"),
+        
+        // Основные квадратные корни
+        (1.41421356237309, "√2", "Square root of 2"),
+        (1.73205080756887, "√3", "Square root of 3"),
+        (2.23606797749978, "√5", "Square root of 5"),
+        
+        // Важные дроби корней (тригонометрия)
+        (0.707106781186547, "√2/2", "Half of square root of 2"),
+        (0.866025403784438, "√3/2", "Half of square root of 3"),
+        
+        // Рационализации (часто встречающиеся)
+        (1.15470053837925, "2√3/3", "2/√3 rationalized"),
+        (1.88982236504614, "5√7/7", "5/√7 rationalized")
+    };
+
+    /// <summary>
+    /// Попытка найти символьное представление для числа
+    /// </summary>
+    public static string TryGetSymbolicForm(double value, double tolerance = 1e-8)
+    {
+        // Проверяем, является ли число целым
+        if (Math.Abs(value - Math.Round(value)) < tolerance)
+        {
+            return null; // Целые числа не нуждаются в символьной форме
+        }
+
+        // Ищем в списке известных констант (быстрый путь)
+        foreach (var (constValue, symbol, _) in Constants)
+        {
+            if (Math.Abs(value - constValue) < tolerance)
+            {
+                return symbol;
+            }
+        }
+
+        for (int a = 2; a <= 10; a++)
+        {
+            for (int b = 2; b <= 40; b++)
+            {
+                if (Math.Abs(value - a * Sqrts[b]) < tolerance)
+                {
+                    return $"{a}√{b}";
+                }
+            }
+        }
+
+        for (int i = 2; i <= 40; i++)
+        {
+            if (Math.Abs(value - Sqrts[i]) < tolerance)
+            {
+                return $"√{i}";
+            }
+        }
+
+        for (int b = 2; b <= 25; b++)
+        {
+            double sqrtB = Sqrts[b];
+            
+            for (int a = 1; a <= 25; a++)
+            {
+                for (int c = 2; c <= 25; c++)
+                {
+                    double result = a * sqrtB / c;
+                    if (Math.Abs(value - result) < tolerance)
+                    {
+                        // Упрощаем запись
+                        if (a == 1)
+                            return $"√{b}/{c}";
+                        else
+                            return $"{a}√{b}/{c}";
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+}
+

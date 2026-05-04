@@ -1,0 +1,80 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Choice Grid (Pill Select)
+   Сегментированный выбор для дискретных параметров (датасет, бэкенд).
+   Источник: Demo/WebUI/.../AlgoPage.razor.css (строки 200–251)
+
+   ВСЕ ЦВЕТА — через токены из tokens.css
+   ═══════════════════════════════════════════════════════════════════ */
+
+.aif-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.aif-choice-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.6rem 0.5rem;
+  background: linear-gradient(160deg, rgba(15, 18, 40, 0.85), rgba(8, 10, 24, 0.85));
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.65rem;
+  color: var(--aif-text-3);
+  cursor: pointer;
+  font-family: var(--aif-font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition:
+    transform     0.12s,
+    border-color  0.15s,
+    background    0.15s,
+    color         0.15s,
+    box-shadow    0.15s;
+  min-height: 3.4rem;
+  text-align: center;
+}
+[data-theme="light"] .aif-choice-btn {
+  background: var(--aif-card-bg);
+  border: 1px solid var(--aif-border);
+  box-shadow: var(--aif-shadow-sm);
+}
+
+.aif-choice-btn:hover {
+  color: var(--aif-text-2);
+  border-color: var(--aif-cur-border);
+  transform: translateY(-1px);
+}
+[data-theme="light"] .aif-choice-btn:hover {
+  border-color: var(--aif-cur-hover-border);
+  background: var(--aif-cur-bg);
+}
+
+.aif-choice-icon {
+  display: block;
+  line-height: 1;
+  font-size: 1.05rem;
+  opacity: 0.85;
+}
+.aif-choice-btn:hover .aif-choice-icon { opacity: 1; }
+.aif-choice-label { display: block; line-height: 1.2; }
+
+/* ─── Активное состояние (выбранный вариант) ─────────────────────── */
+.aif-choice-btn--on {
+  color: #fff !important;
+  background: var(--aif-cur-choice-active, var(--aif-cur)) !important;
+  border-color: transparent !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px var(--aif-cur-hover-shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.18) !important;
+}
+.aif-choice-btn--on .aif-choice-icon { opacity: 1; }
+
+/* ─── Цветовые активные состояния (через --aif-cur) ──────────────── */
+/* Поскольку мы используем --aif-cur, нам не нужны отдельные классы --sky, --indigo и т.д.
+   Токен --aif-cur уже берется из родительского [data-color="sky"]
+   Но если классы остаются в разметке, они не будут мешать, так как --aif-cur переопределит цвет.
+*/

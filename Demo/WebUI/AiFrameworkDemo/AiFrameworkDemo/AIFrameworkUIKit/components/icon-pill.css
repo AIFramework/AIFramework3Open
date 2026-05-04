@@ -1,0 +1,63 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Icon Pill Component
+   Квадратная иконка с градиентным фоном и тенью (иконка модуля/библиотеки).
+   Объединяет: .home-card-icon (Home.razor.css), .lp-hero-icon (LibraryPage.razor.css)
+   Источники аудита: идентичные градиенты в 2 файлах.
+
+   Использование:
+     <div class="aif-icon-pill aif-icon-pill--indigo">
+       <svg>...</svg>
+     </div>
+   ═══════════════════════════════════════════════════════════════════ */
+
+.aif-icon-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.85rem;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+/* Крупный вариант (hero-иконка на странице библиотеки) */
+.aif-icon-pill--lg {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1rem;
+}
+
+/* ─── Цветовые варианты ──────────────────────────────────────────── */
+.aif-icon-pill--sky {
+  background: linear-gradient(145deg, #38bdf8, #0284c7);
+  box-shadow: 0 4px 16px -4px rgba(14, 165, 233, 0.45);
+}
+.aif-icon-pill--indigo {
+  background: linear-gradient(145deg, #6366f1, #4f46e5);
+  box-shadow: 0 4px 16px -4px rgba(99, 102, 241, 0.45);
+}
+.aif-icon-pill--violet {
+  background: linear-gradient(145deg, #a78bfa, #7c3aed);
+  box-shadow: 0 4px 16px -4px rgba(124, 58, 237, 0.45);
+}
+.aif-icon-pill--emerald {
+  background: linear-gradient(145deg, #34d399, #059669);
+  box-shadow: 0 4px 16px -4px rgba(5, 150, 105, 0.45);
+}
+.aif-icon-pill--amber {
+  background: linear-gradient(145deg, #fbbf24, #d97706);
+  box-shadow: 0 4px 16px -4px rgba(217, 119, 6, 0.45);
+}
+.aif-icon-pill--pink {
+  background: linear-gradient(145deg, #f472b6, #db2777);
+  box-shadow: 0 4px 16px -4px rgba(219, 39, 119, 0.45);
+}
+
+/* Усиленная тень для hero-варианта */
+.aif-icon-pill--lg.aif-icon-pill--sky     { box-shadow: 0 6px 24px -4px rgba(14, 165, 233, 0.5); }
+.aif-icon-pill--lg.aif-icon-pill--indigo  { box-shadow: 0 6px 24px -4px rgba(99, 102, 241, 0.5); }
+.aif-icon-pill--lg.aif-icon-pill--violet  { box-shadow: 0 6px 24px -4px rgba(124, 58, 237, 0.5); }
+.aif-icon-pill--lg.aif-icon-pill--emerald { box-shadow: 0 6px 24px -4px rgba(5, 150, 105, 0.5); }
+.aif-icon-pill--lg.aif-icon-pill--amber   { box-shadow: 0 6px 24px -4px rgba(217, 119, 6, 0.5); }
+.aif-icon-pill--lg.aif-icon-pill--pink    { box-shadow: 0 6px 24px -4px rgba(219, 39, 119, 0.5); }

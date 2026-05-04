@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Framework UI Kit — Badges</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <link rel="stylesheet" href="../../index.css" />
+
+  <style>
+    .demo-section { max-width: var(--aif-max-w-default); margin: 0 auto; padding: 2rem 1.5rem 0; }
+    .demo-section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--aif-text-5); margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--aif-border-dark); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: flex-start; }
+    .demo-label { font-size: 0.68rem; color: var(--aif-text-5); font-family: var(--aif-font-mono); margin-top: 0.35rem; }
+    .demo-col { display: flex; flex-direction: column; gap: 0.35rem; }
+    .demo-spacer { height: 2.5rem; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ HEADER ═══════ -->
+<header class="aif-header">
+  <div class="aif-header-inner">
+    <a class="aif-brand" href="../index.html">
+      <span class="aif-brand-text"><span class="aif-brand-prefix">AI</span>Framework</span>
+      <span class="aif-version-badge">v3.0</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span style="font-size:0.75rem;color:var(--aif-text-5);">UI Kit — Badges</span>
+      <a class="aif-gh-btn" href="https://github.com/AIFramework/AIFramework3Open" target="_blank">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════ .aif-mono-badge ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">Mono Badge</p>
+  <div class="demo-row">
+    <div class="demo-col">
+      <code class="aif-mono-badge">AI.NeuralNetworks.V2.Nn.Sequential</code>
+      <span class="demo-label">.aif-mono-badge</span>
+    </div>
+    <div class="demo-col">
+      <code class="aif-mono-badge">AI.DSP.Filters.BandPass</code>
+      <span class="demo-label">.aif-mono-badge</span>
+    </div>
+    <div class="demo-col">
+      <code class="aif-mono-badge aif-mono-badge--md">AI.MachineLearning.SVM</code>
+      <span class="demo-label">.aif-mono-badge--md</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ .aif-version-badge ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">Version Badge</p>
+  <div class="demo-row" style="align-items:center;">
+    <div class="demo-col">
+      <span class="aif-version-badge">v3.0</span>
+      <span class="demo-label">.aif-version-badge</span>
+    </div>
+    <div class="demo-col">
+      <span style="position:relative;display:inline-block;font-size:1.6rem;font-weight:900;letter-spacing:-0.04em;color:var(--aif-text-1);">
+        AI
+        <span class="aif-version-badge aif-version-badge--float">v3.0</span>
+      </span>
+      <span class="demo-label">.aif-version-badge--float</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ .aif-chip ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">Chip</p>
+  <div class="demo-row">
+    <div class="demo-col">
+      <span class="aif-chip">Apache-2.0</span>
+      <span class="demo-label">.aif-chip</span>
+    </div>
+    <div class="demo-col">
+      <span class="aif-chip">.NET 8</span>
+      <span class="demo-label">.aif-chip</span>
+    </div>
+    <div class="demo-col">
+      <a class="aif-chip aif-chip--link" href="#">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        GitHub
+      </a>
+      <span class="demo-label">.aif-chip--link</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ .aif-gradient-text ═══════ -->
+<div class="demo-section">
+  <p class="demo-section-title">Gradient Text</p>
+  <div class="demo-row">
+    <div class="demo-col">
+      <h1 style="font-size:1.8rem;font-weight:900;margin:0;letter-spacing:-0.04em;">
+        <span class="aif-gradient-text">AI</span>Framework
+      </h1>
+      <span class="demo-label">.aif-gradient-text</span>
+    </div>
+    <div class="demo-col">
+      <h2 style="font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-0.03em;">
+        <span class="aif-gradient-text">Neural Networks</span> Demo
+      </h2>
+      <span class="demo-label">.aif-gradient-text в h2</span>
+    </div>
+  </div>
+</div>
+
+<div class="demo-spacer"></div>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer class="aif-footer">
+  <div class="aif-footer-inner">
+    <a class="aif-footer-link" href="../index.html">← Все компоненты</a>
+    <span class="aif-footer-sep">·</span>
+    <span>AI<span style="color:var(--aif-accent-light);">Framework</span> <span style="color:var(--aif-accent-light);">3.0</span> UI Kit</span>
+    <span class="aif-footer-sep">·</span>
+    <a class="aif-footer-link" href="https://github.com/AIFramework/AIFramework3Open" target="_blank">GitHub</a>
+  </div>
+</footer>
+
+  <script src="../../utils/theme.js"></script>
+</body>
+</html>
+
+

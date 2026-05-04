@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	  <!-- LangVersion наследуется из Directory.Build.props (12.0) -->
+	  <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.KNN\AI.KNN.csproj" />
+    <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
+  </ItemGroup>
+
+</Project>
