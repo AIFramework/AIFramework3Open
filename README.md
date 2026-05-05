@@ -12,7 +12,7 @@
 
 ### Ключевые возможности
 
-- **AI-агенты** — автономный ReAct-цикл (`AgentBuilder`), native function calling + prompt fallback для моделей без FC, память (скользящее окно, векторная, суммаризация), гарды безопасности, детальный биллинг (LLM + инструменты). Мультимодальный цикл **Observe-Reason-Act** для Computer Use и робототехники.
+- **AI-агенты** — автономный ReAct-цикл (`AgentBuilder`), native function calling + prompt fallback для моделей без FC, память (скользящее окно, векторная, суммаризация), гарды безопасности, детальный биллинг (LLM + инструменты). Мультимодальный цикл **Observe-Reason-Act**.
 - **LLM-интеграция** — OpenAI, OpenRouter, DeepSeek, Google AI Studio, Perplexity; потоковая генерация, мультимодальность, reasoning-модели, биллинг, proxy-ротация.
 - **MCP-сервер** — атрибут `[AgentTool]` превращает любой метод в инструмент для Cursor, Claude Desktop и других MCP-клиентов через `McpToolBridge`.
 - **Semantic Kernel** — `IChatCompletionService`-обёртка поверх `ILLMClient`, сохраняющая биллинг; инструменты как `KernelPlugin`.
@@ -113,7 +113,7 @@ flowchart LR
 ```csharp
 using AI.LLM.Agents.Multimodal;
 
-// 1. Реализация наблюдателя (скриншот / камера)
+// Реализация наблюдателя (скриншот / камера)
 public class ScreenshotProvider : IObservationProvider
 {
     public async Task<AgentObservation> ObserveAsync(CancellationToken ct)
@@ -125,7 +125,7 @@ public class ScreenshotProvider : IObservationProvider
     }
 }
 
-// 2. Сборка мультимодального агента
+// Сборка мультимодального агента
 var agent = AgentBuilder.Create()
     .WithLLM(visionLLM)
     .WithTools(new DesktopActuator())      // click, type, scroll
@@ -133,7 +133,7 @@ var agent = AgentBuilder.Create()
     .WithMaxObservationImages(1)            // экономия токенов
     .Build();
 
-// 3. Запрос с изображением
+// Запрос с изображением
 var query = new AgentQuery(
     "Открой калькулятор и вычисли 2+2",
     new AgentImage(initialScreenshot, "image/png"));
@@ -152,8 +152,6 @@ public ToolResult CaptureCamera()
         new AgentImage(frame, "image/jpeg", "camera"));
 }
 ```
-
-> Подробнее: [Docs/Tutorials/LLM/multimodal_agents.md](Docs/Tutorials/LLM/multimodal_agents.md)
 
 ---
 
