@@ -107,8 +107,8 @@ flowchart LR
 
 ### Мультимодальный агент (Observe-Reason-Act)
 
-Агент с подключённым `IObservationProvider` получает визуальную обратную связь
-после каждого действия — для Computer Use, робототехники и любых vision-сценариев:
+Агент с подключённым `IObservationProvider` получает мультимодальную обратную связь
+после каждого действия мультимодальных сценариев:
 
 ```csharp
 using AI.LLM.Agents.Multimodal;
