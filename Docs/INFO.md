@@ -2,19 +2,13 @@
 
 #### Contributors:
 * Zahar A. Ponimash 
-* Potanin Marat
 
 LICENSE:
 Apache 2.0  
 ------------------------------------------------------------------------------------------------------------------------------------------------
 
 ### Acknowledgments:
-
-* We express our sincere gratitude to Arthur Matsur for his help in implementing asynchronous learning and saving checkpoints.
-* We also extend our thanks to dplgp for creating a new project logo.
----------------------------------------
-
-* Part of the neural network source code was taken from [this repository](https://github.com/andrewfry/SharpML-Recurrent). It is licensed under the MIT license.  
+ 
 
 * Part of the source code for the IRR filter was taken from this repository. The [NWaves library](https://github.com/ar1st0crat/NWaves) was also added as a backend for signal processing. It is licensed under the MIT license.  
 
