@@ -105,56 +105,6 @@ flowchart LR
   Tools --> SK["KernelPlugin (SK)"]
 ```
 
-### Мультимодальный агент (Observe-Reason-Act)
-
-Агент с подключённым `IObservationProvider` получает мультимодальную обратную связь
-после каждого действия мультимодальных сценариев:
-
-```csharp
-using AI.LLM.Agents.Multimodal;
-
-// Реализация наблюдателя (скриншот / камера)
-public class ScreenshotProvider : IObservationProvider
-{
-    public async Task<AgentObservation> ObserveAsync(CancellationToken ct)
-    {
-        var png = CaptureDesktop();
-        return new AgentObservation(
-            new AgentImage(png, "image/png", "desktop"),
-            $"Скриншот {DateTime.Now:HH:mm:ss}");
-    }
-}
-
-// Сборка мультимодального агента
-var agent = AgentBuilder.Create()
-    .WithLLM(visionLLM)
-    .WithTools(new DesktopActuator())      // click, type, scroll
-    .WithObserver(new ScreenshotProvider()) // наблюдение после каждого tool call
-    .WithMaxObservationImages(1)            // экономия токенов
-    .Build();
-
-// Запрос с изображением
-var query = new AgentQuery(
-    "Открой калькулятор и вычисли 2+2",
-    new AgentImage(initialScreenshot, "image/png"));
-
-var result = await agent.RunAsync(query);
-```
-
-Инструменты могут возвращать `ToolResult` с изображениями:
-
-```csharp
-[AgentTool("capture_camera", "Захватывает кадр с камеры")]
-public ToolResult CaptureCamera()
-{
-    var frame = _camera.Capture();
-    return new ToolResult("Кадр захвачен",
-        new AgentImage(frame, "image/jpeg", "camera"));
-}
-```
-
----
-
 ## MCP-сервер
 
 Любой алгоритм фреймворка доступен внешним клиентам (Cursor, Claude Desktop) как MCP-инструмент:
