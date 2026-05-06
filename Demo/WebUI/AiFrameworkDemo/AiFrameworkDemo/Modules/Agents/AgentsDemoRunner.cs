@@ -4,6 +4,7 @@ using AI.Charts.Data;
 using AI.LLM.Agents;
 using AI.LLM.Agents.Memory;
 using AI.LLM.Agents.Multimodal;
+using AI.LLM.Agents.Orchestration;
 using AI.LLM.Agents.Planning;
 using AI.LLM.Agents.Tools;
 using AI.LLM.Clients.OpenRouter;
@@ -57,6 +58,7 @@ public static class AgentsDemoRunner
                 "tool_execution"    => DoToolExecution(tp),
                 "memory_sliding"    => DoMemorySliding(p),
                 "plan_generate"     => DoPlanGenerate(p, tp),
+                "planning_agent"    => DoPlanningAgent(p, tp),
                 "mcp_tools_list"    => DoMcpToolsCall(p, tp),
                 _                   => $"Неизвестный ключ «{key}»",
             };
@@ -671,6 +673,85 @@ public static class AgentsDemoRunner
 
     private static string Truncate(string text, int max)
         => text != null && text.Length > max ? text[..(max - 1)] + "…" : text ?? "";
+
+    #endregion
+
+    #region Оркестратор (PlanningAgent)
+
+    private static string DoPlanningAgent(IReadOnlyDictionary<string, double> p, IReadOnlyDictionary<string, string> tp)
+    {
+        var (llm, model) = CreateLLM(p, tp);
+        var goal         = T(tp, "_goal", "Вычисли среднее и сумму для рядов [1,3,5,7,9] и [2,4,6,8,10], потом найди разницу средних");
+        int maxRetries   = I(p, "maxStepRetries", 2);
+        int maxReplans   = I(p, "maxReplanAttempts", 2);
+
+        var orchestrator = PlanningAgentBuilder.Create()
+            .WithLLM(llm)
+            .WithTools(new DemoStatisticsTools())
+            .WithSystemPrompt(
+                "Ты аналитик данных. Для каждого вычисления ОБЯЗАТЕЛЬНО вызывай " +
+                "инструменты compute_statistics или sum_numbers. Отвечай на русском.")
+            .WithMaxStepRetries(maxRetries)
+            .WithMaxReplanAttempts(maxReplans)
+            .Build();
+
+        var sb = new StringBuilder();
+        sb.AppendLine("=== PlanningAgent: Планирование → Выполнение → Retry/Replan ===");
+        sb.AppendLine($"Модель: {model}");
+        sb.AppendLine($"Задача: {goal}");
+        sb.AppendLine($"MaxStepRetries: {maxRetries},  MaxReplanAttempts: {maxReplans}");
+        sb.AppendLine();
+
+        orchestrator.OnPlanGenerated += (_, plan) =>
+        {
+            sb.AppendLine($"--- План ({plan.Steps.Count} шагов, {plan.Depth} ярусов) ---");
+            foreach (var tier in plan.Tiers)
+                foreach (var step in tier.Steps)
+                {
+                    var tool = step.ToolName != null ? $" [{step.ToolName}]" : "";
+                    sb.AppendLine($"  {step.Id}{tool}: {step.Description}");
+                }
+            sb.AppendLine();
+        };
+
+        orchestrator.OnReplanned += (_, plan) =>
+        {
+            sb.AppendLine($"--- Перепланирование: новый план ({plan.Steps.Count} шагов) ---");
+            foreach (var tier in plan.Tiers)
+                foreach (var step in tier.Steps)
+                    sb.AppendLine($"  {step.Id}: {step.Description}");
+            sb.AppendLine();
+        };
+
+        orchestrator.OnStepCompleted += (_, r) =>
+        {
+            var status = r.Success ? "OK" : (r.Exhausted ? "EXHAUSTED" : "RETRY");
+            var desc   = r.Step.Description.Length > 60 ? r.Step.Description[..60] + "…" : r.Step.Description;
+            sb.AppendLine($"  [{r.Step.Id}] {status} (попыток: {r.Attempts}): {desc}");
+        };
+
+        var result = orchestrator.RunAsync(goal).GetAwaiter().GetResult();
+
+        sb.AppendLine();
+        sb.AppendLine("--- Итог ---");
+        sb.AppendLine($"Успешно:          {result.Success}");
+        sb.AppendLine($"Перепланирований: {result.ReplanCount}");
+        sb.AppendLine($"Время:            {result.Elapsed.TotalSeconds:F1}с");
+        sb.AppendLine($"Всего шагов:      {result.Steps.Count}");
+        sb.AppendLine();
+
+        sb.AppendLine("--- Память выполненных шагов ---");
+        foreach (var cell in result.MemoryCells)
+        {
+            var icon    = cell.Success ? "✓" : "✗";
+            var toolTag = cell.ToolName != null ? $" [{cell.ToolName}]" : "";
+            var preview = cell.Result.Length > 120 ? cell.Result[..120] + "…" : cell.Result;
+            sb.AppendLine($"  {icon} [{cell.StepId}]{toolTag} {cell.Description}");
+            sb.AppendLine($"      → {preview}");
+        }
+
+        return sb.ToString();
+    }
 
     #endregion
 

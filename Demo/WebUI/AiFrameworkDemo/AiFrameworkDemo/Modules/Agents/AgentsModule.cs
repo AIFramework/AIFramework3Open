@@ -9,6 +9,7 @@ public sealed class AgentsModule : LibraryModuleBase
     public override string Description =>
         "Агентный фреймворк: цикл ReAct, инструменты [AgentTool], " +
         "память (скользящее окно, векторная, суммаризация), " +
+        "планирование (PlanGenerator), оркестрация (PlanningAgent), " +
         "GuardRails, MCP-сервер";
     public override string Color => "violet";
     public override string TutorialFolder => "LLM";
@@ -206,7 +207,40 @@ public sealed class AgentsModule : LibraryModuleBase
 
         #endregion
 
-        #region 6. MCP
+        #region 6. Оркестратор (PlanningAgent)
+
+        new CategoryDef("orchestrator", "Оркестратор",
+            "PlanningAgent: авто-план → поярусное выполнение → retry шагов → replan при провале. " +
+            "Память из выполненных шагов передаётся агенту как контекст.",
+            [
+                new AlgoDef("planning_agent", "PlanningAgent",
+                    "Высокоуровневый оркестратор: генерирует план через LLM, " +
+                    "затем поярусно выполняет каждый шаг через внутренний ReAct-агент. " +
+                    "При неудаче шага — повторяет до MaxStepRetries раз, " +
+                    "при исчерпании попыток — перегенерирует план с контекстом ошибки. " +
+                    "История выполненных шагов хранится в StepMemory и автоматически " +
+                    "передаётся агенту при каждом следующем шаге.",
+                    "AI.LLM.Agents.Orchestration.PlanningAgent",
+                    "planning.md",
+                    [
+                        new AlgoParam("_apikey", "API-ключ OpenRouter", 0, 0, 0, 0, "",
+                            "Ключ из https://openrouter.ai/keys",
+                            TextDefault: ""),
+                        new AlgoParam("model", "Модель", 0, 3, 0, 1, "", "LLM-модель")
+                            { Choices = ModelChoices },
+                        new AlgoParam("maxStepRetries", "Retry на шаг", 0, 3, 2, 1, "",
+                            "Максимум повторных попыток для одного шага"),
+                        new AlgoParam("maxReplanAttempts", "Replan попыток", 0, 3, 2, 1, "",
+                            "Максимум перепланирований при провале"),
+                        new AlgoParam("_goal", "Задача", 0, 0, 0, 0, "",
+                            "Задача для оркестратора",
+                            TextDefault: "Вычисли среднее и сумму для рядов [1,3,5,7,9] и [2,4,6,8,10], потом найди разницу средних"),
+                    ]),
+            ]),
+
+        #endregion
+
+        #region 7. MCP
 
         new CategoryDef("mcp", "MCP-сервер",
             "Model Context Protocol: интерактивный вызов MCP-инструментов.",

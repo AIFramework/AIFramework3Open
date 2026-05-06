@@ -7,7 +7,7 @@ namespace AI.Statistics;
 /// Реализованы z-тест (известная σ), t-тест (неизвестная σ),
 /// а также приближения квантилей нормального и t-распределения.
 /// </summary>
-public static class StatInference
+public static partial class StatInference
 {
     #region Доверительные интервалы
 
