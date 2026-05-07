@@ -46,6 +46,16 @@
   transform: translateY(-2px);
 }
 
+[data-theme="light"] .aif-feature-card {
+  box-shadow: var(--aif-shadow-sm);
+  border-color: var(--aif-border);
+  background: #ffffff;
+}
+[data-theme="light"] .aif-feature-card:hover {
+  box-shadow: var(--aif-shadow-md);
+  border-color: var(--aif-border-bright);
+}
+
 .aif-feature-icon {
   width: 2.25rem;
   height: 2.25rem;

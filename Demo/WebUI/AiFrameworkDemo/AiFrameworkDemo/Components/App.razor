@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="@_theme">
+<html lang="ru" data-theme="@_theme" data-contrast="@_contrast">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" href="ai3_0_logo.png" />
 
     <!-- Anti-flash: куки читаются первыми; localStorage — фоллбэк для демо-страниц -->
-    <script>(function(){var m=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var t=m?m[1]:(localStorage.getItem('aif-theme')||'dark');document.documentElement.setAttribute('data-theme',t);})();</script>
+    <script>(function(){var mt=document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);var mc=document.cookie.match(/(?:^|;\s*)aif-contrast=([^;]+)/);var t=mt?decodeURIComponent(mt[1]):(localStorage.getItem('aif-theme')||'dark');var c=mc?decodeURIComponent(mc[1]):(localStorage.getItem('aif-contrast')||'normal');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');document.documentElement.setAttribute('data-contrast',c==='high'?'high':'normal');})();</script>
 
     <!-- KaTeX: высококачественный LaTeX-рендер -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
@@ -54,7 +54,8 @@
     public HttpContext? HttpContext { get; set; }
 
     // Читаем куки на сервере → рендерим правильную тему с первого байта HTML
-    private string _theme => HttpContext?.Request.Cookies["aif-theme"] ?? "dark";
+    private string _theme => HttpContext?.Request.Cookies["aif-theme"] == "light" ? "light" : "dark";
+    private string _contrast => HttpContext?.Request.Cookies["aif-contrast"] == "high" ? "high" : "normal";
 
     private static readonly string _assetVer = typeof(AI.Charts.JS.PlotlyChartRenderer)
         .Assembly.GetName().Version?.ToString() ?? DateTime.UtcNow.Ticks.ToString();

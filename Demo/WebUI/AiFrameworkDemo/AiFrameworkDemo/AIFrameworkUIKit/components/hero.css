@@ -40,6 +40,13 @@
   pointer-events: none;
   z-index: -1;
 }
+[data-theme="light"] .aif-hero::before {
+  background: radial-gradient(
+    ellipse at 50% 30%,
+    rgba(99, 102, 241, 0.04) 0%,
+    transparent 50%
+  );
+}
 
 /* ─── Компактный вариант (LibraryPage) ─────────────────────────── */
 .aif-hero--sm {
@@ -146,6 +153,13 @@
     transparent 70%
   );
 }
+[data-theme="light"] .aif-hero--landing::before {
+  background: radial-gradient(
+    ellipse at 50% 20%,
+    rgba(99, 102, 241, 0.06) 0%,
+    transparent 50%
+  );
+}
 
 /* ─── Aurora — анимированные размытые блобы ────────────────────── */
 .aif-hero-aurora {
@@ -184,8 +198,8 @@
   animation-delay: -9s;
 }
 
-/* Блобы в светлой теме — слабее, чтобы не перекрывать белый фон */
-[data-theme="light"] .aif-aurora-blob { opacity: 0.18; }
+/* Блобы в светлой теме — почти невидимые, чтобы не давать лаванду */
+[data-theme="light"] .aif-aurora-blob { opacity: 0.08; }
 [data-theme="light"] .aif-aurora-blob--1 {
   background: radial-gradient(ellipse, rgba(99, 102, 241, 0.35) 0%, transparent 70%);
 }
@@ -278,7 +292,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--aif-text-5);
+  color: var(--aif-text-4);
   margin-top: 0.3rem;
 }
 
@@ -300,6 +314,12 @@
   padding: 0.22rem 0.65rem;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
+[data-theme="light"] .aif-tech-pill {
+  color: var(--aif-text-2);
+  background: #ffffff;
+  border-color: var(--aif-border-bright);
+  box-shadow: var(--aif-shadow-xs);
+}
 .aif-tech-pill:hover {
   color: var(--aif-text-2);
   background: var(--aif-surface-2);
@@ -309,6 +329,11 @@
   color: var(--aif-accent-bright);
   background: rgba(99, 102, 241, 0.12);
   border-color: rgba(99, 102, 241, 0.30);
+}
+[data-theme="light"] .aif-tech-pill--accent {
+  color: #3730a3;
+  background: rgba(67, 56, 202, 0.08);
+  border-color: rgba(67, 56, 202, 0.35);
 }
 .aif-tech-pill--accent:hover {
   color: #c7d2fe;

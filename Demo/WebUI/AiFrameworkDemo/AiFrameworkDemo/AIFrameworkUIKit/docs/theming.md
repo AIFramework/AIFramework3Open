@@ -171,6 +171,25 @@ UI Kit предлагает три независимых слоя кастом�
 document.documentElement.classList.toggle("aif-theme-light");
 ```
 
+### A/B-профиль контраста (light theme)
+
+Для светлой темы доступны два режима контраста:
+
+- `data-contrast="normal"` — сбалансированный (по умолчанию)
+- `data-contrast="high"` — усиленный WCAG-профиль для текста/бордеров/инпутов
+
+```html
+<html data-theme="light" data-contrast="high">
+```
+
+Или через JS API:
+
+```js
+aifTheme.getContrast()        // 'normal' | 'high'
+aifTheme.setContrast('high')  // включает строгий контраст
+aifTheme.toggleContrast()     // normal ↔ high
+```
+
 ---
 
 ## Применение в Blazor

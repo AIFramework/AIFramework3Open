@@ -82,7 +82,10 @@
   letter-spacing: 0.01em;
 }
 [data-theme="light"] .aif-chip {
-  background: rgba(0, 0, 40, 0.04);
+  background: #ffffff;
+  border-color: var(--aif-border-bright);
+  color: var(--aif-text-2);
+  box-shadow: var(--aif-shadow-xs);
 }
 
 /* Chip-ссылка */
@@ -103,6 +106,12 @@
 /* ─── Hero gradient text (главный заголовок) ─────────────────────── */
 .aif-gradient-text {
   background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 50%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+[data-theme="light"] .aif-gradient-text {
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 50%, #4338ca 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

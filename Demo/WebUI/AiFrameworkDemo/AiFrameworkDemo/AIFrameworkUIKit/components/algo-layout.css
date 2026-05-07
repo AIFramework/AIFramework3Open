@@ -139,7 +139,7 @@
   margin-left: auto;
   padding: 0.2rem 0.35rem;
   border-radius: var(--aif-r-sm);
-  opacity: 0.45;
+  opacity: 0.7;
   transition: opacity 0.15s;
   flex-shrink: 0;
 }
@@ -168,7 +168,7 @@
   font-family: var(--aif-font-mono);
   font-size: 0.68rem;
   color: var(--aif-text-4);
-  opacity: 0.7;
+  opacity: 0.9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

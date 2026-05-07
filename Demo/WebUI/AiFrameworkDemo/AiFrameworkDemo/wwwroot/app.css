@@ -1,1 +1,169 @@
 /* UIKit подключается через <link> в App.razor → /AIFrameworkUIKit/index.css */
+
+/* ══════════════════════════════════════════════════════════════════════
+   Solver page — light-theme overrides
+   html[data-theme="light"] даёт специфичность 0-1-1, что перебивает
+   scoped CSS (.class[b-xxx] = 0-2-0) при сложении с .class = 0-2-1.
+   ══════════════════════════════════════════════════════════════════════ */
+
+html[data-theme="light"] .sm-hero {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.14);
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="light"] .sm-hero-title {
+    color: #0f172a;
+}
+
+html[data-theme="light"] .sm-hero-sub {
+    color: #334155;
+}
+
+html[data-theme="light"] .sm-sidebar {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.14);
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="light"] .sm-sidebar-title {
+    color: #475569;
+}
+
+html[data-theme="light"] .sm-example-cat {
+    color: #c2410c;
+}
+
+html[data-theme="light"] .sm-example-btn {
+    color: #334155;
+}
+
+html[data-theme="light"] .sm-example-btn:hover {
+    background: rgba(15, 23, 42, 0.06);
+    color: #0f172a;
+}
+
+html[data-theme="light"] .sm-help-btn {
+    color: #475569;
+    border-color: rgba(15, 23, 42, 0.16);
+}
+
+html[data-theme="light"] .sm-help-btn:hover {
+    background: rgba(15, 23, 42, 0.05);
+    color: #0f172a;
+}
+
+html[data-theme="light"] .sm-history {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.14);
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="light"] .sm-in-code {
+    color: #1e293b;
+    background: rgba(15, 23, 42, 0.05);
+}
+
+html[data-theme="light"] .sm-entry-out {
+    background: rgba(15, 23, 42, 0.04);
+    border-left-color: rgba(15, 23, 42, 0.16);
+}
+
+html[data-theme="light"] .sm-out-pre {
+    color: #1e293b;
+}
+
+html[data-theme="light"] .sm-prompt {
+    color: #c2410c;
+}
+
+html[data-theme="light"] .sm-prompt--out {
+    color: #64748b;
+}
+
+html[data-theme="light"] .sm-rerun-btn {
+    color: #64748b;
+}
+
+html[data-theme="light"] .sm-rerun-btn:hover {
+    color: #c2410c;
+}
+
+html[data-theme="light"] .sm-empty-hint {
+    color: #475569;
+}
+
+html[data-theme="light"] .sm-empty-hint svg {
+    color: #c2410c;
+}
+
+html[data-theme="light"] .sm-empty-sub code {
+    background: rgba(194, 65, 12, 0.08);
+    color: #c2410c;
+}
+
+/* ── Справочный блок ─────────────────────────────────────────────── */
+
+html[data-theme="light"] .sm-help-block {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.16);
+    box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .sm-help-header {
+    color: #c2410c;
+    border-bottom-color: rgba(15, 23, 42, 0.10);
+    background: rgba(15, 23, 42, 0.03);
+}
+
+html[data-theme="light"] .sm-help-close {
+    color: #475569;
+}
+
+html[data-theme="light"] .sm-help-pre {
+    color: #1e293b;
+}
+
+/* ── Поле ввода ──────────────────────────────────────────────────── */
+
+html[data-theme="light"] .sm-input-area {
+    background: #ffffff;
+    border-color: #c2410c;
+    box-shadow: 0 2px 8px -2px rgba(194, 65, 12, 0.15);
+}
+
+html[data-theme="light"] .sm-in-label {
+    color: #c2410c;
+    border-right-color: rgba(15, 23, 42, 0.08);
+    background: rgba(15, 23, 42, 0.03);
+}
+
+html[data-theme="light"] .sm-textarea {
+    color: #0f172a;
+}
+
+html[data-theme="light"] .sm-textarea::placeholder {
+    color: #64748b;
+}
+
+html[data-theme="light"] .sm-input-footer {
+    border-top-color: rgba(15, 23, 42, 0.08);
+    background: rgba(15, 23, 42, 0.03);
+}
+
+html[data-theme="light"] .sm-input-hint {
+    color: #475569;
+}
+
+html[data-theme="light"] .sm-footer-btn {
+    color: #475569;
+}
+
+html[data-theme="light"] .sm-footer-btn:hover {
+    background: rgba(15, 23, 42, 0.06);
+    color: #dc2626;
+}
+
+html[data-theme="light"] .sm-run-btn {
+    background: #c2410c;
+}

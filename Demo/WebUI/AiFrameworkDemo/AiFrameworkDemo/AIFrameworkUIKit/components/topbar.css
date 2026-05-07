@@ -24,7 +24,11 @@
   transition: background 0.25s ease, border-color 0.25s ease;
 }
 [data-theme="light"] .aif-topbar {
-  border-bottom-color: rgba(0, 0, 40, 0.07);
+  border-bottom-color: rgba(15, 23, 42, 0.18);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+}
+[data-theme="light"][data-contrast="high"] .aif-topbar {
+  border-bottom-color: rgba(15, 23, 42, 0.2);
 }
 
 /* ─── Цветовые вариации нижней границы ──────────────────────────── */
@@ -59,7 +63,7 @@
   gap: 0.3rem;
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--aif-text-4);
+  color: var(--aif-text-3);
   text-decoration: none;
   transition: color 0.15s;
   flex-shrink: 0;
@@ -68,12 +72,12 @@
 
 /* ─── Разделитель хлебных крошек ─────────────────────────────────── */
 .aif-topbar-sep {
-  color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.24);
   font-size: 0.8rem;
   flex-shrink: 0;
 }
 [data-theme="light"] .aif-topbar-sep {
-  color: rgba(0, 0, 0, 0.2);
+  color: rgba(15, 23, 42, 0.50);
 }
 
 /* ─── Название текущего раздела ──────────────────────────────────── */
@@ -111,9 +115,12 @@
   transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 [data-theme="light"] .aif-header {
-  background: rgba(244, 245, 251, 0.88);
-  border-bottom-color: rgba(0, 0, 40, 0.08);
-  box-shadow: 0 1px 0 rgba(99, 102, 241, 0.08), 0 4px 24px -8px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  border-bottom-color: rgba(15, 23, 42, 0.14);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+[data-theme="light"][data-contrast="high"] .aif-header {
+  border-bottom-color: rgba(15, 23, 42, 0.2);
 }
 .aif-header-inner {
   max-width: var(--aif-max-w-default);
@@ -161,7 +168,8 @@
   transition: background 0.25s ease;
 }
 [data-theme="light"] .aif-footer {
-  background: rgba(238, 241, 252, 0.96);
+  background: #ffffff;
+  border-top-color: rgba(15, 23, 42, 0.12);
 }
 .aif-footer-inner {
   max-width: var(--aif-max-w-default);
@@ -176,11 +184,11 @@
   letter-spacing: 0.02em;
 }
 .aif-footer-sep {
-  color: #1e293b;
+  color: var(--aif-text-5);
   user-select: none;
 }
 [data-theme="light"] .aif-footer-sep {
-  color: #b2bec8;
+  color: #94a3b8;
 }
 .aif-footer-link {
   color: var(--aif-text-4);
@@ -250,9 +258,10 @@
   font-weight: 600;
 }
 [data-theme="light"] .aif-gh-btn {
-  color: #475569;
-  border-color: rgba(0, 0, 40, 0.12);
-  background: rgba(0, 0, 40, 0.04);
+  color: #334155;
+  border-color: rgba(15, 23, 42, 0.18);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 .aif-gh-btn:hover {
   color: var(--aif-text-1);

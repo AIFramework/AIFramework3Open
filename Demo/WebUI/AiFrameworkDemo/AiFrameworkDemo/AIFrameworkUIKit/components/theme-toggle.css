@@ -50,6 +50,27 @@
   background: rgba(99, 102, 241, 0.1);
 }
 
+/* Кнопка контраста */
+.aif-theme-toggle--contrast {
+  font-family: var(--aif-font-sans);
+  font-weight: 800;
+}
+.aif-contrast-icon {
+  font-size: 0.82rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+[data-theme="light"][data-contrast="high"] .aif-theme-toggle--contrast {
+  color: #1e1b4b;
+  border-color: rgba(67, 56, 202, 0.48);
+  background: rgba(99, 102, 241, 0.16);
+  box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.14);
+}
+[data-theme="light"][data-contrast="high"] .aif-theme-toggle--contrast:hover {
+  background: rgba(99, 102, 241, 0.22);
+  border-color: rgba(67, 56, 202, 0.6);
+}
+
 /* Иконки: показываем солнце в тёмной теме, луну — в светлой */
 .aif-theme-icon { display: block; }
 

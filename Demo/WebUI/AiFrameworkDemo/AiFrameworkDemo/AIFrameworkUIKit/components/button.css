@@ -56,7 +56,7 @@
 /* Метка времени выполнения рядом с кнопкой */
 .aif-btn-meta {
   font-size: 0.72rem;
-  color: var(--aif-text-5);
+  color: var(--aif-text-4);
 }
 
 /* ─── Цветовые варианты основной кнопки ─────────────────────────── */
@@ -102,7 +102,7 @@
   cursor: pointer;
   border: 1px solid var(--aif-border);
   background: var(--aif-surface-1);
-  color: var(--aif-text-5);
+  color: var(--aif-text-4);
   transition: background 0.12s, color 0.12s, border-color 0.12s;
   margin-left: auto;
 }
@@ -190,7 +190,7 @@
 .aif-accordion-toggle:hover { background: var(--aif-surface-1); }
 .aif-accordion-arrow {
   transition: transform 0.2s;
-  color: var(--aif-text-5);
+  color: var(--aif-text-4);
 }
 .aif-accordion-arrow--open { transform: rotate(180deg); }
 

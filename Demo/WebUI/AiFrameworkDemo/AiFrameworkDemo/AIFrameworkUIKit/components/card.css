@@ -29,6 +29,15 @@
   box-shadow: var(--aif-shadow-md);
 }
 
+[data-theme="light"] .aif-card {
+  box-shadow: var(--aif-shadow-sm);
+  border-color: var(--aif-border);
+}
+[data-theme="light"] .aif-card:hover {
+  box-shadow: var(--aif-shadow-md);
+  border-color: var(--aif-border-bright);
+}
+
 /* ─── Компактный вариант (категории, вложенные страницы) ─────────── */
 .aif-card--sm {
   padding: 1.1rem 1.25rem;
@@ -123,14 +132,14 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.7rem;
-  color: var(--aif-text-5);
+  color: var(--aif-text-4);
   font-weight: 500;
 }
-.aif-card-meta-sep { color: #1e293b; }
+.aif-card-meta-sep { color: var(--aif-text-5); }
 
 /* ─── Стрелка (навигационный индикатор) ─────────────────────────── */
 .aif-card-arrow {
-  color: var(--aif-text-6);
+  color: var(--aif-text-5);
   flex-shrink: 0;
   transition: color 0.15s, transform 0.15s;
 }

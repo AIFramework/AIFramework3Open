@@ -39,14 +39,11 @@ html, body {
     color 0.25s ease;
 }
 
-/* Light theme: чистый белый с едва заметными пастельными градиентами */
+/* Light theme: чистый белый без фиолетовых градиентов */
 html[data-theme="light"],
 html[data-theme="light"] body {
-  background-color: var(--aif-bg-void);   /* #ffffff */
-  background-image:
-    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 35% at 90% 30%,  rgba(14, 165, 233, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 5% 70%,   rgba(124, 58, 237, 0.025) 0%, transparent 50%);
+  background-color: var(--aif-bg-void);
+  background-image: none;
 }
 
 /* Ссылки */

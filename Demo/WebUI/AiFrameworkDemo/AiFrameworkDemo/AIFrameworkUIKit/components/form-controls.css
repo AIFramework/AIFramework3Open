@@ -25,7 +25,7 @@
 }
 .aif-param-unit {
   font-size: 0.7rem;
-  color: var(--aif-text-5);
+  color: var(--aif-text-4);
   font-family: var(--aif-font-mono);
 }
 
@@ -78,6 +78,10 @@
   font-family: var(--aif-font-mono);
   text-align: right;
 }
+.aif-num-input::placeholder {
+  color: var(--aif-text-4);
+  opacity: 0.9;
+}
 .aif-num-input:focus {
   outline: none;
   border-color: var(--aif-input-focus-border);
@@ -96,6 +100,10 @@
   font-family: var(--aif-font-mono);
   resize: vertical;
   line-height: 1.5;
+}
+.aif-text-input::placeholder {
+  color: var(--aif-text-4);
+  opacity: 0.9;
 }
 .aif-text-input:focus {
   outline: none;
@@ -116,6 +124,10 @@
   resize: vertical;
   line-height: 1.65;
   tab-size: 4;
+}
+.aif-code-input::placeholder {
+  color: var(--aif-text-4);
+  opacity: 0.92;
 }
 .aif-code-input:focus {
   outline: none;

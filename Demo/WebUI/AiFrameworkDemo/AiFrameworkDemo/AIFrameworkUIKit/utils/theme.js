@@ -6,40 +6,59 @@
  * localStorage — фоллбэк для статических демо-страниц UIKit.
  *
  * API:
- *   aifTheme.get()    → 'dark' | 'light'
- *   aifTheme.set(t)   → сохраняет в cookie + localStorage, применяет data-theme
- *   aifTheme.toggle() → переключает и возвращает новую тему
- *   aifTheme.apply()  → читает сохранённую тему и применяет
+ *   aifTheme.get()               → 'dark' | 'light'
+ *   aifTheme.set(t)              → сохраняет тему, применяет data-theme
+ *   aifTheme.toggle()            → переключает тему и возвращает новую
+ *   aifTheme.getContrast()       → 'normal' | 'high'
+ *   aifTheme.setContrast(level)  → сохраняет контраст, применяет data-contrast
+ *   aifTheme.toggleContrast()    → normal ↔ high
+ *   aifTheme.apply()             → читает сохранённые theme/contrast и применяет
  */
 
 window.aifTheme = (function () {
-  var COOKIE_KEY   = 'aif-theme';
-  var STORAGE_KEY  = 'aif-theme';
-  var DEFAULT      = 'dark';
-  var COOKIE_TTL   = 365 * 24 * 60 * 60; // 1 год в секундах
+  var THEME_COOKIE_KEY      = 'aif-theme';
+  var THEME_STORAGE_KEY     = 'aif-theme';
+  var CONTRAST_COOKIE_KEY   = 'aif-contrast';
+  var CONTRAST_STORAGE_KEY  = 'aif-contrast';
+  var DEFAULT_THEME         = 'dark';
+  var DEFAULT_CONTRAST      = 'normal';
+  var COOKIE_TTL            = 365 * 24 * 60 * 60; // 1 год в секундах
 
-  function getCookie() {
-    var m = document.cookie.match(/(?:^|;\s*)aif-theme=([^;]+)/);
-    return m ? m[1] : null;
+  function readCookie(key) {
+    var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + key + '=([^;]+)'));
+    return m ? decodeURIComponent(m[1]) : null;
   }
 
-  function setCookie(theme) {
+  function writeCookie(key, value) {
     document.cookie =
-      COOKIE_KEY + '=' + theme +
+      key + '=' + encodeURIComponent(value) +
       '; path=/' +
       '; max-age=' + COOKIE_TTL +
       '; SameSite=Lax';
   }
 
+  function normalizeTheme(theme) {
+    return theme === 'light' ? 'light' : 'dark';
+  }
+
+  function normalizeContrast(contrast) {
+    return contrast === 'high' ? 'high' : 'normal';
+  }
+
   function get() {
     // Куки приоритетнее: сервер тоже читает их
-    return getCookie() || localStorage.getItem(STORAGE_KEY) || DEFAULT;
+    return normalizeTheme(readCookie(THEME_COOKIE_KEY) || localStorage.getItem(THEME_STORAGE_KEY) || DEFAULT_THEME);
+  }
+
+  function getContrast() {
+    return normalizeContrast(readCookie(CONTRAST_COOKIE_KEY) || localStorage.getItem(CONTRAST_STORAGE_KEY) || DEFAULT_CONTRAST);
   }
 
   function set(theme) {
-    setCookie(theme);
-    localStorage.setItem(STORAGE_KEY, theme);
-    document.documentElement.setAttribute('data-theme', theme);
+    var next = normalizeTheme(theme);
+    writeCookie(THEME_COOKIE_KEY, next);
+    localStorage.setItem(THEME_STORAGE_KEY, next);
+    document.documentElement.setAttribute('data-theme', next);
   }
 
   function toggle() {
@@ -50,13 +69,29 @@ window.aifTheme = (function () {
     return next;
   }
 
-  function apply() {
-    var theme = get();
-    document.documentElement.setAttribute('data-theme', theme);
-    return theme;
+  function setContrast(contrast) {
+    var next = normalizeContrast(contrast);
+    writeCookie(CONTRAST_COOKIE_KEY, next);
+    localStorage.setItem(CONTRAST_STORAGE_KEY, next);
+    document.documentElement.setAttribute('data-contrast', next);
+    return next;
   }
 
-  return { get, set, toggle, apply };
+  function toggleContrast() {
+    var current = document.documentElement.getAttribute('data-contrast') || getContrast();
+    var next = current === 'high' ? 'normal' : 'high';
+    return setContrast(next);
+  }
+
+  function apply() {
+    var theme = get();
+    var contrast = getContrast();
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-contrast', contrast);
+    return { theme: theme, contrast: contrast };
+  }
+
+  return { get, set, toggle, getContrast, setContrast, toggleContrast, apply };
 })();
 
 // Применяем при каждой загрузке скрипта

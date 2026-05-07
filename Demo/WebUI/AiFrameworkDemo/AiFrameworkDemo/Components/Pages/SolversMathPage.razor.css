@@ -490,3 +490,6 @@
     font-size: 0.72rem;
     color: #f87171;
 }
+
+/* Light theme overrides перенесены в wwwroot/app.css (глобальный,
+   без Blazor-scoping) для надёжной работы с [data-theme] на <html> */
