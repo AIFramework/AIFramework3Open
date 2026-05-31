@@ -18,18 +18,22 @@ public class Sound
     /// ID
     /// </summary>
     public int chunkID;
+
     /// <summary>
     /// Размер файла
     /// </summary>
     public int fileSize;
+
     /// <summary>
     /// Тип
     /// </summary>
     public int riffType;
+
     /// <summary>
     /// 
     /// </summary>
     public int fmtID;
+
     /// <summary>
     /// 
     /// </summary>
@@ -38,30 +42,37 @@ public class Sound
     /// 
     /// </summary>
     public int fmtCode;
+
     /// <summary>
     /// Каналы (число)
     /// </summary>
     public int channels;
+
     /// <summary>
     /// Частота дискретизации
     /// </summary>
     public int sampleRate;
+
     /// <summary>
     /// средний битрейт
     /// </summary>
     public int fmtAvgBPS;
+
     /// <summary>
     /// 
     /// </summary>
     public int fmtBlockAlign;
+
     /// <summary>
     /// 
     /// </summary>
     public int bitDepth;
+
     /// <summary>
     /// 
     /// </summary>
     public int dataID;
+
     /// <summary>
     /// 
     /// </summary>

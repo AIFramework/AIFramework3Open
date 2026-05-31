@@ -1,4 +1,4 @@
-﻿# MCP-сервер AIFramework
+# MCP-сервер AIFramework
 
 ## Обзор
 
