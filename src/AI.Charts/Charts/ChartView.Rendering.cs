@@ -235,7 +235,9 @@ public sealed partial class ChartView
             LogY = _axisLogY,
             Foreground = ForegroundColor,
             Background = BackgroundColor,
-            Grid = new SKColor(180, 180, 180)
+            // Тон сетки подбирается от фона к переднему плану — мягкая сетка
+            // одинаково аккуратна и на светлой, и на тёмной теме.
+            Grid = ChartViewport.Blend(BackgroundColor, ForegroundColor, 0.16)
         };
 
         ChartLayoutKind layout = GetCurrentLayout();

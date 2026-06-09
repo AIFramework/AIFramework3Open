@@ -11,6 +11,9 @@ internal class Area : BaseChart
     {
     }
 
+    /// <summary>Сглаживать ли верхнюю границу области сплайном (Catmull–Rom).</summary>
+    public bool IsSpline { get; set; }
+
     public override void Draw(SKCanvas canvas, ChartViewport vp)
     {
         if (drawX == null || drawY == null || drawX.Count == 0)
@@ -18,41 +21,46 @@ internal class Area : BaseChart
             return;
         }
 
-        SKColor fill = ElementColor.WithAlpha(90);
+        int n = drawX.Count;
+        float bottom = vp.PlotRect.Bottom;
+        float xFirst = vp.XToPx(drawX[0]);
+        float xLast = vp.XToPx(drawX[n - 1]);
 
-        using (SKPath path = new SKPath())
+        // Верхняя граница (линия или сплайн) — переиспользуем общий построитель пути.
+        using (SKPath topPath = new SKPath())
         {
-            float x0 = vp.XToPx(drawX[0]);
-            float y0 = vp.YToPx(drawY[0]);
-            path.MoveTo(x0, vp.PlotRect.Bottom);
-            path.LineTo(x0, y0);
-            int n = drawX.Count;
-            for (int i = 1; i < n; i++)
+            SplinePath.AppendLineOrSpline(topPath, drawX, drawY, vp, IsSpline);
+
+            // Заливка: замыкаем контур к низу области и заливаем вертикальным градиентом
+            // от насыщенного цвета сверху к прозрачному снизу — современный «area»-вид.
+            using (SKPath fillPath = new SKPath(topPath))
             {
-                path.LineTo(vp.XToPx(drawX[i]), vp.YToPx(drawY[i]));
+                fillPath.LineTo(xLast, bottom);
+                fillPath.LineTo(xFirst, bottom);
+                fillPath.Close();
+
+                using (SKShader shader = SKShader.CreateLinearGradient(
+                    new SKPoint(0, vp.PlotRect.Top),
+                    new SKPoint(0, bottom),
+                    new[] { ElementColor.WithAlpha(130), ElementColor.WithAlpha(8) },
+                    new[] { 0f, 1f },
+                    SKShaderTileMode.Clamp))
+                using (SKPaint fillPaint = new SKPaint { Shader = shader, Style = SKPaintStyle.Fill, IsAntialias = true })
+                {
+                    canvas.DrawPath(fillPath, fillPaint);
+                }
             }
 
-            path.LineTo(vp.XToPx(drawX[n - 1]), vp.PlotRect.Bottom);
-            path.Close();
-
-            using (SKPaint fillPaint = new SKPaint { Color = fill.WithAlpha(100), Style = SKPaintStyle.Fill, IsAntialias = true })
             using (SKPaint strokePaint = new SKPaint
             {
                 Color = ElementColor,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = BorderWidth,
-                IsAntialias = true
+                IsAntialias = true,
+                StrokeJoin = SKStrokeJoin.Round
             })
             {
-                canvas.DrawPath(path, fillPaint);
-                path.Reset();
-                path.MoveTo(x0, y0);
-                for (int i = 1; i < n; i++)
-                {
-                    path.LineTo(vp.XToPx(drawX[i]), vp.YToPx(drawY[i]));
-                }
-
-                canvas.DrawPath(path, strokePaint);
+                canvas.DrawPath(topPath, strokePaint);
             }
         }
     }

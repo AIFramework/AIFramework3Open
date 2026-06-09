@@ -31,7 +31,7 @@ internal static partial class SkiaChartFrame
         using (SKPaint gridPaint = new SKPaint { Color = vp.Grid, StrokeWidth = 1, IsAntialias = true })
         using (SKPaint borderPaint = new SKPaint
         {
-            Color = new SKColor(203, 213, 225),
+            Color = ChartViewport.Blend(vp.Background, vp.Foreground, 0.24),
             StrokeWidth = 1f,
             Style = SKPaintStyle.Stroke,
             IsAntialias = true
@@ -180,18 +180,14 @@ internal static partial class SkiaChartFrame
             float top = pr.Top + margin;
             SKRect box = new SKRect(left, top, left + boxW, top + boxH);
 
-            SKColor fill = vp.Background;
-            byte a = fill.Alpha > 20 ? fill.Alpha : (byte)255;
-            fill = new SKColor(fill.Red, fill.Green, fill.Blue, (byte)Math.Min(255, (int)(a * 0.94 + 12)));
-            if (fill.Alpha < 200)
-            {
-                fill = new SKColor(252, 252, 253, 246);
-            }
+            // Подложка легенды слегка приподнята от фона к переднему плану (тема-независимо).
+            SKColor fillBase = ChartViewport.Blend(vp.Background, vp.Foreground, 0.06);
+            SKColor fill = new SKColor(fillBase.Red, fillBase.Green, fillBase.Blue, 235);
 
             using (SKPaint fillPaint = new SKPaint { Color = fill, IsAntialias = true, Style = SKPaintStyle.Fill })
             using (SKPaint strokePaint = new SKPaint
             {
-                Color = new SKColor(190, 192, 198),
+                Color = ChartViewport.Blend(vp.Background, vp.Foreground, 0.28),
                 StrokeWidth = 1f,
                 Style = SKPaintStyle.Stroke,
                 IsAntialias = true

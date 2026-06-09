@@ -31,6 +31,21 @@ internal sealed class ChartViewport
     public float PieCy { get; set; }
     public float PieRadius { get; set; }
 
+    /// <summary>
+    /// Линейно смешивает два цвета (t=0 → a, t=1 → b). Используется для подбора
+    /// тонов сетки/рамки/легенды от фона к переднему плану — корректно работает
+    /// и для светлой, и для тёмной темы.
+    /// </summary>
+    public static SKColor Blend(SKColor a, SKColor b, double t)
+    {
+        if (t < 0) t = 0;
+        if (t > 1) t = 1;
+        return new SKColor(
+            (byte)Math.Round(a.Red + (b.Red - a.Red) * t),
+            (byte)Math.Round(a.Green + (b.Green - a.Green) * t),
+            (byte)Math.Round(a.Blue + (b.Blue - a.Blue) * t));
+    }
+
     /// <summary>Camera for 3D chart layouts.</summary>
     public Camera3D Camera3D { get; set; }
 

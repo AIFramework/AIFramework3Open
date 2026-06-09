@@ -131,6 +131,17 @@ public sealed partial class ChartView
         AutoScale();
     }
 
+    /// <summary>Область с градиентной заливкой; ширина линии и сглаживание сплайном настраиваются.</summary>
+    public void AddArea(Vector x, Vector y, string name, SKColor color, int width, bool isSpline = false)
+    {
+        Area area = new Area(name) { IsSpline = isSpline };
+        area.LoadData(x, y);
+        area.SetColor(color);
+        area.SetWidth(width);
+        chartElements.Add(area);
+        AutoScale();
+    }
+
     public void AddBar(Vector x, Vector y, string name, SKColor color)
     {
         Bar bar = new Bar(name);

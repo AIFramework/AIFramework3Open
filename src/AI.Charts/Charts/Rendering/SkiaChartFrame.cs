@@ -10,7 +10,7 @@ namespace AI.Charts.Rendering;
 /// </summary>
 internal static partial class SkiaChartFrame
 {
-    private const int DefaultGridY = 8;
+    private const int DefaultGridY = 5;
     private const float MinPlotInner = 48f;
 
     /// <summary>
@@ -35,8 +35,8 @@ internal static partial class SkiaChartFrame
     /// </summary>
     public static void LayoutCartesianMargins(ChartViewport vp, float w, float h, string axisYLabel, string axisXLabel)
     {
-        const float mt = 36f;
-        const float mbMin = 56f;
+        const float mt = 24f;
+        const float mbMin = 38f;
 
         vp.GridDivisionsY = DefaultGridY;
 
@@ -57,7 +57,7 @@ internal static partial class SkiaChartFrame
             float yTitleBand = string.IsNullOrEmpty(axisYLabel)
                 ? 0f
                 : measurePaint.MeasureText(axisYLabel) + 18f;
-            float ml = Math.Max(88f, maxYLabel + 16f + yTitleBand);
+            float ml = Math.Max(50f, maxYLabel + 16f + yTitleBand);
 
             const float mrProbe = 16f;
             float innerW = w - ml - mrProbe;
@@ -80,8 +80,8 @@ internal static partial class SkiaChartFrame
             float innerPlotW = Math.Max(MinPlotInner, w - ml - mr);
             float slotW = innerPlotW / Math.Max(xDiv, 1);
             bool xCrowded = slotW < maxXLabel + 12f;
-            float mb = xCrowded ? Math.Max(mbMin, 62f) : mbMin;
-            mb = Math.Max(mb, 26f + (xCrowded ? 30f : 22f));
+            float mb = xCrowded ? Math.Max(mbMin, 52f) : mbMin;
+            mb = Math.Max(mb, 18f + (xCrowded ? 28f : 14f));
             if (!string.IsNullOrEmpty(axisXLabel))
             {
                 mb += 22f;
