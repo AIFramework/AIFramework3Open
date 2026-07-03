@@ -267,18 +267,42 @@ public static partial class StatInference
         return 0.5 * (1.0 + Erf(x / Math.Sqrt(2.0)));
     }
 
-    /// <summary>Квантиль t-распределения (приближение Хилла для df > 2).</summary>
+    /// <summary>
+    /// Квантиль t-распределения. Для df = 1 и df = 2 — точные замкнутые формулы;
+    /// для df ≥ 3 вычисляется точно через обращение CDF (<see cref="TCdf"/>) бисекцией,
+    /// разложение Корниша-Фишера используется только как начальное приближение.
+    /// </summary>
     public static double TQuantile(double p, int df)
     {
         if (df <= 0) df = 1;
+        if (p <= 0) return double.NegativeInfinity;
+        if (p >= 1) return double.PositiveInfinity;
+        if (Math.Abs(p - 0.5) < 1e-15) return 0;
         if (df == 1) return Math.Tan(Math.PI * (p - 0.5));
         if (df == 2) return (2.0 * p - 1.0) / Math.Sqrt(2.0 * p * (1.0 - p));
 
+        // Симметрия распределения: достаточно правого хвоста
+        if (p < 0.5) return -TQuantile(1.0 - p, df);
+
+        // Начальное приближение — двухчленное разложение Корниша-Фишера
         double z = NormalQuantile(p);
-        // Cornish-Fisher correction
         double g1 = (z * z * z + z) / (4.0 * df);
         double g2 = (5.0 * z * z * z * z * z + 16.0 * z * z * z + 3.0 * z) / (96.0 * df * df);
-        return z + g1 + g2;
+        double guess = z + g1 + g2;
+
+        // Скобка [0, hi]: расширяем hi, пока CDF(hi) не накроет p
+        double lo = 0.0;
+        double hi = Math.Max(guess * 2.0, 2.0);
+        for (int i = 0; i < 200 && TCdf(hi, df) < p; i++) hi *= 2.0;
+
+        // Уточнение бисекцией по точной CDF
+        for (int i = 0; i < 200; i++)
+        {
+            double mid = 0.5 * (lo + hi);
+            if (TCdf(mid, df) < p) lo = mid; else hi = mid;
+            if (hi - lo <= 1e-12 * Math.Max(1.0, hi)) break;
+        }
+        return 0.5 * (lo + hi);
     }
 
     /// <summary>CDF t-распределения (приближение через бета-неполную).</summary>
@@ -289,15 +313,37 @@ public static partial class StatInference
         return t >= 0 ? 1.0 - 0.5 * beta : 0.5 * beta;
     }
 
-    /// <summary>Квантиль χ²-распределения (приближение Wilson-Hilferty).</summary>
+    /// <summary>
+    /// Квантиль χ²-распределения. Вычисляется точно через обращение CDF
+    /// (<see cref="ChiSquaredCdf"/>) бисекцией; преобразование Wilson-Hilferty
+    /// используется только как начальное приближение для выбора скобки.
+    /// </summary>
     public static double ChiSquaredQuantile(double p, int df)
     {
         if (df <= 0) df = 1;
+        if (p <= 0) return 0;
+        if (p >= 1) return double.PositiveInfinity;
+
+        // Начальное приближение — преобразование Wilson-Hilferty:
+        // χ²_p ≈ df * (1 - 2/(9df) + z*sqrt(2/(9df)))^3
         double z = NormalQuantile(p);
-        // Wilson-Hilferty transformation: χ²_p ≈ df * (1 - 2/(9df) + z*sqrt(2/(9df)))^3
         double a = 2.0 / (9.0 * df);
         double cube = 1.0 - a + z * Math.Sqrt(a);
-        return Math.Max(0, df * cube * cube * cube);
+        double guess = Math.Max(0, df * cube * cube * cube);
+
+        // Скобка [0, hi]: расширяем hi, пока CDF(hi) не накроет p
+        double lo = 0.0;
+        double hi = Math.Max(guess * 4.0, df * 4.0 + 40.0);
+        for (int i = 0; i < 200 && ChiSquaredCdf(hi, df) < p; i++) hi *= 2.0;
+
+        // Уточнение бисекцией по точной CDF
+        for (int i = 0; i < 200; i++)
+        {
+            double mid = 0.5 * (lo + hi);
+            if (ChiSquaredCdf(mid, df) < p) lo = mid; else hi = mid;
+            if (hi - lo <= 1e-12 * Math.Max(1.0, hi)) break;
+        }
+        return 0.5 * (lo + hi);
     }
 
     /// <summary>CDF χ²-распределения (через регуляризованную неполную гамма-функцию).</summary>

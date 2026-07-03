@@ -25,7 +25,7 @@ public class MixtureModel : IDistributionWithoutParams, ISamplableDistribution
     #region Поля
 
     private readonly IDistributionWithoutParams[] _components;
-    private readonly double[] _logWeights; // лог-веса (нормированы до ln(w) где Σw = 1)
+    private readonly double[] _logWeights; // лог-веса (ln(w) где Σw = 1); вес 0 => -∞
     private readonly Vector _weights;
     private readonly bool _isOneD;
 
@@ -66,7 +66,12 @@ public class MixtureModel : IDistributionWithoutParams, ISamplableDistribution
         _weights = NormalizeWeights(weights);
         _logWeights = new double[_components.Length];
         for (int i = 0; i < _components.Length; i++)
-            _logWeights[i] = StatUtils.SafeLog(_weights[i]);
+            // Нулевой вес должен давать log = -∞ (компонента полностью
+            // исключена), а не конечный «пол» SafeLog, который большая
+            // плотность могла бы перекрыть в Posterior/Argmax.
+            _logWeights[i] = _weights[i] > 0
+                ? Math.Log(_weights[i])
+                : double.NegativeInfinity;
 
         _isOneD = DetermineOneD(_components);
     }
@@ -133,7 +138,10 @@ public class MixtureModel : IDistributionWithoutParams, ISamplableDistribution
             : new double[_components.Length];
 
         for (int i = 0; i < _components.Length; i++)
-            logs[i] = _logWeights[i] + _components[i].CulcLogProb(x);
+            // Компонента с нулевым весом не вносит вклада (плотность не считаем)
+            logs[i] = double.IsNegativeInfinity(_logWeights[i])
+                ? double.NegativeInfinity
+                : _logWeights[i] + _components[i].CulcLogProb(x);
 
         return StatUtils.LogSumExp(logs);
     }
@@ -147,7 +155,10 @@ public class MixtureModel : IDistributionWithoutParams, ISamplableDistribution
             : new double[_components.Length];
 
         for (int i = 0; i < _components.Length; i++)
-            logs[i] = _logWeights[i] + _components[i].CulcLogProb(x);
+            // Компонента с нулевым весом не вносит вклада (плотность не считаем)
+            logs[i] = double.IsNegativeInfinity(_logWeights[i])
+                ? double.NegativeInfinity
+                : _logWeights[i] + _components[i].CulcLogProb(x);
 
         return StatUtils.LogSumExp(logs);
     }
@@ -165,13 +176,26 @@ public class MixtureModel : IDistributionWithoutParams, ISamplableDistribution
     /// Возвращает нормированные апостериорные вероятности
     /// компонент для одномерного наблюдения <paramref name="x"/>.
     /// Расчёт идёт в лог-пространстве (stable softmax).
+    /// Компоненты с нулевым весом получают апостериор строго 0.
+    /// Если все log-апостериоры равны -∞ (все плотности нулевые),
+    /// свидетельство отсутствует — возвращаются нормированные веса.
     /// </summary>
     public Vector Posterior(double x)
     {
         EnsureOneD();
         double[] logs = new double[_components.Length];
+        bool anyFinite = false;
         for (int i = 0; i < _components.Length; i++)
-            logs[i] = _logWeights[i] + _components[i].CulcLogProb(x);
+        {
+            // Нулевой вес => апостериор строго 0 (плотность не считаем)
+            logs[i] = double.IsNegativeInfinity(_logWeights[i])
+                ? double.NegativeInfinity
+                : _logWeights[i] + _components[i].CulcLogProb(x);
+            if (!double.IsNegativeInfinity(logs[i])) anyFinite = true;
+        }
+
+        // Все плотности нулевые: fallback без свидетельства — веса смеси
+        if (!anyFinite) return _weights.Clone();
 
         double[] target = new double[logs.Length];
         StatUtils.LogSoftmax(logs, target);
@@ -180,13 +204,26 @@ public class MixtureModel : IDistributionWithoutParams, ISamplableDistribution
 
     /// <summary>
     /// Апостериорные вероятности компонент для многомерного x.
+    /// Компоненты с нулевым весом получают апостериор строго 0.
+    /// Если все log-апостериоры равны -∞ (все плотности нулевые),
+    /// свидетельство отсутствует — возвращаются нормированные веса.
     /// </summary>
     public Vector Posterior(Vector x)
     {
         EnsureND();
         double[] logs = new double[_components.Length];
+        bool anyFinite = false;
         for (int i = 0; i < _components.Length; i++)
-            logs[i] = _logWeights[i] + _components[i].CulcLogProb(x);
+        {
+            // Нулевой вес => апостериор строго 0 (плотность не считаем)
+            logs[i] = double.IsNegativeInfinity(_logWeights[i])
+                ? double.NegativeInfinity
+                : _logWeights[i] + _components[i].CulcLogProb(x);
+            if (!double.IsNegativeInfinity(logs[i])) anyFinite = true;
+        }
+
+        // Все плотности нулевые: fallback без свидетельства — веса смеси
+        if (!anyFinite) return _weights.Clone();
 
         double[] target = new double[logs.Length];
         StatUtils.LogSoftmax(logs, target);

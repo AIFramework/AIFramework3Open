@@ -178,6 +178,12 @@ public partial class Statistic
     /// Строит нормированную гистограмму (площадь под ней = 1)
     /// за один проход. Диапазоны бинов — полуинтервалы [a; b), кроме
     /// последнего, который [a; b] (чтобы max попал в последний бин).
+    /// NaN-элементы в бины не попадают и в нормировке не участвуют.
+    /// Для константных данных (max == min) возвращается один бин,
+    /// центрированный на значении, с номинальной шириной 1.0 и
+    /// плотностью 1.0 (площадь ровно 1). Для пустого входа или
+    /// выборки из одних NaN возвращается вырожденная гистограмма
+    /// (все Y = 0).
     /// </summary>
     public Histogramm Histogramm(int bins)
     {
@@ -185,15 +191,42 @@ public partial class Statistic
 
         Histogramm h = new Histogramm(bins);
 
-        if (_n == 0 || MinValue == MaxValue)
+        // Пустой вход — вырожденная гистограмма (все Y = 0).
+        if (_n == 0)
         {
             for (int i = 0; i < bins; i++) h.X[i] = MinValue;
             return h;
         }
 
+        if (MinValue == MaxValue)
+        {
+            int nonNaN = 0;
+            for (int j = 0; j < _n; j++)
+                if (!double.IsNaN(_vector[j])) nonNaN++;
+
+            // Все элементы NaN — бинить нечего, возвращаем вырожденную
+            // гистограмму (все Y = 0), как для пустого входа.
+            if (nonNaN == 0)
+            {
+                for (int i = 0; i < bins; i++) h.X[i] = MinValue;
+                return h;
+            }
+
+            // Константные данные: один бин, центрированный на значении,
+            // с номинальной шириной 1.0. X — левая граница бина (как и в
+            // общем случае), плотность = 1/ширина, поэтому площадь под
+            // гистограммой равна ровно 1.
+            const double nominalWidth = 1.0;
+            Histogramm single = new Histogramm(1);
+            single.X[0] = MinValue - (nominalWidth / 2.0);
+            single.Y[0] = 1.0 / nominalWidth;
+            return single;
+        }
+
         double step = (MaxValue - MinValue) / bins;
         double invStep = 1.0 / step;
 
+        int binned = 0; // число элементов, реально попавших в бины
         for (int j = 0; j < _n; j++)
         {
             double v = _vector[j];
@@ -203,15 +236,22 @@ public partial class Statistic
             if (idx == bins) idx = bins - 1; // max попадает в последний бин
             if (idx < 0 || idx >= bins) continue;
             h.Y[idx]++;
+            binned++;
         }
-
-        // нормировка по площади: sum(Y) * step = 1
-        double scale = 1.0 / (_n * step);
-        for (int i = 0; i < bins; i++) h.Y[i] *= scale;
 
         // позиции центров бинов — левая граница (как в исходном коде)
         for (int i = 0; i < bins; i++)
             h.X[i] = MinValue + (i * step);
+
+        // Ни один элемент не попал в бины — возвращаем нулевую
+        // гистограмму, не деля на ноль.
+        if (binned == 0) return h;
+
+        // нормировка по площади: sum(Y) * step = 1. NaN-элементы в бины
+        // не попадают, поэтому делим на число забинованных элементов,
+        // а не на общий размер выборки.
+        double scale = 1.0 / (binned * step);
+        for (int i = 0; i < bins; i++) h.Y[i] *= scale;
 
         return h;
     }

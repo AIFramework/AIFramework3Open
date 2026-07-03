@@ -1,4 +1,3 @@
-using AI.Extensions;
 using System;
 
 namespace AI.Statistics.MonteCarlo;
@@ -53,7 +52,7 @@ public class MCMC_1D
     /// используется более экономичный сравнитель без явного min.
     /// </summary>
     public double AcceptProb(double old_value, double new_value)
-        => Math.Exp(_distrLog(new_value) - _distrLog(old_value));
+        => Math.Min(1.0, Math.Exp(_distrLog(new_value) - _distrLog(old_value)));
 
     /// <summary>
     /// Генерация выборки.
@@ -83,7 +82,7 @@ public class MCMC_1D
             data[i] = oldValue;
         }
 
-        if (decorelate) data.Shuffle();
+        if (decorelate) ShuffleInPlace(data);
         return data;
     }
 
@@ -101,6 +100,17 @@ public class MCMC_1D
         {
             oldValue = cand;
             oldLog = candLog;
+        }
+    }
+
+    // Перемешивание Фишера–Йетса собственным ГПСЧ экземпляра:
+    // при UseSeed = true результат остаётся воспроизводимым.
+    private void ShuffleInPlace(double[] data)
+    {
+        for (int i = data.Length - 1; i > 0; i--)
+        {
+            int j = _random.Next(i + 1);
+            (data[i], data[j]) = (data[j], data[i]);
         }
     }
 

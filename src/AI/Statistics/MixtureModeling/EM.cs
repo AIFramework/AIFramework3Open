@@ -93,7 +93,10 @@ public static class EM
 
         // ---------- инициализация: k-means++ по средним + глобальная дисперсия ----------
         Vector[] means = KMeansPlusPlusInit(data, k, rng);
-        Vector globalStd = ComputeGlobalStd(data);
+        // globalMean используется как сдвиг для центрирования моментов в E-шаге:
+        // без него формула дисперсии E[x²] − (E[x])² катастрофически теряет
+        // точность при большом |E[x]| (например, данные порядка 1e6)
+        Vector globalStd = ComputeGlobalStd(data, out Vector globalMean);
 
         // клонируем глобальную СКО для каждой компоненты
         Vector[] stds = new Vector[k];
@@ -107,24 +110,31 @@ public static class EM
         // ---------- цикл EM ----------
         double prevLogL = double.NegativeInfinity;
         double logL = double.NegativeInfinity;
+        bool converged = false;
 
         for (int iter = 0; iter < maxIter; iter++)
         {
             token.ThrowIfCancellationRequested();
 
-            var agg = EStep(model, data);
+            var agg = EStep(model, data, globalMean);
             logL = agg.LogLikelihood;
 
             if (iter > 0)
             {
                 double denom = Math.Max(Math.Abs(prevLogL), 1.0);
                 double rel = Math.Abs(logL - prevLogL) / denom;
-                if (rel < tol) break;
+                if (rel < tol) { converged = true; break; }
             }
             prevLogL = logL;
 
-            MStep(model, agg);
+            MStep(model, agg, globalMean);
         }
+
+        // При выходе по maxIter последний M-шаг уже обновил параметры,
+        // а logL был вычислен для предыдущих — пересчитываем один раз,
+        // чтобы возвращаемое значение соответствовало возвращаемой модели.
+        if (!converged)
+            logL = EStep(model, data, globalMean).LogLikelihood;
 
         model.LogLikelihood = logL;
         return model;
@@ -137,8 +147,8 @@ public static class EM
     private readonly struct Aggregate
     {
         public readonly double[] NkSum;        // Σ γ(z_ik)
-        public readonly Vector[] MeanSum;      // Σ γ(z_ik) · x_i
-        public readonly Vector[] SqSum;        // Σ γ(z_ik) · (x_i)^2 (для формулы через моменты)
+        public readonly Vector[] MeanSum;      // Σ γ(z_ik) · (x_i − shift)
+        public readonly Vector[] SqSum;        // Σ γ(z_ik) · (x_i − shift)² (центрированные моменты)
         public readonly double LogLikelihood;
 
         public Aggregate(double[] nk, Vector[] m, Vector[] sq, double logL)
@@ -147,7 +157,10 @@ public static class EM
         }
     }
 
-    private static Aggregate EStep(GaussianMixture model, IReadOnlyList<Vector> data)
+    // shift — общее среднее данных: моменты копятся в центрированных
+    // координатах (x − shift), что делает вычисление дисперсии в M-шаге
+    // численно устойчивым (дисперсия инвариантна к сдвигу).
+    private static Aggregate EStep(GaussianMixture model, IReadOnlyList<Vector> data, Vector shift)
     {
         int k = model.K, dim = model.Dim, n = data.Count;
 
@@ -197,7 +210,7 @@ public static class EM
                     Vector sq = local.sq[c];
                     for (int d = 0; d < dim; d++)
                     {
-                        double xd = x[d];
+                        double xd = x[d] - shift[d]; // центрированная координата
                         m[d] += gamma * xd;
                         sq[d] += gamma * xd * xd;
                     }
@@ -228,7 +241,7 @@ public static class EM
 
     #region M-шаг
 
-    private static void MStep(GaussianMixture model, Aggregate agg)
+    private static void MStep(GaussianMixture model, Aggregate agg, Vector shift)
     {
         int k = model.K, dim = model.Dim;
         double n = 0;
@@ -247,15 +260,23 @@ public static class EM
 
             model.Weights[c] = nk / n;
 
+            // среднее в центрированных координатах; для модели возвращаем сдвиг
+            Vector meanCentered = new Vector(dim);
             Vector newMean = new Vector(dim);
-            for (int d = 0; d < dim; d++) newMean[d] = agg.MeanSum[c][d] / nk;
+            for (int d = 0; d < dim; d++)
+            {
+                meanCentered[d] = agg.MeanSum[c][d] / nk;
+                newMean[d] = meanCentered[d] + shift[d];
+            }
             model.Means[c] = newMean;
 
             Vector newStd = new Vector(dim);
             for (int d = 0; d < dim; d++)
             {
-                // E[x²] − (E[x])²
-                double variance = (agg.SqSum[c][d] / nk) - (newMean[d] * newMean[d]);
+                // E[(x−shift)²] − (E[x−shift])²: дисперсия инвариантна к сдвигу,
+                // а центрирование устраняет катастрофическое сокращение
+                // моментов при большом |E[x]|
+                double variance = (agg.SqSum[c][d] / nk) - (meanCentered[d] * meanCentered[d]);
                 if (variance < 0) variance = 0;
                 newStd[d] = Math.Sqrt(variance);
                 if (newStd[d] < model.MinStd) newStd[d] = model.MinStd;
@@ -331,11 +352,13 @@ public static class EM
         return s;
     }
 
-    private static Vector ComputeGlobalStd(IReadOnlyList<Vector> data)
+    // mean возвращается наружу: используется как сдвиг для центрирования
+    // моментов в E/M-шагах (численная устойчивость дисперсии)
+    private static Vector ComputeGlobalStd(IReadOnlyList<Vector> data, out Vector mean)
     {
         int dim = data[0].Count, n = data.Count;
         // поэлементно через Welford
-        Vector mean = new Vector(dim);
+        mean = new Vector(dim);
         Vector m2 = new Vector(dim);
         for (int i = 0; i < n; i++)
         {

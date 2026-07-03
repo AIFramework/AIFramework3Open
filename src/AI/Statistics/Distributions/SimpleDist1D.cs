@@ -30,8 +30,24 @@ public interface IRefittable
 /// </summary>
 public abstract class SimpleDist1DBase : IDistributionWithoutParams, ISamplableDistribution, IRefittable
 {
+    /// <summary>
+    /// Нижний «пол» лог-плотности, соответствующий клампу плотности 1e-300
+    /// (≈ -690.78). Используется вне носителя распределения вместо -∞,
+    /// чтобы log-sum-exp по компонентам не давал NaN, когда все плотности
+    /// нулевые (совместимость с hard-EM и историческим поведением).
+    /// </summary>
+    protected static readonly double LogProbFloor = Math.Log(1e-300);
+
     public abstract double CulcProb(double x);
-    public double CulcLogProb(double x) => Math.Log(Math.Max(CulcProb(x), 1e-300));
+
+    /// <summary>
+    /// Лог-плотность. Базовая реализация — клампированный логарифм
+    /// плотности: она сначала экспоненцирует и потому насыщается на уровне
+    /// <see cref="LogProbFloor"/>. Конкретные распределения переопределяют
+    /// метод точной аналитической формулой (как ND-классы), что убирает
+    /// насыщение в дальних хвостах.
+    /// </summary>
+    public virtual double CulcLogProb(double x) => Math.Log(Math.Max(CulcProb(x), 1e-300));
     public double CulcProb(Vector x) => CulcProb(x[0]);
     public double CulcLogProb(Vector x) => CulcLogProb(x[0]);
     public abstract double Sample1D(Random rng);
@@ -80,6 +96,13 @@ public sealed class GaussianDist1D : SimpleDist1DBase
         return Math.Exp(-0.5 * z * z) / (Sigma * Math.Sqrt(2 * Math.PI));
     }
 
+    /// <summary>Точная лог-плотность: -0.5·z² - ln σ - 0.5·ln(2π).</summary>
+    public override double CulcLogProb(double x)
+    {
+        double z = (x - Mu) / Sigma;
+        return -0.5 * z * z - Math.Log(Sigma) - 0.5 * Math.Log(2 * Math.PI);
+    }
+
     public override double Sample1D(Random rng)
         => RandomEngine.NextGaussian(rng) * Sigma + Mu;
 
@@ -90,7 +113,9 @@ public sealed class GaussianDist1D : SimpleDist1DBase
         double mu = sum / count;
         double ss = 0;
         for (int i = 0; i < count; i++) { double d = data[i] - mu; ss += d * d; }
-        return new GaussianDist1D(mu, Math.Sqrt(ss / Math.Max(count - 1, 1)));
+        // MLE-оценка дисперсии (деление на n): соответствует контракту
+        // IRefittable и refit-ам остальных компонент (Laplace, Rayleigh, Exp)
+        return new GaussianDist1D(mu, Math.Sqrt(ss / count));
     }
 }
 
@@ -106,6 +131,16 @@ public sealed class ExponentialDist1D : SimpleDist1DBase
     {
         double y = x - Shift;
         return y < 0 ? 0 : Rate * Math.Exp(-Rate * y);
+    }
+
+    /// <summary>
+    /// Точная лог-плотность на носителе: ln λ - λ·(x - shift);
+    /// вне носителя — <see cref="SimpleDist1DBase.LogProbFloor"/>.
+    /// </summary>
+    public override double CulcLogProb(double x)
+    {
+        double y = x - Shift;
+        return y < 0 ? LogProbFloor : Math.Log(Rate) - Rate * y;
     }
 
     public override double Sample1D(Random rng)
@@ -132,6 +167,10 @@ public sealed class LaplaceDist1D : SimpleDist1DBase
 
     public override double CulcProb(double x)
         => 0.5 / B * Math.Exp(-Math.Abs(x - Mu) / B);
+
+    /// <summary>Точная лог-плотность: -ln(2b) - |x - μ|/b.</summary>
+    public override double CulcLogProb(double x)
+        => -Math.Log(2.0 * B) - Math.Abs(x - Mu) / B;
 
     public override double Sample1D(Random rng)
         => RandomEngine.NextLaplace(rng, Mu, B);
@@ -164,6 +203,17 @@ public sealed class RayleighDist1D : SimpleDist1DBase
         return x / s2 * Math.Exp(-x * x / (2 * s2));
     }
 
+    /// <summary>
+    /// Точная лог-плотность на носителе: ln x - ln σ² - x²/(2σ²);
+    /// вне носителя — <see cref="SimpleDist1DBase.LogProbFloor"/>.
+    /// </summary>
+    public override double CulcLogProb(double x)
+    {
+        if (x <= 0) return LogProbFloor;
+        double s2 = Sigma * Sigma;
+        return Math.Log(x) - Math.Log(s2) - x * x / (2 * s2);
+    }
+
     public override double Sample1D(Random rng)
         => RandomEngine.NextRayleigh(rng, Sigma);
 
@@ -185,6 +235,13 @@ public sealed class UniformDist1D : SimpleDist1DBase
 
     public override double CulcProb(double x)
         => x >= A && x <= B ? 1.0 / (B - A) : 0;
+
+    /// <summary>
+    /// Точная лог-плотность на носителе: -ln(b - a);
+    /// вне носителя — <see cref="SimpleDist1DBase.LogProbFloor"/>.
+    /// </summary>
+    public override double CulcLogProb(double x)
+        => x >= A && x <= B ? -Math.Log(B - A) : LogProbFloor;
 
     public override double Sample1D(Random rng)
         => A + rng.NextDouble() * (B - A);
@@ -264,8 +321,9 @@ public sealed class GaussianDistND : SimpleDistNDBase
                 double diff = data[i][d] - mean[d];
                 std[d] += diff * diff;
             }
+        // MLE-оценка (делитель n), согласованно с 1D-рефитами и контрактом IRefittable
         for (int d = 0; d < dim; d++)
-            std[d] = Math.Sqrt(std[d] / Math.Max(count - 1, 1));
+            std[d] = Math.Sqrt(std[d] / Math.Max(count, 1));
 
         return new GaussianDistND(mean, std);
     }
@@ -363,7 +421,8 @@ public sealed class GaussianDistFullCov : SimpleDistNDBase
                     cov[r, c] += v;
                     if (r != c) cov[c, r] += v;
                 }
-        double denom = Math.Max(count - 1, 1);
+        // MLE-оценка (делитель n), согласованно с 1D-рефитами и контрактом IRefittable
+        double denom = Math.Max(count, 1);
         for (int r = 0; r < dim; r++)
             for (int c = 0; c < dim; c++)
                 cov[r, c] /= denom;

@@ -10,7 +10,13 @@ public static partial class StatInference
 {
     #region Таблицы сопряжённости: Пирсон, Йейтс, Фишер, Макнемар, CMH
 
-    /// <summary>Критерий независимости (χ² Пирсона) в таблице сопряжённости; ожидаемые частоты по модели независимости.</summary>
+    /// <summary>
+    /// Критерий независимости (χ² Пирсона) в таблице сопряжённости; ожидаемые частоты по модели независимости.
+    /// Строки и столбцы с нулевой маргинальной суммой не несут информации и отбрасываются:
+    /// степени свободы считаются по эффективным размерам таблицы, иначе p-значение завышается.
+    /// Если после отбрасывания остаётся меньше двух строк или столбцов, возвращается
+    /// вырожденный результат (статистика 0, p = 1, гипотеза не отклоняется).
+    /// </summary>
     public static TestResult PearsonChiSquareContingency(ReadOnlySpan<int> observed, int rows, int cols, double alpha = 0.05)
     {
         if (rows < 2 || cols < 2)
@@ -35,6 +41,16 @@ public static partial class StatInference
         }
         if (total <= 0) throw new ArgumentException("Суммарный объём должен быть положительным.");
 
+        // Отбрасываем строки и столбцы с нулевыми маргинальными суммами:
+        // они не дают вклада в статистику, но раздували бы df и p-значение.
+        int effRows = 0, effCols = 0;
+        for (int i = 0; i < rows; i++)
+            if (rowSum[i] > 0) effRows++;
+        for (int j = 0; j < cols; j++)
+            if (colSum[j] > 0) effCols++;
+        if (effRows < 2 || effCols < 2)
+            return DegenerateChiSquareResult(alpha, 1);
+
         double chi2 = 0;
         idx = 0;
         for (int i = 0; i < rows; i++)
@@ -42,12 +58,12 @@ public static partial class StatInference
             for (int j = 0; j < cols; j++, idx++)
             {
                 double expected = rowSum[i] * colSum[j] / total;
-                if (expected <= 0) continue;
+                if (expected <= 0) continue; // страховка: после отбрасывания нулевых маргиналов не срабатывает
                 double d = observed[idx] - expected;
                 chi2 += d * d / expected;
             }
         }
-        int df = (rows - 1) * (cols - 1);
+        int df = (effRows - 1) * (effCols - 1);
         return ChiSquareUpperTailTest(chi2, df, alpha);
     }
 
@@ -74,10 +90,17 @@ public static partial class StatInference
         return ChiSquareUpperTailTest(chi2, df, alpha);
     }
 
-    /// <summary>χ² для 2×2 с поправкой Йейтса (непрерывность).</summary>
+    /// <summary>
+    /// χ² для 2×2 с поправкой Йейтса (непрерывность).
+    /// При нулевой маргинальной сумме (строки или столбца) наблюдаемые частоты совпадают
+    /// с ожидаемыми, предел статистики равен нулю — возвращается вырожденный результат (p = 1).
+    /// </summary>
     public static TestResult YatesChiSquare2x2(int a, int b, int c, int d, double alpha = 0.05)
     {
         Validate2x2(a, b, c, d);
+        // Нулевой маргинал даёт 0/0 в формуле; корректный предел статистики — 0.
+        if (a + b == 0 || c + d == 0 || a + c == 0 || b + d == 0)
+            return DegenerateChiSquareResult(alpha, 1);
         int n = a + b + c + d;
         double num = Math.Abs(a * (double)d - b * (double)c) - n / 2.0;
         if (num < 0) num = 0;
@@ -86,10 +109,17 @@ public static partial class StatInference
         return ChiSquareUpperTailTest(chi2, 1, alpha);
     }
 
-    /// <summary>χ² для 2×2 без поправки Йейтса.</summary>
+    /// <summary>
+    /// χ² для 2×2 без поправки Йейтса.
+    /// При нулевой маргинальной сумме (строки или столбца) наблюдаемые частоты совпадают
+    /// с ожидаемыми, предел статистики равен нулю — возвращается вырожденный результат (p = 1).
+    /// </summary>
     public static TestResult PearsonChiSquare2x2(int a, int b, int c, int d, double alpha = 0.05)
     {
         Validate2x2(a, b, c, d);
+        // Нулевой маргинал даёт 0/0 в формуле; корректный предел статистики — 0.
+        if (a + b == 0 || c + d == 0 || a + c == 0 || b + d == 0)
+            return DegenerateChiSquareResult(alpha, 1);
         int n = a + b + c + d;
         double cross = a * (double)d - b * (double)c;
         double denom = (a + b) * (double)(c + d) * (a + c) * (b + d);
@@ -270,17 +300,32 @@ public static partial class StatInference
 
     static TestResult ChiSquareUpperTailTest(double chi2Statistic, int df, double alpha)
     {
-        double p = 1.0 - ChiSquaredCdf(chi2Statistic, df);
+        double p = Math.Clamp(1.0 - ChiSquaredCdf(chi2Statistic, df), 0.0, 1.0);
         double crit = ChiSquaredQuantile(1.0 - alpha, df);
         return new TestResult
         {
             Statistic = chi2Statistic,
-            PValue = Math.Clamp(p, 0.0, 1.0),
-            Reject = chi2Statistic > crit,
+            PValue = p,
+            // Решение принимается по p-значению (точная CDF), а не по приближённому квантилю:
+            // иначе Reject может противоречить PValue вблизи критической границы.
+            Reject = p < alpha,
             CriticalLower = 0,
             CriticalUpper = crit
         };
     }
+
+    /// <summary>
+    /// Вырожденный результат χ²-критерия: статистика 0, p = 1, нулевая гипотеза не отклоняется.
+    /// Используется, когда таблица не несёт информации (нулевые маргинальные суммы).
+    /// </summary>
+    static TestResult DegenerateChiSquareResult(double alpha, int df) => new TestResult
+    {
+        Statistic = 0,
+        PValue = 1.0,
+        Reject = false,
+        CriticalLower = 0,
+        CriticalUpper = ChiSquaredQuantile(1.0 - alpha, df)
+    };
 
     static void Validate2x2(int a, int b, int c, int d)
     {

@@ -60,10 +60,15 @@ public static class RandomEngine
     // Кэшируем вторую сгенерированную величину Box-Muller'а на поток.
     // Полярный метод выдаёт две независимые N(0,1) за одну итерацию —
     // берём вторую бесплатно.
+    // Кэш привязан к конкретному экземпляру Random (_spareOwner):
+    // иначе seed-ный генератор мог бы получить значение из потока
+    // ЧУЖОГО генератора, ломая документированную детерминированность.
     [ThreadStatic]
     private static double _sparedGaussian;
     [ThreadStatic]
     private static bool _hasSpared;
+    [ThreadStatic]
+    private static Random _spareOwner;
 
     /// <summary>
     /// Стандартная нормальная величина N(0, 1). Полярный Box-Muller
@@ -71,7 +76,9 @@ public static class RandomEngine
     /// </summary>
     public static double NextGaussian(Random rng)
     {
-        if (_hasSpared)
+        // Используем кэш только если он был создан именно этим RNG —
+        // это сохраняет детерминированность seed-ных генераторов.
+        if (_hasSpared && ReferenceEquals(_spareOwner, rng))
         {
             _hasSpared = false;
             return _sparedGaussian;
@@ -88,6 +95,7 @@ public static class RandomEngine
         double mul = Math.Sqrt(-2.0 * Math.Log(s) / s);
         _sparedGaussian = v * mul;
         _hasSpared = true;
+        _spareOwner = rng;
         return u * mul;
     }
 
@@ -162,7 +170,11 @@ public static class RandomEngine
     /// <summary>Распределение Лапласа Laplace(mu, b).</summary>
     public static double NextLaplace(Random rng, double mu = 0, double b = 1)
     {
-        double u = rng.NextDouble() - 0.5;
+        // Отбрасываем 0, чтобы u лежало строго внутри (-0.5; 0.5):
+        // на границе Log(0) дал бы -Infinity.
+        double u;
+        do { u = rng.NextDouble(); } while (u <= 0.0);
+        u -= 0.5;
         return mu - b * Math.Sign(u) * Math.Log(1.0 - 2.0 * Math.Abs(u));
     }
 
@@ -174,7 +186,12 @@ public static class RandomEngine
         return scale * Math.Pow(-Math.Log(u), 1.0 / shape);
     }
 
-    /// <summary>Пуассон Poisson(lambda) — алгоритм Кнута для λ &lt; 30, отбраковка для больших.</summary>
+    /// <summary>
+    /// Пуассон Poisson(lambda): алгоритм Кнута (перемножение равномерных
+    /// до порога e^{-λ}) для λ &lt; 30, метод отбраковки Аткинсона
+    /// (PA, 1979, логистическая огибающая) для λ ≥ 30 — корректные
+    /// хвостовые вероятности, в отличие от нормальной аппроксимации.
+    /// </summary>
     public static int NextPoisson(Random rng, double lambda)
     {
         if (lambda <= 0) throw new ArgumentOutOfRangeException(nameof(lambda));
@@ -186,7 +203,27 @@ public static class RandomEngine
             do { k++; p *= rng.NextDouble(); } while (p > L);
             return k - 1;
         }
-        return Math.Max(0, (int)Math.Round(lambda + Math.Sqrt(lambda) * NextGaussian(rng)));
+
+        // Метод Аткинсона (PA): отбраковка с логистической огибающей.
+        double c = 0.767 - 3.36 / lambda;
+        double beta = Math.PI / Math.Sqrt(3.0 * lambda);
+        double alpha = beta * lambda;
+        double kConst = Math.Log(c) - lambda - Math.Log(beta);
+        while (true)
+        {
+            double u = rng.NextDouble();
+            if (u <= 0.0 || u >= 1.0) continue;
+            double x = (alpha - Math.Log((1.0 - u) / u)) / beta;
+            int n = (int)Math.Floor(x + 0.5);
+            if (n < 0) continue;
+            double v = rng.NextDouble();
+            if (v <= 0.0) continue;
+            double y = alpha - beta * x;
+            double t = 1.0 + Math.Exp(y);
+            double lhs = y + Math.Log(v / (t * t));
+            double rhs = kConst + n * Math.Log(lambda) - StatInference.LogGamma(n + 1.0);
+            if (lhs <= rhs) return n;
+        }
     }
 
     /// <summary>Распределение Релея Rayleigh(σ) через инверсию CDF.</summary>
