@@ -441,7 +441,7 @@
     animation: sm-spin 0.7s linear infinite;
 }
 
-@@keyframes sm-spin {
+@keyframes sm-spin {
     to { transform: rotate(360deg); }
 }
 

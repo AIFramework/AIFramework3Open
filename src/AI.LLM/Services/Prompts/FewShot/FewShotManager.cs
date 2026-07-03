@@ -66,7 +66,14 @@ namespace AI.LLM.Services.Prompts.FewShot
                 _ = sb.Append(SepShots);
             }
 
-            return sb.ToString().TrimEnd(SepShots.ToCharArray()); // Optionally trim the trailing separator for cleaner output
+            string result = sb.ToString();
+
+            // Remove exactly one trailing separator for cleaner output
+            // (TrimEnd with a char array could eat legitimate trailing content of the last example)
+            if (!string.IsNullOrEmpty(SepShots) && result.EndsWith(SepShots, StringComparison.Ordinal))
+                result = result.Substring(0, result.Length - SepShots.Length);
+
+            return result;
         }
     }
 

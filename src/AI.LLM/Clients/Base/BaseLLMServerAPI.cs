@@ -42,7 +42,7 @@ public class BaseLLMServerAPI : IDisposable
     {
         var uri = $"{Host}load_llm_model/";
         var modelData = new { model_name = modelName, model_type = modelType };
-        var response = await _client.PostAsJsonAsync(uri, modelData).ConfigureAwait(false);
+        using var response = await _client.PostAsJsonAsync(uri, modelData).ConfigureAwait(false);
         return response.StatusCode;
     }
 
@@ -70,11 +70,11 @@ public class BaseLLMServerAPI : IDisposable
             no_repeat_ngram_size = noRepeatNgramSize
         };
         
-        // Локальный таймаут 60 секунд для ReadFromJsonAsync
+        // Локальный таймаут 90 секунд на весь запрос (POST и чтение ответа)
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-        
-        var response = await _client.PostAsJsonAsync(uri, requestData, cancellationToken).ConfigureAwait(false);
+
+        using var response = await _client.PostAsJsonAsync(uri, requestData, linkedCts.Token).ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {

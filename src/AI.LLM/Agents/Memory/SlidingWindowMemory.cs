@@ -40,8 +40,9 @@ public sealed class SlidingWindowMemory : IAgentMemory
             _history.Add(LLMMessage.CreateMessage(Roles.User, query));
             _history.Add(LLMMessage.CreateMessage(Roles.Assistant, answer));
 
-            while (_history.Count > _maxMessages)
-                _history.RemoveAt(0);
+            // Удаляем парами (user + assistant), чтобы история не начиналась с ответа ассистента.
+            while (_history.Count > _maxMessages && _history.Count >= 2)
+                _history.RemoveRange(0, 2);
         }
         finally { _semaphore.Release(); }
     }

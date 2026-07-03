@@ -38,10 +38,10 @@ public class MessageContent : List<IContentItem>
 
     public override string ToString()
     {
-        foreach (var contentItem in this)
-            if (contentItem is TextContentItem)
-                return (contentItem as TextContentItem).Text;
-
-        return string.Empty;
+        // Склеиваем все текстовые части через перенос строки (пустая строка, если текстов нет)
+        return string.Join("\n", this
+            .OfType<TextContentItem>()
+            .Select(item => item.Text)
+            .Where(text => text != null));
     }
 }

@@ -207,7 +207,27 @@ public sealed partial class Agent
     private async Task<List<LLMMessage>> BuildInitialMessagesAsync(AgentQuery query)
     {
         if (_memory != null)
-            return await _memory.BuildContextAsync(query.Text, _config.SystemPrompt).ConfigureAwait(false);
+        {
+            var messages = await _memory.BuildContextAsync(query.Text, _config.SystemPrompt).ConfigureAwait(false);
+
+            if (query.Images is { Count: > 0 })
+            {
+                // Память формирует текстовое user-сообщение — прикрепляем изображения к последнему сообщению,
+                // сохраняя текст, подготовленный памятью (например, преамбулу StepMemory).
+                if (messages is { Count: > 0 }
+                    && messages[^1] is { Role: LLMMessage.UserRole } last
+                    && last.Content is string text)
+                {
+                    messages[^1] = BuildUserMessage(text, query.Images);
+                }
+                else
+                {
+                    Log.Warning("Agent: не удалось прикрепить изображения — последнее сообщение контекста памяти не является текстовым user-сообщением");
+                }
+            }
+
+            return messages;
+        }
 
         return
         [

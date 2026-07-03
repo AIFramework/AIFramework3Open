@@ -160,11 +160,18 @@ public sealed class PlanGenerator
             var steps = new List<PlanStep>();
             foreach (var el in stepsEl.EnumerateArray())
             {
+                // id/description могут быть null или не-строкой — тогда используем fallback,
+                // иначе null Id уронит построение ярусов (ArgumentNullException в словаре)
+                var id = el.TryGetProperty("id", out var idEl) && idEl.ValueKind == JsonValueKind.String
+                    ? idEl.GetString() : null;
+                var description = el.TryGetProperty("description", out var descEl) && descEl.ValueKind == JsonValueKind.String
+                    ? descEl.GetString() : null;
+
                 var step = new PlanStep
                 {
-                    Id = el.TryGetProperty("id", out var idEl) ? idEl.GetString() : $"step_{steps.Count}",
-                    Description = el.TryGetProperty("description", out var descEl) ? descEl.GetString() : "",
-                    ToolName = el.TryGetProperty("tool", out var toolEl) && toolEl.ValueKind != JsonValueKind.Null
+                    Id = !string.IsNullOrWhiteSpace(id) ? id : $"step_{steps.Count}",
+                    Description = !string.IsNullOrWhiteSpace(description) ? description : "",
+                    ToolName = el.TryGetProperty("tool", out var toolEl) && toolEl.ValueKind == JsonValueKind.String
                         ? toolEl.GetString() : null,
                 };
 
@@ -178,6 +185,14 @@ public sealed class PlanGenerator
                 {
                     foreach (var dep in depsEl.EnumerateArray())
                     {
+                        // Не-строковый элемент (число/объект) пропускаем,
+                        // иначе GetString() выбросит исключение и весь план будет потерян
+                        if (dep.ValueKind != JsonValueKind.String)
+                        {
+                            Log.Warning("PlanGenerator: элемент depends_on имеет тип {Kind}, пропущен", dep.ValueKind);
+                            continue;
+                        }
+
                         var depId = dep.GetString();
                         if (!string.IsNullOrEmpty(depId))
                             step.DependsOn.Add(depId);

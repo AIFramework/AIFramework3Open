@@ -26,17 +26,21 @@ public class LLMBase : ILLMClient
     }
 
     /// <summary>
-    /// Создает GenerateSettings с учетом reasoning параметров из LLMOptions
+    /// Создает GenerateSettings с учетом параметров из LLMOptions (температура, reasoning)
     /// </summary>
     /// <param name="baseSettings">Базовые настройки генерации</param>
-    /// <returns>GenerateSettings с примененными reasoning параметрами</returns>
+    /// <returns>GenerateSettings с примененными параметрами из LLMOptions</returns>
     protected GenerateSettings ApplyReasoningSettings(GenerateSettings baseSettings)
     {
-        if (_llmOptions == null || !_llmOptions.EnableReasoning)
-            return baseSettings ?? new GenerateSettings();
-
         var settings = baseSettings ?? new GenerateSettings();
-        
+
+        if (_llmOptions == null)
+            return settings;
+
+        // Применяем температуру, если она задана в настройках
+        if (_llmOptions.Temperature.HasValue)
+            settings.Temperature = _llmOptions.Temperature.Value;
+
         // Создаем ReasoningSettings если reasoning включен
         if (_llmOptions.EnableReasoning)
         {

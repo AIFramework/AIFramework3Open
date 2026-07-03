@@ -32,9 +32,11 @@ public class SearchArgs
     public bool IncludeRawContent { get; set; }
 
     [JsonPropertyName("time_range")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string TimeRange { get; set; }
 
     [JsonPropertyName("country")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Country { get; set; }
 
     [JsonPropertyName("include_domains")]

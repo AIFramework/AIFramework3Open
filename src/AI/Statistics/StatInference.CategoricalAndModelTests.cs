@@ -197,7 +197,7 @@ public static partial class StatInference
             int m0 = s.B + s.D;
             double ea = n1 * (double)m1 / n;
             sumObsMinusExpected += s.A - ea;
-            sumVar += n1 * (double)n0 * m1 * m0 / (n * n * (n - 1.0));
+            sumVar += n1 * (double)n0 * m1 * m0 / ((double)n * n * (n - 1.0));
         }
         if (sumVar <= 0)
             throw new InvalidOperationException("Суммарная дисперсия нулевая.");

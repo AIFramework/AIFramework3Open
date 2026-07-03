@@ -73,8 +73,23 @@ public sealed class PlanningAgent
         {
             ct.ThrowIfCancellationRequested();
 
-            var (tierSteps, failureReason) = await ExecutePlanAsync(plan, goal, ct).ConfigureAwait(false);
-            allSteps.AddRange(tierSteps);
+            // Валидация плана перед выполнением: циклический или пустой план
+            // не выполняет ни одного шага и не должен считаться успехом.
+            string failureReason;
+            if (plan.HasCycle)
+            {
+                failureReason = "План содержит цикл зависимостей между шагами и не может быть выполнен.";
+            }
+            else if (plan.Steps.Count == 0 || plan.Tiers.Count == 0)
+            {
+                failureReason = "План пуст: LLM не вернул шагов или ответ не удалось распарсить.";
+            }
+            else
+            {
+                var (tierSteps, executionFailure) = await ExecutePlanAsync(plan, goal, ct).ConfigureAwait(false);
+                allSteps.AddRange(tierSteps);
+                failureReason = executionFailure;
+            }
 
             if (failureReason is null)
             {
@@ -117,7 +132,7 @@ public sealed class PlanningAgent
 
         foreach (var tier in plan.Tiers)
         {
-            List<StepExecutionResult> tierResults;
+            List<(StepExecutionResult Result, string LastError)> tierResults;
 
             if (_config.ExecuteParallelTiers)
             {
@@ -131,22 +146,28 @@ public sealed class PlanningAgent
                     tierResults.Add(await ExecuteStepWithRetriesAsync(step, goal, ct).ConfigureAwait(false));
             }
 
-            results.AddRange(tierResults);
+            results.AddRange(tierResults.Select(r => r.Result));
 
-            var exhausted = tierResults.FirstOrDefault(r => r.Exhausted);
-            if (exhausted is not null)
-                return (results, $"Step '{exhausted.Step.Description}' failed after {exhausted.Attempts} attempts");
+            var exhausted = tierResults.FirstOrDefault(r => r.Result.Exhausted);
+            if (exhausted.Result is not null)
+            {
+                var reason = $"Step '{exhausted.Result.Step.Description}' failed after {exhausted.Result.Attempts} attempts";
+                if (!string.IsNullOrWhiteSpace(exhausted.LastError))
+                    reason += $": {exhausted.LastError}";
+                return (results, reason);
+            }
         }
 
         return (results, null);
     }
 
-    private async Task<StepExecutionResult> ExecuteStepWithRetriesAsync(
+    private async Task<(StepExecutionResult Result, string LastError)> ExecuteStepWithRetriesAsync(
         PlanStep step, string goal, CancellationToken ct)
     {
         OnStepStarted?.Invoke(this, step);
 
         AgentResult lastResult = null;
+        string lastError = null;
         var maxAttempts = _config.MaxStepRetries + 1;
 
         for (int attempt = 1; attempt <= maxAttempts; attempt++)
@@ -160,11 +181,13 @@ public sealed class PlanningAgent
             {
                 var query = BuildStepQuery(step, goal, attempt);
                 lastResult = await _agent.RunAsync(query, ct).ConfigureAwait(false);
+                lastError = null;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 Log.Error(ex, "[PlanningAgent] Exception in step {StepId} attempt {Attempt}", step.Id, attempt);
                 lastResult = null;
+                lastError = ex.Message;
             }
 
             var ok = lastResult is not null && _validator.IsSuccess(step, lastResult);
@@ -177,7 +200,7 @@ public sealed class PlanningAgent
                 var stepResult = new StepExecutionResult(step, lastResult, true, false, attempt);
                 OnStepCompleted?.Invoke(this, stepResult);
                 Console.WriteLine($"  [{step.Id}] ✓ done ({attempt} attempt(s))");
-                return stepResult;
+                return (stepResult, null);
             }
 
             Log.Warning("[PlanningAgent] Step {StepId} attempt {Attempt}/{Max} failed",
@@ -185,13 +208,14 @@ public sealed class PlanningAgent
         }
 
         var failedCell = new StepMemoryEntry(
-            step, lastResult?.Answer ?? "FAILED", false, maxAttempts);
+            step, lastResult?.Answer ?? (lastError is not null ? $"FAILED: {lastError}" : "FAILED"),
+            false, maxAttempts);
         await _memory.AddCellAsync(failedCell).ConfigureAwait(false);
 
         var failedResult = new StepExecutionResult(step, lastResult, false, true, maxAttempts);
         OnStepCompleted?.Invoke(this, failedResult);
         Console.WriteLine($"  [{step.Id}] ✗ exhausted");
-        return failedResult;
+        return (failedResult, lastError);
     }
 
     private static string BuildStepQuery(PlanStep step, string goal, int attempt)

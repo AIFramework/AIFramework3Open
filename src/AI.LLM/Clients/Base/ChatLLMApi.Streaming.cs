@@ -120,9 +120,16 @@ public partial class ChatLLMApi
                 // Пропускаем SSE комментарии (начинаются с :)
                 if (line.StartsWith(":"))
                     continue;
-                    
+
+                // Обрабатываем SSE строки с данными
+                // Спецификация SSE допускает "data:" без пробела после двоеточия
+                if (!line.StartsWith("data:"))
+                    continue;
+
+                string jsonData = line.Substring(5).TrimStart(); // Убираем "data:" и ведущие пробелы
+
                 // Маркер завершения - дочитываем оставшиеся данные
-                if (line == "data: [DONE]")
+                if (jsonData == "[DONE]")
                 {
                     // Дочитываем оставшиеся данные (могут быть usage, метаданные)
                     string remainingLine;
@@ -135,12 +142,6 @@ public partial class ChatLLMApi
                     }
                     break;
                 }
-
-                // Обрабатываем SSE строки с данными
-                if (!line.StartsWith("data: "))
-                    continue;
-
-                string jsonData = line.Substring(6); // Убираем "data: "
                 
                 try
                 {
@@ -152,33 +153,16 @@ public partial class ChatLLMApi
                     if (root.ValueKind == JsonValueKind.Null || root.ValueKind == JsonValueKind.Undefined)
                         continue;
 
-                    // Получаем choices
-                    if (!root.TryGetProperty("choices", out var choices) || choices.GetArrayLength() == 0)
-                        continue;
-
-                    var firstChoice = choices[0];
-                    
-                    // Получаем finish_reason и native_finish_reason (могут быть в любом чанке, но обычно в последнем)
-                    if (firstChoice.TryGetProperty("finish_reason", out var finishReasonElement) && 
-                        finishReasonElement.ValueKind == JsonValueKind.String)
-                    {
-                        finishReason = finishReasonElement.GetString();
-                    }
-                    
-                    if (firstChoice.TryGetProperty("native_finish_reason", out var nativeFinishElement) && 
-                        nativeFinishElement.ValueKind == JsonValueKind.String)
-                    {
-                        nativeFinishReason = nativeFinishElement.GetString();
-                    }
-
+                    // ВАЖНО: provider и usage парсим ДО проверки choices,
+                    // т.к. при stream_options.include_usage=true финальный чанк с usage приходит с ПУСТЫМ choices
                     if (root.TryGetProperty("provider", out var providerElement) &&
                         providerElement.ValueKind == JsonValueKind.String)
                     {
                         provider = providerElement.GetString();
                     }
-                    
+
                     // Парсим usage если есть (обычно в последнем чанке)
-                    if (root.TryGetProperty("usage", out var usageElement) && 
+                    if (root.TryGetProperty("usage", out var usageElement) &&
                         usageElement.ValueKind == JsonValueKind.Object)
                     {
                         collectedUsage = ParseUsageFromJson(usageElement);
@@ -187,7 +171,26 @@ public partial class ChatLLMApi
                                   $"total_tokens={collectedUsage.TotalTokens}, " +
                                   $"cost={collectedUsage.Cost}");
                     }
-                    
+
+                    // Получаем choices
+                    if (!root.TryGetProperty("choices", out var choices) || choices.GetArrayLength() == 0)
+                        continue;
+
+                    var firstChoice = choices[0];
+
+                    // Получаем finish_reason и native_finish_reason (могут быть в любом чанке, но обычно в последнем)
+                    if (firstChoice.TryGetProperty("finish_reason", out var finishReasonElement) &&
+                        finishReasonElement.ValueKind == JsonValueKind.String)
+                    {
+                        finishReason = finishReasonElement.GetString();
+                    }
+
+                    if (firstChoice.TryGetProperty("native_finish_reason", out var nativeFinishElement) &&
+                        nativeFinishElement.ValueKind == JsonValueKind.String)
+                    {
+                        nativeFinishReason = nativeFinishElement.GetString();
+                    }
+
                     // Получаем delta
                     if (!firstChoice.TryGetProperty("delta", out var delta))
                         continue;
@@ -355,25 +358,26 @@ public partial class ChatLLMApi
             if (hasFinishReason)
             {
                 // Если finish_reason присутствует, проверяем что он корректный
-                // Разрешены: native_finish_reason = "STOP"/"MAX_TOKENS"/"length" ИЛИ finish_reason = "stop"
-                bool isValidFinishReason = 
+                // Разрешены: native_finish_reason = "STOP"/"MAX_TOKENS"/"length" ИЛИ finish_reason = "stop"/"length"
+                bool isValidFinishReason =
                     string.Equals(nativeFinishReason, "STOP", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(nativeFinishReason, "MAX_TOKENS", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(nativeFinishReason, "length", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(finishReason, "stop", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(finishReason, "length", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(finishReason, "tool_calls", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(nativeFinishReason, "MALFORMED_FUNCTION_CALL", StringComparison.OrdinalIgnoreCase) ||
                     toolCallBuilders.Count > 0;
-                
+
                 if (!isValidFinishReason)
                 {
                     var lastLine = await ReadLineWithTimeoutAsync(reader, methodLinkedCts.Token);
-                    
+
                     throw new InvalidOperationException(
                         $$"""
                         Генерация не завершилась корректно.
                         native_finish_reason='{{nativeFinishReason}}', finish_reason='{{finishReason}}'.
-                        Ожидалось native_finish_reason='STOP' или 'MAX_TOKENS' или 'length', либо finish_reason='stop'.
+                        Ожидалось native_finish_reason='STOP' или 'MAX_TOKENS' или 'length', либо finish_reason='stop' или 'length'.
                         Last Line: {{lastLine}}
                         """);
                 }
@@ -457,7 +461,8 @@ public partial class ChatLLMApi
                     new Choice
                     {
                         Message = resultMessage,
-                        FinishReason = finishReason ?? "stop",
+                        // Если провайдер не прислал finish_reason, но есть tool_calls - считаем что это tool_calls
+                        FinishReason = finishReason ?? (toolCallBuilders.Count > 0 ? "tool_calls" : "stop"),
                         NativeFinishReason = nativeFinishReason
                     }
                 ],

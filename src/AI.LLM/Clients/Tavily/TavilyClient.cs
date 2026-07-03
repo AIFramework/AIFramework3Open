@@ -70,8 +70,9 @@ public class TavilyClient : IDisposable
                     SearchDepth = searchDepth.GetDescription(),
                     IncludeRawContent = includeRawContent,
                     Topic = topic.GetDescription(),
-                    TimeRange = timeRange.GetDescription(),
-                    Country = country.GetDescription(),
+                    // All означает отсутствие фильтра — поле должно быть опущено в JSON (null), иначе API получит невалидное значение
+                    TimeRange = timeRange == Models.TimeRange.All ? null : timeRange.GetDescription(),
+                    Country = country == CountryType.All ? null : country.GetDescription(),
                     IncludeDomains = includeDomains.Select(domain => domain.AbsoluteUri),
                     ExcludeDomains = excludeDomains.Select(domain => domain.AbsoluteUri),
                 }, cancellationToken);
@@ -81,7 +82,7 @@ public class TavilyClient : IDisposable
                 if (result?.Results != null)
                 {
                     result.Results = result.Results
-                        .Where(r => !ContainsForbiddenContent(url: r.Url, rawContent: r.RawContent, excludeDomains: excludeDomains))
+                        .Where(r => !ContainsForbiddenContent(url: r.Url, rawContent: r.RawContent, excludeDomains: excludeDomains, requireRawContent: includeRawContent))
                         .ToArray();
                 }
 
@@ -161,10 +162,23 @@ public class TavilyClient : IDisposable
     /// <returns>Возвращает true если результат содержит запрещенную информацию и false если допустимую информацию</returns>
     public virtual bool ContainsForbiddenContent(string url, string rawContent, IEnumerable<Uri> excludeDomains)
     {
+        return ContainsForbiddenContent(url, rawContent, excludeDomains, requireRawContent: true);
+    }
+
+    /// <summary>
+    /// Фильтрация результата поиска на наличие недопустимой/запрещенной/устаревшей/нерелевантной информации
+    /// </summary>
+    /// <param name="url">Адрес источника</param>
+    /// <param name="rawContent">Контент источника</param>
+    /// <param name="excludeDomains">Запрещенные домены</param>
+    /// <param name="requireRawContent">Если true — результат без контента считается запрещенным (используется при include_raw_content=true)</param>
+    /// <returns>Возвращает true если результат содержит запрещенную информацию и false если допустимую информацию</returns>
+    public virtual bool ContainsForbiddenContent(string url, string rawContent, IEnumerable<Uri> excludeDomains, bool requireRawContent)
+    {
         if (string.IsNullOrEmpty(url))
             return true;
 
-        if (string.IsNullOrEmpty(rawContent))
+        if (requireRawContent && string.IsNullOrEmpty(rawContent))
             return true;
 
         var uri = new Uri(url);

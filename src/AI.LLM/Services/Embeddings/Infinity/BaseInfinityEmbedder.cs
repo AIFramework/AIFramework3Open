@@ -124,7 +124,8 @@ public class BaseInfinityEmbedder : IEmbedderService, IDisposable
 
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadFromJsonAsync<InfinityEmbeddingsResult>(cancellationToken: linkedCts.Token);
-                return content?.Data?.Select(t => t.Embedding).ToArray() ?? Array.Empty<Vector>();
+                // Сервер не гарантирует порядок элементов, поэтому упорядочиваем по индексу
+                return content?.Data?.OrderBy(d => d.Index).Select(t => t.Embedding).ToArray() ?? Array.Empty<Vector>();
             }
             catch (Exception ex)
             {

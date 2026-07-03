@@ -192,7 +192,7 @@ public sealed class ToolRegistry
 
             properties[param.Name!] = prop;
 
-            if (paramAttr?.Required ?? !param.HasDefaultValue)
+            if (paramAttr?.RequiredExplicit ?? !param.HasDefaultValue)
                 required.Add(param.Name!);
         }
 
@@ -227,7 +227,12 @@ public sealed class ToolRegistry
         if (!string.IsNullOrEmpty(json))
         {
             try { parsed = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json); }
-            catch { /* невалидный JSON — параметры останутся default */ }
+            catch (Exception ex)
+            {
+                var preview = json.Length > 200 ? json[..200] + "…" : json;
+                throw new ArgumentException(
+                    $"Невалидный JSON в аргументах инструмента '{method.Name}': {preview}", ex);
+            }
         }
 
         for (int i = 0; i < parameters.Length; i++)

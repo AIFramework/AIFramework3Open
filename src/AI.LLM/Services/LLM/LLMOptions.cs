@@ -18,10 +18,11 @@ public class LLMOptions
     public string SystemPrompt { get; set; }
 
     /// <summary>
-    /// Значение температуры для LLM 
-    /// (степень в которую возводятся вероятности активации T)
+    /// Значение температуры для LLM
+    /// (степень в которую возводятся вероятности активации T).
+    /// Если null — используется значение из GenerateSettings.
     /// </summary>
-    public double Temperature { get; set; }
+    public double? Temperature { get; set; }
 
     /// <summary>
     /// Апи-ключ для подключения к модели (если необходим)

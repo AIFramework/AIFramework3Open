@@ -187,6 +187,12 @@ public class ProxyHTTPClient : IWebAPIClient
                 {
                     throw;
                 }
+                catch (HttpRequestException ex) when (IsNonRetryableClientError(ex))
+                {
+                    // Детерминированная ошибка запроса (4xx кроме 408 и 429) - прокси не виноват,
+                    // не помечаем прокси упавшим и не ротируем на следующий, пробрасываем сразу
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     MarkProxyFailure(proxyStatus, ex);
@@ -282,15 +288,24 @@ public class ProxyHTTPClient : IWebAPIClient
 
             if (!response.IsSuccessStatusCode)
             {
-                var errorContent = (await response.Content.ReadAsStringAsync(linkedCts.Token) ?? "").TruncateForLogging();
+                var statusCode = response.StatusCode;
+                string errorContent;
+
+                // КРИТИЧНО: Dispose response при ошибке, иначе утечёт соединение
+                // (для streaming запросов используется ResponseHeadersRead)
+                using (response)
+                {
+                    errorContent = (await response.Content.ReadAsStringAsync(linkedCts.Token) ?? "").TruncateForLogging();
+                }
 
                 if (_options.EnableDebugLogging)
                 {
-                    LogDebug($"Статус ошибки: {response.StatusCode}");
+                    LogDebug($"Статус ошибки: {statusCode}");
                     LogDebug($"Ответ сервера: {errorContent}");
                 }
 
-                throw new HttpRequestException($"Ошибка {response.StatusCode}: {errorContent}");
+                // Передаём StatusCode в исключение - ретрай-логика различает 4xx и остальные ошибки
+                throw new HttpRequestException($"Ошибка {statusCode}: {errorContent}", null, statusCode);
             }
 
             return response;
@@ -303,6 +318,11 @@ public class ProxyHTTPClient : IWebAPIClient
         catch (TimeoutException)
         {
             // Пробрасываем таймауты без обёртывания
+            throw;
+        }
+        catch (HttpRequestException)
+        {
+            // Пробрасываем HTTP ошибки без обёртывания (сохраняем StatusCode для ретрай-логики)
             throw;
         }
         catch (Exception ex)
@@ -358,6 +378,21 @@ public class ProxyHTTPClient : IWebAPIClient
         proxyStatus.FailureCount++;
         proxyStatus.LastFailure = DateTime.UtcNow;
         proxyStatus.LastException = exception;
+    }
+
+    /// <summary>
+    /// Проверяем является ли ошибка детерминированной ошибкой запроса (4xx кроме 408 и 429),
+    /// при которой ретрай через другой прокси бессмыслен
+    /// </summary>
+    private static bool IsNonRetryableClientError(HttpRequestException exception)
+    {
+        if (exception.StatusCode is not { } statusCode)
+            return false;
+
+        var code = (int)statusCode;
+        return code >= 400 && code < 500
+            && statusCode != HttpStatusCode.RequestTimeout
+            && statusCode != HttpStatusCode.TooManyRequests;
     }
 
     /// <summary>

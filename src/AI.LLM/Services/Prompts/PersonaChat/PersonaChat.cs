@@ -117,6 +117,7 @@ namespace AI.LLM.Services.Prompts.PersonaChat
             }
 
             _ = prompt.Append(StartConversation);
+            _ = prompt.Append(SepReplics);
 
             foreach (var message in Context.Messages)
             {

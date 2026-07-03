@@ -94,8 +94,8 @@ public class Sound
     public Vector SoundLoad(string path)
     {
 
-        Stream waveFileStream = File.OpenRead(path);
-        BinaryReader reader = new BinaryReader(waveFileStream);
+        using Stream waveFileStream = File.OpenRead(path);
+        using BinaryReader reader = new BinaryReader(waveFileStream);
 
         chunkID = reader.ReadInt32();
         fileSize = reader.ReadInt32();
@@ -146,21 +146,21 @@ public class Sound
     public void SaveVector(string path, Vector vector, int fd)
     {
         File.Delete(path);
-        Stream waveFileStream = File.OpenWrite(path);
-        BinaryWriter br = new BinaryWriter(waveFileStream);
+        using Stream waveFileStream = File.OpenWrite(path);
+        using BinaryWriter br = new BinaryWriter(waveFileStream);
         br.Write(1179011410);
-        br.Write((4 * vector.Count) + 36);
+        br.Write((2 * vector.Count) + 36);
         br.Write(1163280727);
         br.Write(544501094);
         br.Write(16);
         br.Write((short)1);
         br.Write((short)1);
-        br.Write(2 * fd);
+        br.Write(fd);
         br.Write(2 * fd);
         br.Write((short)2);
         br.Write((short)16);
         br.Write(1635017060);
-        br.Write(4 * vector.Count);
+        br.Write(2 * vector.Count);
 
 
         double max = Statistic.MaximalValue(FunctionsForEachElements.Abs(vector));
@@ -175,11 +175,8 @@ public class Sound
 
         for (int i = 0; i < vector.Count; i++)
         {
-            br.Write((int)(vector[i] * 32000));
+            br.Write((short)Math.Clamp(vector[i] * 32000.0, short.MinValue, short.MaxValue));
         }
-
-        br.Close();
-
     }
 
 

@@ -127,6 +127,8 @@ public class LLMMessage
         if (role == "user")
             Content = content;
         else
+            // Для не-user ролей контент сводится к тексту (все текстовые части через перенос строки);
+            // изображения при этом отбрасываются — ограничение API: картинки поддерживаются только в user-сообщениях.
             Content = content.ToString();
     }
 
@@ -149,17 +151,66 @@ public class LLMMessage
     /// <returns>A new <see cref="LLMMessage"/> instance with the same properties.</returns>
     public LLMMessage DeepClone()
     {
-        if (Content is string s)
-            return new LLMMessage(Role, s);
-        if (Content is MessageContent mc)
-            return new LLMMessage(Role, mc);
-        
-        var clone = new LLMMessage { Role = Role, Content = Content };
+        // Копируем поля напрямую (без конструкторов с валидацией роли и преобразованием контента)
+        var clone = new LLMMessage
+        {
+            Role = Role,
+            Content = CloneContent(Content),
+            ToolCallId = ToolCallId,
+            Name = Name,
+            Reasoning = Reasoning,
+            Refusal = Refusal,
+        };
+
+        if (ToolCalls != null)
+        {
+            clone.ToolCalls = new List<ToolCall>(ToolCalls.Count);
+            foreach (var toolCall in ToolCalls)
+                clone.ToolCalls.Add(CloneToolCall(toolCall));
+        }
+
         if (Images != null)
             clone.Images = new List<ImageInfo>(Images);
-        if (Reasoning != null)
-            clone.Reasoning = Reasoning;
+
         return clone;
+    }
+
+    // Клонирует контент: MessageContent — с новым списком элементов, string и прочие типы — как есть
+    private static object CloneContent(object content)
+    {
+        if (content is not MessageContent mc)
+            return content;
+
+        var copy = new MessageContent();
+        foreach (var item in mc)
+        {
+            if (item is TextContentItem text)
+                copy.Add(new TextContentItem(text.Text));
+            else if (item is ImageContent image)
+                copy.Add(new ImageContent { ImageUrl = image.ImageUrl });
+            else
+                copy.Add(item);
+        }
+        return copy;
+    }
+
+    // Клонирует вызов инструмента вместе с вложенным FunctionCall
+    private static ToolCall CloneToolCall(ToolCall toolCall)
+    {
+        if (toolCall == null)
+            return null;
+
+        return new ToolCall
+        {
+            Id = toolCall.Id,
+            Type = toolCall.Type,
+            Index = toolCall.Index,
+            Function = toolCall.Function == null ? null : new FunctionCall
+            {
+                Name = toolCall.Function.Name,
+                Arguments = toolCall.Function.Arguments,
+            },
+        };
     }
 
 
