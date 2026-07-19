@@ -47,7 +47,11 @@ public class SeqPrediction : ISeqPredict
         for (int i = window; i < seq.Count; i++)
             Y[i - window] = seq[i];
 
-        Vector[] X = Vector.GetWindows(seq, window, 1);
+        Vector[] Xall = Vector.GetWindows(seq, window, 1);
+        // GetWindows даёт Count-w+1 окон; целей Count-w — берём первые Count-w.
+        Vector[] X = new Vector[Y.Count];
+        for (int i = 0; i < Y.Count; i++)
+            X[i] = Xall[i];
         regressor.Train(X, Y);
     }
 
