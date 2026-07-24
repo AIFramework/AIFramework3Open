@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>AI.ImageEditor</RootNamespace>
+    <AssemblyName>AI.ImageEditor</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+  </PropertyGroup>
+
+  <!-- Намеренно ТОЛЬКО SkiaSharp: библиотека кроссплатформенная и не тянет ONNX/DSP
+       нативные бинарники (в отличие от AI.ComputerVision). Алгоритмы фильтров взяты
+       из AI.ComputerVision по смыслу (ядра, формулы), но переписаны на прямой доступ
+       к BGRA-байтам — без round-trip через Matrix(double), который для интерактивного
+       редактора слишком медленный и аллокационный. -->
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.116.1" />
+  </ItemGroup>
+
+</Project>
