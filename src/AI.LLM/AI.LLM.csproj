@@ -25,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Состояние прогона ReAct (ReActTrace) намеренно закрыто от потребителей: им владеет
+         движок. Тестам нужно собирать след вручную, поэтому открываем его только им. -->
+    <InternalsVisibleTo Include="AI.LLM.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />
     <ProjectReference Include="..\AI.Algorithms\AI.Algorithms.csproj" />
     <ProjectReference Include="..\AI.ExplainitALL\AI.ExplainitALL.csproj" />

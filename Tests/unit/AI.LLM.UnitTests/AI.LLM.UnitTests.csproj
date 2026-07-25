@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>AIFramework.UnitTests</RootNamespace>
+    <RootNamespace>AI.LLM.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,9 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\AIFramework.TestHelpers\AIFramework.TestHelpers.csproj" />
-    <ProjectReference Include="..\..\..\src\AI\AI.csproj" />
-    <ProjectReference Include="..\..\..\src\AI.NLP\AI.NLP.csproj" />
+    <!-- Отдельный проект, а не AIFramework.UnitTests: AI.LLM тянет ASP.NET-зависимости
+         через ModelContextProtocol.AspNetCore, и общему быстрому проекту юнит-тестов
+         это ни к чему. -->
+    <ProjectReference Include="..\..\..\src\AI.LLM\AI.LLM.csproj" />
   </ItemGroup>
 
 </Project>

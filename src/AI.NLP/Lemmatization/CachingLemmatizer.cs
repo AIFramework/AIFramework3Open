@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace AI.NLP.Lemmatization;
 
@@ -40,16 +41,32 @@ public sealed class CachingLemmatizer : LemmatizerBase
     /// </summary>
     public void ClearCache() => _cache?.Clear();
 
+    /// <summary>
+    /// Кэш с восстановлением после десериализации. Через <see cref="Interlocked"/>,
+    /// а не простой проверкой на null: два потока могли одновременно увидеть null,
+    /// создать по словарю и разойтись по разным экземплярам — часть записей теряла бы
+    /// смысл, вопреки заявленной потокобезопасности.
+    /// </summary>
+    private ConcurrentDictionary<string, string> Cache
+    {
+        get
+        {
+            ConcurrentDictionary<string, string> cache = _cache;
+            if (cache != null) return cache;
+
+            var created = new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
+            return Interlocked.CompareExchange(ref _cache, created, null) ?? created;
+        }
+    }
+
     /// <inheritdoc />
     public override string Lemmatize(string word)
     {
         if (string.IsNullOrEmpty(word)) return word ?? string.Empty;
 
-        // Инициализация на случай десериализации.
-        if (_cache == null)
-            _cache = new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
+        ConcurrentDictionary<string, string> cache = Cache;
 
-        if (_cache.TryGetValue(word, out string lemma))
+        if (cache.TryGetValue(word, out string lemma))
             return lemma;
 
         lemma = _inner.Lemmatize(word);
@@ -57,8 +74,10 @@ public sealed class CachingLemmatizer : LemmatizerBase
         // Простая защита от неограниченного роста: при превышении просто
         // перестаём класть в кэш. Стратегии вытеснения намеренно нет —
         // оставляем реализацию детерминированной и дешёвой.
-        if (_maxSize <= 0 || _cache.Count < _maxSize)
-            _cache.TryAdd(word, lemma);
+        // Проверка размера и вставка не атомарны: под нагрузкой кэш может
+        // на несколько записей превысить лимит — это осознанный размен на скорость.
+        if (_maxSize <= 0 || cache.Count < _maxSize)
+            cache.TryAdd(word, lemma);
 
         return lemma;
     }

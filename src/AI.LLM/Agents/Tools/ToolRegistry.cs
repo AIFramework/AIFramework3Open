@@ -92,10 +92,11 @@ public sealed class ToolRegistry
             var rawResult = registered.Method.Invoke(
                 registered.Method.IsStatic ? null : registered.Target, args);
 
-            var (content, images) = await UnwrapResultAsync(rawResult).ConfigureAwait(false);
+            var (content, images, success) = await UnwrapResultAsync(rawResult).ConfigureAwait(false);
 
             sw.Stop();
-            return new ToolExecutionResult(toolCall.Id, funcName, content, true, sw.Elapsed, images);
+            // Инструмент мог сообщить об отказе без исключения — тогда это не успех.
+            return new ToolExecutionResult(toolCall.Id, funcName, content, success, sw.Elapsed, images);
         }
         catch (Exception ex)
         {
@@ -285,19 +286,20 @@ public sealed class ToolRegistry
     /// Разворачивает результат метода инструмента: поддерживает string, ToolResult,
     /// Task&lt;string&gt;, Task&lt;ToolResult&gt; и любой Task&lt;T&gt;.
     /// </summary>
-    private static async Task<(string Content, IReadOnlyList<AgentImage> Images)> UnwrapResultAsync(object rawResult)
+    private static async Task<(string Content, IReadOnlyList<AgentImage> Images, bool Success)> UnwrapResultAsync(
+        object rawResult)
     {
         switch (rawResult)
         {
             case ToolResult tr:
-                return (tr.Text, tr.Images);
+                return (tr.Text, tr.Images, tr.IsSuccess);
 
             case Task<ToolResult> taskTr:
                 var tr2 = await taskTr.ConfigureAwait(false);
-                return (tr2.Text, tr2.Images);
+                return (tr2.Text, tr2.Images, tr2.IsSuccess);
 
             case Task<string> taskStr:
-                return (await taskStr.ConfigureAwait(false), []);
+                return (await taskStr.ConfigureAwait(false), [], true);
 
             case Task task:
             {
@@ -305,15 +307,15 @@ public sealed class ToolRegistry
                 var resultProp = task.GetType().GetProperty("Result");
                 var innerResult = resultProp?.GetValue(task);
                 if (innerResult is ToolResult trInner)
-                    return (trInner.Text, trInner.Images);
-                return (innerResult?.ToString() ?? "OK", []);
+                    return (trInner.Text, trInner.Images, trInner.IsSuccess);
+                return (innerResult?.ToString() ?? "OK", [], true);
             }
 
             case string s:
-                return (s, []);
+                return (s, [], true);
 
             default:
-                return (rawResult?.ToString() ?? "OK", []);
+                return (rawResult?.ToString() ?? "OK", [], true);
         }
     }
 
