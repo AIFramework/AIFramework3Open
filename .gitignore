@@ -339,3 +339,25 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /src/_verify_bin
+/src/AI.Algorithms/_verify2 2
+/src/AI.Algorithms/_verify_bin 2
+/src/AI.ClassicMath/_verify2 2
+/src/AI.ClassicMath/_verify_bin 2
+/src/AI.DataPrepaire/_verify2 2
+/src/AI.DataPrepaire/_verify_bin 2
+/src/AI.DSP/_verify2 2
+/src/AI.DSP/_verify_bin 2
+/src/AI.ExplainitALL/_verify2 2
+/src/AI.ExplainitALL/_verify_bin 2
+/src/AI.Fuzzy/_verify2 2
+/src/AI.Fuzzy/_verify_bin 2
+/src/AI.KNN/_verify2 2
+/src/AI.KNN/_verify_bin 2
+/src/AI.LLM/_verify2 2
+/src/AI.LLM/_verify_bin 2
+/src/AI.ML/_verify2 2
+/src/AI.ML/_verify_bin 2
+/src/AI.NLP/_verify2 2
+/src/AI.NLP/_verify_bin 2
+/src/AI/_verify2 2
+/src/AI/_verify_bin 2

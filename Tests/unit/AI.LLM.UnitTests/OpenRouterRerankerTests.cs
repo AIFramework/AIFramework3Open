@@ -146,14 +146,21 @@ public class OpenRouterRerankerTests
     }
 
     [Fact]
-    public async Task ImageDocument_OnTextOnlyModel_Throws()
+    public async Task ImageDocument_OnModelWithoutDeclaredImages_IsStillSent()
     {
-        var (reranker, handler) = Create(model: OpenRouterRerankModels.CohereRerankV35);
+        // Каталог может отставать от возможностей модели, поэтому картинки не блокируются:
+        // пишем предупреждение в лог и отдаём решение провайдеру
+        var (reranker, handler) = Create(
+            model: OpenRouterRerankModels.CohereRerankV35,
+            responses: Json(RerankBody((0, 0.6))));
 
-        await Assert.ThrowsAsync<NotSupportedException>(
-            () => reranker.SimsAsync("запрос", new[] { RerankDocument.FromImage("https://example.com/p.png") }));
+        Assert.False(reranker.SupportsImages);
 
-        Assert.Empty(handler.Bodies);
+        var scores = await reranker.SimsAsync("запрос", new[] { RerankDocument.FromImage("https://example.com/p.png") });
+
+        var sent = JsonDocument.Parse(handler.Bodies[0]).RootElement.GetProperty("documents");
+        Assert.Equal("https://example.com/p.png", sent[0].GetProperty("image").GetString());
+        Assert.Equal(0.6, scores[0]);
     }
 
     [Fact]

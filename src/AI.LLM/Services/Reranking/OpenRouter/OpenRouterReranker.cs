@@ -4,6 +4,7 @@ using AI.LLM.Core.Models.Common.Requests;
 using AI.LLM.Core.Models.Providers.OpenRouter;
 using AI.LLM.Infrastructure.Extensions;
 using AI.LLM.Services.Reranking.Base;
+using Serilog;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -27,6 +28,7 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
     private readonly HttpClient _httpClient;
     private readonly bool _ownsHttpClient;
     private int _disposed; // 0 = not disposed, 1 = disposed
+    private int _imageWarningLogged; // предупреждение о картинках пишем один раз на экземпляр
 
     /// <summary>
     /// URL эндпоинта (можно переопределить на прокси-шлюз)
@@ -70,8 +72,9 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
     public OpenRouterRerankUsage LastUsage { get; private set; }
 
     /// <summary>
-    /// Принимает ли выбранная модель изображения. Для модели вне каталога возвращает true —
-    /// решение остаётся за сервером.
+    /// Заявлена ли за выбранной моделью работа с изображениями. Для модели вне каталога возвращает true.
+    /// Флаг ни на что не влияет жёстко: картинки на «текстовой» модели дают предупреждение в лог,
+    /// а запрос всё равно уходит — судит провайдер.
     /// </summary>
     public bool SupportsImages => OpenRouterRerankModels.Find(RerankerModelName)?.SupportsImages ?? true;
 
@@ -141,9 +144,7 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
             throw new ArgumentException("Документ должен содержать текст либо изображение", nameof(documents));
 
         if (!SupportsImages && items.Any(d => !string.IsNullOrEmpty(d.Image)))
-            throw new NotSupportedException(
-                $"Модель '{RerankerModelName}' не оценивает изображения. Мультимодальные модели: " +
-                string.Join(", ", OpenRouterRerankModels.Multimodal.Select(m => m.Id)));
+            WarnAboutImages();
 
         return SendAsync(query, items, items.Length, topN, cancellationToken);
     }
@@ -228,6 +229,22 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
 
         var response = await RerankAsync(BuildQuery(query, instruct), items, Math.Min(k, items.Length), cancellationToken);
         return ToRanking(response);
+    }
+
+    /// <summary>
+    /// Предупреждает о картинках на модели, за которой мультимодальность не заявлена.
+    /// Запрос всё равно уходит: каталог может отставать от того, что модель умеет на самом деле,
+    /// а окончательный ответ за провайдером. Логируем один раз на экземпляр, чтобы не забивать лог.
+    /// </summary>
+    private void WarnAboutImages()
+    {
+        if (Interlocked.CompareExchange(ref _imageWarningLogged, 1, 0) != 0) return;
+
+        Log.Warning(
+            "OpenRouterReranker: за моделью {Model} мультимодальность не заявлена, но в документах есть изображения. " +
+            "Запрос отправлен как есть; при ошибке провайдера используйте {Multimodal}",
+            RerankerModelName,
+            string.Join(", ", OpenRouterRerankModels.Multimodal.Select(m => m.Id)));
     }
 
     /// <summary>
