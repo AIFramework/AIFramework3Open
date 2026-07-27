@@ -1,37 +1,24 @@
-﻿using AI.DataStructs.Algebraic;
-using AI.LLM.Core.Abstractions;
+using AI.DataStructs.Algebraic;
 using AI.LLM.Infrastructure.Extensions;
+using AI.LLM.Services.Embeddings.Base;
 using AI.LLM.Services.Embeddings.Infinity.Models;
 using System.Net.Http.Json;
 
 namespace AI.LLM.Services.Embeddings.Infinity;
 
-public class BaseInfinityEmbedder : IEmbedderService, IDisposable
+/// <summary>
+/// Эмбеддер поверх сервера Infinity (OpenAI-совместимый /v1/embeddings).
+/// </summary>
+public class BaseInfinityEmbedder : EmbedderServiceBase, IDisposable
 {
     private readonly HttpClient _httpClient;
     private int _disposed; // 0 = not disposed, 1 = disposed
 
     /// <summary>
-    /// Параметры тангенса "k", f(x) = tanh(k*x+b) 
+    /// Оформление запроса под инструктивную модель. Зависит от конкретной модели,
+    /// поэтому реализуется наследником.
     /// </summary>
-    public double TanhNormParamK { get; set; } = 0.64;
-
-    /// <summary>
-    /// Параметры тангенса "b", f(x) = tanh(k*x+b) 
-    /// </summary>
-    public double TanhNormParamB { get; set; } = 0.55;
-    /// <summary>
-    /// СКО косинуса
-    /// </summary>
-    public double StdCos { get; set; } = 1;
-    /// <summary>
-    /// Среднее косинуса
-    /// </summary>
-    public double MeanCos { get; set; } = 1;
-
-    public virtual string ModelName { get; set; }
-
-    public virtual string GetDetailedInstruct(string question) => throw new NotImplementedException();
+    public override string GetDetailedInstruct(string question) => throw new NotImplementedException();
 
     /// <summary>
     /// The base URL of the local server.
@@ -52,64 +39,13 @@ public class BaseInfinityEmbedder : IEmbedderService, IDisposable
         };
     }
 
-    public Task<Vector[]> EncodeAsync(IEnumerable<string> texts, CancellationToken cancellationToken = default) =>
-        EncodeBaseAsync(texts, cancellationToken);
-
-
-    public Task<Vector> EncodeAsync(string text, CancellationToken cancellationToken = default) =>
-        EncodeBaseAsync(text, cancellationToken);
-
-    public Task<Vector> EncodeQuestionAsync(string text, CancellationToken cancellationToken = default) =>
-        EncodeQuestionBaseAsync(text, cancellationToken);
-
-    /// <summary>
-    /// Нормализация косинуса через гиперболический тангенс
-    /// </summary>
-    public virtual double TanhCosineNormalize(double cosine) =>
-        Math.Tanh(TanhNormParamK * (cosine - MeanCos) / StdCos + TanhNormParamB);
-
-    public async Task<Vector[]> EncodeAsyncWithBlockSize(IEnumerable<string> processedTexts, IEnumerable<int> blockSizes, IEnumerable<int> excludeBlockSizes = null, CancellationToken cancellationToken = default)
-    {
-        var snippetsTexts = processedTexts.ToArray();
-        var blockSizesArray = blockSizes.ToArray();
-
-        if (snippetsTexts.Length != blockSizesArray.Length)
-            throw new ArgumentException("Array size mismatch between texts and blockSizes");
-
-        List<int> indexes = [];
-        List<string> texts = [];
-        var embeddings = new Vector[snippetsTexts.Length];
-
-        for (int i = 0; i < snippetsTexts.Length; i++)
-        {
-            var snippetText = snippetsTexts[i];
-            var blockSize = blockSizesArray[i];
-
-            if (excludeBlockSizes == null ||
-                !excludeBlockSizes.Contains(blockSize))
-            {
-                indexes.Add(i);
-                texts.Add(snippetText);
-            }
-
-        }
-
-        if (texts.Count > 0)
-        {
-            var vectors = await EncodeBaseAsync(texts, cancellationToken);
-            for (int i = 0; i < vectors.Length; i++)
-                embeddings[indexes[i]] = vectors[i];
-        }
-
-        return embeddings;
-    }
-
-    private async Task<Vector[]> EncodeBaseAsync(IEnumerable<string> texts, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public override async Task<Vector[]> EncodeAsync(IEnumerable<string> texts, CancellationToken cancellationToken = default)
     {
         Exception lastException = new Exception();
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-        
+
         for (int attempt = 0; attempt < 2; attempt++)
         {
             try
@@ -141,78 +77,6 @@ public class BaseInfinityEmbedder : IEmbedderService, IDisposable
         throw lastException;
     }
 
-    private async Task<Vector> EncodeBaseAsync(string text, CancellationToken cancellationToken = default)
-    {
-        Exception lastException = new Exception();
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-        
-        for (int attempt = 0; attempt < 2; attempt++)
-        {
-            try
-            {
-                using var response = await _httpClient.PostAsJsonAsync("/v1/embeddings", new InfinityEmbeddingsArgs
-                {
-                    Model = ModelName,
-                    Input = [text],
-                }, linkedCts.Token);
-                response.EnsureSuccessStatusCode();
-                var content = await response.Content.ReadFromJsonAsync<InfinityEmbeddingsResult>(cancellationToken: linkedCts.Token);
-                var embedding = content?.Data?.FirstOrDefault()?.Embedding;
-                if (embedding == null)
-                    throw new InvalidOperationException("Embedding result is empty or null");
-                return embedding;
-            }
-            catch (Exception ex)
-            {
-                lastException = ex;
-                if (attempt < 1) // Только для первой попытки
-                {
-                    try { await Task.Delay(1000, cancellationToken); }
-                    catch (OperationCanceledException) { throw lastException; }
-                }
-            }
-        }
-
-        throw lastException;
-    }
-
-    private async Task<Vector> EncodeQuestionBaseAsync(string query, CancellationToken cancellationToken = default)
-    {
-        Exception lastException = new Exception();
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-        
-        for (int attempt = 0; attempt < 2; attempt++)
-        {
-            try
-            {
-                using var response = await _httpClient.PostAsJsonAsync("/v1/embeddings", new InfinityEmbeddingsArgs
-                {
-                    Model = ModelName,
-                    Input = [GetDetailedInstruct(query)],
-                }, linkedCts.Token);
-                response.EnsureSuccessStatusCode();
-                var content = await response.Content.ReadFromJsonAsync<InfinityEmbeddingsResult>(cancellationToken: linkedCts.Token);
-                var embedding = content?.Data?.FirstOrDefault()?.Embedding;
-                if (embedding == null)
-                    throw new InvalidOperationException("Question embedding result is empty or null");
-                return embedding;
-            }
-            catch (Exception ex)
-            {
-                lastException = ex;
-                if (attempt < 1) // Только для первой попытки
-                {
-                    try { await Task.Delay(1000, cancellationToken); }
-                    catch (OperationCanceledException) { throw lastException; }
-                }
-            }
-        }
-
-        throw lastException;
-    }
-
     public void Dispose()
     {
         Dispose(true);
@@ -221,7 +85,7 @@ public class BaseInfinityEmbedder : IEmbedderService, IDisposable
     protected virtual void Dispose(bool disposing)
     {
         if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0) return;
-        
+
         if (disposing)
         {
             _httpClient?.Dispose();

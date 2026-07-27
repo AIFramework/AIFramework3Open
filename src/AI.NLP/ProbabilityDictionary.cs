@@ -44,13 +44,60 @@ public class ProbabilityDictionary
     /// Конструктор его больше НЕ меняет как побочный эффект. Поле оставлено
     /// для обратной совместимости: код, читавший/устанавливавший <c>ProbabilityDictionary.stop</c>,
     /// продолжит работать.
+    /// <para>
+    /// По умолчанию — <see cref="RussianStopWords.Default"/>. Раньше здесь стоял пустой массив,
+    /// то есть фильтрация была объявлена, но не работала: служебные слова («в», «на», «что»,
+    /// «который») попадали в индекс наравне со значимыми. Чтобы вернуть прежнее поведение,
+    /// присвойте пустой массив.
+    /// </para>
     /// </summary>
-    public static string[] stop = new string[0];
+    public static string[] stop = RussianStopWords.Default;
 
     /// <summary>
     /// Слова не несущие смысла при стат. анализе
     /// </summary>
     public static string[] StopWords => stop;
+
+    /// <summary>
+    /// Снимок стоп-листа в виде хеш-множества. Одна ссылка на объект — одно атомарное
+    /// присваивание, поэтому читатель не может увидеть множество, не соответствующее
+    /// своему источнику.
+    /// </summary>
+    private sealed class StopIndex
+    {
+        public string[] Source;
+        public HashSet<string> Set;
+    }
+
+    private static StopIndex _stopIndex;
+
+    /// <summary>
+    /// Множество стоп-слов, пересобираемое при подмене массива <see cref="stop"/>.
+    /// <para>
+    /// Раньше проверка была линейным перебором массива на КАЖДОЕ слово текста. С пустым
+    /// списком это ничего не стоило, но с настоящим стоп-листом превратилось бы в сотни
+    /// сравнений на слово — а токенизация вызывается на весь корпус при каждом поиске.
+    /// </para>
+    /// <para>
+    /// Инвалидация по ссылке: присваивание <c>stop = [...]</c> подхватывается, правка
+    /// массива на месте (<c>stop[0] = "..."</c>) — нет. Для публичного статического поля
+    /// это разумный компромисс; мутация чужого массива на месте и без того небезопасна.
+    /// </para>
+    /// </summary>
+    private static HashSet<string> StopSet()
+    {
+        string[] current = stop ?? new string[0];
+
+        StopIndex cached = _stopIndex;
+        if (cached != null && ReferenceEquals(cached.Source, current))
+            return cached.Set;
+
+        // Регистронезависимо: стоп-слова служебные, и «Не» в начале предложения —
+        // то же слово, что «не» в середине.
+        var built = new HashSet<string>(current, StringComparer.OrdinalIgnoreCase);
+        _stopIndex = new StopIndex { Source = current, Set = built };
+        return built;
+    }
 
     /// <summary>
     /// Вероятностный словарь
@@ -123,21 +170,10 @@ public class ProbabilityDictionary
     }
 
     private bool IsStopInstance(string word)
-    {
-        if (!IsStopDel) return false;
-        string[] s = stop;
-        for (int i = 0; i < s.Length; i++)
-            if (s[i] == word) return true;
-        return false;
-    }
+        => IsStopDel && StopSet().Contains(word);
 
     private static bool IsStopStatic(string word)
-    {
-        string[] s = stop;
-        for (int i = 0; i < s.Length; i++)
-            if (s[i] == word) return true;
-        return false;
-    }
+        => StopSet().Contains(word);
 
     /// <summary>
     /// Анализ текста. Формирует и возвращает отсортированный словарь.
