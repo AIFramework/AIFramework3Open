@@ -36,9 +36,30 @@ public sealed class PlanGenerator
     /// <summary>
     /// Генерирует план выполнения задачи через LLM, разбивает на ярусы алгоритмом Кана.
     /// </summary>
-    public async Task<PlanTree> GenerateAsync(
+    public Task<PlanTree> GenerateAsync(
         string goal,
         IReadOnlyList<Skill> additionalSkills = null,
+        CancellationToken ct = default)
+        => GenerateAsync(goal, additionalSkills, null, ct);
+
+    /// <summary>
+    /// Генерирует план, используя инструменты <paramref name="toolsOverride"/> вместо заданных
+    /// при сборке генератора.
+    /// </summary>
+    /// <param name="toolsOverride">
+    /// Инструменты текущей задачи. <c>null</c> — берутся инструменты сборки. Пустой реестр —
+    /// осознанное «инструментов нет»: план будет из шагов без привязки к <c>tool</c>.
+    /// </param>
+    /// <remarks>
+    /// Перекрытие пер-задачное и НЕ меняет состояние генератора: один экземпляр можно звать
+    /// параллельно с разными наборами инструментов. Набор обязан совпадать с тем, что реально
+    /// доступно исполнителю, — иначе планировщик назначит шаг на инструмент, которого у
+    /// исполняющего агента нет.
+    /// </remarks>
+    public async Task<PlanTree> GenerateAsync(
+        string goal,
+        IReadOnlyList<Skill> additionalSkills,
+        ToolRegistry toolsOverride,
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(goal))
@@ -46,7 +67,7 @@ public sealed class PlanGenerator
 
         var usage = new AgentUsage();
         var allSkills = CombineSkills(additionalSkills);
-        var messages = BuildMessages(goal, allSkills);
+        var messages = BuildMessages(goal, allSkills, toolsOverride ?? _tools);
         var settings = new GenerateSettings(
             temperature: _config.Temperature,
             maxTokens: _config.MaxTokens)
@@ -82,9 +103,9 @@ public sealed class PlanGenerator
 
     #region Промпт
 
-    private List<LLMMessage> BuildMessages(string goal, List<Skill> skills)
+    private List<LLMMessage> BuildMessages(string goal, List<Skill> skills, ToolRegistry tools)
     {
-        var systemPrompt = BuildSystemPrompt(skills);
+        var systemPrompt = BuildSystemPrompt(skills, tools);
         return
         [
             LLMMessage.CreateMessage(Roles.System, systemPrompt),
@@ -92,7 +113,7 @@ public sealed class PlanGenerator
         ];
     }
 
-    private string BuildSystemPrompt(List<Skill> skills)
+    private string BuildSystemPrompt(List<Skill> skills, ToolRegistry tools)
     {
         var sb = new StringBuilder();
         sb.AppendLine("Ты — планировщик задач. Разбей задачу пользователя на конкретные шаги.");
@@ -106,11 +127,11 @@ public sealed class PlanGenerator
         sb.AppendLine("- Если для шага есть подходящий инструмент — укажи его в поле tool и аргументы в args");
         sb.AppendLine("- Если подходящего инструмента нет — оставь tool = null");
 
-        if (_tools is { Count: > 0 })
+        if (tools is { Count: > 0 })
         {
             sb.AppendLine();
             sb.AppendLine("### Доступные инструменты");
-            foreach (var def in _tools.GetDefinitions())
+            foreach (var def in tools.GetDefinitions())
             {
                 sb.AppendLine($"- **{def.Function.Name}**: {def.Function.Description}");
                 if (def.Function.Parameters.HasValue)

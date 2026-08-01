@@ -16,6 +16,7 @@ public sealed class AgentBuilder
 {
     private ILLMClient _llm;
     private readonly List<object> _toolInstances = [];
+    private ToolRegistry _registry;
     private IAgentMemory _memory;
     private IAgentGuard _guard;
     private IObservationProvider _observer;
@@ -40,6 +41,16 @@ public sealed class AgentBuilder
 
     /// <summary>Регистрирует экземпляр с методами <see cref="AgentToolAttribute"/>.</summary>
     public AgentBuilder WithTools(object toolInstance) { _toolInstances.Add(toolInstance); return this; }
+
+    /// <summary>
+    /// Задаёт готовый реестр инструментов — ЗАМЕЩАЕТ набор из <see cref="WithTools"/>.
+    /// </summary>
+    /// <remarks>
+    /// Нужен там, где инструменты регистрируются с именами из рантайма
+    /// (<see cref="ToolRegistry.Register(string, string, Delegate, string)"/>): такой реестр нельзя
+    /// собрать из экземпляров с атрибутами, а значит и передать через <see cref="WithTools"/>.
+    /// </remarks>
+    public AgentBuilder WithToolRegistry(ToolRegistry registry) { _registry = registry; return this; }
 
     /// <summary>Подключает память агента.</summary>
     public AgentBuilder WithMemory(IAgentMemory memory) { _memory = memory; return this; }
@@ -81,8 +92,8 @@ public sealed class AgentBuilder
         if (_llm == null)
             throw new InvalidOperationException("LLM-клиент не задан. Вызовите WithLLM().");
 
-        ToolRegistry tools = null;
-        if (_toolInstances.Count > 0)
+        var tools = _registry;
+        if (tools is null && _toolInstances.Count > 0)
             tools = ToolRegistry.FromObjects([.. _toolInstances]);
 
         return new Agent(_llm, tools, _memory, _guard, _observer, _config);

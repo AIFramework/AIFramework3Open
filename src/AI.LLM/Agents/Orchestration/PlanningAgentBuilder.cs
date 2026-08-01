@@ -1,6 +1,7 @@
 using AI.LLM.Agents.Guards;
 using AI.LLM.Agents.Multimodal;
 using AI.LLM.Agents.Planning;
+using AI.LLM.Agents.Tools;
 using AI.LLM.Clients.Base;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Services.LLM;
@@ -88,20 +89,13 @@ public sealed class PlanningAgentBuilder
 
         var memory = new StepMemory();
 
-        var agentBuilder = AgentBuilder.Create()
-            .WithLLM(_llm)
-            .WithSystemPrompt(_systemPrompt)
-            .WithMemory(memory)
-            .WithMaxIterations(30)
-            .WithTemperature(0.15);
-
-        foreach (var t in _toolInstances)
-            agentBuilder.WithTools(t);
-
-        if (_guard is not null)    agentBuilder.WithGuard(_guard);
-        if (_observer is not null) agentBuilder.WithObserver(_observer);
-
-        var agent = agentBuilder.Build();
+        // Фабрика, а не готовый агент: перегрузка RunAsync с явным списком инструментов собирает
+        // на задачу СВОЙ экземпляр агента (со своим реестром и своей памятью). Реестр агента
+        // фиксируется в конструкторе, поэтому подменить инструменты у уже собранного нельзя.
+        var agentFactory = BuildAgent;
+        var agent = BuildAgent(
+            _toolInstances.Count > 0 ? ToolRegistry.FromObjects([.. _toolInstances]) : null,
+            memory);
 
         var plannerBuilder = PlanGeneratorBuilder.Create().WithLLM(_llm);
         foreach (var t in _toolInstances) plannerBuilder.WithTools(t);
@@ -109,8 +103,30 @@ public sealed class PlanningAgentBuilder
         var planner = plannerBuilder.Build();
 
         return new PlanningAgent(
-            agent, planner, memory,
+            agent, agentFactory, planner, memory,
             _validator ?? new DefaultStepValidator(),
             _config);
+    }
+
+    /// <summary>Собирает исполняющий агент с готовым реестром инструментов и памятью шагов.</summary>
+    /// <remarks>
+    /// Именно реестром, а не экземплярами: инструменты задачи могут быть зарегистрированы с именами
+    /// из рантайма (агенты каталога как инструменты), и собрать такой набор из объектов с атрибутами
+    /// невозможно.
+    /// </remarks>
+    private Agent BuildAgent(ToolRegistry registry, StepMemory memory)
+    {
+        var agentBuilder = AgentBuilder.Create()
+            .WithLLM(_llm)
+            .WithSystemPrompt(_systemPrompt)
+            .WithMemory(memory)
+            .WithMaxIterations(30)
+            .WithTemperature(0.15);
+
+        if (registry is not null)  agentBuilder.WithToolRegistry(registry);
+        if (_guard is not null)    agentBuilder.WithGuard(_guard);
+        if (_observer is not null) agentBuilder.WithObserver(_observer);
+
+        return agentBuilder.Build();
     }
 }

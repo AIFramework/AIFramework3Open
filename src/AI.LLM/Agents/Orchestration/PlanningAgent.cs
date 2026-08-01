@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using AI.LLM.Agents.Planning;
+using AI.LLM.Agents.Tools;
 using Serilog;
 
 namespace AI.LLM.Agents.Orchestration;
@@ -23,10 +24,21 @@ namespace AI.LLM.Agents.Orchestration;
 public sealed class PlanningAgent
 {
     private readonly Agent _agent;
+    private readonly Func<ToolRegistry, StepMemory, Agent> _agentFactory;
     private readonly PlanGenerator _planner;
     private readonly StepMemory _memory;
     private readonly IStepValidator _validator;
     private readonly PlanningAgentConfig _config;
+
+    /// <summary>
+    /// Контекст одной задачи: исполняющий агент, реестр инструментов для планировщика и память шагов.
+    /// </summary>
+    /// <remarks>
+    /// Введён ради <see cref="RunAsync(string, IEnumerable{object}, CancellationToken)"/>: инструменты
+    /// задачи должны попасть И планировщику, И исполнителю. Дать их только планировщику — значит
+    /// получить план, ссылающийся на инструменты, которых у исполняющего агента нет.
+    /// </remarks>
+    private sealed record RunScope(Agent Agent, ToolRegistry PlannerTools, StepMemory Memory);
 
     /// <summary>Вызывается после генерации нового плана.</summary>
     public event EventHandler<PlanTree> OnPlanGenerated;
@@ -41,30 +53,120 @@ public sealed class PlanningAgent
     public event EventHandler<PlanTree> OnReplanned;
 
     internal PlanningAgent(
-        Agent agent, PlanGenerator planner, StepMemory memory,
+        Agent agent, Func<ToolRegistry, StepMemory, Agent> agentFactory,
+        PlanGenerator planner, StepMemory memory,
         IStepValidator validator, PlanningAgentConfig config)
     {
-        _agent     = agent;
-        _planner   = planner;
-        _memory    = memory;
-        _validator = validator;
-        _config    = config;
+        _agent        = agent;
+        _agentFactory = agentFactory;
+        _planner      = planner;
+        _memory       = memory;
+        _validator    = validator;
+        _config       = config;
     }
 
     /// <summary>
-    /// Выполняет задачу: генерирует план и поярусно исполняет шаги с retry/replan.
+    /// Выполняет задачу инструментами, заданными при сборке оркестратора.
     /// </summary>
-    public async Task<PlanningAgentResult> RunAsync(string goal, CancellationToken ct = default)
+    public Task<PlanningAgentResult> RunAsync(string goal, CancellationToken ct = default)
+        => RunCoreAsync(goal, new RunScope(_agent, null, _memory), ct);
+
+    /// <summary>
+    /// Выполняет задачу ЯВНЫМ списком инструментов — только для этого запуска.
+    /// </summary>
+    /// <param name="goal">Задача.</param>
+    /// <param name="tools">
+    /// Экземпляры с методами <c>[AgentTool]</c>. Список ЗАМЕЩАЕТ инструменты сборки, а не дополняет:
+    /// нужен базовый набор плюс задачные — передайте оба. Пустой список — осознанное «инструментов
+    /// нет»: агент ответит текстом.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// Экземпляр не объявляет ни одного метода с <c>[AgentTool]</c>.
+    /// </exception>
+    /// <remarks>
+    /// Набор уходит И планировщику, И исполняющему агенту: иначе план ссылался бы на инструменты,
+    /// которых у исполнителя нет. Запуск полностью изолирован — свой агент, свой реестр и своя
+    /// память шагов, — поэтому один экземпляр <see cref="PlanningAgent"/> можно звать параллельно
+    /// с разными наборами, не мешая соседним задачам.
+    /// </remarks>
+    public Task<PlanningAgentResult> RunAsync(
+        string goal, IEnumerable<object> tools, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(tools);
+
+        var instances = tools as object[] ?? [.. tools];
+        EnsureDeclaresTools(instances, nameof(tools));
+
+        var registry = ToolRegistry.FromObjects(instances);
+        var memory   = new StepMemory();
+        return RunCoreAsync(goal, new RunScope(_agentFactory(registry, memory), registry, memory), ct);
+    }
+
+    /// <summary>
+    /// Выполняет задачу готовым реестром инструментов — только для этого запуска.
+    /// </summary>
+    /// <remarks>
+    /// Путь для инструментов, зарегистрированных с именами из рантайма — например агентов каталога,
+    /// отданных как инструменты через
+    /// <see cref="ToolRegistry.Register(string, string, Delegate, string)"/>. Атрибутный путь
+    /// (<see cref="RunAsync(string, IEnumerable{object}, CancellationToken)"/>) такой набор выразить
+    /// не может: имя там статично на тип, и однотипные носители затирали бы друг друга.
+    /// <para>
+    /// Один и тот же реестр уходит планировщику и исполнителю, поэтому план не может сослаться
+    /// на инструмент, которого нет у исполняющего агента.
+    /// </para>
+    /// </remarks>
+    public Task<PlanningAgentResult> RunAsync(
+        string goal, ToolRegistry registry, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(registry);
+
+        var memory = new StepMemory();
+        return RunCoreAsync(goal, new RunScope(_agentFactory(registry, memory), registry, memory), ct);
+    }
+
+    /// <summary>
+    /// Проверяет, что каждый переданный экземпляр действительно объявляет инструменты.
+    /// </summary>
+    /// <remarks>
+    /// Набор принимается как <see cref="object"/> — контракта у инструментов нет, только атрибут
+    /// <c>[AgentTool]</c>. Чужой экземпляр (опечатка, забытый атрибут, не тот объект) молча даёт
+    /// пустой реестр: планировщик не увидит инструментов, исполнитель их не получит, и задача тихо
+    /// выродится в текстовый ответ без единого предупреждения. Поэтому падаем здесь и называем
+    /// виноватый тип. Пустой СПИСОК при этом остаётся законным — это явное «инструментов нет».
+    /// </remarks>
+    private static void EnsureDeclaresTools(IReadOnlyList<object> instances, string paramName)
+    {
+        var bad = instances
+            .Where(i => i is null || !ToolRegistry.DeclaresTools(i))
+            .Select(i => i?.GetType().Name ?? "null")
+            .ToList();
+
+        if (bad.Count == 0) return;
+
+        throw new ArgumentException(
+            $"Не объявляют ни одного метода с [AgentTool]: {string.Join(", ", bad)}. "
+            + "Чтобы запустить задачу вовсе без инструментов, передайте пустой список.",
+            paramName);
+    }
+
+    private async Task<PlanningAgentResult> RunCoreAsync(
+        string goal, RunScope scope, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(goal))
             throw new ArgumentException("Goal cannot be empty.", nameof(goal));
+
+        // Новая задача — чистая память шагов. Без этого повторный вызов на том же экземпляре
+        // тащил бы в контекст шаги предыдущей задачи (и ссылки на инструменты, которых
+        // в текущем наборе уже нет).
+        await scope.Memory.ClearAsync().ConfigureAwait(false);
 
         var sw          = Stopwatch.StartNew();
         var allSteps    = new List<StepExecutionResult>();
         var replanCount = 0;
         var success     = false;
 
-        var plan = await _planner.GenerateAsync(goal, null, ct).ConfigureAwait(false);
+        var plan = await _planner.GenerateAsync(goal, null, scope.PlannerTools, ct).ConfigureAwait(false);
         Log.Information("[PlanningAgent] Plan generated: {Count} steps", plan.Steps.Count);
         OnPlanGenerated?.Invoke(this, plan);
         PrintPlan(plan, replanCount);
@@ -86,7 +188,7 @@ public sealed class PlanningAgent
             }
             else
             {
-                var (tierSteps, executionFailure) = await ExecutePlanAsync(plan, goal, ct).ConfigureAwait(false);
+                var (tierSteps, executionFailure) = await ExecutePlanAsync(plan, goal, scope, ct).ConfigureAwait(false);
                 allSteps.AddRange(tierSteps);
                 failureReason = executionFailure;
             }
@@ -111,8 +213,9 @@ public sealed class PlanningAgent
                 "previous_failure",
                 $"Attempt {replanCount} failed: {failureReason}. Build a different approach.");
 
-            plan = await _planner.GenerateAsync(goal, [failureContext], ct).ConfigureAwait(false);
-            await _memory.ClearAsync().ConfigureAwait(false);
+            plan = await _planner.GenerateAsync(goal, [failureContext], scope.PlannerTools, ct)
+                .ConfigureAwait(false);
+            await scope.Memory.ClearAsync().ConfigureAwait(false);
 
             OnReplanned?.Invoke(this, plan);
             PrintPlan(plan, replanCount);
@@ -120,13 +223,13 @@ public sealed class PlanningAgent
 
         sw.Stop();
         return new PlanningAgentResult(
-            goal, allSteps, plan, replanCount, success, sw.Elapsed, _memory.Cells);
+            goal, allSteps, plan, replanCount, success, sw.Elapsed, scope.Memory.Cells);
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
 
     private async Task<(List<StepExecutionResult> Steps, string FailureReason)> ExecutePlanAsync(
-        PlanTree plan, string goal, CancellationToken ct)
+        PlanTree plan, string goal, RunScope scope, CancellationToken ct)
     {
         var results = new List<StepExecutionResult>();
 
@@ -136,14 +239,14 @@ public sealed class PlanningAgent
 
             if (_config.ExecuteParallelTiers)
             {
-                var tasks = tier.Steps.Select(s => ExecuteStepWithRetriesAsync(s, goal, ct));
+                var tasks = tier.Steps.Select(s => ExecuteStepWithRetriesAsync(s, goal, scope, ct));
                 tierResults = [.. await Task.WhenAll(tasks).ConfigureAwait(false)];
             }
             else
             {
                 tierResults = [];
                 foreach (var step in tier.Steps)
-                    tierResults.Add(await ExecuteStepWithRetriesAsync(step, goal, ct).ConfigureAwait(false));
+                    tierResults.Add(await ExecuteStepWithRetriesAsync(step, goal, scope, ct).ConfigureAwait(false));
             }
 
             results.AddRange(tierResults.Select(r => r.Result));
@@ -162,7 +265,7 @@ public sealed class PlanningAgent
     }
 
     private async Task<(StepExecutionResult Result, string LastError)> ExecuteStepWithRetriesAsync(
-        PlanStep step, string goal, CancellationToken ct)
+        PlanStep step, string goal, RunScope scope, CancellationToken ct)
     {
         OnStepStarted?.Invoke(this, step);
 
@@ -180,7 +283,7 @@ public sealed class PlanningAgent
             try
             {
                 var query = BuildStepQuery(step, goal, attempt);
-                lastResult = await _agent.RunAsync(query, ct).ConfigureAwait(false);
+                lastResult = await scope.Agent.RunAsync(query, ct).ConfigureAwait(false);
                 lastError = null;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -195,7 +298,7 @@ public sealed class PlanningAgent
             if (ok)
             {
                 var cell = new StepMemoryEntry(step, lastResult!.Answer, true, attempt);
-                await _memory.AddCellAsync(cell).ConfigureAwait(false);
+                await scope.Memory.AddCellAsync(cell).ConfigureAwait(false);
 
                 var stepResult = new StepExecutionResult(step, lastResult, true, false, attempt);
                 OnStepCompleted?.Invoke(this, stepResult);
@@ -210,7 +313,7 @@ public sealed class PlanningAgent
         var failedCell = new StepMemoryEntry(
             step, lastResult?.Answer ?? (lastError is not null ? $"FAILED: {lastError}" : "FAILED"),
             false, maxAttempts);
-        await _memory.AddCellAsync(failedCell).ConfigureAwait(false);
+        await scope.Memory.AddCellAsync(failedCell).ConfigureAwait(false);
 
         var failedResult = new StepExecutionResult(step, lastResult, false, true, maxAttempts);
         OnStepCompleted?.Invoke(this, failedResult);

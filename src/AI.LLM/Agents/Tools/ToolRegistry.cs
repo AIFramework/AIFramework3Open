@@ -45,6 +45,49 @@ public sealed class ToolRegistry
             _tools[name] = tool;
     }
 
+    /// <summary>
+    /// Регистрирует инструмент под именем, известным только в рантайме.
+    /// </summary>
+    /// <param name="name">Имя инструмента (function calling). Повторное имя перезаписывает прежнее.</param>
+    /// <param name="description">Описание для LLM.</param>
+    /// <param name="handler">Делегат-исполнитель; его сигнатура задаёт схему параметров.</param>
+    /// <param name="parametersJson">Явная JSON Schema параметров. <c>null</c> — вывести из сигнатуры.</param>
+    /// <remarks>
+    /// <see cref="AgentToolAttribute"/> — статическая метаданная МЕТОДА: имя одно на весь тип и на всех
+    /// его наследников, а <see cref="Register(object)"/> перезаписывает по имени. Поэтому список из N
+    /// однотипных носителей через атрибутный путь схлопывается в ОДИН инструмент. Этот путь нужен там,
+    /// где имя приходит из данных (агент каталога, пользовательская сборка), а не из кода.
+    /// </remarks>
+    public void Register(string name, string description, Delegate handler, string parametersJson = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(handler);
+
+        // Делегат несёт ровно то, из чего состоит запись реестра: MethodInfo и получателя
+        // (для замыкания — экземпляр display-класса). Поэтому исполнение и разбор аргументов
+        // работают дальше без единой правки.
+        var definition = parametersJson is null
+            ? BuildToolDefinition(name, description ?? "", handler.Method)
+            : ToolDefinition.Create(name, description ?? "", parametersJson);
+
+        _tools[name] = new RegisteredTool(name, definition, handler.Method, handler.Target);
+    }
+
+    /// <summary>
+    /// Объявляет ли экземпляр хотя бы один метод с <see cref="AgentToolAttribute"/>.
+    /// </summary>
+    /// <remarks>
+    /// Регистрация принимает <see cref="object"/> — контракта у инструментов нет, только атрибут.
+    /// Поэтому чужой экземпляр (опечатка, забытый атрибут, не тот объект) молча даёт пустой реестр,
+    /// а агент остаётся вовсе без инструментов. Проверка позволяет поймать это на входе, а не
+    /// по факту тихой деградации.
+    /// </remarks>
+    public static bool DeclaresTools(object instance)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+        return ScanMethods(instance).Any();
+    }
+
     /// <summary>Возвращает <see cref="ToolDefinition"/> для передачи в LLM (function calling).</summary>
     public List<ToolDefinition> GetDefinitions()
         => _tools.Values.Select(t => t.Definition).ToList();
@@ -259,6 +302,12 @@ public sealed class ToolRegistry
 
     private static object DeserializeElement(JsonElement element, Type target)
     {
+        // Инструмент принимает LLMMessage, а модель по схеме шлёт строку: прямая десериализация
+        // строки в объект падает, и аргумент молча становится null — инструмент получал бы
+        // пустое сообщение вместо задачи. Для сообщения «аргумент» это и есть его текст.
+        if (target == typeof(LLMMessage) && element.ValueKind == JsonValueKind.String)
+            return new LLMMessage(LLMMessage.UserRole, element.GetString());
+
         try { return JsonSerializer.Deserialize(element.GetRawText(), target); }
         catch
         {
