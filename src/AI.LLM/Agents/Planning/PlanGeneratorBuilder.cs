@@ -59,6 +59,11 @@ public sealed class PlanGeneratorBuilder
     /// <summary>Максимальное число токенов в ответе LLM.</summary>
     public PlanGeneratorBuilder WithMaxTokens(int n) { _config.MaxTokens = n; return this; }
 
+    /// <summary>
+    /// Справочник портов инструментов и правил соединения (см. <see cref="PlanGeneratorConfig.PortsPrompt"/>).
+    /// </summary>
+    public PlanGeneratorBuilder WithPortsPrompt(string prompt) { _config.PortsPrompt = prompt; return this; }
+
     /// <summary>Строит генератор планов.</summary>
     public PlanGenerator Build()
     {

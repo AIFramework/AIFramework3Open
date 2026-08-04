@@ -126,6 +126,14 @@ public sealed class PlanGenerator
         sb.AppendLine("- depends_on — массив id шагов, которые ДОЛЖНЫ быть выполнены ДО этого шага");
         sb.AppendLine("- Если для шага есть подходящий инструмент — укажи его в поле tool и аргументы в args");
         sb.AppendLine("- Если подходящего инструмента нет — оставь tool = null");
+        sb.AppendLine("- done_when — КРИТЕРИЙ ГОТОВНОСТИ шага: по чему видно, что он СДЕЛАН, а не начат.");
+        sb.AppendLine("  Пиши проверяемый признак РЕЗУЛЬТАТА, а не пересказ задачи:");
+        sb.AppendLine("  плохо: «эссе написано»; хорошо: «в ответе есть готовый текст эссе не короче 2000 знаков».");
+        sb.AppendLine("  План работы, «приступаю» и обещания сделать позже критерию НЕ удовлетворяют.");
+        sb.AppendLine("  done_when обязателен для КАЖДОГО шага.");
+        sb.AppendLine("- outputs — что шаг передаёт дальше: {\"имя_порта_инструмента\": \"идентификатор_артефакта\"}");
+        sb.AppendLine("- input_mapping — откуда шаг берёт данные: {\"имя_порта_инструмента\": \"источник\"}");
+        sb.AppendLine("- Источник — либо \"step_X.outputs.порт\" (шаг step_X ОБЯЗАН быть в depends_on), либо \"user_context.ключ\"");
 
         if (tools is { Count: > 0 })
         {
@@ -149,13 +157,25 @@ public sealed class PlanGenerator
             }
         }
 
+        if (!string.IsNullOrWhiteSpace(_config.PortsPrompt))
+        {
+            sb.AppendLine();
+            sb.AppendLine("### Порты инструментов и правила соединения");
+            sb.AppendLine(_config.PortsPrompt.Trim());
+        }
+
         sb.AppendLine();
         sb.AppendLine("Ответь СТРОГО в JSON-формате:");
         sb.AppendLine("```json");
         sb.AppendLine("{");
         sb.AppendLine("  \"steps\": [");
-        sb.AppendLine("    {\"id\": \"step_0\", \"description\": \"...\", \"tool\": null, \"args\": {}, \"depends_on\": []},");
-        sb.AppendLine("    {\"id\": \"step_1\", \"description\": \"...\", \"tool\": \"tool_name\", \"args\": {\"param\": \"value\"}, \"depends_on\": [\"step_0\"]}");
+        sb.AppendLine("    {\"id\": \"step_0\", \"description\": \"...\", \"tool\": \"essay_writer\", \"args\": {},");
+        sb.AppendLine("     \"done_when\": \"в ответе есть готовый текст эссе, а не план и не обещание\",");
+        sb.AppendLine("     \"depends_on\": [], \"outputs\": {\"essay\": \"artifact_essay_1\"}, \"input_mapping\": {\"task\": \"user_context.message\"}},");
+        sb.AppendLine("    {\"id\": \"step_1\", \"description\": \"...\", \"tool\": \"publisher\", \"args\": {},");
+        sb.AppendLine("     \"done_when\": \"в ответе есть подтверждение отправки в канал\",");
+        sb.AppendLine("     \"depends_on\": [\"step_0\"], \"outputs\": {},");
+        sb.AppendLine("     \"input_mapping\": {\"content\": \"step_0.outputs.essay\"}}");
         sb.AppendLine("  ]");
         sb.AppendLine("}");
         sb.AppendLine("```");
@@ -188,10 +208,14 @@ public sealed class PlanGenerator
                 var description = el.TryGetProperty("description", out var descEl) && descEl.ValueKind == JsonValueKind.String
                     ? descEl.GetString() : null;
 
+                var doneWhen = el.TryGetProperty("done_when", out var doneEl) && doneEl.ValueKind == JsonValueKind.String
+                    ? doneEl.GetString() : null;
+
                 var step = new PlanStep
                 {
                     Id = !string.IsNullOrWhiteSpace(id) ? id : $"step_{steps.Count}",
                     Description = !string.IsNullOrWhiteSpace(description) ? description : "",
+                    DoneWhen = doneWhen?.Trim() ?? "",
                     ToolName = el.TryGetProperty("tool", out var toolEl) && toolEl.ValueKind == JsonValueKind.String
                         ? toolEl.GetString() : null,
                 };
@@ -201,6 +225,9 @@ public sealed class PlanGenerator
                     foreach (var prop in argsEl.EnumerateObject())
                         step.ToolArguments[prop.Name] = prop.Value.ToString();
                 }
+
+                ReadStringMap(el, "outputs", step.Outputs);
+                ReadStringMap(el, "input_mapping", step.InputMapping);
 
                 if (el.TryGetProperty("depends_on", out var depsEl) && depsEl.ValueKind == JsonValueKind.Array)
                 {
@@ -229,6 +256,34 @@ public sealed class PlanGenerator
         {
             Log.Warning(ex, "PlanGenerator: ошибка парсинга JSON плана");
             return [];
+        }
+    }
+
+    /// <summary>
+    /// Читает объект вида {"порт": "значение"} в словарь, пропуская не-строковые значения.
+    /// </summary>
+    /// <remarks>
+    /// Модель регулярно кладёт в такие карты объекты и числа. GetString() на них бросает
+    /// исключение, а оно в ParseSteps означает потерю ВСЕГО плана — поэтому пропускаем
+    /// поэлементно и с предупреждением.
+    /// </remarks>
+    private static void ReadStringMap(JsonElement element, string propertyName, Dictionary<string, string> target)
+    {
+        if (!element.TryGetProperty(propertyName, out var mapEl) || mapEl.ValueKind != JsonValueKind.Object)
+            return;
+
+        foreach (var prop in mapEl.EnumerateObject())
+        {
+            if (prop.Value.ValueKind != JsonValueKind.String)
+            {
+                Log.Warning("PlanGenerator: {Property}.{Key} имеет тип {Kind}, пропущен",
+                    propertyName, prop.Name, prop.Value.ValueKind);
+                continue;
+            }
+
+            var value = prop.Value.GetString();
+            if (!string.IsNullOrWhiteSpace(value))
+                target[prop.Name] = value;
         }
     }
 
@@ -318,4 +373,16 @@ public sealed class PlanGeneratorConfig
 
     /// <summary>Максимальное число токенов в ответе LLM.</summary>
     public int? MaxTokens { get; set; } = 4096;
+
+    /// <summary>
+    /// Справочник портов инструментов и правила их соединения — вставляется в системный промпт
+    /// отдельной секцией. <c>null</c>/пусто — секции нет, план строится без маппинга данных.
+    /// </summary>
+    /// <remarks>
+    /// Текст задаёт ПРИЛОЖЕНИЕ, а не библиотека: онтология данных (сложный тип, семантика,
+    /// область знаний) принадлежит конкретной системе агентов, и зашивать её сюда значило бы
+    /// навязать её всем потребителям. Библиотека отвечает лишь за то, чтобы справочник дошёл
+    /// до модели, а маппинг вернулся распарсенным (<see cref="PlanStep.InputMapping"/>).
+    /// </remarks>
+    public string PortsPrompt { get; set; }
 }
