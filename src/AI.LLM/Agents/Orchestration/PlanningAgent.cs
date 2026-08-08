@@ -28,6 +28,7 @@ public sealed class PlanningAgent
     private readonly PlanGenerator _planner;
     private readonly StepMemory _memory;
     private readonly IStepValidator _validator;
+    private readonly IAsyncStepValidator _asyncValidator;
     private readonly PlanningAgentConfig _config;
 
     /// <summary>
@@ -55,15 +56,26 @@ public sealed class PlanningAgent
     internal PlanningAgent(
         Agent agent, Func<ToolRegistry, StepMemory, Agent> agentFactory,
         PlanGenerator planner, StepMemory memory,
-        IStepValidator validator, PlanningAgentConfig config)
+        IStepValidator validator, IAsyncStepValidator asyncValidator,
+        PlanningAgentConfig config)
     {
-        _agent        = agent;
-        _agentFactory = agentFactory;
-        _planner      = planner;
-        _memory       = memory;
-        _validator    = validator;
-        _config       = config;
+        _agent          = agent;
+        _agentFactory   = agentFactory;
+        _planner        = planner;
+        _memory         = memory;
+        _validator      = validator;
+        _asyncValidator = asyncValidator;
+        _config         = config;
     }
+
+    /// <summary>
+    /// Принимает результат шага. Асинхронная приёмка (например по <see cref="PlanStep.DoneWhen"/>
+    /// через модель) имеет приоритет — синхронная остаётся для реализаций без ввода-вывода.
+    /// </summary>
+    private Task<bool> ValidateAsync(PlanStep step, AgentResult result, CancellationToken ct) =>
+        _asyncValidator is not null
+            ? _asyncValidator.IsSuccessAsync(step, result, ct)
+            : Task.FromResult(_validator.IsSuccess(step, result));
 
     /// <summary>
     /// Выполняет задачу инструментами, заданными при сборке оркестратора.
@@ -293,7 +305,8 @@ public sealed class PlanningAgent
                 lastError = ex.Message;
             }
 
-            var ok = lastResult is not null && _validator.IsSuccess(step, lastResult);
+            var ok = lastResult is not null
+                && await ValidateAsync(step, lastResult, ct).ConfigureAwait(false);
 
             if (ok)
             {

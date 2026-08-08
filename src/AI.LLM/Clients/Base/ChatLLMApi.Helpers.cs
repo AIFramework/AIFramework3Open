@@ -66,17 +66,34 @@ public partial class ChatLLMApi
     /// </summary>
     /// <param name="generateSettings">Начальные настройки</param>
     /// <returns></returns>
+    /// <remarks>
+    /// Возвращает выправленную КОПИЮ: объект вызывающего может быть общим на несколько запросов,
+    /// и правка его полей досталась бы всем остальным.
+    /// </remarks>
     public GenerateSettings Validate(GenerateSettings generateSettings)
     {
-        generateSettings ??= new();
+        var settings = generateSettings?.Clone() ?? new GenerateSettings();
 
-        generateSettings.Temperature = ValidateTemperature(generateSettings.Temperature);
-        generateSettings.MaxTokens = ValidateMaxTokens(generateSettings.MaxTokens);
+        settings.Temperature = ValidateTemperature(settings.Temperature);
+        settings.MaxTokens = ValidateMaxTokens(settings.MaxTokens);
 
-        if (generateSettings.ReasoningSettings?.MaxTokens != null)
-            generateSettings.ReasoningSettings.MaxTokens = ValidateMaxTokens(generateSettings.ReasoningSettings.MaxTokens.Value);
+        // ReasoningSettings копия делит с оригиналом: правим не по месту, а заменяя целиком.
+        // Собираем через инициализатор, а не через конструктор: тот запрещает Effort вместе с
+        // MaxTokens, и уже существующая пара уронила бы валидацию вместо того, чтобы её пройти.
+        if (settings.ReasoningSettings?.MaxTokens is { } reasoningMaxTokens)
+        {
+            var clamped = ValidateMaxTokens(reasoningMaxTokens);
+            if (clamped != reasoningMaxTokens)
+                settings.ReasoningSettings = new ReasoningSettings
+                {
+                    Effort = settings.ReasoningSettings.Effort,
+                    MaxTokens = clamped,
+                    Exclude = settings.ReasoningSettings.Exclude,
+                    Enabled = settings.ReasoningSettings.Enabled,
+                };
+        }
 
-        return generateSettings;
+        return settings;
     }
 
 

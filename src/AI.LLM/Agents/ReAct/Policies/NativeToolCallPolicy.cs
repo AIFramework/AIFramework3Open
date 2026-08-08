@@ -46,7 +46,10 @@ public sealed class NativeToolCallPolicy : IReActPolicy
 
         List<LLMMessage> messages = BuildMessages(context);
 
-        GenerateSettings settings = _settings ?? new GenerateSettings(temperature: 0.1, maxTokens: 1200);
+        // Копия, а не общий экземпляр: набор инструментов считается на каждый прогон, а движок
+        // рассчитан на несколько одновременных. Правка общих настроек означала бы, что соседний
+        // прогон уходит к модели с чужим списком инструментов.
+        GenerateSettings settings = _settings?.Clone() ?? new GenerateSettings(temperature: 0.1, maxTokens: 1200);
         settings.Tools = BuildDefinitions(context.Tools);
         settings.ToolChoice = ToolChoice.Auto();
 

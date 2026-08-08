@@ -24,7 +24,6 @@ public partial class ChatLLMApi
 {
     private readonly IWebAPIClient _webApi;
     private readonly string _prompt;
-    private readonly IStreamHandler _streamSender;
 
     public virtual string ModelName { get; set; }
     public virtual string ApiUrl { get; set; }
@@ -53,7 +52,7 @@ public partial class ChatLLMApi
     /// <summary>
     /// Апи для отправки запросов на LLM по стандарту OpenAI (также поддерживается DeepSeek, VLLM, OpenRouter, Replicate и тп.)
     /// </summary>
-    public ChatLLMApi(string apiKey, string modelName, string prompt, IStreamHandler streamSender = null,
+    public ChatLLMApi(string apiKey, string modelName, string prompt,
         IEnumerable<WebProxy> proxies = null)
     {
         if (string.IsNullOrWhiteSpace(modelName))
@@ -61,7 +60,6 @@ public partial class ChatLLMApi
 
         ModelName = modelName;
         _prompt = prompt;
-        _streamSender = streamSender;
         // Возможно стоит заменить на логер
         ProxyInfo += ChatLLMApi_ProxyInfo;
 
@@ -70,11 +68,38 @@ public partial class ChatLLMApi
             _webApi = new ProxyHTTPClient(proxies, apiKey);
             (_webApi as ProxyHTTPClient).OnProxyError += LLMApi_OnProxyError;
         }
-        else 
-        { 
+        else
+        {
             _webApi = new WithoutProxyClient(apiKey);
         }
 
+    }
+
+    /// <summary>
+    /// Апи поверх ГОТОВОГО http-клиента: ключом, маршрутами и повторами распоряжается вызывающий.
+    /// </summary>
+    /// <remarks>
+    /// Зачем отдельный конструктор. Обычный принимает ключ строкой, а прокси — списком, и то и
+    /// другое замирает на всю жизнь объекта: сменить отказавший ключ или увести запрос на другой
+    /// маршрут внутри вызова уже нельзя. Приложению, у которого есть свой пул ключей и свой пул
+    /// маршрутов (с карантином, ручным выключением и панелью здоровья), нужен именно этот вид —
+    /// иначе рядом с его контуром появляется второй, ничего о первом не знающий.
+    /// <para>
+    /// Владение клиентом остаётся у вызывающего: он живёт дольше одного <see cref="ChatLLMApi"/>
+    /// и обычно общий на процесс, поэтому <see cref="IDisposable"/> здесь не трогаем.
+    /// </para>
+    /// </remarks>
+    /// <param name="webApi">Клиент отправки: ключи, прокси, ротация и повторы — на его стороне.</param>
+    /// <param name="modelName">Имя модели у провайдера.</param>
+    /// <param name="prompt">Системный промпт для запросов без контекста.</param>
+    public ChatLLMApi(IWebAPIClient webApi, string modelName, string prompt = "")
+    {
+        if (string.IsNullOrWhiteSpace(modelName))
+            throw new ArgumentNullException(nameof(modelName), "Имя модели не может быть пустым");
+
+        _webApi = webApi ?? throw new ArgumentNullException(nameof(webApi));
+        ModelName = modelName;
+        _prompt = prompt;
     }
 
     
@@ -183,46 +208,8 @@ public partial class ChatLLMApi
     GenerateSettings generateSettings = null,
     CancellationToken cancellationToken = default)
     {
-        generateSettings = Validate(generateSettings);
+        var sendData = BuildStreamingSendData(context, generateSettings);
 
-        if (context == null)
-            throw new ArgumentException("Контекст не может быть null.", nameof(context));
-
-        // ВАЖНО: Принудительно включаем streaming для раннего обнаружения зависших запросов!
-        // Даже если пользователь не указал streamId, мы создаем временный для внутреннего использования
-        if (string.IsNullOrEmpty(generateSettings.StreamId))
-        {
-            // Создаем временный streamId для включения streaming
-            generateSettings = new GenerateSettings(
-                temperature: generateSettings.Temperature ?? 0.1,
-                repetitionPenalty: generateSettings.RepetitionPenalty,
-                topP: generateSettings.TopP,
-                topK: generateSettings.TopK,
-                minTokens: generateSettings.MinTokens,
-                maxTokens: generateSettings.MaxTokens,
-                streamId: Guid.NewGuid().ToString(), // <- Включаем streaming!
-                reasoningEffort: generateSettings.ReasoningEffort,
-                streamMethod: "StreamMessage"
-            )
-            {
-                // Копируем дополнительные свойства через инициализатор
-                ReasoningSettings = generateSettings.ReasoningSettings,
-                LogProbs = generateSettings.LogProbs,
-                TopLogprobs = generateSettings.TopLogprobs,
-                ResponseFormat = generateSettings.ResponseFormat,
-                Tools = generateSettings.Tools,
-                ToolChoice = generateSettings.ToolChoice,
-            };
-        }
-
-        var sendData = new SendDataLLM(ModelName, generateSettings);
-        sendData.StreamOptions = StreamOptions;
-        sendData.SetMessages(context);
-
-        // Установка провайдера если задан (для OpenRouter)
-        if (PreferredProvider != null)
-            sendData.Provider = PreferredProvider;
-        
         const int maxAttempts = 2;
         const int initialDelaySeconds = 1;
         Exception lastException = new Exception("Базовая ошибка");
@@ -249,14 +236,8 @@ public partial class ChatLLMApi
                     continue;
                 }
 
-                // Обработка успешного ответа
-                // if (generateSettings.Stream)
-                //    return await ProcessStreamResponse(generateSettings, response);
-                // else
-                //    return await ProcessStandardResponse(response, cancellationToken);
-
-                // ВСЕГДА обрабатываем как streaming (т.к. мы принудительно его включили)
-                // Но используем внутренний метод, не требующий IStreamHandler
+                // ВСЕГДА обрабатываем как streaming: он включён принудительно в
+                // BuildStreamingSendData ради раннего обнаружения зависших запросов.
                 return await ProcessStreamResponseInternal(response, cancellationToken);
             }
             catch (Exception ex)

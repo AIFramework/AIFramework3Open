@@ -32,6 +32,16 @@ public class Usage
     [JsonPropertyName("reasoning_tokens")]
     public int ReasoningTokens { get; set; }
 
+    /// <summary>
+    /// Сколько токенов промпта провайдер взял из кеша.
+    /// </summary>
+    /// <remarks>
+    /// Считаются они по отдельной, заметно меньшей цене, поэтому тому, кто пересчитывает расход в
+    /// деньги, без этого числа кешируемые промпты выходят дороже, чем есть на самом деле.
+    /// </remarks>
+    [JsonPropertyName("cached_tokens")]
+    public int CachedTokens { get; set; }
+
     [JsonPropertyName("cost")]
     public object Cost { get; set; }
 }

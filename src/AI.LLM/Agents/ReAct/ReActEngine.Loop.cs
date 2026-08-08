@@ -100,7 +100,7 @@ public sealed partial class ReActEngine
                 break;
             }
 
-            int repeatsInStep = CountRepeats(run.Trace, decision.Actions);
+            int repeatsInStep = CountRepeats(run.Tools, run.Trace, decision.Actions);
             if (repeatsInStep > 0)
             {
                 repeatCount += repeatsInStep;
@@ -118,7 +118,7 @@ public sealed partial class ReActEngine
             if (TryFinishOnTerminal(run))
                 break;
 
-            string exhausted = FindExhaustedTool(run.Trace, decision.Actions);
+            string exhausted = FindExhaustedTool(run.Tools, run.Trace, decision.Actions);
             if (exhausted != null)
             {
                 run.StopReason = ReActStopReason.NoProgress;
@@ -162,12 +162,19 @@ public sealed partial class ReActEngine
         return null;
     }
 
-    private static int CountRepeats(ReActTrace trace, IReadOnlyList<ReActAction> actions)
+    /// <remarks>
+    /// Имя берётся у найденного инструмента, а не у действия: в след оно попадает каноническим,
+    /// и сравнение с тем, как инструмент назвала модель в этот раз, промахивалось бы мимо
+    /// собственных прежних вызовов.
+    /// </remarks>
+    private static int CountRepeats(
+        IReadOnlyList<IReActTool> tools, ReActTrace trace, IReadOnlyList<ReActAction> actions)
     {
         int repeats = 0;
         foreach (ReActAction action in actions)
         {
-            if (trace.Recall(ReActActionKey.Create(action.ToolName, action.Arguments)) != null)
+            string name = Resolve(tools, action.ToolName)?.Name ?? action.ToolName;
+            if (trace.Recall(ReActActionKey.Create(name, action.Arguments)) != null)
                 repeats++;
         }
 
@@ -175,12 +182,14 @@ public sealed partial class ReActEngine
     }
 
     /// <summary>Инструмент, исчерпавший лимит падений подряд; <c>null</c>, если таких нет.</summary>
-    private string FindExhaustedTool(ReActTrace trace, IReadOnlyList<ReActAction> actions)
+    private string FindExhaustedTool(
+        IReadOnlyList<IReActTool> tools, ReActTrace trace, IReadOnlyList<ReActAction> actions)
     {
         foreach (ReActAction action in actions)
         {
-            if (trace.TrailingFailures(action.ToolName) >= _config.MaxConsecutiveFailures)
-                return action.ToolName;
+            string name = Resolve(tools, action.ToolName)?.Name ?? action.ToolName;
+            if (trace.TrailingFailures(name) >= _config.MaxConsecutiveFailures)
+                return name;
         }
 
         return null;

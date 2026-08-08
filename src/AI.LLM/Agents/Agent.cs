@@ -110,10 +110,10 @@ public sealed partial class Agent
 
             if (!hasToolCalls && promptFallback)
             {
+                // Вызовы разобраны из текста. В assistantMsg.ToolCalls их не кладём: провайдер
+                // их не выдавал, а сообщение уходит обратно в контекст следующей итерации.
                 toolCalls = TryParseToolCallsFromText(assistantMsg.Content?.ToString());
                 hasToolCalls = toolCalls is { Count: > 0 };
-                if (hasToolCalls)
-                    assistantMsg.ToolCalls = toolCalls;
             }
 
             if (!hasToolCalls)
@@ -124,7 +124,12 @@ public sealed partial class Agent
 
             var results = await ExecuteToolsAsync(toolCalls, cancellationToken).ConfigureAwait(false);
             usage.AddToolResults(results);
-            messages.AddRange(ToolRegistry.ToToolMessages(results));
+
+            // Модель без нативного function calling не может получить ответ role=tool: он обязан
+            // ссылаться на tool_call_id из её ответа, а такого вызова у провайдера не было.
+            messages.AddRange(promptFallback
+                ? ToolRegistry.ToPromptResultMessages(results)
+                : ToolRegistry.ToToolMessages(results));
 
             AgentObservation observation = null;
             if (_observer != null && _config.ObserveAfterToolExecution)

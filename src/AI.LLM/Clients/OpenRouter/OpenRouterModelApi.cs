@@ -1,7 +1,7 @@
-﻿using System.Net;
+using System.Net;
 using AI.LLM.Clients.Base;
-using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
+using AI.LLM.Infrastructure.Http;
 
 namespace AI.LLM.Clients.OpenRouter
 {
@@ -10,8 +10,19 @@ namespace AI.LLM.Clients.OpenRouter
     /// </summary>
     public class OpenRouterModelApi : ChatLLMApi
     {
-        public OpenRouterModelApi(string apiKey, string modelName, IStreamHandler streamSender = null, string prompt = "", IEnumerable<WebProxy> proxies = null) 
-            : base(apiKey: apiKey, modelName: modelName, prompt: prompt, streamSender: streamSender, proxies: proxies)
+        public OpenRouterModelApi(string apiKey, string modelName, string prompt = "", IEnumerable<WebProxy> proxies = null)
+            : base(apiKey: apiKey, modelName: modelName, prompt: prompt, proxies: proxies)
+        {
+            ApiUrl = "https://openrouter.ai/api/v1/chat/completions";
+            StreamOptions = new();
+        }
+
+        /// <summary>
+        /// Работа с API OpenRouter поверх готового http-клиента: ключи, маршруты и повторы —
+        /// на стороне вызывающего (см. конструктор <see cref="ChatLLMApi"/> с <see cref="IWebAPIClient"/>).
+        /// </summary>
+        public OpenRouterModelApi(IWebAPIClient webApi, string modelName, string prompt = "")
+            : base(webApi: webApi, modelName: modelName, prompt: prompt)
         {
             ApiUrl = "https://openrouter.ai/api/v1/chat/completions";
             StreamOptions = new();

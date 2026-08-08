@@ -26,6 +26,44 @@ public class ToolRegistryToolSourceTests
     }
 
     [Fact]
+    public void ToolRegistryToolSource_GetTools_SeesToolRegisteredAfterSourceWasBuilt()
+    {
+        var registry = ToolRegistry.FromObjects(new SampleTools());
+        var source = new ToolRegistryToolSource(registry);
+
+        // Имя инструмента может приходить из данных, а не из кода: реестр потокобезопасен и
+        // допускает регистрацию во время работы. Набор читается на каждом прогоне, поэтому
+        // зарегистрированный позже инструмент модель обязана увидеть — исполнить его она
+        // и так может, реестр резолвит по имени в момент вызова.
+        Assert.DoesNotContain(source.GetTools(new ReActRunContext("вопрос")), t => t.Name == "runtime_tool");
+
+        registry.Register("runtime_tool", "Появился в рантайме", (string input) => "ок: " + input);
+
+        List<IReActTool> tools = source.GetTools(new ReActRunContext("вопрос")).ToList();
+        Assert.Contains(tools, t => t.Name == "runtime_tool");
+        Assert.Contains(tools, t => t.Name == "echo");
+    }
+
+    [Fact]
+    public async Task ReActEngine_RunAsync_OffersToolRegisteredBetweenRuns()
+    {
+        var registry = ToolRegistry.FromObjects(new SampleTools());
+
+        var policy = new Fakes.FakeReActPolicy { Fallback = ReActDecision.Final("готово") };
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithPolicy(policy)
+            .WithToolRegistry(registry)
+            .Build();
+
+        await engine.RunAsync("первый прогон");
+        registry.Register("runtime_tool", "Появился в рантайме", (string input) => "ок: " + input);
+        await engine.RunAsync("второй прогон");
+
+        Assert.DoesNotContain(policy.Calls[0].Tools, t => t.Name == "runtime_tool");
+        Assert.Contains(policy.Calls[1].Tools, t => t.Name == "runtime_tool");
+    }
+
+    [Fact]
     public void ToolRegistryToolSource_GetTools_CarriesSchemaFromReflection()
     {
         var source = ToolRegistryToolSource.FromObjects(new SampleTools());

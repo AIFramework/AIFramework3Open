@@ -21,6 +21,15 @@ internal sealed class FakeLLMClient : ILLMClient
     /// <summary>Настройки каждого обращения — в порядке вызовов.</summary>
     public List<GenerateSettings?> SentSettings { get; } = [];
 
+    /// <summary>Промпты обращений без контекста — в порядке вызовов.</summary>
+    public List<string> SentPrompts { get; } = [];
+
+    /// <summary>
+    /// Задержка перед выдачей ответа. Позволяет проверить, что происходит с памятью, пока
+    /// обращение к модели ещё не завершилось.
+    /// </summary>
+    public Func<Task>? BeforeSend { get; set; }
+
     public FakeLLMClient EnqueueFull(ChatCompletionsResponse response)
     {
         _full.Enqueue(response);
@@ -58,18 +67,30 @@ internal sealed class FakeLLMClient : ILLMClient
             Usage = new Usage { PromptTokens = 7, CompletionTokens = 3, TotalTokens = 10 },
         };
 
-    public Task<string> SendAsync(
-        string text, GenerateSettings? generateSettings = null, CancellationToken cancellationToken = default) =>
-        Task.FromResult(_text.Count > 0 ? _text.Dequeue() : string.Empty);
+    public async Task<string> SendAsync(
+        string text, GenerateSettings? generateSettings = null, CancellationToken cancellationToken = default)
+    {
+        SentPrompts.Add(text);
+        SentSettings.Add(generateSettings);
 
-    public Task<string> SendAsync(
+        if (BeforeSend != null)
+            await BeforeSend().ConfigureAwait(false);
+
+        return _text.Count > 0 ? _text.Dequeue() : string.Empty;
+    }
+
+    public async Task<string> SendAsync(
         IEnumerable<LLMMessage> messages,
         GenerateSettings? generateSettings = null,
         CancellationToken cancellationToken = default)
     {
         SentMessages.Add(messages.ToList());
         SentSettings.Add(generateSettings);
-        return Task.FromResult(_text.Count > 0 ? _text.Dequeue() : string.Empty);
+
+        if (BeforeSend != null)
+            await BeforeSend().ConfigureAwait(false);
+
+        return _text.Count > 0 ? _text.Dequeue() : string.Empty;
     }
 
     public Task<ChatCompletionsResponse> SendFullAsync(

@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using AI.LLM.Clients.Base;
-using AI.LLM.Core.Abstractions;
 
 namespace AI.LLM.Clients.VLLM;
 
@@ -27,9 +26,8 @@ public class VLLMClient : ChatLLMApi
         string systemPrompt,
         string host,
         string apiKey = null,
-        IStreamHandler streamHandler = null,
         IEnumerable<WebProxy> proxies = null)
-        : base(apiKey: apiKey, modelName: modelName, prompt: systemPrompt, streamSender: streamHandler, proxies: proxies)
+        : base(apiKey: apiKey, modelName: modelName, prompt: systemPrompt, proxies: proxies)
     {
         if (string.IsNullOrWhiteSpace(modelName))
             throw new ArgumentNullException(nameof(modelName), "Model name cannot be null or empty.");

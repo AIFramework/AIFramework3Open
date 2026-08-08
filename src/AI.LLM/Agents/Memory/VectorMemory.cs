@@ -7,7 +7,7 @@ namespace AI.LLM.Agents.Memory;
 /// Долгосрочная память на основе векторного поиска (эмбеддинги + косинусное сходство).
 /// Потокобезопасна для конкурентных вызовов.
 /// </summary>
-public sealed class VectorMemory : IAgentMemory
+public sealed class VectorMemory : IAgentMemory, IRecallMemory
 {
     private readonly IEmbedderService _embedder;
     private readonly int _topK;
@@ -28,11 +28,11 @@ public sealed class VectorMemory : IAgentMemory
     /// <inheritdoc />
     public async Task<List<LLMMessage>> BuildContextAsync(string query, string systemPrompt)
     {
-        var memories = await RetrieveRelevantAsync(query).ConfigureAwait(false);
+        var memories = await RecallAsync(query).ConfigureAwait(false);
 
         var systemContent = string.IsNullOrEmpty(memories)
             ? systemPrompt
-            : $"{systemPrompt}\n\n### Релевантные воспоминания из прошлых диалогов:\n{memories}";
+            : $"{systemPrompt}\n\n{IRecallMemory.SectionHeader}\n{memories}";
 
         return
         [
@@ -60,7 +60,8 @@ public sealed class VectorMemory : IAgentMemory
         finally { _semaphore.Release(); }
     }
 
-    private async Task<string> RetrieveRelevantAsync(string query)
+    /// <inheritdoc />
+    public async Task<string> RecallAsync(string query)
     {
         List<MemoryEntry> snapshot;
         await _semaphore.WaitAsync().ConfigureAwait(false);

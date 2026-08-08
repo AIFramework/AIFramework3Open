@@ -1,6 +1,5 @@
 ﻿using AI.LLM.Clients.Base;
 using AI.LLM.Clients.OpenRouter;
-using AI.LLM.Core.Abstractions;
 
 namespace AI.LLM.Services.LLM;
 
@@ -13,17 +12,15 @@ public class LLMWithOpenRouterClient : LLMBase
     /// LLM на базе OpenRouter клиента
     /// </summary>
     /// <param name="settingsLLM">Настройки LLM</param>
-    /// <param name="streamHandler">Обработчик потоковой передачи</param>
-    public LLMWithOpenRouterClient(LLMOptions settingsLLM, IStreamHandler streamHandler = null) 
-        : base(Init(settingsLLM, streamHandler), settingsLLM) { }
+    public LLMWithOpenRouterClient(LLMOptions settingsLLM)
+        : base(Init(settingsLLM), settingsLLM) { }
 
     // Инициализация для конструктора
-    private static ChatLLMApi Init(LLMOptions openRouterSettings, IStreamHandler streamHandler)
+    private static ChatLLMApi Init(LLMOptions openRouterSettings)
     {
         OpenRouterModelApi client = new OpenRouterModelApi(
             apiKey: openRouterSettings.ApiKey,
             modelName: openRouterSettings.ModelName,
-            streamSender: streamHandler,
             prompt: openRouterSettings.SystemPrompt
             );
 

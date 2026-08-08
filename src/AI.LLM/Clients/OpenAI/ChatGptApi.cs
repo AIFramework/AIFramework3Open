@@ -24,15 +24,13 @@ namespace AI.LLM.Clients.OpenAI
         /// <param name="modelName">The name of the model to use for generating responses.</param>
         /// <param name="prompt">An optional initial prompt to set the context of the conversation.</param>
         /// <param name="temperature">Controls the randomness or creativity of the generated output.</param>
-        /// <param name="streamSender">Controls streaming behaviour of output.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="apiKey"/> or <paramref name="modelName"/> is null or empty.</exception>
         public ChatGptApi(
             string apiKey,
             string modelName = "gpt-3.5-turbo",
             string prompt = null,
-            IStreamHandler streamSender = null,
             IEnumerable<WebProxy> proxies = null)
-            : base(apiKey, modelName, prompt, streamSender, proxies: proxies)
+            : base(apiKey, modelName, prompt, proxies: proxies)
         {
             if (string.IsNullOrWhiteSpace(apiKey))
                 throw new ArgumentNullException(nameof(apiKey), "API key cannot be null or empty.");

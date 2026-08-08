@@ -1,6 +1,5 @@
 ﻿using AI.LLM.Clients.Base;
 using AI.LLM.Clients.VLLM;
-using AI.LLM.Core.Abstractions;
 
 namespace AI.LLM.Services.LLM;
 
@@ -13,19 +12,17 @@ public class LLMWithVLLMClient : LLMBase
     /// LLM на базе vLLM клиента
     /// </summary>
     /// <param name="settingsLLM">Настройки LLM</param>
-    /// <param name="streamHandler">Обработчик стриминга</param>
-    public LLMWithVLLMClient(LLMOptions settingsLLM, IStreamHandler streamHandler = null) 
-        : base(Init(settingsLLM, streamHandler), settingsLLM) { }
+    public LLMWithVLLMClient(LLMOptions settingsLLM)
+        : base(Init(settingsLLM), settingsLLM) { }
 
     // Инициализация для конструктора
-    private static ChatLLMApi Init(LLMOptions vLLMSettings, IStreamHandler streamHandler)
+    private static ChatLLMApi Init(LLMOptions vLLMSettings)
     {
         VLLMClient client = new VLLMClient(
             vLLMSettings.ModelName,
             vLLMSettings.SystemPrompt,
             vLLMSettings.Host,
-            vLLMSettings.ApiKey,
-            streamHandler
+            vLLMSettings.ApiKey
             );
 
         return client;

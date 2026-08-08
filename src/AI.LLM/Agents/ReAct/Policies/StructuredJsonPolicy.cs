@@ -166,7 +166,8 @@ public sealed class StructuredJsonPolicy : IReActPolicy
 
         return async (system, user, ct) =>
         {
-            GenerateSettings effective = settings ?? new GenerateSettings(temperature: 0.0, maxTokens: 800);
+            // Копия: настройки общие на все обращения, а формат ответа доопределяется здесь.
+            GenerateSettings effective = settings?.Clone() ?? new GenerateSettings(temperature: 0.0, maxTokens: 800);
             if (requestJsonResponseFormat)
                 effective.ResponseFormat ??= ResponseFormat.CreateJsonObject();
 

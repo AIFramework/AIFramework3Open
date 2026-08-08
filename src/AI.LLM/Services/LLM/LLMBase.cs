@@ -32,7 +32,10 @@ public class LLMBase : ILLMClient
     /// <returns>GenerateSettings с примененными параметрами из LLMOptions</returns>
     protected GenerateSettings ApplyReasoningSettings(GenerateSettings baseSettings)
     {
-        var settings = baseSettings ?? new GenerateSettings();
+        // Копия, а не объект вызывающего: один и тот же экземпляр настроек может быть общим на
+        // несколько клиентов с разными LLMOptions, и подмешивать свои значения в чужой объект
+        // значит переписать его последнему вызвавшему.
+        var settings = baseSettings?.Clone() ?? new GenerateSettings();
 
         if (_llmOptions == null)
             return settings;

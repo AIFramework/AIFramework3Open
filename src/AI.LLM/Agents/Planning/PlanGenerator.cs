@@ -124,8 +124,16 @@ public sealed class PlanGenerator
         sb.AppendLine($"- Максимум {_config.MaxSteps} шагов");
         sb.AppendLine("- Каждый шаг имеет уникальный id (step_0, step_1, ...)");
         sb.AppendLine("- depends_on — массив id шагов, которые ДОЛЖНЫ быть выполнены ДО этого шага");
-        sb.AppendLine("- Если для шага есть подходящий инструмент — укажи его в поле tool и аргументы в args");
+        sb.AppendLine("- Если для шага есть подходящий инструмент — укажи его в поле tool");
+        sb.AppendLine("- tool — имя ДОСЛОВНО из списка ниже. Придуманного имени не существует:");
+        sb.AppendLine("  шаг с ним исполнять нечем, и он выродится в обычный текстовый ответ.");
         sb.AppendLine("- Если подходящего инструмента нет — оставь tool = null");
+        sb.AppendLine("- Меньше шагов лучше. Один шаг = одна ответственность; не дроби ради дробления");
+        sb.AppendLine("  и не заводи служебных шагов («разобрать запрос», «уточнить у пользователя»,");
+        sb.AppendLine("  «проверить результат», «собрать итог») — это делает сам движок.");
+        sb.AppendLine("- description — задание ЭТОГО шага в повелительном наклонении, а не пересказ");
+        sb.AppendLine("  всего запроса: исполнитель получает только его и сделает ровно написанное.");
+        sb.AppendLine("  Всё, что нужно шагу для работы (тема, объём, стиль, формат), пиши прямо в нём.");
         sb.AppendLine("- done_when — КРИТЕРИЙ ГОТОВНОСТИ шага: по чему видно, что он СДЕЛАН, а не начат.");
         sb.AppendLine("  Пиши проверяемый признак РЕЗУЛЬТАТА, а не пересказ задачи:");
         sb.AppendLine("  плохо: «эссе написано»; хорошо: «в ответе есть готовый текст эссе не короче 2000 знаков».");
@@ -134,6 +142,9 @@ public sealed class PlanGenerator
         sb.AppendLine("- outputs — что шаг передаёт дальше: {\"имя_порта_инструмента\": \"идентификатор_артефакта\"}");
         sb.AppendLine("- input_mapping — откуда шаг берёт данные: {\"имя_порта_инструмента\": \"источник\"}");
         sb.AppendLine("- Источник — либо \"step_X.outputs.порт\" (шаг step_X ОБЯЗАН быть в depends_on), либо \"user_context.ключ\"");
+        sb.AppendLine("- ДАННЫЕ передаются ТОЛЬКО через input_mapping. В args — лишь литеральные");
+        sb.AppendLine("  константы самого шага (формат, язык, число); копировать туда текст запроса");
+        sb.AppendLine("  или результат предыдущего шага не нужно — он придёт портом.");
 
         if (tools is { Count: > 0 })
         {
@@ -142,8 +153,11 @@ public sealed class PlanGenerator
             foreach (var def in tools.GetDefinitions())
             {
                 sb.AppendLine($"- **{def.Function.Name}**: {def.Function.Description}");
-                if (def.Function.Parameters.HasValue)
-                    sb.AppendLine($"  Параметры: {def.Function.Parameters.Value}");
+
+                // Пустую схему не печатаем. «Параметры: {}» — не сведение, а приглашение
+                // придумать аргументы: модель заполняет args тем, что и так придёт портом.
+                if (DeclaresParameters(def.Function.Parameters))
+                    sb.AppendLine($"  Параметры: {def.Function.Parameters!.Value}");
             }
         }
 
@@ -181,6 +195,24 @@ public sealed class PlanGenerator
         sb.AppendLine("```");
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Объявляет ли схема хотя бы один параметр.
+    /// </summary>
+    /// <remarks>
+    /// Инструмент без параметров — обычное дело там, где данные ходят портами
+    /// (<see cref="PlanStep.InputMapping"/>), а не аргументами вызова. Печатать ему
+    /// «Параметры: {"type":"object","properties":{}}» значит занимать место в промпте строкой,
+    /// которая ничего не сообщает, и наводить модель на мысль, что аргументы всё-таки нужны.
+    /// </remarks>
+    private static bool DeclaresParameters(JsonElement? schema)
+    {
+        if (schema is not { ValueKind: JsonValueKind.Object } value) return false;
+
+        return value.TryGetProperty("properties", out var properties)
+               && properties.ValueKind == JsonValueKind.Object
+               && properties.EnumerateObject().Any();
     }
 
     #endregion

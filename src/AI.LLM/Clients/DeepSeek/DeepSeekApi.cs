@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using AI.LLM.Clients.Base;
-using AI.LLM.Core.Abstractions;
 
 namespace AI.LLM.Clients.DeepSeek;
 
@@ -13,7 +12,7 @@ namespace AI.LLM.Clients.DeepSeek;
 [Serializable]
 public class DeepSeekApi : ChatLLMApi
 {
-    public DeepSeekApi(string apiKey, string modelName, IStreamHandler streamSender = null, string prompt = "", IEnumerable<WebProxy> proxies = null) : base(apiKey: apiKey, modelName: modelName, prompt: prompt, streamSender: streamSender, proxies: proxies)
+    public DeepSeekApi(string apiKey, string modelName, string prompt = "", IEnumerable<WebProxy> proxies = null) : base(apiKey: apiKey, modelName: modelName, prompt: prompt, proxies: proxies)
     {
         ApiUrl = "https://api.deepseek.com/v1/chat/completions";
     }

@@ -146,6 +146,28 @@ public partial class SendDataLLM
 
     #endregion
 
+    #region Модальности и учёт
+
+    /// <summary>
+    /// Модальности ответа: <c>["image", "text"]</c> для моделей с выводом изображений.
+    /// </summary>
+    [JsonPropertyName("modalities")]
+    public List<string> Modalities { get; set; }
+
+    /// <summary>
+    /// Просьба вернуть блок <c>usage</c> с фактической стоимостью (<c>usage: {include: true}</c>).
+    /// </summary>
+    [JsonPropertyName("usage")]
+    public UsageRequest Usage { get; set; }
+
+    /// <summary>
+    /// Просьба присылать рассуждения модели в ответе.
+    /// </summary>
+    [JsonPropertyName("include_reasoning")]
+    public bool? IncludeReasoning { get; set; }
+
+    #endregion
+
     #region Function Calling
 
     /// <summary>

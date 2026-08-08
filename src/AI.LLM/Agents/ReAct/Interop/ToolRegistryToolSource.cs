@@ -12,22 +12,13 @@ namespace AI.LLM.Agents.ReAct.Interop;
 /// </summary>
 public sealed class ToolRegistryToolSource : IReActToolSource
 {
-    private readonly List<IReActTool> _tools;
+    private readonly ToolRegistry _registry;
 
     /// <summary>Создаёт источник поверх реестра.</summary>
     /// <param name="registry">Реестр инструментов.</param>
     public ToolRegistryToolSource(ToolRegistry registry)
     {
-        ArgumentNullException.ThrowIfNull(registry);
-
-        _tools = [];
-        foreach (ToolDefinition definition in registry.GetDefinitions())
-        {
-            if (definition?.Function?.Name is not { Length: > 0 } name)
-                continue;
-
-            _tools.Add(new RegistryTool(registry, definition, name));
-        }
+        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
     }
 
     /// <summary>Создаёт источник из объектов с методами-инструментами.</summary>
@@ -36,7 +27,26 @@ public sealed class ToolRegistryToolSource : IReActToolSource
         new(ToolRegistry.FromObjects(toolInstances));
 
     /// <inheritdoc />
-    public IEnumerable<IReActTool> GetTools(ReActRunContext context) => _tools;
+    /// <remarks>
+    /// Набор читается из реестра на КАЖДОМ прогоне, а не снимается один раз при сборке. Реестр
+    /// потокобезопасен и допускает регистрацию во время работы (имя инструмента может приходить
+    /// из данных), а исполнение и без того резолвит инструмент по имени в момент вызова: снимок
+    /// означал бы, что зарегистрированный позже инструмент исполнить можно, а увидеть его в
+    /// списке модель не может.
+    /// </remarks>
+    public IEnumerable<IReActTool> GetTools(ReActRunContext context)
+    {
+        var tools = new List<IReActTool>(_registry.Count);
+        foreach (ToolDefinition definition in _registry.GetDefinitions())
+        {
+            if (definition?.Function?.Name is not { Length: > 0 } name)
+                continue;
+
+            tools.Add(new RegistryTool(_registry, definition, name));
+        }
+
+        return tools;
+    }
 
     /// <summary>Один инструмент реестра, приведённый к контракту цикла.</summary>
     private sealed class RegistryTool : IReActTool

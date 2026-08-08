@@ -59,8 +59,8 @@ public class GenerateSettings
 
     #region Настройки потоковой передачи
 
-    public string StreamId { get; }
-    public string StreamMethod { get; }
+    public string StreamId { get; private set; }
+    public string StreamMethod { get; private set; }
 
     /// <summary>
     /// Включена ли потоковая передача.
@@ -86,6 +86,35 @@ public class GenerateSettings
     /// Поддерживается OpenAI, Gemini, OpenRouter.
     /// </summary>
     public ResponseFormat ResponseFormat { get; set; }
+
+    /// <summary>
+    /// Модальности ответа: <c>["image", "text"]</c> для моделей, рисующих картинки.
+    /// </summary>
+    /// <remarks>
+    /// Без этого поля модель с выводом изображений отвечает одним текстом: генерация картинки —
+    /// это отдельная модальность ответа, а не отдельный эндпоинт. <c>null</c> — поле не уходит,
+    /// поведение обычных текстовых моделей не меняется.
+    /// </remarks>
+    public List<string> Modalities { get; set; }
+
+    /// <summary>
+    /// Просить провайдера вернуть блок <c>usage</c> с фактической стоимостью запроса.
+    /// </summary>
+    /// <remarks>
+    /// Токены агрегаторы отдают и так, а вот стоимость — только по запросу
+    /// (<c>usage: {include: true}</c> у OpenRouter). Тому, кто считает по расходу деньги, цена
+    /// апстрима нужнее пересчёта токенов по прайсу: она уже учитывает и скидки, и кэш.
+    /// </remarks>
+    public bool? IncludeUsage { get; set; }
+
+    /// <summary>
+    /// Просить провайдера присылать рассуждения модели (<c>include_reasoning</c>).
+    /// </summary>
+    /// <remarks>
+    /// Отдельно от <see cref="ReasoningSettings"/>: те задают бюджет и усилие рассуждения, а это —
+    /// возвращать ли его в ответе. Часть моделей молчит о рассуждениях, пока их не попросят явно.
+    /// </remarks>
+    public bool? IncludeReasoning { get; set; }
 
     #endregion
 
@@ -125,6 +154,59 @@ public class GenerateSettings
         StreamId = streamId;
         StreamMethod = streamMethod;
         ReasoningEffort = reasoningEffort;
+    }
+
+    #endregion
+
+    #region Копирование
+
+    /// <summary>
+    /// Копия настроек.
+    /// </summary>
+    /// <remarks>
+    /// Один экземпляр настроек обычно задаётся при сборке и живёт дольше отдельного запроса,
+    /// а запрос почти всегда что-то в них доопределяет: список инструментов, формат ответа,
+    /// идентификатор потока. Правка общего экземпляра достаётся всем соседним запросам — при
+    /// параллельной работе это чужой список инструментов в чужом запросе. Поэтому доопределять
+    /// нужно копию, а не то, что дал вызывающий.
+    /// <para>
+    /// Копия поверхностная: <see cref="ReasoningSettings"/>, <see cref="ResponseFormat"/> и
+    /// <see cref="ToolChoice"/> задаются целиком, а не правятся по месту, поэтому разделять их
+    /// между копиями безопасно. Списки копируются — их как раз принято дополнять.
+    /// </para>
+    /// <para>
+    /// Наследникам переопределять не нужно: копируется фактический тип со всеми его полями.
+    /// </para>
+    /// </remarks>
+    public GenerateSettings Clone()
+    {
+        var copy = (GenerateSettings)MemberwiseClone();
+
+        if (Tools != null)
+            copy.Tools = [.. Tools];
+
+        if (Modalities != null)
+            copy.Modalities = [.. Modalities];
+
+        return copy;
+    }
+
+    /// <summary>
+    /// Копия настроек с заданным потоковым режимом.
+    /// </summary>
+    /// <param name="streamId">Идентификатор потока.</param>
+    /// <param name="streamMethod">Метод потоковой выдачи; <c>null</c> — сохранить текущий.</param>
+    /// <remarks>
+    /// <see cref="StreamId"/> и <see cref="StreamMethod"/> задаются только при создании: включение
+    /// потока меняет способ разбора ответа, и менять его у живого объекта, которым уже кто-то
+    /// пользуется, нельзя. Здесь же создаётся новый объект, поэтому включение безопасно.
+    /// </remarks>
+    public GenerateSettings CloneWithStream(string streamId, string streamMethod = null)
+    {
+        var copy = Clone();
+        copy.StreamId = streamId;
+        copy.StreamMethod = streamMethod ?? StreamMethod;
+        return copy;
     }
 
     #endregion

@@ -124,12 +124,16 @@ public class LLMMessage
             throw new ArgumentException("Role cannot be null or whitespace.", nameof(role));
 
         Role = role;
-        if (role == "user")
-            Content = content;
-        else
-            // Для не-user ролей контент сводится к тексту (все текстовые части через перенос строки);
-            // изображения при этом отбрасываются — ограничение API: картинки поддерживаются только в user-сообщениях.
-            Content = content.ToString();
+
+        // Для не-user ролей контент сводится к тексту (все текстовые части через перенос строки);
+        // изображения при этом отбрасываются — ограничение API: картинки поддерживаются только
+        // в user-сообщениях.
+        // Исключение — метки кеширования: они существуют только на частях контента, и схлопывание
+        // в строку молча отменило бы кеширование системного промпта, ради которого их и ставили.
+        var keepsParts = role == UserRole
+            || content.OfType<Content.TextContentItem>().Any(part => part.CacheControl != null);
+
+        Content = keepsParts ? content : (object)content.ToString();
     }
 
     /// <summary>

@@ -125,12 +125,15 @@ public sealed partial class ReActEngine
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var slots = new ReActObservation[actions.Count];
+        var canonical = new ReActAction[actions.Count];
         var pending = new List<PlannedCall>(actions.Count);
         string note = null;
 
         for (int i = 0; i < actions.Count; i++)
         {
             ReActAction action = actions[i];
+            canonical[i] = action;
+
             IReActTool tool = Resolve(run.Tools, action.ToolName);
             if (tool == null)
             {
@@ -145,6 +148,16 @@ public sealed partial class ReActEngine
                 continue;
             }
 
+            // Резолв прощает регистр и разделители, поэтому один инструмент приходит под разными
+            // именами (web_search, web-search, Web Search). Дальше по ходу имя участвует в ключе
+            // повтора, в счёте падений подряд и в переписке с провайдером — везде оно должно быть
+            // одно и то же, каноническое, иначе те же вызовы не узнаются как те же самые.
+            if (!string.Equals(tool.Name, action.ToolName, StringComparison.Ordinal))
+            {
+                action = new ReActAction(tool.Name, action.Arguments, action.Id);
+                canonical[i] = action;
+            }
+
             string key = ReActActionKey.Create(action.ToolName, action.Arguments);
             ReActObservation cached = run.Trace.Recall(key);
             if (cached != null)
@@ -152,9 +165,14 @@ public sealed partial class ReActEngine
                 // Тот же вызов с тем же аргументом — исполнять заново незачем: результат
                 // не изменится, а бюджет шагов уйдёт. Модели возвращаем прежнее наблюдение
                 // вместе с замечанием.
-                slots[i] = cached;
+                //
+                // Но привязанным к ТЕКУЩЕМУ вызову: наблюдение несёт идентификатор породившего
+                // его действия, и переиспользование прежнего означало бы два вызова с одним id
+                // в одной переписке — такой запрос провайдер отвергает целиком.
+                ReActObservation repeated = cached.Action == action ? cached : cached with { Action = action };
+                slots[i] = repeated;
                 note = _template.BuildRepeatedActionNote(tool.Name);
-                yield return new ReActEvent.Observed(step, cached);
+                yield return new ReActEvent.Observed(step, repeated);
                 continue;
             }
 
@@ -179,7 +197,7 @@ public sealed partial class ReActEngine
         {
             Number = step,
             Thought = thought,
-            Actions = actions,
+            Actions = canonical,
             Observations = observations,
             Note = note,
         });

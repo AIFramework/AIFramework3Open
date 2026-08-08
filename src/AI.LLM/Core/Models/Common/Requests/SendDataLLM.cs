@@ -39,7 +39,14 @@ public partial class SendDataLLM
         ResponseFormat = generateSettings.ResponseFormat;
         Tools = generateSettings.Tools;
         ToolChoice = generateSettings.ToolChoice;
+        Modalities = generateSettings.Modalities;
+        IncludeReasoning = generateSettings.IncludeReasoning;
         Messages = new List<LLMMessage>();
+
+        // Блок usage уходит, только если его попросили: провайдеры, которые его не знают,
+        // на лишнее поле в теле отвечают ошибкой.
+        if (generateSettings.IncludeUsage == true)
+            Usage = new UsageRequest();
 
         // VLLM совместимость: пробрасываем max_reasoning_tokens на верхний уровень JSON
         if (generateSettings.ReasoningSettings?.MaxTokens != null)

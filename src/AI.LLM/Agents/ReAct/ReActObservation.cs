@@ -5,7 +5,12 @@ namespace AI.LLM.Agents.ReAct;
 /// <summary>
 /// Результат одного действия — то, что модель увидит на следующем шаге.
 /// </summary>
-public sealed class ReActObservation
+/// <remarks>
+/// Запись, а не класс: при повторе действия прежнее наблюдение переиспользуется, но привязывается
+/// к новому вызову (<c>observation with { Action = … }</c>) — идентификатор вызова обязан быть тем,
+/// что модель прислала сейчас.
+/// </remarks>
+public sealed record ReActObservation
 {
     /// <summary>Действие, породившее наблюдение.</summary>
     public ReActAction Action { get; init; }

@@ -4,6 +4,7 @@ using AI.LLM.Agents.Planning;
 using AI.LLM.Agents.Tools;
 using AI.LLM.Clients.Base;
 using AI.LLM.Core.Abstractions;
+using AI.LLM.Core.Models.Common.Requests;
 using AI.LLM.Services.LLM;
 
 namespace AI.LLM.Agents.Orchestration;
@@ -33,6 +34,9 @@ public sealed class PlanningAgentBuilder
     private readonly List<Skill> _skills = [];
     private string _systemPrompt = "";
     private IStepValidator _validator;
+    private IAsyncStepValidator _asyncValidator;
+    private bool _llmValidator;
+    private GenerateSettings _llmValidatorSettings;
     private IAgentGuard _guard;
     private IObservationProvider _observer;
     private readonly PlanningAgentConfig _config = new();
@@ -65,6 +69,27 @@ public sealed class PlanningAgentBuilder
 
     /// <summary>Кастомный валидатор успешности шага.</summary>
     public PlanningAgentBuilder WithStepValidator(IStepValidator validator) { _validator = validator; return this; }
+
+    /// <summary>Кастомная приёмка шага с вводом-выводом (например через модель).</summary>
+    public PlanningAgentBuilder WithStepValidator(IAsyncStepValidator validator) { _asyncValidator = validator; return this; }
+
+    /// <summary>
+    /// Принимать шаги по их критерию готовности (<see cref="Planning.PlanStep.DoneWhen"/>)
+    /// через модель — тем же клиентом, что задан в <c>WithLLM</c>.
+    /// </summary>
+    /// <param name="settings">Настройки генерации приёмки; <c>null</c> — умеренные значения.</param>
+    /// <remarks>
+    /// По умолчанию приёмка обходится без модели (<see cref="DefaultStepValidator"/>) и потому
+    /// критерий готовности проверить не может — она ловит лишь пустой ответ и явный отказ.
+    /// Этот режим стоит одного короткого запроса на шаг и оправдан там, где шаг может «отчитаться»
+    /// планом работы вместо самой работы.
+    /// </remarks>
+    public PlanningAgentBuilder WithLlmStepValidator(GenerateSettings settings = null)
+    {
+        _llmValidator = true;
+        _llmValidatorSettings = settings;
+        return this;
+    }
 
     /// <summary>Защитный механизм для исполняющего агента.</summary>
     public PlanningAgentBuilder WithGuard(IAgentGuard guard) { _guard = guard; return this; }
@@ -102,9 +127,13 @@ public sealed class PlanningAgentBuilder
         foreach (var s in _skills)        plannerBuilder.WithSkill(s);
         var planner = plannerBuilder.Build();
 
+        var asyncValidator = _asyncValidator
+            ?? (_llmValidator ? new LlmStepValidator(_llm, _llmValidatorSettings) : null);
+
         return new PlanningAgent(
             agent, agentFactory, planner, memory,
             _validator ?? new DefaultStepValidator(),
+            asyncValidator,
             _config);
     }
 

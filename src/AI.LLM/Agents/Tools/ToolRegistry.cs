@@ -183,6 +183,48 @@ public sealed class ToolRegistry
         return messages;
     }
 
+    /// <summary>
+    /// Преобразует результаты в сообщения для моделей БЕЗ нативного function calling: один
+    /// <c>role=user</c> с текстом результатов и приложенными изображениями.
+    /// </summary>
+    /// <remarks>
+    /// Ответ <c>role=tool</c> обязан ссылаться на <c>tool_call_id</c> из ответа модели. Когда
+    /// вызовы разобраны из текста, у провайдера таких идентификаторов нет — он их не выдавал, —
+    /// и переписка с ответом на несуществующий вызов отвергается целиком. Поэтому результат
+    /// возвращается тем же способом, каким был запрошен: текстом.
+    /// </remarks>
+    public static List<LLMMessage> ToPromptResultMessages(IEnumerable<ToolExecutionResult> results)
+    {
+        var sb = new System.Text.StringBuilder();
+        var images = new List<AgentImage>();
+
+        foreach (var r in results)
+        {
+            sb.Append("### Результат инструмента \"").Append(r.ToolName).Append('"');
+            if (!r.IsSuccess) sb.Append(" (ошибка)");
+            sb.AppendLine();
+            sb.AppendLine(r.Content);
+            sb.AppendLine();
+
+            if (r.HasImages)
+                images.AddRange(r.Images);
+        }
+
+        if (sb.Length == 0)
+            return [];
+
+        var text = sb.ToString().TrimEnd();
+
+        if (images.Count == 0)
+            return [LLMMessage.CreateMessage(Roles.User, text)];
+
+        var content = new MessageContent(text);
+        foreach (var img in images)
+            content.AddImage(img.Data);
+
+        return [new LLMMessage(LLMMessage.UserRole, content)];
+    }
+
     #endregion
 
     #region Сканирование атрибутов (единая точка для Agent, MCP, SK)
