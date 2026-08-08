@@ -50,12 +50,66 @@ public record DemoSettings
     public bool DarkTheme { get; init; } = true;
 }
 
+/// <summary>Тон метрики: подсветка ключевого числа без чтения всего лога.</summary>
+public enum MetricTone { Neutral, Good, Warn, Bad }
+
+/// <summary>
+/// Ключевое число результата — выносится плашкой над графиком.
+/// Не более 4–5 штук на демо: смысл в том, чтобы главное было видно сразу.
+/// </summary>
+/// <param name="Label">Что измерено, например «Лучший документ».</param>
+/// <param name="Value">Значение уже отформатированной строкой.</param>
+/// <param name="Unit">Единица измерения, если есть.</param>
+/// <param name="Hint">Пояснение во всплывающей подсказке.</param>
+public record DemoMetric(
+    string Label,
+    string Value,
+    string? Unit = null,
+    string? Hint = null,
+    MetricTone Tone = MetricTone.Neutral);
+
+/// <summary>
+/// Таблица результата вместо выровненных пробелами строк в моноширинном логе.
+/// </summary>
+/// <param name="Numeric">
+/// Флаги «колонка числовая» по индексу: такие выравниваются вправо
+/// и получают табличные цифры. Может быть короче списка заголовков.
+/// </param>
+public record DemoTable(
+    string Title,
+    IReadOnlyList<string> Headers,
+    IReadOnlyList<IReadOnlyList<string>> Rows,
+    IReadOnlyList<bool>? Numeric = null,
+    string? Note = null);
+
+/// <summary>
+/// Структурированный результат демо: метрики + таблицы.
+/// Дополняет, а не заменяет <see cref="DemoResult.TextOutput"/> — полный
+/// текстовый лог остаётся доступным под спойлером.
+/// </summary>
+public record DemoReport
+{
+    public IReadOnlyList<DemoMetric> Metrics { get; init; } = [];
+    public IReadOnlyList<DemoTable>  Tables  { get; init; } = [];
+
+    /// <summary>Пояснение под метриками: как читать результат.</summary>
+    public string? Note { get; init; }
+
+    public bool IsEmpty => Metrics.Count == 0 && Tables.Count == 0 && string.IsNullOrEmpty(Note);
+}
+
 public record DemoResult
 {
     public string? PngDataUrl { get; init; }
     public string? TextOutput { get; init; }
     public string? Error { get; init; }
     public bool NeedsImageUpload { get; init; }
+
+    /// <summary>
+    /// Структурированный вывод: метрики и таблицы. Когда задан, UI показывает
+    /// его вместо «стены» моноширинного текста, а сам текст прячет под спойлер.
+    /// </summary>
+    public DemoReport? Report { get; init; }
 
     /// <summary>
     /// JSON for interactive Plotly.js 3D chart. When set, the UI renders

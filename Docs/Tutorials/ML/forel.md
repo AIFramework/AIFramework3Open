@@ -45,7 +45,7 @@ $$
 | `DistanceFunction` | `Func<Vector,Vector,double>` | Метрика расстояния |
 | `Clusters` | `Cluster[]` | Результирующие кластеры (центроид + данные) |
 
-## Пример использования
+## Примеры
 
 ```csharp
 using AI.ML.Clustering;
@@ -65,3 +65,4 @@ int label = forel.Classify(newPoint);
 | Скорость | выше | ниже |
 | Форма кластеров | сферическая | сферическая |
 | Обработка выбросов | слабая | умеренная |
+

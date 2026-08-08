@@ -43,8 +43,13 @@
 @import "./components/hero.css"        layer(aif);
 @import "./components/features.css"    layer(aif);
 @import "./components/algo-layout.css" layer(aif);
+@import "./components/result-report.css" layer(aif);
 @import "./components/overlay.css"     layer(aif);
 @import "./components/image-drop.css"  layer(aif);
 @import "./components/empty-state.css"     layer(aif);
 @import "./components/error-banner.css"    layer(aif);
 @import "./components/reconnect-modal.css" layer(aif);
+
+/* Доступность — последней в слое, чтобы :focus-visible перебивал
+   :focus-правила компонентов при равной специфичности. */
+@import "./base/a11y.css" layer(aif);

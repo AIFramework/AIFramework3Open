@@ -52,6 +52,7 @@ $$c_1(i, u, j) = \alpha_1 (d_{iu} + d_{uj} - \mu \cdot d_{ij}) + \alpha_2 \cdot 
 
 где $r$ — число маршрутов.
 
-## API (C#)
+## API
 
 Класс `ClarkeWrightSolver` в пространстве имён `AI.Routing`. Метод `BuildInitialSolution(problem)` возвращает начальный набор маршрутов.
+

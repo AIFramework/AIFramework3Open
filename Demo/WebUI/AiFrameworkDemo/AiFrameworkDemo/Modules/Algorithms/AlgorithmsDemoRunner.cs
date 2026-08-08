@@ -31,11 +31,13 @@ namespace AiFrameworkDemo.Modules.Algorithms
 
         public static DemoResult Run(string key, IReadOnlyDictionary<string, double> p, DemoSettings s)
         {
-            var cv = MakeView(s);
+            var cv  = MakeView(s);
+            var rep = new ReportBuilder();
             string? txt = null;
 
             switch (key)
             {
+                case "mapf_sipp":        txt = DoSipp(p, cv, rep); break;
                 case "bfs_dfs":          txt = DoBfsDfs(p, cv); break;
                 case "dijkstra_demo":    txt = DoDijkstra(p, cv); break;
                 case "bellman_ford":     txt = DoBellmanFord(p, cv); break;
@@ -68,7 +70,7 @@ namespace AiFrameworkDemo.Modules.Algorithms
                     return new DemoResult { Error = $"Неизвестный ключ «{key}»" };
             }
 
-            return Png(cv, s, textOutput: txt);
+            return Png(cv, s, textOutput: txt, report: rep.Build());
         }
 
         #region Helpers

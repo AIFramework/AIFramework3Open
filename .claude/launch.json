@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "AiFrameworkDemo",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": [
+        "run",
+        "--project",
+        "Demo/WebUI/AiFrameworkDemo/AiFrameworkDemo/AiFrameworkDemo.csproj",
+        "--urls",
+        "http://localhost:5170"
+      ],
+      "port": 5170
+    }
+  ]
+}

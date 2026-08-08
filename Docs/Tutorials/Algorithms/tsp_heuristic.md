@@ -49,6 +49,7 @@ $$G = \sum_{i=1}^{k} g_i > 0, \quad g_i = d(x_i) - d(y_i)$$
 | Or-opt | $O(n^2)$ |
 | Lin—Kernighan | $O(n^2)$ – $O(n^3)$ |
 
-## API (C#)
+## API
 
 Класс `TSPSolver` в пространстве имён `AI.Routing`. Методы `Solve2Opt()`, `SolveLK()`, `SolveChristofides()`.
+

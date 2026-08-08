@@ -37,6 +37,7 @@
 @import "./base/reset.css";
 @import "./base/animations.css";
 @import "./base/typography.css";
+@import "./base/a11y.css";   /* после typography: перебивает :focus-стили компонентов */
 
 /* ── 3. COMPONENTS ────────────────────────────────────────────────── */
 
@@ -58,6 +59,9 @@
 @import "./components/hero.css";
 @import "./components/features.css";
 @import "./components/algo-layout.css";
+
+/* Результат демо: метрики и таблицы */
+@import "./components/result-report.css";
 
 /* Оверлеи и модальные окна */
 @import "./components/overlay.css";

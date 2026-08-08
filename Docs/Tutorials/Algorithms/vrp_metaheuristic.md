@@ -41,6 +41,7 @@ $$p_{ij} = \frac{\tau_{ij}^\alpha \cdot \eta_{ij}^\beta}{\sum_k \tau_{ik}^\alpha
 
 Принятие ухудшающего решения с вероятностью $e^{-\Delta / T}$, где $T$ — температура, снижающаяся по расписанию.
 
-## API (C#)
+## API
 
 Класс `ALNSSolver`, `GeneticVRP`, `TabuSearchVRP` в пространстве имён `AI.Routing`. Метод `Solve(problem, timeLimit)` возвращает лучшее найденное решение.
+

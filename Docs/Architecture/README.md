@@ -6,6 +6,7 @@
 
 | Область | Файл |
 |---------|------|
+| LLM и агенты **`AI.LLM`**: клиенты моделей, ReAct, инструменты, MCP, Semantic Kernel | [LLM.md](LLM.md) |
 | Базовое ядро **`AI`**: векторы, матрицы, статистика, расширения | [AI-Core.md](AI-Core.md) |
 | Машинное обучение: **`AI.ML`**, **`AI.ClassicMath`**, смежные сборки | [MachineLearning.md](MachineLearning.md) |
 | Нейронные сети: **`AI.NeuralNetworks`**, **`AI.NeuralNetworks.Gpu`** | [NeuralNetworks.md](NeuralNetworks.md) |
@@ -41,10 +42,15 @@ flowchart TB
   ALG["AI.Algorithms"]
   GEO["AI.Geometry"]
   CV["AI.ComputerVision"]
+  EX["AI.ExplainitALL"]
+  LLM["AI.LLM — агенты, модели"]
 
   AI --> CM
   AI --> ALG
   AI --> GEO
+  AI --> LLM
+  ALG --> LLM
+  EX --> LLM
   CM --> ML
   ML --> NN
   NN --> NNG
@@ -67,6 +73,7 @@ flowchart TB
 - **`AI.ControlSystems`** опирается на **`AI`**, **`AI.ML`** и классическую математику через цепочку **`AI.ML` → AI.ClassicMath → AI**.
 - **`AI.NeuralNetworks.Gpu`** — GPU-ускорение V2 Tensor Engine через ILGPU/CUDA.
 - **`AI.ComputerVision`** использует **`AI.DSP`** для 1D FFT (в основе 2D FFT).
+- **`AI.LLM`** — единственная сборка, которая ходит в сеть. Она подключает **`AI`**, **`AI.Algorithms`** (план как DAG с ярусной раскладкой) и **`AI.ExplainitALL`** (метрики для проверки ответа). Обратных зависимостей нет: математические сборки о ней не знают и собираются без сетевого слоя.
 
 Корневые файлы решения: **`AIFramework.sln`**, **`AIFramework-Core.sln`**, а также узкие подборки в каталоге **`SLNS/`**.
 
@@ -74,7 +81,7 @@ flowchart TB
 
 ## Стандарт кода
 
-Единые правила для всех 23 библиотек описаны в **[../../CODING_STANDARD.md](../../CODING_STANDARD.md)**: форматирование, именование, публичный API (`Vector`/`Matrix`/`NDTensor`), интерфейсы (`IAlgorithm`, `IEstimator`, `ITransformer`), XML-документация.
+Единые правила для всех 24 библиотек описаны в **[../../CODING_STANDARD.md](../../CODING_STANDARD.md)**: форматирование, именование, публичный API (`Vector`/`Matrix`/`NDTensor`), интерфейсы (`IAlgorithm`, `IEstimator`, `ITransformer`), XML-документация.
 
 ---
 

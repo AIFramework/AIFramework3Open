@@ -150,6 +150,15 @@
   --aif-status-ok:  #a5f3fc;
   --aif-status-err: #f87171;
 
+  /* ─── FOCUS — клавиатурная навигация (:focus-visible) ────────────── */
+  /* Кольцо строится из двух слоёв: внутренний контрастный к фону
+     компонента, внешний — к фону страницы. Так индикатор остаётся
+     видимым и на светлых карточках, и на тёмных кнопках.            */
+  --aif-focus-ring:        #a5b4fc;
+  --aif-focus-ring-inner:  rgba(3, 4, 14, 0.85);
+  --aif-focus-ring-width:  2px;
+  --aif-focus-ring-offset: 2px;
+
   /* ─── РАДИУСЫ (Border Radius) ────────────────────────────────────── */
   --aif-r-xs:   0.3rem;
   --aif-r-sm:   0.375rem;
@@ -353,6 +362,10 @@
   --aif-status-ok:  #0c4a6e;
   --aif-status-err: #b91c1c;
 
+  /* ─── Focus (светлая тема) ───────────────────────────────────────── */
+  --aif-focus-ring:       #3730a3;
+  --aif-focus-ring-inner: rgba(255, 255, 255, 0.95);
+
   /* ─── Legacy алиасы (для совместимости со старыми компонентами) ─── */
   --aif-text:       #0f172a;
   --aif-text-muted: #475569;
@@ -393,6 +406,11 @@
   --aif-input-focus-ring:   rgba(67, 56, 202, 0.24);
   --aif-code-input-bg:      #f3f5f8;
   --aif-code-input-color:   var(--aif-text-1);
+
+  /* Фокус в высококонтрастном режиме — толще и темнее */
+  --aif-focus-ring:        #1e1a8c;
+  --aif-focus-ring-inner:  #ffffff;
+  --aif-focus-ring-width:  3px;
 
   --aif-topbar-bg:        #ffffff;
   --aif-shadow-xs:        0 1px 3px rgba(15, 23, 42, 0.12);

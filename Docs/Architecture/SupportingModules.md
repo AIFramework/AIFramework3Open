@@ -14,6 +14,9 @@
 | **`AI.Charts.JS`** | Plotly.js-рендеринг для Blazor Server: интерактивные 2D/3D графики в браузере. |
 | **`AI.Charts.WinForms`** | WinForms-визуализатор (`ChartVisual` UserControl): scatter, line, bar, polar, 3D. |
 | **`AI.Charts.Avalonia`** | Avalonia-визуализатор для кроссплатформенного desktop. |
+| **`AI.Solvers.Math`** | Символьная математика: разбор выражений (`AdvancedMathParser`), CAS-упрощение (приведение подобных, степени, дроби, тригонометрия), решатели производных, интегралов, ОДУ и УрЧП (эллиптические, гиперболические, Гельмгольца, перенос), таблица Лапласа. Зависимости: **`AI`**, **`AI.ClassicMath`**. |
+| **`AI.SignalLabs`** | Лаборатория радиосигналов: генераторы (синус, меандр), АРУ (прямая, логарифмическая, min-combine), фильтр «приподнятый косинус», цифровые модуляции (ASK, BPSK, QPSK, QAM8/16), квадратурная демодуляция, определитель типа модуляции. Зависимости: **`AI`**, **`AI.DSP`**. |
+| **`AI.ImageEditor`** | Ядро растрового редактора: слои и документ, `PixelBuffer` поверх BGRA, кисть, история отмен (`EditSession`/`UndoStep`), реестр фильтров (свёртка, точечные, Retinex). Единственная зависимость — **SkiaSharp**: алгоритмы взяты из **`AI.ComputerVision`** по смыслу, но переписаны на прямой доступ к байтам, потому что путь через `Matrix(double)` для интерактивного редактора слишком медленный. |
 
 Гибридные нечётко-ML типы (`FuzzyClassifier`, `LingVarGaussian` и т.п.) входят в **`AI.Fuzzy`** (отдельной сборки **`AI.FuzzyML`** в репозитории нет).
 
@@ -31,6 +34,7 @@
 
 ## См. также
 
+- [LLM.md](LLM.md) — **`AI.LLM`** (клиенты моделей, агенты, ReAct, MCP, Semantic Kernel)
 - [AI-Core.md](AI-Core.md) — ядро **`AI`**
 - [MachineLearning.md](MachineLearning.md) — **`AI.ML`** и цепочка **`ClassicMath`**
 - [NeuralNetworks.md](NeuralNetworks.md) — **`AI.NeuralNetworks`** и GPU

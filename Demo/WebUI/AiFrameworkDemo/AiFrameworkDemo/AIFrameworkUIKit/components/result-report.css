@@ -1,0 +1,205 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Result Report
+   Структурированный вывод демо: плашки метрик и таблицы результата.
+
+   Раньше весь результат приходил одной «стеной» моноширинного текста:
+   ключевое число (лучший документ, точность, время) терялось среди
+   тридцати строк лога. Здесь главное вынесено наверх, табличные данные
+   стали таблицей, а полный лог убран под спойлер.
+
+   Разметку строит AlgoPage из DemoReport (см. Core/ReportBuilder.cs).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Плашки ключевых чисел ──────────────────────────────────────── */
+.aif-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.6rem;
+  animation: aif-fade-up 0.25s ease both;
+}
+
+.aif-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--aif-border);
+  border-left: 3px solid var(--aif-cur, var(--aif-accent));
+  border-radius: var(--aif-r-md);
+  background: var(--aif-card-bg);
+  box-shadow: var(--aif-shadow-xs);
+  min-width: 0;
+}
+
+.aif-metric-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--aif-text-5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aif-metric-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--aif-text-1);
+  font-variant-numeric: tabular-nums;
+  /* Длинные значения (названия документов) переносим, а не обрезаем:
+     метрика без значения бесполезна. */
+  overflow-wrap: anywhere;
+}
+
+.aif-metric-unit {
+  margin-left: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--aif-text-5);
+}
+
+/* Тон: цветом выделяется только левая грань, чтобы плашки не пестрили */
+.aif-metric--good { border-left-color: var(--aif-status-ok); }
+.aif-metric--warn { border-left-color: #fbbf24; }
+.aif-metric--bad  { border-left-color: var(--aif-status-err); }
+
+.aif-metrics-note {
+  margin: -0.2rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--aif-text-5);
+}
+
+/* ─── Таблица результата ─────────────────────────────────────────── */
+.aif-result-table-wrap {
+  border: 1px solid var(--aif-border);
+  border-radius: var(--aif-r-lg);
+  background: var(--aif-card-bg);
+  overflow: hidden;
+  animation: aif-fade-up 0.25s ease both;
+}
+
+.aif-result-table-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--aif-border-dark);
+  background: var(--aif-surface-1);
+}
+
+.aif-result-table-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--aif-text-2);
+}
+
+.aif-result-table-count {
+  font-size: 0.7rem;
+  color: var(--aif-text-5);
+  white-space: nowrap;
+}
+
+/* Прокрутка живёт на обёртке, а не на странице: широкая таблица
+   не должна двигать весь макет по горизонтали. */
+.aif-result-table-scroll {
+  overflow-x: auto;
+  max-height: 26rem;
+  overflow-y: auto;
+}
+
+.aif-result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.aif-result-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.45rem 0.8rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--aif-text-4);
+  /* Не --aif-card-bg: в тёмной теме это градиент, то есть background-image
+     без цвета фона — строки просвечивали бы сквозь залипший заголовок.
+     --aif-glass-strong — сплошной цвет в обеих темах. */
+  background: var(--aif-glass-strong);
+  border-bottom: 1px solid var(--aif-border);
+  white-space: nowrap;
+}
+
+.aif-result-table td {
+  padding: 0.4rem 0.8rem;
+  color: var(--aif-text-3);
+  border-bottom: 1px solid var(--aif-border-dark);
+  vertical-align: top;
+}
+
+.aif-result-table tbody tr:last-child td { border-bottom: none; }
+.aif-result-table tbody tr:nth-child(even) { background: var(--aif-surface-1); }
+.aif-result-table tbody tr:hover { background: var(--aif-cur-bg, var(--aif-surface-2)); }
+
+/* Числа: моноширинные цифры и выравнивание вправо — иначе колонку
+   значений невозможно сравнивать взглядом. */
+.aif-result-table .aif-td-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--aif-font-mono);
+  white-space: nowrap;
+}
+.aif-result-table th.aif-td-num { text-align: right; }
+
+.aif-result-table-note {
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--aif-text-5);
+  border-top: 1px solid var(--aif-border-dark);
+}
+
+/* ─── Полный лог под спойлером ───────────────────────────────────── */
+.aif-text-result--collapsed {
+  padding: 0;
+}
+.aif-text-result--collapsed .aif-text-result-summary {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--aif-text-4);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.aif-text-result--collapsed .aif-text-result-summary::-webkit-details-marker {
+  display: none;
+}
+/* Собственный маркер: у details он по умолчанию неуправляем по цвету */
+.aif-text-result--collapsed .aif-text-result-summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.4rem;
+  transition: transform 0.15s ease;
+}
+.aif-text-result--collapsed[open] .aif-text-result-summary::before {
+  transform: rotate(90deg);
+}
+.aif-text-result--collapsed .aif-text-result-summary:hover {
+  color: var(--aif-text-2);
+}
+.aif-text-result--collapsed > pre {
+  padding: 0 1.25rem 1rem;
+}
+
+@media (max-width: 600px) {
+  .aif-metrics { grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); }
+  .aif-metric-value { font-size: 0.95rem; }
+}

@@ -49,7 +49,7 @@ $$
 - $R^2 \approx 0.0$ — модель не лучше среднего
 - $R^2 < 0$ — модель хуже константы $\bar y$
 
-## Пример
+## Примеры
 
 ```csharp
 var reg = new NeuralMultyRegression(
@@ -65,3 +65,4 @@ var reg = new NeuralMultyRegression(
 reg.Train(xTrain, yTrain);
 Vector prediction = reg.Predict(new Vector(new[] { 1.5 }));
 ```
+

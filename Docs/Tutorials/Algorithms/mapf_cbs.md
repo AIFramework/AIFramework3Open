@@ -38,6 +38,7 @@ Multi-Agent Path Finding (MAPF): даны $k$ агентов на графе $G$
 
 CBS оптимален, но в худшем случае экспоненциален по числу агентов.
 
-## API (C#)
+## API
 
 Класс `ConflictBasedSearch` в пространстве имён `AI.MAPF`. Метод `Solve(graph, agents)` возвращает набор бесконфликтных путей.
+

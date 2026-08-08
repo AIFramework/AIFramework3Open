@@ -21,6 +21,7 @@ public static partial class LlmDemoRunner
         IReadOnlyDictionary<string, string> tp,
         DemoSettings s)
     {
+        var rep = new ReportBuilder();
         string txt;
         try
         {
@@ -30,15 +31,17 @@ public static partial class LlmDemoRunner
                 "llm_context" => DoContext(p, tp),
                 "sk_demo"     => DoSemanticKernel(p, tp),
                 "ssrf_guard"  => DoSsrfGuard(p, tp),
+                "react_loop"  => DoReAct(p, tp, rep),
                 _             => $"Неизвестный ключ «{key}»",
             };
         }
         catch (Exception ex)
         {
+            rep = new ReportBuilder();
             txt = $"Ошибка: {ex.Message}\n{ex.StackTrace?.Split('\n').FirstOrDefault()}";
         }
 
-        return new DemoResult { TextOutput = txt };
+        return new DemoResult { TextOutput = txt, Report = rep.Build() };
     }
 
     private static string GetApiKey(IReadOnlyDictionary<string, string> tp) =>

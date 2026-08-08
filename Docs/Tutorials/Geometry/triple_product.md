@@ -27,7 +27,7 @@ $$V_{\text{параллелепипед}} = |a \cdot (b \times c)|$$
 
 $$V_{\text{тетраэдр}} = \frac{1}{6}\,|a \cdot (b \times c)|$$
 
-## Пример
+## Примеры
 
 Пусть $a = (1,0,0)$, $b = (0,2,0)$, $c = (0,0,3)$:
 
@@ -43,3 +43,4 @@ $$b \times c = (6, 0, 0), \quad a \cdot (6,0,0) = 6$$
 ## API
 
 Класс `AI.Geometry.VectorOps` — метод `TripleProduct(Vector a, Vector b, Vector c)`.
+

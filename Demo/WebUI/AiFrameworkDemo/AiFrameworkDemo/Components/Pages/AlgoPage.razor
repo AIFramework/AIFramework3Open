@@ -58,6 +58,63 @@ else
                 {
                     <div class="aif-theory-body aif-prose">
                         @((MarkupString)_theoryHtml)
+
+                        @if (_algo.Params.Count > 0)
+                        {
+                            <!-- Секция строится из AlgoDef.Params, а не из .md:
+                                 описание ползунков всегда совпадает с тем, что
+                                 реально отрисовано в панели параметров справа. -->
+                            <section class="aif-demo-params" aria-labelledby="demo-params-h">
+                                <h2 id="demo-params-h" class="aif-demo-params-title">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                        <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                                        <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                                        <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                                        <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/>
+                                        <line x1="17" y1="16" x2="23" y2="16"/>
+                                    </svg>
+                                    Параметры демо
+                                </h2>
+                                <p class="aif-demo-params-note">
+                                    Управляют запуском справа. Раздел сгенерирован из описания алгоритма —
+                                    он не может разойтись с реальными элементами управления.
+                                </p>
+                                <table class="aif-demo-params-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Параметр</th>
+                                            <th scope="col">Диапазон</th>
+                                            <th scope="col">По умолчанию</th>
+                                            <th scope="col">Что меняет</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var p in _algo.Params.Where(p => p.Key != "_needsImage"))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <code>@p.Key</code>
+                                                    <span class="aif-demo-params-label">@((MarkupString)p.Label)</span>
+                                                </td>
+                                                <td class="aif-demo-params-range">@((MarkupString)DescribeRange(p))</td>
+                                                <td class="aif-demo-params-range">@((MarkupString)DescribeDefault(p))</td>
+                                                <td>@(string.IsNullOrWhiteSpace(p.Hint) ? "—" : p.Hint)</td>
+                                            </tr>
+                                        }
+                                        @if (_needsImage)
+                                        {
+                                            <tr>
+                                                <td><code>_imageBase64</code><span class="aif-demo-params-label">Входное изображение</span></td>
+                                                <td class="aif-demo-params-range">файл</td>
+                                                <td class="aif-demo-params-range">—</td>
+                                                <td>Алгоритму нужно изображение: загрузите его в панели параметров</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </section>
+                        }
                     </div>
                 }
                 else if (_theoryMode == TheoryMode.Edit)
@@ -213,12 +270,15 @@ else
                                         <span class="aif-param-val aif-param-val--@_mod.Color">@_numericParams[pk].ToString("G4", CultureInfo.InvariantCulture)</span>
                                     </div>
                                     <div class="aif-param-controls">
+                                        @* aria-valuetext: скринридер иначе прочитает голое число без единиц *@
                                         <input type="range"
                                                min="@p.Min.ToString("G6", CultureInfo.InvariantCulture)"
                                                max="@p.Max.ToString("G6", CultureInfo.InvariantCulture)"
                                                step="@p.Step.ToString("G6", CultureInfo.InvariantCulture)"
                                                value="@_numericParams[pk].ToString("G6", CultureInfo.InvariantCulture)"
                                                class="aif-slider"
+                                               aria-label="@AriaLabel(p)"
+                                               aria-valuetext="@AriaValueText(p, _numericParams[pk])"
                                                @oninput="@(e => SetNumParam(pk, e.Value?.ToString()))" />
                                         <input type="number"
                                                min="@p.Min.ToString("G6", CultureInfo.InvariantCulture)"
@@ -226,6 +286,7 @@ else
                                                step="@p.Step.ToString("G6", CultureInfo.InvariantCulture)"
                                                value="@_numericParams[pk].ToString("G6", CultureInfo.InvariantCulture)"
                                                class="aif-num-input"
+                                               aria-label="@($"{AriaLabel(p)} — точное значение")"
                                                @onchange="@(e => SetNumParam(pk, e.Value?.ToString()))" />
                                     </div>
                                 </div>
@@ -365,6 +426,31 @@ else
                 </div>
             }
 
+            @* Ключевые числа — над графиком: их читают первыми *@
+            @if (_report is { Metrics.Count: > 0 })
+            {
+                <div class="aif-metrics">
+                    @foreach (var m in _report.Metrics)
+                    {
+                        <div class="aif-metric aif-metric--@m.Tone.ToString().ToLowerInvariant()"
+                             title="@(m.Hint ?? m.Label)">
+                            <span class="aif-metric-label">@m.Label</span>
+                            <span class="aif-metric-value">
+                                @m.Value
+                                @if (!string.IsNullOrEmpty(m.Unit))
+                                {
+                                    <span class="aif-metric-unit">@m.Unit</span>
+                                }
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+            @if (_report is not null && !string.IsNullOrEmpty(_report.Note))
+            {
+                <p class="aif-metrics-note">@_report.Note</p>
+            }
+
             @if (!string.IsNullOrEmpty(_plotlyJson))
             {
                 <div class="aif-chart-wrap aif-chart-wrap--interactive">
@@ -374,7 +460,7 @@ else
             }
             else if (!string.IsNullOrEmpty(_pngDataUrl))
             {
-                <div class="aif-chart-wrap" @onclick="@(() => _overlayOpen = true)" title="Нажмите для увеличения">
+                <div class="aif-chart-wrap" @onclick="OpenOverlay" title="Нажмите для увеличения">
                     <img src="@_pngDataUrl" alt="@_algo.Title" class="aif-chart-img" />
                     <div class="aif-chart-expand" aria-hidden="true">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
@@ -385,11 +471,62 @@ else
                 </div>
             }
 
+            @if (_report is { Tables.Count: > 0 })
+            {
+                @foreach (var t in _report.Tables)
+                {
+                    <div class="aif-result-table-wrap">
+                        <div class="aif-result-table-head">
+                            <span class="aif-result-table-title">@t.Title</span>
+                            <span class="aif-result-table-count">@t.Rows.Count стр.</span>
+                        </div>
+                        <div class="aif-result-table-scroll">
+                            <table class="aif-result-table">
+                                <thead>
+                                    <tr>
+                                        @for (int c = 0; c < t.Headers.Count; c++)
+                                        {
+                                            <th scope="col" class="@(IsNumericCol(t, c) ? "aif-td-num" : null)">@t.Headers[c]</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in t.Rows)
+                                    {
+                                        <tr>
+                                            @for (int c = 0; c < t.Headers.Count; c++)
+                                            {
+                                                <td class="@(IsNumericCol(t, c) ? "aif-td-num" : null)">@(c < row.Count ? row[c] : "")</td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        @if (!string.IsNullOrEmpty(t.Note))
+                        {
+                            <p class="aif-result-table-note">@t.Note</p>
+                        }
+                    </div>
+                }
+            }
+
             @if (!string.IsNullOrEmpty(_textOutput))
             {
-                <div class="aif-text-result">
-                    <pre>@((MarkupString)FormatScriptOutput(_textOutput))</pre>
-                </div>
+                @if (_report is null || _report.IsEmpty)
+                {
+                    <div class="aif-text-result">
+                        <pre>@((MarkupString)FormatScriptOutput(_textOutput))</pre>
+                    </div>
+                }
+                else
+                {
+                    @* Есть структурированный вывод — полный лог доступен, но не мешает *@
+                    <details class="aif-text-result aif-text-result--collapsed">
+                        <summary class="aif-text-result-summary">Полный текстовый вывод</summary>
+                        <pre>@((MarkupString)FormatScriptOutput(_textOutput))</pre>
+                    </details>
+                }
             }
 
             @if (string.IsNullOrEmpty(_pngDataUrl) && string.IsNullOrEmpty(_plotlyJson) && string.IsNullOrEmpty(_textOutput) && !_busy && _elapsedMs == 0)
@@ -407,7 +544,8 @@ else
 
     @if (_overlayOpen && !string.IsNullOrEmpty(_pngDataUrl))
     {
-        <div class="aif-overlay" @onclick="@(() => _overlayOpen = false)" role="dialog" aria-modal="true">
+        <div class="aif-overlay" @onclick="@(() => _overlayOpen = false)" role="dialog" aria-modal="true"
+             tabindex="-1" @onkeydown="OnOverlayKeyDown" @ref="_overlayRef">
             <div class="aif-overlay-box" @onclick:stopPropagation="true">
                 <div class="aif-overlay-header">
                     <div>

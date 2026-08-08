@@ -90,33 +90,79 @@ namespace AiFrameworkDemo.Modules.NLP
         public static DemoResult Run(string key, IReadOnlyDictionary<string, double> p,
             IReadOnlyDictionary<string, string> tp, DemoSettings s)
         {
-            var cv = MakeView(s);
+            var cv  = MakeView(s);
+            var rep = new ReportBuilder();
             string txt;
             try
             {
                 txt = key switch
                 {
-                    "text_normalize"  => DoTextNormalize(p, cv),
-                    "prob_dict"       => DoProbDict(p, cv),
-                    "tfidf_demo"      => DoTFIDF(p, cv),
-                    "bm25_demo"       => DoBM25(p, cv),
-                    "text_tokenizer"  => DoTextTokenizer(p, cv),
-                    "stemming"        => DoStemming(p, cv),
-                    "lemmatize"       => DoLemmatize(p, cv),
-                    "text_summarize"  => DoSummarize(p, cv),
-                    "markov_gen"      => DoMarkovGen(p, tp, cv),
-                    "ner_demo"        => DoNer(p, tp, cv),
+                    "text_normalize"  => DoTextNormalize(p, cv, rep),
+                    "prob_dict"       => DoProbDict(p, cv, rep),
+                    "tfidf_demo"      => DoTFIDF(p, cv, rep),
+                    "bm25_demo"       => DoBM25(p, cv, rep),
+                    "text_tokenizer"  => DoTextTokenizer(p, cv, rep),
+                    "stemming"        => DoStemming(p, cv, rep),
+                    "lemmatize"       => DoLemmatize(p, cv, rep),
+                    "text_summarize"  => DoSummarize(p, cv, rep),
+                    "markov_gen"      => DoMarkovGen(p, tp, cv, rep),
+                    "ner_demo"        => DoNer(p, tp, cv, rep),
                     _                 => $"Неизвестный ключ «{key}»",
                 };
             }
             catch (Exception ex)
             {
+                // Отчёт может быть уже частично заполнен — отдавать его вместе
+                // с сообщением об ошибке было бы враньём про успешный расчёт.
+                rep = new ReportBuilder();
                 txt = $"Ошибка: {ex.Message}\n{ex.StackTrace?.Split('\n').FirstOrDefault()}";
             }
-            return Png(cv, s, textOutput: txt);
+            return Png(cv, s, textOutput: txt, report: rep.Build());
         }
 
         private static string Truncate(string s, int max) =>
             s.Length <= max ? s : s[..max] + "…";
+
+        // -- Хелперы построения графиков --------------------------------
+
+        /// <summary>Вектор категориальных позиций 1..n (ось X для столбчатых диаграмм).</summary>
+        private static Vector Idx(int n)
+        {
+            var v = new Vector(n);
+            for (int i = 0; i < n; i++) v[i] = i + 1;
+            return v;
+        }
+
+        /// <summary>Вектор значений из произвольной последовательности.</summary>
+        private static Vector Vec(IEnumerable<double> values)
+        {
+            var arr = values.ToArray();
+            var v = new Vector(arr.Length);
+            for (int i = 0; i < arr.Length; i++) v[i] = arr[i];
+            return v;
+        }
+
+        /// <summary>Единый формат чисел в таблицах: инвариантная точка, 4 знака.</summary>
+        private static string F(double v) =>
+            v.ToString("F4", System.Globalization.CultureInfo.InvariantCulture);
+
+        /// <summary>Подписи осей одной строкой.</summary>
+        private static void Axes(ChartView cv, string x, string y)
+        {
+            cv.LabelX = x;
+            cv.LabelY = y;
+        }
+
+        /// <summary>
+        /// Легенда категориальной оси X: «1 — слово, 2 — слово, …».
+        /// Ось X у ChartView числовая, поэтому расшифровка идёт в текстовый вывод.
+        /// </summary>
+        private static string AxisLegend(IEnumerable<string> labels, string title = "Ось X")
+        {
+            var sb = new StringBuilder();
+            sb.Append(title).Append(": ");
+            sb.Append(string.Join(", ", labels.Select((l, i) => $"{i + 1} — {l}")));
+            return sb.ToString();
+        }
     }
 }

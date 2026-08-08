@@ -43,6 +43,7 @@ Ford—Fulkerson с BFS для поиска увеличивающего пут�
 
 $$\forall v \in V \setminus \{s, t\}: \quad \sum_{u} f(u,v) = \sum_{w} f(v,w)$$
 
-## API (C#)
+## API
 
 Класс `MaxFlowSolver` в пространстве имён `AI.Graphs`. Поддерживает алгоритмы Диница и Edmonds—Karp. Метод `FindMaxFlow(network, source, sink)` возвращает величину потока и распределение по рёбрам.
+

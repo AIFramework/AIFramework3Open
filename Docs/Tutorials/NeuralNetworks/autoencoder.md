@@ -48,7 +48,7 @@ $$
 | Применимость к нелинейным многообразиям | нет | да |
 | Повторяемость      | детерминирована | зависит от инициализации |
 
-## Пример
+## Примеры
 
 ```csharp
 using AI.ML.DataHandling.FeaturesTransforms;
@@ -59,3 +59,4 @@ var info = ae.Train(data, epoch: 80, lr: 0.01);
 Vector z = ae.Transform(new Vector(new[] { 1.2, 0.8 })); // сжатие
 Console.WriteLine($"Потеря после {info.TrainLoss.Count} эпох: {info.TrainLoss[^1]:F5}");
 ```
+

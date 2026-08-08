@@ -62,14 +62,19 @@ public static class DemoRunnerBase
     /// <summary>
     /// Создаёт DemoResult с PNG и опциональным Plotly JSON за один вызов.
     /// </summary>
+    /// <param name="report">
+    /// Структурированный вывод (метрики и таблицы). Когда задан, UI показывает
+    /// его, а текстовый лог убирает под спойлер. См. <see cref="ReportBuilder"/>.
+    /// </param>
     public static DemoResult Png(ChartView cv, DemoSettings s,
-        string? plotlyJson = null, string? textOutput = null) =>
+        string? plotlyJson = null, string? textOutput = null, DemoReport? report = null) =>
         new()
         {
             PngDataUrl  = RenderPng(cv, s),
             PlotlyJson  = plotlyJson ?? PlotlyChartRenderer.ToPlotlyJson(cv),
             SourceChart = cv,
             TextOutput  = textOutput,
+            Report      = report,
         };
 
     // -- Параметры -------------------------------------------------------------

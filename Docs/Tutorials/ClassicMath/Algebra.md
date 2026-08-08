@@ -36,7 +36,7 @@ $$x_k = \frac{b_k - \displaystyle\sum_{j=k+1}^{n-1} a_{kj}\,x_j}{a_{kk}}, \quad 
 |-------|----------|
 | `Gauss.SolvingEquations(A, b)` | Возвращает вектор \(x\) решения СЛАУ. |
 
-### Пример
+### Примеры
 
 ```csharp
 using AI.ClassicMath;
@@ -75,7 +75,7 @@ $$x_k = \frac{\det A_k}{\det A}, \quad k = 0, \ldots, n-1$$
 |-------|----------|
 | `Kramer.SolvingEquations(A, b)` | Возвращает вектор \(x\) решения СЛАУ. |
 
-### Пример
+### Примеры
 
 ```csharp
 var A = new Matrix(new double[,] { { 3, 1 }, { 1, 2 } });
@@ -114,7 +114,7 @@ $$R_{ij} = q_i^\top a_j \;(i < j), \quad R_{jj} = \|u_j\|$$
 | `QR.GetQ(A)` | Возвращает матрицу \(Q\). |
 | `QR.GetR(A)` | Возвращает матрицу \(R\). |
 
-### Пример
+### Примеры
 
 ```csharp
 var A = new Matrix(new double[,]
@@ -156,7 +156,7 @@ $$A v = \lambda v \quad \Longleftrightarrow \quad (A - \lambda I)\,v = 0$$
 |-------|----------|
 | `EigenValuesVectors.Eigenvalues(A, maxIter)` | Возвращает вектор собственных значений. |
 
-### Пример
+### Примеры
 
 ```csharp
 var A = new Matrix(new double[,]
@@ -177,3 +177,4 @@ Console.WriteLine(eigenvalues);
 - Метод Гаусса является предпочтительным для систем порядка \(n > 3\) ввиду сложности \(\mathcal{O}(n^3)\) против \(\mathcal{O}(n \cdot n!)\) у метода Крамера.
 - При \(\det A = 0\) (вырожденная матрица) метод Гаусса сообщит об ошибке, метод Крамера выполнит деление на ноль.
 - QR-алгоритм для собственных значений предполагает вещественную матрицу; комплексные пары могут потребовать специального разбиения (блоки 2×2).
+

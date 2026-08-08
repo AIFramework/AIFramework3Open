@@ -45,6 +45,7 @@ Prim(G, s):
 | Prim (бинарная куча) | $O(E \log V)$ |
 | Borůvka | $O(E \log V)$ |
 
-## API (C#)
+## API
 
 Классы `KruskalMST`, `PrimMST` в пространстве имён `AI.Graphs`. Метод `FindMST(graph)` возвращает набор рёбер остовного дерева и его суммарный вес.
+

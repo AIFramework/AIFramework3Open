@@ -38,6 +38,7 @@ $$O(n^2)$$
 
 $$m \text{ предпочитает } w \text{ своей партнёрше в } M \quad \wedge \quad w \text{ предпочитает } m \text{ своему партнёру в } M$$
 
-## API (C#)
+## API
 
 Класс `GaleShapley` в пространстве имён `AI.Optimization`. Метод `FindStableMatching(preferences)` возвращает устойчивое паросочетание.
+

@@ -33,6 +33,7 @@
     <ProjectReference Include="..\..\..\..\src\AI.NLP\AI.NLP.csproj" />
     <ProjectReference Include="..\..\..\..\src\AI.Solvers.Math\AI.Solvers.Math.csproj" />
     <ProjectReference Include="..\..\..\..\src\AI.SignalLabs\AI.SignalLabs.csproj" />
+    <ProjectReference Include="..\..\..\..\src\AI.Fuzzy\AI.Fuzzy.csproj" />
     <ProjectReference Include="..\..\..\..\src\AI.LLM\AI.LLM.csproj" />
   </ItemGroup>
 

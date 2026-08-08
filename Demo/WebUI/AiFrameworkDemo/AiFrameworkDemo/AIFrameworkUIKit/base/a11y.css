@@ -1,0 +1,162 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AI Framework UI Kit — Accessibility
+   Клавиатурная навигация и уважение к системным настройкам движения.
+
+   ┌─ ПРИНЦИПЫ ─────────────────────────────────────────────────────┐
+   │                                                                │
+   │  1. :focus-visible, а не :focus — кольцо появляется только      │
+   │     при навигации с клавиатуры, мышь его не вызывает.          │
+   │                                                                │
+   │  2. Двухслойное кольцо: box-shadow внутренний (контраст к      │
+   │     компоненту) + outline внешний (контраст к странице).       │
+   │     Одного слоя не хватает: на карточке цвета фона и кнопки    │
+   │     часто близки.                                              │
+   │                                                                │
+   │  3. Кольцо рисуется поверх — z-index на sticky/overflow        │
+   │     контейнерах иначе обрезает outline.                        │
+   │                                                                │
+   │  Токены: --aif-focus-ring, --aif-focus-ring-inner,             │
+   │          --aif-focus-ring-width, --aif-focus-ring-offset       │
+   └────────────────────────────────────────────────────────────────┘
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Базовое правило: всё интерактивное ─────────────────────────── */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--aif-focus-ring-width, 2px) solid var(--aif-focus-ring, #a5b4fc);
+  outline-offset: var(--aif-focus-ring-offset, 2px);
+  border-radius: inherit;
+}
+
+/* Мышь не должна показывать кольцо (Safari/старые движки шлют :focus) */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Кнопки UI-кита — двухслойное кольцо ────────────────────────── */
+.aif-btn:focus-visible,
+.aif-btn-ghost:focus-visible,
+.aif-btn-sm:focus-visible,
+.aif-choice-btn:focus-visible,
+.aif-seg-btn:focus-visible,
+.aif-close-btn:focus-visible,
+.aif-accordion-toggle:focus-visible,
+.aif-theme-toggle:focus-visible,
+.aif-topbar-back:focus-visible {
+  outline: var(--aif-focus-ring-width, 2px) solid var(--aif-focus-ring, #a5b4fc);
+  outline-offset: var(--aif-focus-ring-offset, 2px);
+  box-shadow: 0 0 0 1px var(--aif-focus-ring-inner, rgba(3, 4, 14, 0.85));
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Поля ввода: кольцо не должно конфликтовать с :focus-стилями ── */
+.aif-num-input:focus-visible,
+.aif-text-input:focus-visible,
+.aif-code-input:focus-visible,
+.aif-md-editor:focus-visible {
+  outline: var(--aif-focus-ring-width, 2px) solid var(--aif-focus-ring, #a5b4fc);
+  outline-offset: 1px;
+}
+
+/* ─── Ползунок: подсвечиваем и трек, и бегунок ───────────────────── */
+.aif-slider:focus-visible {
+  outline: var(--aif-focus-ring-width, 2px) solid var(--aif-focus-ring, #a5b4fc);
+  outline-offset: 3px;
+  border-radius: var(--aif-r-full, 999px);
+}
+
+/* ─── Карточки-ссылки каталога ───────────────────────────────────── */
+.aif-card:focus-visible,
+.aif-algo-card:focus-visible,
+.aif-cat-card:focus-visible,
+.aif-lib-card:focus-visible {
+  outline: var(--aif-focus-ring-width, 2px) solid var(--aif-focus-ring, #a5b4fc);
+  outline-offset: 3px;
+  z-index: 1;
+}
+
+/* ─── Зона загрузки изображения (label оборачивает скрытый input) ── */
+.aif-img-drop:has(input:focus-visible) {
+  outline: var(--aif-focus-ring-width, 2px) solid var(--aif-focus-ring, #a5b4fc);
+  outline-offset: 2px;
+}
+
+/* ─── Ссылка «пропустить к содержимому» ──────────────────────────── */
+.aif-skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -3rem;
+  z-index: 9999;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--aif-text-1);
+  background: var(--aif-card-bg);
+  border: 1px solid var(--aif-border-bright);
+  border-radius: var(--aif-r-sm);
+  box-shadow: var(--aif-shadow-md);
+  transition: top 0.15s ease;
+}
+.aif-skip-link:focus {
+  top: 0.75rem;
+}
+
+/* ─── Только для скринридеров ────────────────────────────────────── */
+.aif-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PREFERS-REDUCED-MOTION
+   Пользователь с вестибулярными нарушениями выставляет этот флаг в ОС.
+   Убираем движение, но НЕ убираем обратную связь: изменения цвета и
+   границ остаются — иначе интерфейс перестаёт откликаться на действия.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+
+  /* Плавная прокрутка вызывает укачивание сильнее всего */
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Гасим анимации и трансформации, сохраняя переходы цвета */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Спиннер обязан продолжать вращаться — это индикатор занятости,
+     но делаем оборот медленным, чтобы не мелькал. */
+  .aif-btn-spinner {
+    animation: aif-spin 1.6s linear infinite !important;
+  }
+
+  /* Смещения при наведении — только цвет, без «прыжка» */
+  .aif-card:hover,
+  .aif-algo-card:hover,
+  .aif-cat-card:hover,
+  .aif-lib-card:hover,
+  .aif-btn:hover,
+  .aif-chart-wrap:hover {
+    transform: none !important;
+  }
+
+  /* Декоративные бесконечные анимации выключаем полностью */
+  .aif-fade-up,
+  .aif-home-logo,
+  [class*="aif-float"],
+  [class*="aif-pulse"],
+  [class*="aif-shimmer"] {
+    animation: none !important;
+  }
+}

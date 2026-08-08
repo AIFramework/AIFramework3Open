@@ -1,0 +1,44 @@
+name: Docs lint
+
+# Проверяет канон документации теории (Docs/Tutorials/STRUCTURE.md).
+# Ошибки роняют сборку всегда; предупреждения — только новые, не занесённые
+# в Docs/Tutorials/.docslint-baseline. Так канон применяется к новым
+# документам, не требуя разом переписать существующие.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Docs/Tutorials/**'
+      - 'Demo/WebUI/AiFrameworkDemo/AiFrameworkDemo/Modules/**'
+      - 'Tools/DocsLint/**'
+      - '.github/workflows/docs-lint.yml'
+  pull_request:
+    paths:
+      - 'Docs/Tutorials/**'
+      - 'Demo/WebUI/AiFrameworkDemo/AiFrameworkDemo/Modules/**'
+      - 'Tools/DocsLint/**'
+      - '.github/workflows/docs-lint.yml'
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # Линтер не зависит от решения: собираем только его, без src/ и демо
+      - name: Run docs linter
+        run: dotnet run --project Tools/DocsLint --nologo -- --strict
+
+      # Подсказка вместо молчаливого падения: чаще всего чинится одной командой
+      - name: Hint on failure
+        if: failure()
+        run: |
+          echo "::notice::Синонимы разделов чинятся автоматически:"
+          echo "::notice::  dotnet run --project Tools/DocsLint -- --fix"
+          echo "::notice::Канон: Docs/Tutorials/STRUCTURE.md"

@@ -63,7 +63,7 @@ $$
 - **Затухание** предсказаний при малой ёмкости скрытого слоя (в демо hidden-size = 4).
 - **Плохое восстановление** для рядов с сильным шумом или нестационарных.
 
-## Пример
+## Примеры
 
 ```csharp
 using AI.ML.SequenceAnalysis.SeqPredict;
@@ -72,3 +72,4 @@ var gru = new GRUPredict(w: 8);
 gru.Train(trainSeries);
 Vector forecast = gru.Predict(trainSeries, n: 40);
 ```
+

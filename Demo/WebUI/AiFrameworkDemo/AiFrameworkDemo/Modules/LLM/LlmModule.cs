@@ -85,6 +85,38 @@ public sealed class LlmModule : LibraryModuleBase
 
         #endregion
 
+        #region 1a. Цикл ReAct
+
+        new CategoryDef("react", "Цикл ReAct",
+            "Рассуждение → Действие → Наблюдение: модель сама решает, каким инструментом воспользоваться, и весь её след виден пошагово.",
+            [
+                new AlgoDef("react_loop", "ReAct с инструментами",
+                    "Три детерминированных инструмента (калькулятор, дата, справочник) и полный след цикла: " +
+                    "что модель подумала, что вызвала и что получила в ответ.",
+                    "AI.LLM.Agents.ReAct.ReActEngine",
+                    "react.md",
+                    [
+                        new AlgoParam("_apikey", "API-ключ OpenRouter", 0, 0, 0, 0, "",
+                            "Ключ из https://openrouter.ai/keys",
+                            TextDefault: ""),
+                        new AlgoParam("model", "Модель", 0, 3, 0, 1, "", "LLM-модель через OpenRouter")
+                            { Choices = ModelChoices },
+                        new AlgoParam("policy", "Способ решений", 0, 1, 0, 1, "",
+                            "Нативный function calling поддерживают не все модели; структурированный JSON работает с любой")
+                            { Choices = [
+                                new(0, "NativeToolCalling"),
+                                new(1, "StructuredJson"),
+                            ]},
+                        new AlgoParam("maxIterations", "Лимит шагов", 1, 15, 6, 1, "шт.",
+                            "Сколько итераций цикла разрешено до принудительной остановки"),
+                        new AlgoParam("_question", "Запрос", 0, 0, 0, 0, "",
+                            "Задача, для которой модель должна выбрать инструменты",
+                            TextDefault: "Сколько будет 17 * 23, и какой сегодня день недели? Ответь одним предложением."),
+                    ]),
+            ]),
+
+        #endregion
+
         #region 2. Контекст и сообщения
 
         new CategoryDef("context", "Управление контекстом",

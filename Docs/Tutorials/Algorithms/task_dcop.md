@@ -48,6 +48,7 @@ $$r_{f \to i}(x_i) = \max_{x_{N(f) \setminus i}} \left[ f(x_{N(f)}) + \sum_{j \i
 | Max-Sum | Приближённо | Полиномиально | $O(|D|)$ |
 | DSA / MGM | Нет | $O(|E|)$ за итерацию | $O(1)$ |
 
-## API (C#)
+## API
 
 Классы `ADOPTSolver`, `DPOPSolver`, `MaxSumSolver` в пространстве имён `AI.DCOP`. Метод `Solve(constraintGraph)` возвращает назначение переменных.
+

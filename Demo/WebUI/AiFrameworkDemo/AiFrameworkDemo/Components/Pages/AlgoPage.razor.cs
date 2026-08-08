@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using AiFrameworkDemo.Core;
 
@@ -33,8 +34,9 @@ public partial class AlgoPage : IDisposable
     private string? _plotlyJson;
     private string? _pendingPlotlyJson;
     private string  _plotlyDivId = "plotly_" + Guid.NewGuid().ToString("N")[..8];
-    private string? _textOutput;
-    private long    _elapsedMs;
+    private string?     _textOutput;
+    private DemoReport? _report;
+    private long        _elapsedMs;
     private string  _activeKey = "";
     private AI.Charts.ChartView? _sourceChart;
     private DotNetObjectReference<AlgoPage>? _dotNetRef;
@@ -68,6 +70,7 @@ public partial class AlgoPage : IDisposable
         InitParams();
         _destroyPending = !string.IsNullOrEmpty(_plotlyJson);
         _pngDataUrl = _plotlyJson = _textOutput = _error = null;
+        _report = null;
         _elapsedMs = 0;
         _isLive = false;
         _theoryMode = TheoryMode.View;
@@ -101,6 +104,12 @@ public partial class AlgoPage : IDisposable
             await JS.InvokeVoidAsync("renderMath", ".aif-prose");
         }
 
+        if (_focusOverlay && _overlayOpen)
+        {
+            _focusOverlay = false;
+            try { await _overlayRef.FocusAsync(); } catch { }
+        }
+
         var key = LibId + "/" + AlgoKey;
         if (key == _activeKey) return;
         _activeKey = key;
@@ -130,6 +139,7 @@ public partial class AlgoPage : IDisposable
 
         InitParams();
         _pngDataUrl = _plotlyJson = _pendingPlotlyJson = _textOutput = _error = null;
+        _report = null;
         _elapsedMs = 0;
         _imageBase64 = _imagePreview = null;
     }
@@ -191,6 +201,7 @@ public partial class AlgoPage : IDisposable
             _pngDataUrl  = result.PngDataUrl;
             _plotlyJson  = result.PlotlyJson;
             _textOutput  = result.TextOutput;
+            _report      = result.Report is { IsEmpty: false } r ? r : null;
             _sourceChart = result.SourceChart;
             _isLive      = _elapsedMs < 100 && !_needsImage;
 
@@ -202,6 +213,7 @@ public partial class AlgoPage : IDisposable
         {
             _error = ex.Message;
             _pngDataUrl = _plotlyJson = _textOutput = null;
+            _report = null;
             _sourceChart = null;
         }
         finally
@@ -219,6 +231,72 @@ public partial class AlgoPage : IDisposable
         if (_sourceChart is null) return Task.FromResult<string?>(null);
         try { return Task.FromResult(AI.Charts.JS.PlotlyChartRenderer.ComputeTransform(_sourceChart, action)); }
         catch  { return Task.FromResult<string?>(null); }
+    }
+
+    // ── Доступность ─────────────────────────────────────────────────────
+
+    private ElementReference _overlayRef;
+    private bool _focusOverlay;
+
+    /// <summary>Метка параметра без HTML-разметки: Label может содержать &lt;sub&gt; и т.п.</summary>
+    private static string AriaLabel(AlgoParam p) =>
+        System.Text.RegularExpressions.Regex.Replace(p.Label, "<.*?>", "");
+
+    /// <summary>Значение с единицей измерения — иначе скринридер прочитает голое число.</summary>
+    private static string AriaValueText(AlgoParam p, double value)
+    {
+        string v = value.ToString("G4", CultureInfo.InvariantCulture);
+        return string.IsNullOrEmpty(p.Unit) ? v : $"{v} {p.Unit}";
+    }
+
+    private void OnOverlayKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") _overlayOpen = false;
+    }
+
+    /// <summary>Открывает увеличенный график и переводит фокус в диалог, чтобы работал Esc.</summary>
+    private void OpenOverlay()
+    {
+        _overlayOpen = true;
+        _focusOverlay = true;
+    }
+
+    /// <summary>Числовая ли колонка таблицы результата — выравнивание вправо.</summary>
+    private static bool IsNumericCol(DemoTable t, int col) =>
+        t.Numeric is not null && col < t.Numeric.Count && t.Numeric[col];
+
+    // ── Описание параметров демо (секция «Параметры демо» под теорией) ──
+
+    private static string Fmt(double v) =>
+        v.ToString("G6", CultureInfo.InvariantCulture);
+
+    /// <summary>Диапазон значений параметра в человекочитаемом виде.</summary>
+    private static string DescribeRange(AlgoParam p)
+    {
+        if (p.Key.StartsWith('_')) return "текст";
+
+        if (p.Choices is { Count: > 0 })
+            return string.Join("<br/>", p.Choices.Select(c =>
+                $"<code>{Fmt(c.Value)}</code> — {System.Net.WebUtility.HtmlEncode(c.Label)}"));
+
+        string unit = string.IsNullOrEmpty(p.Unit) ? "" : $" {System.Net.WebUtility.HtmlEncode(p.Unit)}";
+        return $"{Fmt(p.Min)} … {Fmt(p.Max)}{unit}<br/><span class=\"aif-demo-params-step\">шаг {Fmt(p.Step)}</span>";
+    }
+
+    /// <summary>Значение по умолчанию — то, с которым демо запускается при открытии.</summary>
+    private static string DescribeDefault(AlgoParam p)
+    {
+        if (p.Key.StartsWith('_'))
+        {
+            if (string.IsNullOrWhiteSpace(p.TextDefault)) return "<em>пусто</em>";
+            string t = p.TextDefault.Length > 60 ? p.TextDefault[..60] + "…" : p.TextDefault;
+            return $"<code>{System.Net.WebUtility.HtmlEncode(t)}</code>";
+        }
+
+        var choice = p.Choices?.FirstOrDefault(c => Math.Abs(c.Value - p.Default) < 1e-9);
+        return choice is not null
+            ? $"<code>{Fmt(p.Default)}</code> — {System.Net.WebUtility.HtmlEncode(choice.Label)}"
+            : $"<code>{Fmt(p.Default)}</code>";
     }
 
     private static string FormatScriptOutput(string raw)

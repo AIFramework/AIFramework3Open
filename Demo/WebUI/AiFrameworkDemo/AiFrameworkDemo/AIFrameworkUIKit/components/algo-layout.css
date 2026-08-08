@@ -155,6 +155,64 @@
 .aif-theory-editor {
   border-top: 1px solid var(--aif-border-dark);
 }
+
+/* ─── Секция «Параметры демо» (генерируется из AlgoDef.Params) ────── */
+/* Живёт внутри .aif-prose, поэтому наследует типографику теории,
+   но визуально отделена рамкой — читатель видит, что это не текст
+   документа, а описание того, что стоит справа.                      */
+.aif-demo-params {
+  margin: 1.6rem 0 0.25rem;
+  padding: 0.9rem 1rem 0.4rem;
+  border: 1px dashed var(--aif-prose-table-head-border);
+  border-radius: var(--aif-r-md);
+  background: var(--aif-prose-math-bg);
+}
+.aif-prose .aif-demo-params-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--aif-accent-bright);
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.aif-prose .aif-demo-params-note {
+  margin: 0 0 0.7rem;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--aif-text-5);
+}
+.aif-prose .aif-demo-params-table {
+  margin-bottom: 0.6rem;
+  font-size: 0.76rem;
+}
+.aif-prose .aif-demo-params-table th { font-size: 0.72rem; }
+.aif-prose .aif-demo-params-table td { padding: 0.45rem 0.7rem; }
+.aif-demo-params-label {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--aif-text-4);
+}
+.aif-demo-params-range {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.aif-demo-params-step {
+  font-size: 0.68rem;
+  color: var(--aif-text-5);
+}
+
+@media (max-width: 600px) {
+  /* На узком экране горизонтальная прокрутка таблицы предпочтительнее,
+     чем перенос числовых диапазонов в две строки. */
+  .aif-demo-params { overflow-x: auto; }
+  .aif-prose .aif-demo-params-table { min-width: 30rem; }
+}
 .aif-editor-toolbar {
   display: flex;
   align-items: center;

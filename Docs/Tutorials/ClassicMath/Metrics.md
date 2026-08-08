@@ -82,7 +82,7 @@ $$\mathrm{AvgPrecision} = \frac{1}{N_c} \sum_{c=1}^{N_c} \mathrm{Precision}_c, \
 
 ---
 
-## Пример
+## Примеры
 
 ```csharp
 using AI.ClassicMath;
@@ -115,3 +115,4 @@ Console.WriteLine($"R²   = {MetricsForRegression.R2(target, output):F4}");    /
 
 - Все метрики предполагают, что векторы `target` и `output` имеют одинаковую длину; в противном случае выбрасывается исключение.
 - MAPE следует применять только при гарантированном отсутствии нулевых значений в `target`.
+

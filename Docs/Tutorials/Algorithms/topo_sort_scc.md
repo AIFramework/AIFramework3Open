@@ -38,6 +38,7 @@ $$\forall x: \; x \text{ и } \neg x \text{ в разных SCC}$$
 
 Все алгоритмы: $O(V + E)$.
 
-## API (C#)
+## API
 
 Классы `TopologicalSort`, `TarjanSCC`, `BridgeFinder` в пространстве имён `AI.Graphs`.
+

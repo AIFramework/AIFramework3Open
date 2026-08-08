@@ -38,7 +38,7 @@ $$
 | 24 | высокое  | точное воспроизведение |
 | 48 | высокое  | риск переобучения на малой выборке |
 
-## Пример
+## Примеры
 
 ```csharp
 var reg = new NeuralMultyRegression(2, 1, h: 24, new ReLU(0.1))
@@ -50,3 +50,4 @@ var reg = new NeuralMultyRegression(2, 1, h: 24, new ReLU(0.1))
 reg.Train(X, Y);
 double z = reg.Predict(new Vector(new[] { 1.0, -0.5 }))[0];
 ```
+

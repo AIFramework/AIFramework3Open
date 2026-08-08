@@ -4,7 +4,7 @@
 
 Дан взвешенный ориентированный граф $G = (V, E)$, возможно содержащий рёбра с отрицательными весами, и стартовая вершина $s$. Необходимо найти кратчайшие расстояния от $s$ до всех вершин или обнаружить отрицательный цикл.
 
-## Идея алгоритма
+## Теория
 
 Выполняется $|V| - 1$ итераций, на каждой из которых релаксируются **все** рёбра графа. Если после $(|V|-1)$-й итерации возможна ещё одна релаксация, значит в графе есть отрицательный цикл.
 
@@ -42,6 +42,43 @@ $$O(V \cdot E)$$
 | Детекция циклов | Нет | Да |
 | Сложность | $O((V+E)\log V)$ | $O(VE)$ |
 
-## API (C#)
+## API
 
-Класс `BellmanFordPathFinder` в пространстве имён `AI.Graphs`. Метод `FindShortestPaths(graph, source)`. Свойство `HasNegativeCycle` сигнализирует о наличии отрицательного цикла.
+Пространство имён `AI.Algorithms.EWG`.
+
+| Член | Описание |
+|------|----------|
+| `BellmanFordSP<Edge>(GraphW<Edge> g, int source)` | Кратчайшие пути из `source` |
+| `.Distances` | `double[]`: расстояния |
+| `.Edges` | `Edge[]`: входящее ребро дерева путей |
+| `.HasNegativeCycle` | Найден цикл отрицательного веса |
+| `.PathTo(v)` | Последовательность рёбер до `v`; `null`, если пути нет |
+
+Исходник: `src/AI.Algorithms/EWG/BellmanFord.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.EWG;
+
+var g = new GraphW<Edge>(4);
+g.AddArce(0, 1, 4);
+g.AddArce(1, 2, -3);   // отрицательный вес: Дейкстра здесь неприменим
+g.AddArce(2, 3, 2);
+g.AddArce(0, 3, 5);
+
+var bf = new BellmanFordSP<Edge>(g, 0);
+
+if (bf.HasNegativeCycle)
+{
+    Console.WriteLine("Найден отрицательный цикл — кратчайших путей не существует");
+}
+else
+{
+    Console.WriteLine($"d[3] = {bf.Distances[3]:F1}");   // 3 через 0->1->2->3
+
+    foreach (var e in bf.PathTo(3))
+        Console.WriteLine($"  {e.StartV} -> {e.EndV} (w = {e.Weight})");
+}
+```
+

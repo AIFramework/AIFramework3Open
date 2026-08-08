@@ -44,6 +44,7 @@ SSP(G, s, t, F):
 
 где $C$ — максимальная стоимость ребра.
 
-## API (C#)
+## API
 
 Класс `MinCostFlowSolver` в пространстве имён `AI.Graphs`. Метод `FindMinCostFlow(network, source, sink, demand)` возвращает оптимальный поток и его стоимость.
+

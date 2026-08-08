@@ -43,6 +43,7 @@ $$c_{ij}(S \cup \{j\}) \leq c_{ij}(S' \cup \{j\}) \quad \text{если } S \sups
 | Коммуникация | Локальная (соседи) |
 | Масштабируемость | $O(NM)$ за итерацию |
 
-## API (C#)
+## API
 
 Класс `CBBAAllocator` в пространстве имён `AI.TaskAllocation`. Метод `Allocate(agents, tasks, communicationGraph)` возвращает пакеты задач для каждого агента.
+

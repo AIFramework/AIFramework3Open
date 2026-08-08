@@ -44,6 +44,7 @@ $$v_1 \to v_2 \to \ldots \to v_m \to v_1$$
 - Гарантия полноты
 - Простая реализация
 
-## API (C#)
+## API
 
 Классы `PushAndSwap`, `PushAndRotate` в пространстве имён `AI.MAPF`. Метод `Solve(graph, agents)` возвращает последовательность ходов.
+

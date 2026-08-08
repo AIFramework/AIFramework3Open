@@ -50,6 +50,7 @@ $$\text{bid}_{ij} = c_i(B_i \cup \{t_j\}) - c_i(B_i)$$
 | SSI | $O(NM)$ | Приближённая | Полная |
 | Комбинаторный | $O(N \cdot 2^M)$ | Лучше | Полная |
 
-## API (C#)
+## API
 
 Класс `AuctionTaskAllocator` в пространстве имён `AI.TaskAllocation`. Метод `Allocate(agents, tasks)` возвращает распределение задач.
+
