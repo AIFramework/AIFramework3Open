@@ -34,4 +34,52 @@ $$x' = \frac{x''}{w'}, \quad y' = \frac{y''}{w'}$$
 
 ## API
 
-Класс `AI.Geometry.Homography` — методы `FromPoints(...)`, `Apply(Point)`, `Inverse()`.
+Пространство имён `AI.Geometry.Transforms`. Оценка называется `EstimateDLT` (не `FromPoints`); метода `Inverse()` у гомографии **нет** — при необходимости обращайте матрицу `M` сами.
+
+| Член | Описание |
+|------|----------|
+| `Homography.EstimateDLT(Vector[] src, Vector[] dst)` | Оценка по соответствиям; нужно **минимум 4 пары** точек |
+| `new Homography(Matrix m)` | Из готовой матрицы 3×3 |
+| `.Apply(Vector point2d)` | Применить к точке с делением на однородную координату |
+| `.M` | Матрица 3×3 |
+
+Исходник: `src/AI.Geometry/Transforms/Homography.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Transforms;
+
+// Единичный квадрат -> произвольный четырёхугольник (перспектива)
+var src = new[]
+{
+    new Vector(new[] { 0.0, 0.0 }),
+    new Vector(new[] { 1.0, 0.0 }),
+    new Vector(new[] { 1.0, 1.0 }),
+    new Vector(new[] { 0.0, 1.0 }),
+};
+
+var dst = new[]
+{
+    new Vector(new[] { 0.1, 0.2 }),
+    new Vector(new[] { 1.2, 0.0 }),
+    new Vector(new[] { 0.9, 1.1 }),
+    new Vector(new[] { 0.2, 0.9 }),
+};
+
+var h = Homography.EstimateDLT(src, dst);
+
+// Проверка: исходные углы должны лечь на целевые
+for (int i = 0; i < 4; i++)
+{
+    var t = h.Apply(src[i]);
+    double err = Math.Sqrt(Math.Pow(t[0] - dst[i][0], 2) + Math.Pow(t[1] - dst[i][1], 2));
+    Console.WriteLine($"угол {i}: невязка {err:E2}");
+}
+
+// Центр квадрата НЕ переходит в центр четырёхугольника:
+// гомография не сохраняет середины отрезков, только прямые и двойное отношение
+var centre = h.Apply(new Vector(new[] { 0.5, 0.5 }));
+Console.WriteLine($"Центр -> ({centre[0]:F3}, {centre[1]:F3})");
+```

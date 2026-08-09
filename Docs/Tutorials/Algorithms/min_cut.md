@@ -38,5 +38,50 @@ $$O(VE + V^2 \log V)$$
 
 ## API
 
-Класс `StoerWagnerMinCut` в пространстве имён `AI.Graphs`. Метод `FindMinCut(graph)` возвращает минимальный разрез и его вес. Класс `GomoryHuTree` строит дерево для запросов по парам.
+Пространство имён `AI.Algorithms.NetworkFlow`. Классы называются `StoerWagner` и `GomoryHu` (без суффиксов `MinCut`/`Tree`).
+
+| Член | Описание |
+|------|----------|
+| `StoerWagner(int v)` | Глобальный минимальный разрез неориентированного графа |
+| `.AddEdge(int u, int v, double w)` | Ребро веса `w` |
+| `.Solve()` | `(double MinCut, List<int> Partition)` — вес разреза и одна из долей |
+| `GomoryHu(int v)` | Дерево всех попарных минимальных разрезов |
+| `.AddEdge(int u, int v, double w)` | Ребро |
+| `.Build()` | Построить дерево — **обязательно вызвать** перед запросами |
+| `.MinCut(u, v)` | Вес минимального разреза, разделяющего `u` и `v` |
+| `.MinCutPartition(u, v)` | Доля, содержащая `u` |
+
+Исходники: `src/AI.Algorithms/NetworkFlow/StoerWagner.cs`, `GomoryHu.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.NetworkFlow;
+
+var sw = new StoerWagner(6);
+sw.AddEdge(0, 1, 3); sw.AddEdge(0, 2, 1);
+sw.AddEdge(1, 2, 3); sw.AddEdge(2, 3, 1);   // «перемычка» между кластерами
+sw.AddEdge(3, 4, 3); sw.AddEdge(3, 5, 1);
+sw.AddEdge(4, 5, 3);
+
+var (minCut, partition) = sw.Solve();
+
+// Разрез пройдёт по слабой перемычке 2—3
+Console.WriteLine($"Минимальный разрез: {minCut:F0}");
+Console.WriteLine($"Доля A: [{string.Join(", ", partition)}]");
+```
+
+Дерево Гомори—Ху отвечает на все $\binom{n}{2}$ запросов, вычислив лишь $n-1$ разрез:
+
+```csharp
+var gh = new GomoryHu(5);
+gh.AddEdge(0, 1, 4); gh.AddEdge(1, 2, 3);
+gh.AddEdge(2, 3, 5); gh.AddEdge(3, 4, 2);
+gh.AddEdge(0, 4, 1);
+gh.Build();   // без этого вызова MinCut вернёт мусор
+
+for (int i = 0; i < 5; i++)
+    for (int j = i + 1; j < 5; j++)
+        Console.WriteLine($"mincut({i},{j}) = {gh.MinCut(i, j):F0}");
+```
 

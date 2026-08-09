@@ -40,5 +40,45 @@ $$m \text{ предпочитает } w \text{ своей партнёрше в 
 
 ## API
 
-Класс `GaleShapley` в пространстве имён `AI.Optimization`. Метод `FindStableMatching(preferences)` возвращает устойчивое паросочетание.
+Пространство имён `AI.Algorithms.Matching`. Паросочетание строится в конструкторе.
+
+| Член | Описание |
+|------|----------|
+| `GaleShapley(int[][] menPrefs, int[][] womenPrefs)` | Списки предпочтений: `menPrefs[i]` — индексы женщин в порядке убывания предпочтения |
+| `.ManPartner` | `int[]`: партнёрша мужчины `i` |
+| `.WomanPartner` | `int[]`: партнёр женщины `j` |
+
+Обе стороны должны быть одного размера, а каждый список — полной перестановкой индексов противоположной стороны.
+
+Исходник: `src/AI.Algorithms/Matching/GaleShapley.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.Matching;
+
+// Мужчина 0 больше всех хочет женщину 1, затем 0, затем 2
+int[][] menPrefs =
+{
+    new[] { 1, 0, 2 },
+    new[] { 0, 1, 2 },
+    new[] { 0, 2, 1 },
+};
+
+int[][] womenPrefs =
+{
+    new[] { 2, 0, 1 },
+    new[] { 0, 2, 1 },
+    new[] { 1, 2, 0 },
+};
+
+var gs = new GaleShapley(menPrefs, womenPrefs);
+
+for (int m = 0; m < menPrefs.Length; m++)
+    Console.WriteLine($"M{m} — W{gs.ManPartner[m]}");
+
+// Результат оптимален для предлагающей стороны (здесь — мужчин)
+// и пессимален для принимающей: это доказанное свойство алгоритма,
+// а не особенность реализации.
+```
 

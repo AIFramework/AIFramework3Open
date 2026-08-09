@@ -38,4 +38,54 @@ $$t = \frac{(P - A) \cdot \hat{d}}{\hat{d} \cdot \hat{d}}, \quad Q = A + t\,\hat
 
 ## API
 
-Класс `AI.Geometry.Distance` — методы `PointToLine2D`, `PointToLine3D`, `PointToSegment`.
+Пространство имён `AI.Geometry.Distances`. Классов не один, а несколько — по типу пары объектов.
+
+| Член | Описание |
+|------|----------|
+| `Line2D.FromTwoPoints(a, b)` | Прямая через две точки |
+| `Line2D.FromGeneral(a, b, c)` | Из общего уравнения $ax + by + c = 0$ |
+| `.ToGeneral()`, `.PointAt(t)` | Коэффициенты и точка на прямой |
+| `PointLine.Distance2D(Vector point, Line2D line)` | Расстояние точка—прямая в 2D |
+| `PointLine.Distance3D(Vector point, Line3D line)` | То же в 3D |
+| `PointLine.ClosestPoint(Vector point, Line3D line)` | Ближайшая точка на прямой |
+| `PointSegment.Distance(Vector point, Segment seg)` | Расстояние до **отрезка** |
+| `PointSegment.ClosestPoint(point, seg)` | Ближайшая точка отрезка |
+| `PointPlane.SignedDistance(point, plane)` | Знаковое расстояние до плоскости |
+
+Отрезок и прямая различаются принципиально: у отрезка ближайшая точка может оказаться на конце, поэтому `PointSegment` — отдельный класс, а не режим `PointLine`.
+
+Исходники: `src/AI.Geometry/Distances/`, `src/AI.Geometry/Primitives/`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Distances;
+using AI.Geometry.Primitives;
+
+var line = Line2D.FromTwoPoints(
+    new Vector(new[] { 0.0, 0.0 }),
+    new Vector(new[] { 4.0, 3.0 }));
+
+var p = new Vector(new[] { 0.0, 5.0 });
+Console.WriteLine($"Расстояние до прямой: {PointLine.Distance2D(p, line):F4}");   // 4
+
+var (a, b, c) = line.ToGeneral();
+Console.WriteLine($"Общее уравнение: {a:F2}x + {b:F2}y + {c:F2} = 0");
+```
+
+Точка «за концом» отрезка — тот случай, где формулы для прямой дают неверный ответ:
+
+```csharp
+var seg = new Segment(
+    new Vector(new[] { 0.0, 0.0 }),
+    new Vector(new[] { 2.0, 0.0 }));
+
+var far = new Vector(new[] { 5.0, 0.0 });
+
+// До бесконечной прямой — 0, до отрезка — 3: расстояние до его конца
+Console.WriteLine($"До отрезка: {PointSegment.Distance(far, seg):F4}");
+
+var closest = PointSegment.ClosestPoint(far, seg);
+Console.WriteLine($"Ближайшая: ({closest[0]:F2}, {closest[1]:F2})");   // (2, 0)
+```

@@ -34,4 +34,33 @@ $$\text{slerp}(a, b, t) = \frac{\sin\bigl((1-t)\,\theta\bigr)}{\sin\theta}\,a + 
 
 ## API
 
-Класс `AI.Geometry.Interpolation` — методы `Lerp`, `Slerp`.
+Класса `AI.Geometry.Interpolation` нет: интерполяция — **статические методы** `AI.DataStructs.Algebraic.Vector`.
+
+| Член | Описание |
+|------|----------|
+| `Vector.Lerp(Vector a, Vector b, double t)` | Линейная интерполяция $(1-t)a + tb$ |
+| `Vector.Slerp(Vector a, Vector b, double t)` | Сферическая: движение по дуге с сохранением длины |
+
+Для поворотов в 3D используйте [`Quaternion.Slerp`](quaternion_basics.md) — он интерполирует ориентации, а не точки.
+
+Исходник: `src/AI/DataStructs/Algebraic/Vector.Factory.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+
+var a = new Vector(new[] { 2.0, 0.0 });
+var b = new Vector(new[] { 0.0, 2.0 });
+
+for (int i = 0; i <= 4; i++)
+{
+    double t = i / 4.0;
+    var lin = Vector.Lerp(a, b, t);
+    var sph = Vector.Slerp(a, b, t);
+
+    // Lerp «проседает» к центру: в середине длина падает до 1.41 вместо 2,
+    // Slerp сохраняет длину на всём пути
+    Console.WriteLine($"t={t:F2}  |Lerp|={lin.NormL2():F3}  |Slerp|={sph.NormL2():F3}");
+}
+```

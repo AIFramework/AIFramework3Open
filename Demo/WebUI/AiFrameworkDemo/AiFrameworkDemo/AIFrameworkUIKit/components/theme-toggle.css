@@ -34,8 +34,8 @@
 }
 .aif-theme-toggle:hover {
   color: var(--aif-text-1);
-  border-color: rgba(129, 140, 248, 0.4);
-  background: rgba(99, 102, 241, 0.12);
+  border-color: var(--aif-accent-light-a40);
+  background: var(--aif-accent-a12);
   transform: translateY(-1px);
 }
 
@@ -46,8 +46,8 @@
 }
 [data-theme="light"] .aif-theme-toggle:hover {
   color: #1e293b;
-  border-color: rgba(99, 102, 241, 0.35);
-  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--aif-accent-a35);
+  background: var(--aif-accent-a12);
 }
 
 /* Кнопка контраста */
@@ -63,11 +63,11 @@
 [data-theme="light"][data-contrast="high"] .aif-theme-toggle--contrast {
   color: #1e1b4b;
   border-color: rgba(67, 56, 202, 0.48);
-  background: rgba(99, 102, 241, 0.16);
+  background: var(--aif-accent-a16);
   box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.14);
 }
 [data-theme="light"][data-contrast="high"] .aif-theme-toggle--contrast:hover {
-  background: rgba(99, 102, 241, 0.22);
+  background: var(--aif-accent-a25);
   border-color: rgba(67, 56, 202, 0.6);
 }
 

@@ -19,6 +19,7 @@ namespace AiFramework.Tools.DocsLint;
 ///   dotnet run --project Tools/DocsLint -- --strict          + новые предупреждения (режим CI)
 ///   dotnet run --project Tools/DocsLint -- --fix             автозамена синонимов разделов
 ///   dotnet run --project Tools/DocsLint -- --update-baseline перезаписать baseline
+///   dotnet run --project Tools/DocsLint -- --emit-snippets &lt;dir&gt;  выложить C#-сниппеты для компиляции
 ///
 /// В GitHub Actions сообщения печатаются workflow-аннотациями и видны в диффе PR.
 /// </summary>
@@ -73,6 +74,7 @@ internal static class Program
         bool fix            = args.Contains("--fix");
         bool strict         = args.Contains("--strict");
         bool updateBaseline = args.Contains("--update-baseline");
+        string? emitDir     = GetArg(args, "--emit-snippets");
 
         _root = GetArg(args, "--root") ?? FindRepoRoot();
         string docsRoot = Path.Combine(_root, "Docs", "Tutorials");
@@ -81,6 +83,10 @@ internal static class Program
             Console.Error.WriteLine("Не найден Docs/Tutorials. Укажите --root <путь к репозиторию>.");
             return 2;
         }
+
+        // Режим генерации: только выкладываем сниппеты, проверки канона не запускаем
+        if (emitDir is not null)
+            return SnippetEmitter.Emit(docsRoot, Path.IsPathRooted(emitDir) ? emitDir : Path.Combine(_root, emitDir));
 
         string modulesDir = Path.Combine(_root, "Demo", "WebUI", "AiFrameworkDemo", "AiFrameworkDemo", "Modules");
         var referenced = ScanModules(modulesDir, docsRoot);

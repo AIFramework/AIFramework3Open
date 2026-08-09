@@ -37,5 +37,38 @@ $$O(V^3)$$
 
 ## API
 
-Класс `EdmondsMatching` в пространстве имён `AI.Graphs`. Метод `FindMaxMatching(graph)` возвращает максимальное паросочетание. Поддерживает взвешенный вариант через `FindMaxWeightMatching(graph)`.
+Пространство имён `AI.Algorithms.Matching`. Класс называется `EdmondsBlossom`.
+**Взвешенного варианта в библиотеке нет** — только паросочетание максимальной мощности.
+
+| Член | Описание |
+|------|----------|
+| `EdmondsBlossom(int v)` | Произвольный (не обязательно двудольный) граф на `v` вершинах |
+| `.AddEdge(int u, int v)` | Неориентированное ребро |
+| `.MaxMatching()` | Мощность максимального паросочетания |
+| `.Match` | `int[]`: пара для вершины, `−1` если не сопоставлена |
+
+Исходник: `src/AI.Algorithms/Matching/EdmondsBlossom.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.Matching;
+
+// Граф с нечётным циклом 0-1-2: двудольные алгоритмы здесь ошибаются,
+// именно ради таких «цветков» и нужен Blossom
+var blossom = new EdmondsBlossom(6);
+blossom.AddEdge(0, 1); blossom.AddEdge(1, 2); blossom.AddEdge(2, 0);
+blossom.AddEdge(2, 3); blossom.AddEdge(3, 4); blossom.AddEdge(4, 5);
+
+int size = blossom.MaxMatching();
+Console.WriteLine($"Паросочетание мощности {size}");
+
+// Каждую пару печатаем один раз: условие Match[i] > i
+for (int i = 0; i < 6; i++)
+    if (blossom.Match[i] > i)
+        Console.WriteLine($"  {i} — {blossom.Match[i]}");
+
+int unmatched = Enumerable.Range(0, 6).Count(i => blossom.Match[i] < 0);
+Console.WriteLine($"Без пары: {unmatched}");
+```
 

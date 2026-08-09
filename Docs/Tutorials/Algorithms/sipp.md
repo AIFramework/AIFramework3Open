@@ -50,5 +50,61 @@ $$|\text{SI}(v)| \ll T$$
 
 ## API
 
-Класс `SIPPPlanner` в пространстве имён `AI.MAPF`. Метод `FindPath(graph, start, goal, dynamicObstacles)` возвращает путь, избегающий всех динамических препятствий.
+Пространство имён `AI.Algorithms.MAPF`. Класс называется `SIPP`; препятствия передаются в конструктор, а не в `FindPath`.
+
+| Член | Описание |
+|------|----------|
+| `GridMap(int width, int height)` | Карта; `.SetBlocked(x, y, true)` — статическое препятствие |
+| `SIPP(GridMap map, List<(int X, int Y, int TimeStart, int TimeEnd)> obstacles)` | Планировщик; безопасные интервалы считаются сразу в конструкторе |
+| `.FindPath(sx, sy, gx, gy, startTime = 0)` | `List<(int X, int Y)>` — позиции по тактам, **включая ожидания**; пустой список = пути нет |
+
+Динамическое препятствие занимает клетку на **замкнутом** интервале `[TimeStart, TimeEnd]`.
+Повтор одной и той же координаты подряд в результате означает, что агент стоял на месте.
+
+Исходник: `src/AI.Algorithms/MAPF/SIPP.cs`.
+
+## Код
+
+Классический случай, ради которого SIPP и нужен, — узкий проход, временно занятый другим агентом. Обойти нельзя, поэтому оптимально подождать:
+
+```csharp
+using AI.Algorithms.MAPF;
+
+const int N = 10;
+var map = new GridMap(N, N);
+
+// Стена по X = 5 с единственными воротами в (5, 5)
+for (int y = 0; y < N; y++)
+    if (y != 5) map.SetBlocked(5, y, true);
+
+// Ворота заняты с 5-го по 12-й такт включительно
+var obstacles = new List<(int X, int Y, int TimeStart, int TimeEnd)>
+{
+    (5, 5, 5, 12),
+};
+
+var sipp = new SIPP(map, obstacles);
+var path = sipp.FindPath(0, 0, N - 1, N - 1, startTime: 0);
+
+if (path.Count == 0)
+{
+    Console.WriteLine("Безопасного маршрута не существует");
+    return;
+}
+
+int waits = 0;
+for (int i = 1; i < path.Count; i++)
+    if (path[i] == path[i - 1]) waits++;
+
+Console.WriteLine($"Шагов: {path.Count - 1}, из них ожиданий: {waits}");
+Console.WriteLine($"Манхэттенский минимум: {2 * (N - 1)}");
+```
+
+Число состояний в клетке равно числу занятий её препятствиями плюс один — именно поэтому SIPP не зависит от горизонта планирования:
+
+```csharp
+// Одно препятствие делит время в клетке на два безопасных интервала:
+// [0, TimeStart-1] и [TimeEnd+1, ∞). Планирование по времени потребовало бы
+// отдельного состояния на каждый такт горизонта.
+```
 

@@ -41,4 +41,57 @@ $$N = \frac{\ln(1 - p)}{\ln(1 - w^3)}$$
 
 ## API
 
-Класс `AI.Geometry.CircleFit` — методы `FitKasa`, `FitRANSAC`.
+Пространство имён `AI.Geometry.Fitting`, статический класс `CircleFit`. Метод Kåsa называется `AlgebraicFit`, а не `FitKasa`.
+
+| Член | Описание |
+|------|----------|
+| `CircleFit.AlgebraicFit(Vector[] points)` | `Circle` — метод Kåsa через линейную систему |
+| `CircleFit.Ransac(points, iterations = 500, threshold = 1.0, Random rng = null)` | `(Circle circle, bool[] inliers)` |
+| `Circle` | `record Circle(Vector Center, double Radius)`; `.Area`, `.Circumference`, `.Contains(point)` |
+
+`Ransac` может вернуть `circle == null`, если за отведённые итерации не нашлось согласованной модели, — это стоит проверять.
+
+Исходники: `src/AI.Geometry/Fitting/CircleFit.cs`, `src/AI.Geometry/Primitives/Circle.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Fitting;
+
+var rng = new Random(42);
+var points = new Vector[50];
+
+// 5 выбросов + 45 точек на окружности радиуса 2 с центром (3, 3)
+for (int i = 0; i < points.Length; i++)
+{
+    if (i < 5)
+    {
+        points[i] = new Vector(new[] { rng.NextDouble() * 6, rng.NextDouble() * 6 });
+        continue;
+    }
+
+    double th = rng.NextDouble() * 2 * Math.PI;
+    double r = 2 + (rng.NextDouble() - 0.5) * 0.3;
+    points[i] = new Vector(new[] { 3 + r * Math.Cos(th), 3 + r * Math.Sin(th) });
+}
+
+var kasa = CircleFit.AlgebraicFit(points);
+Console.WriteLine($"Kåsa:   центр ({kasa.Center[0]:F3}, {kasa.Center[1]:F3}), R = {kasa.Radius:F3}");
+
+var (circle, inliers) = CircleFit.Ransac(points, iterations: 500, threshold: 0.6, rng);
+
+if (circle is null)
+{
+    Console.WriteLine("RANSAC не нашёл согласованной модели");
+}
+else
+{
+    Console.WriteLine($"RANSAC: центр ({circle.Center[0]:F3}, {circle.Center[1]:F3}), R = {circle.Radius:F3}");
+    Console.WriteLine($"Инлаеров: {inliers.Count(v => v)} из {points.Length}");
+    Console.WriteLine($"Площадь: {circle.Area:F3}, длина: {circle.Circumference:F3}");
+}
+
+// Kåsa минимизирует алгебраическую невязку и смещается к выбросам,
+// RANSAC отбрасывает их и попадает точнее в (3, 3) с R = 2
+```

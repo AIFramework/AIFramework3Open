@@ -34,5 +34,46 @@ $$O(n^3)$$
 
 ## API
 
-Класс `HungarianAlgorithm` в пространстве имён `AI.Optimization`. Метод `Solve(costMatrix)` возвращает оптимальное назначение и минимальную стоимость.
+Пространство имён `AI.Algorithms.Matching`. Класс называется `Hungarian`, назначение считается в конструкторе.
+
+| Член | Описание |
+|------|----------|
+| `Hungarian(double[,] costMatrix)` | Задача о назначениях на **минимум** стоимости |
+| `.Assignment` | `int[]`: `Assignment[i]` — столбец, назначенный строке `i` |
+| `.TotalCost` | Суммарная стоимость оптимального назначения |
+| `SSPAssignment(double[,] costMatrix)` | То же через последовательные кратчайшие пути; `.Assignment`, `.TotalCost` |
+| `AuctionAlgorithm(double[,] benefitMatrix, double epsilon = 1.0)` | Аукционный метод на **максимум** выгоды; `.Assignment`, `.TotalBenefit` |
+
+Исходники: `src/AI.Algorithms/Matching/`.
+
+## Код
+
+```csharp
+using AI.Algorithms.Matching;
+
+// Строки — исполнители, столбцы — работы, значения — стоимость
+double[,] cost =
+{
+    { 4, 1, 3 },
+    { 2, 0, 5 },
+    { 3, 2, 2 },
+};
+
+var hungarian = new Hungarian(cost);
+
+for (int i = 0; i < 3; i++)
+    Console.WriteLine($"исполнитель {i} -> работа {hungarian.Assignment[i]} " +
+                      $"(стоимость {cost[i, hungarian.Assignment[i]]})");
+
+Console.WriteLine($"Итого: {hungarian.TotalCost}");   // 5: 0->1, 1->0, 2->2
+```
+
+Если задача сформулирована на максимум выгоды, а не на минимум стоимости, берите аукционный метод — переворачивать знаки матрицы не нужно:
+
+```csharp
+double[,] benefit = { { 4, 1, 3 }, { 2, 0, 5 }, { 3, 2, 2 } };
+
+var auction = new AuctionAlgorithm(benefit, epsilon: 0.1);
+Console.WriteLine($"Суммарная выгода: {auction.TotalBenefit}");
+```
 

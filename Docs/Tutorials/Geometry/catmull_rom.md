@@ -48,4 +48,61 @@ $$t_{k+1} = t_k + \|P_{k+1} - P_k\|^{\alpha}$$
 
 ## API
 
-Класс `AI.Geometry.CatmullRomSpline` — конструктор принимает массив точек и $\alpha$; метод `Evaluate(double t)`.
+Пространство имён `AI.Geometry.Curves`, класс называется `CatmullRomCurve`.
+
+| Член | Описание |
+|------|----------|
+| `new CatmullRomCurve(Vector[] points, double alpha = 0.5)` | Кривая через все точки; $\alpha$ — параметризация |
+| `.Evaluate(double t)` | Точка при $t \in [0, 1]$ |
+| `.Sample(int n)` | `Vector[]` из `n` точек |
+
+Значение $\alpha$: 0 — равномерная, 0.5 — центростремительная (по умолчанию), 1 — хордовая. Центростремительная — единственная, гарантированно свободная от петель и самопересечений на близко расположенных точках.
+
+Исходник: `src/AI.Geometry/Curves/CatmullRomCurve.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Curves;
+
+var points = new[]
+{
+    new Vector(new[] { 0.0, 0.0 }),
+    new Vector(new[] { 1.0, 2.0 }),
+    new Vector(new[] { 3.0, 1.5 }),
+    new Vector(new[] { 4.0, 3.0 }),
+    new Vector(new[] { 6.0, 2.0 }),
+};
+
+// Касательные вычисляются по соседям автоматически — задавать их не нужно
+var curve = new CatmullRomCurve(points, alpha: 0.5);
+var samples = curve.Sample(100);
+
+double length = 0;
+for (int i = 1; i < samples.Length; i++)
+    length += (samples[i] - samples[i - 1]).NormL2();
+
+Console.WriteLine($"Длина кривой: {length:F4}");
+```
+
+Сравнение параметризаций на одних данных — именно так выбирают $\alpha$ под задачу:
+
+```csharp
+foreach (double alpha in new[] { 0.0, 0.5, 1.0 })
+{
+    var c = new CatmullRomCurve(points, alpha);
+    var s = c.Sample(200);
+
+    double len = 0;
+    for (int i = 1; i < s.Length; i++) len += (s[i] - s[i - 1]).NormL2();
+
+    string name = alpha switch
+    {
+        0.0 => "равномерная",
+        1.0 => "хордовая",
+        _   => "центростремительная",
+    };
+    Console.WriteLine($"α={alpha:F1} ({name,-20}) длина={len:F4}");
+}
+```

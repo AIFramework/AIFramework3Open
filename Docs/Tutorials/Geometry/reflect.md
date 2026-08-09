@@ -40,4 +40,31 @@ $$r = v_t - v_n = v - 2\,v_n = v - 2\,(v \cdot \hat{n})\,\hat{n}$$
 
 ## API
 
-Класс `AI.Geometry.VectorOps` — метод `Reflect(Vector v, Vector normal)`.
+Класса `AI.Geometry.VectorOps` нет: отражение — **статический метод** `AI.DataStructs.Algebraic.Vector`.
+
+| Член | Описание |
+|------|----------|
+| `Vector.Reflect(Vector v, Vector normal)` | $v - 2(v \cdot n)n$ |
+
+Нормаль должна быть **единичной** — метод её не нормирует, и на ненормированной нормали результат окажется неверным по длине.
+
+Исходник: `src/AI/DataStructs/Algebraic/Vector.Factory.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+
+var incident = new Vector(new[] { 1.0, -1.0 });          // падает под 45° вниз
+var normal   = new Vector(new[] { 0.0,  1.0 });          // горизонтальная поверхность
+
+var reflected = Vector.Reflect(incident, normal);
+Console.WriteLine($"[{reflected[0]:F2}, {reflected[1]:F2}]");   // [1.00, 1.00]
+
+// Длина при отражении сохраняется — это изометрия
+Console.WriteLine($"|v| = {incident.NormL2():F4}, |r| = {reflected.NormL2():F4}");
+
+// Если нормаль не единичная, нормируйте её сами
+var raw = new Vector(new[] { 0.0, 3.0 });
+var ok  = Vector.Reflect(incident, raw.GetUnitVector());
+```

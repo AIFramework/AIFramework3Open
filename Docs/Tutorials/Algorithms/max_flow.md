@@ -45,5 +45,56 @@ $$\forall v \in V \setminus \{s, t\}: \quad \sum_{u} f(u,v) = \sum_{w} f(v,w)$$
 
 ## API
 
-Класс `MaxFlowSolver` в пространстве имён `AI.Graphs`. Поддерживает алгоритмы Диница и Edmonds—Karp. Метод `FindMaxFlow(network, source, sink)` возвращает величину потока и распределение по рёбрам.
+Пространство имён `AI.Algorithms.NetworkFlow`. Единого `MaxFlowSolver` нет — каждый алгоритм отдельный класс с одинаковой сигнатурой конструктора; поток считается прямо в нём.
+
+| Член | Описание |
+|------|----------|
+| `FlowNetwork(int v)` | Сеть на `v` вершинах |
+| `FlowNetwork.AddEdge(FlowEdge e)` | Добавить дугу |
+| `FlowNetwork.AllEdges()` | Все дуги — после расчёта у них заполнено `Flow` |
+| `FlowEdge(int from, int to, double capacity)` | Дуга; `.Flow`, `.Capacity`, `.ResidualCapacityTo(v)` |
+| `FordFulkerson(net, s, t)` | Метод дополняющих путей; `.MaxFlow`, `.InCut(v)` |
+| `EdmondsKarp(net, s, t)` | Дополняющие пути через BFS; `.MaxFlow` |
+| `Dinic(net, s, t)` | Блокирующие потоки по слоистой сети; `.MaxFlow` |
+| `PushRelabel(net, s, t)` | Проталкивание предпотока; `.MaxFlow` |
+
+`InCut(v)` есть только у `FordFulkerson` — им удобно получить минимальный разрез сразу после расчёта потока.
+
+Исходники: `src/AI.Algorithms/NetworkFlow/`.
+
+## Код
+
+```csharp
+using AI.Algorithms.NetworkFlow;
+
+var net = new FlowNetwork(6);
+net.AddEdge(new FlowEdge(0, 1, 16));
+net.AddEdge(new FlowEdge(0, 2, 13));
+net.AddEdge(new FlowEdge(1, 3, 12));
+net.AddEdge(new FlowEdge(2, 1, 4));
+net.AddEdge(new FlowEdge(2, 4, 14));
+net.AddEdge(new FlowEdge(3, 5, 20));
+net.AddEdge(new FlowEdge(4, 3, 7));
+net.AddEdge(new FlowEdge(4, 5, 4));
+
+var dinic = new Dinic(net, s: 0, t: 5);
+Console.WriteLine($"Максимальный поток: {dinic.MaxFlow:F0}");
+
+// Насыщенные дуги — узкие места сети
+foreach (var e in net.AllEdges())
+    if (e.Flow >= e.Capacity - 1e-9)
+        Console.WriteLine($"насыщена: {e.From}->{e.To} ({e.Flow}/{e.Capacity})");
+```
+
+Минимальный разрез по теореме Форда—Фалкерсона равен максимальному потоку:
+
+```csharp
+var ff = new FordFulkerson(net, s: 0, t: 5);
+
+// InCut(v) == true — вершина осталась достижимой из истока
+// по остаточной сети, то есть лежит на стороне истока
+foreach (var e in net.AllEdges())
+    if (ff.InCut(e.From) && !ff.InCut(e.To))
+        Console.WriteLine($"в разрезе: {e.From}->{e.To}, вклад {e.Capacity}");
+```
 

@@ -45,4 +45,48 @@ $$t = \frac{Q \cdot E_2}{\det}, \quad u = \frac{P \cdot T}{\det}, \quad v = \fra
 
 ## API
 
-Класс `AI.Geometry.RayTriangle` — метод `Intersect(Ray ray, Triangle tri, out float t, out float u, out float v)`.
+Пространство имён `AI.Geometry.Intersections`; класс называется `RayTriangleIntersection`. Никаких `out`-параметров: метод возвращает `double?` — параметр $t$ вдоль луча или `null`, если пересечения нет. Барицентрические координаты получают отдельно, у самого треугольника.
+
+| Член | Описание |
+|------|----------|
+| `new Ray(Vector Origin, Vector Direction)` | Луч; `.PointAt(t)` — точка на нём |
+| `new Triangle(Vector A, Vector B, Vector C)` | Треугольник |
+| `.Area()`, `.Normal()`, `.Centroid` | Площадь, нормаль, центроид |
+| `.BarycentricCoords(Vector p)` | `(double u, double v, double w)` |
+| `RayTriangleIntersection.Intersect(Ray, Triangle)` | `double?` — расстояние вдоль луча |
+
+Исходники: `src/AI.Geometry/Intersections/RayTriangleIntersection.cs`, `Primitives/Triangle.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Intersections;
+using AI.Geometry.Primitives;
+
+var tri = new Triangle(
+    new Vector(new[] { 1.0, 1.0, 0.0 }),
+    new Vector(new[] { 4.0, 1.0, 0.0 }),
+    new Vector(new[] { 2.5, 4.0, 0.0 }));
+
+// Луч летит вдоль +Z и должен пробить треугольник
+var ray = new Ray(
+    Origin:    new Vector(new[] { 2.5, 2.0, -1.0 }),
+    Direction: new Vector(new[] { 0.0, 0.0,  1.0 }));
+
+double? t = RayTriangleIntersection.Intersect(ray, tri);
+
+if (t is null)
+{
+    Console.WriteLine("Промах");
+}
+else
+{
+    var hit = ray.PointAt(t.Value);
+    Console.WriteLine($"t = {t.Value:F4}, точка ({hit[0]:F2}, {hit[1]:F2}, {hit[2]:F2})");
+
+    // Барицентрические координаты: все три в [0,1] — точка внутри
+    var (u, v, w) = tri.BarycentricCoords(hit);
+    Console.WriteLine($"u={u:F3} v={v:F3} w={w:F3}, сумма={u + v + w:F6}");
+}
+```

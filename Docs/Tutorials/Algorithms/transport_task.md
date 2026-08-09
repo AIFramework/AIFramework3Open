@@ -49,6 +49,21 @@ $$
 ## API
 
 ```csharp
+using AI.Algorithms.TransportTask;
+using AI.Algorithms.TransportTask.Methods;
+using AI.Algorithms.TransportTask.PlanBuilders;
+
+// Закрытая задача: суммарное предложение равно суммарному спросу
+double[,] costs =
+{
+    { 4, 8, 5, 3 },
+    { 6, 2, 7, 9 },
+    { 3, 5, 4, 6 },
+};
+
+double[] supply = { 40, 60, 50 };
+double[] demand = { 30, 45, 35, 40 };
+
 // Построение начального плана методом Фогеля
 var builder = new VogelApproximationMethod();
 
@@ -58,4 +73,13 @@ pm.Solve();
 
 double total = pm.GetTotalCost();
 double[,] allocation = pm.Allocation;
+
+Console.WriteLine($"Общая стоимость: {total:F0}");
+Console.WriteLine($"Средняя стоимость перевозки: {pm.GetMeanCost():F2}");
+
+for (int i = 0; i < supply.Length; i++)
+{
+    var row = Enumerable.Range(0, demand.Length).Select(j => $"{allocation[i, j],6:F0}");
+    Console.WriteLine(string.Join(" ", row));
+}
 ```

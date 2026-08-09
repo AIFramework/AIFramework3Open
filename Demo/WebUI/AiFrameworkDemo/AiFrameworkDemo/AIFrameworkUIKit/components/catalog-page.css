@@ -236,7 +236,7 @@
 
 .aif-catalog-search-bar:focus-within {
   border-color: var(--aif-border-accent);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+  box-shadow: 0 0 0 3px var(--aif-accent-a08);
 }
 [data-theme="light"][data-contrast="high"] .aif-catalog-search-bar:focus-within {
   box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.16);
@@ -311,8 +311,8 @@
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--aif-accent-light);
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: var(--aif-cur-a12, var(--aif-accent-a12));
+  border: 1px solid var(--aif-cur-border, var(--aif-accent-a25));
   border-radius: var(--aif-r-full);
   padding: 0.15rem 0.6rem;
 }

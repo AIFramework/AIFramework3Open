@@ -26,7 +26,7 @@
   font-size: 0.62rem;
   font-weight: 600;
   color: var(--aif-accent-light);
-  background: rgba(99, 102, 241, 0.1);
+  background: var(--aif-cur-a12, var(--aif-accent-a12));
   padding: 0.12rem 0.45rem;
   border-radius: var(--aif-r-xs);
   white-space: nowrap;
@@ -51,7 +51,7 @@
   border-radius: 0.4rem;
   padding: 0.22rem 0.48rem;
   line-height: 1;
-  box-shadow: 0 2px 8px -2px rgba(99, 102, 241, 0.55);
+  box-shadow: 0 2px 8px -2px var(--aif-accent-a55);
   text-transform: uppercase;
   align-self: center;
 }
@@ -62,7 +62,7 @@
   bottom: -0.3rem;
   right: -0.9rem;
   transform: rotate(-4deg);
-  box-shadow: 0 4px 14px -3px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 4px 14px -3px var(--aif-accent-a55);
   font-size: 0.62rem;
   padding: 0.28rem 0.55rem;
 }
@@ -96,8 +96,8 @@
 }
 .aif-chip--link:hover {
   color: #fff;
-  border-color: rgba(129, 140, 248, 0.5);
-  background: rgba(99, 102, 241, 0.14);
+  border-color: var(--aif-cur, var(--aif-accent-light-a50));
+  background: var(--aif-cur-a20, var(--aif-accent-a16));
 }
 [data-theme="light"] .aif-chip--link:hover {
   color: var(--aif-accent);

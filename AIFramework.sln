@@ -33,11 +33,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "unit", "unit", "{9D556B49-86D1-93A7-9596-FFAAB74EC556}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIFramework.UnitTests", "tests\unit\AIFramework.UnitTests\AIFramework.UnitTests.csproj", "{356CBC6A-7362-49A1-A76F-0BAD1CF8C75F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIFramework.UnitTests", "Tests\unit\AIFramework.UnitTests\AIFramework.UnitTests.csproj", "{356CBC6A-7362-49A1-A76F-0BAD1CF8C75F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{D0D6B8B0-AC35-B3FA-0B96-A9B0E4A3253E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIFramework.TestHelpers", "tests\shared\AIFramework.TestHelpers\AIFramework.TestHelpers.csproj", "{41CF2FFD-D5D6-409F-8450-786E71135433}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIFramework.TestHelpers", "Tests\shared\AIFramework.TestHelpers\AIFramework.TestHelpers.csproj", "{41CF2FFD-D5D6-409F-8450-786E71135433}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI.ML", "src\AI.ML\AI.ML.csproj", "{215AFB2B-7D5B-4CE1-94FE-00BEB53239C2}"
 EndProject
@@ -63,7 +63,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI.NeuralNetworks", "src\AI
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI.LLM", "src\AI.LLM\AI.LLM.csproj", "{211E7830-0DED-4C1B-A2CA-6B7E6E0C39A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI.LLM.UnitTests", "tests\unit\AI.LLM.UnitTests\AI.LLM.UnitTests.csproj", "{C15EDBDD-9400-4E2A-A089-CF62C6804664}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI.LLM.UnitTests", "Tests\unit\AI.LLM.UnitTests\AI.LLM.UnitTests.csproj", "{C15EDBDD-9400-4E2A-A089-CF62C6804664}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

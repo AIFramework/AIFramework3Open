@@ -45,4 +45,43 @@ Winding number корректно работает для **несамопере
 
 ## API
 
-Класс `AI.Geometry.Polygon` — методы `ContainsRayCast(Point p)`, `ContainsWinding(Point p)`.
+Пространство имён `AI.Geometry.Polygons`, статический класс `PointInPolygon`. Полигон — массив `Vector[]`, точка передаётся первым аргументом.
+
+| Член | Описание |
+|------|----------|
+| `PointInPolygon.Contains(Vector point, Vector[] polygon)` | Основной метод |
+| `PointInPolygon.RayCasting(point, polygon)` | Трассировка луча: чётность пересечений |
+| `PointInPolygon.WindingNumber(point, polygon)` | **Число оборотов** (`int`), а не `bool` |
+
+Разница проявляется на самопересекающихся контурах: трассировка луча использует правило чётности, число оборотов — правило ненулевого значения, и для одной и той же точки они могут дать разный ответ.
+
+Исходник: `src/AI.Geometry/Polygons/PointInPolygon.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Polygons;
+
+// Пятиконечная звезда: контур самопересекающийся
+var star = new Vector[10];
+for (int i = 0; i < 10; i++)
+{
+    double angle = Math.PI * i / 5 - Math.PI / 2;
+    double r = i % 2 == 0 ? 2.5 : 1.0;
+    star[i] = new Vector(new[] { 3 + r * Math.Cos(angle), 3 + r * Math.Sin(angle) });
+}
+
+var inside  = new Vector(new[] { 3.0, 3.0 });    // центр
+var outside = new Vector(new[] { 6.0, 6.0 });
+
+Console.WriteLine($"Центр внутри:  {PointInPolygon.Contains(inside, star)}");
+Console.WriteLine($"Снаружи:       {PointInPolygon.Contains(outside, star)}");
+
+// WindingNumber возвращает число оборотов: 0 — снаружи, ±1 и больше — внутри
+Console.WriteLine($"Оборотов вокруг центра: {PointInPolygon.WindingNumber(inside, star)}");
+Console.WriteLine($"Оборотов снаружи:       {PointInPolygon.WindingNumber(outside, star)}");
+
+// Правило чётности отдельно
+Console.WriteLine($"RayCasting центр: {PointInPolygon.RayCasting(inside, star)}");
+```

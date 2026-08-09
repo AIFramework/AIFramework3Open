@@ -50,4 +50,41 @@ $$\det(A) = (-1)^s \prod_{i=1}^{n} u_{ii}$$
 
 ## API
 
-Класс `AI.Geometry.LU` — метод `Decompose(Matrix A)`, `Solve(Vector b)`, `Determinant()`.
+Класс `LU` лежит в `AI.ClassicMath.MatrixUtils` и **статичен**: разложение не сохраняется между вызовами, поэтому `Solve` и `Determinant` принимают матрицу заново.
+
+| Член | Описание |
+|------|----------|
+| `LU.Decompose(Matrix A)` | `(Matrix L, Matrix U, int[] perm)` — вектор перестановки строк |
+| `LU.Solve(Matrix A, Vector b)` | Решение $Ax = b$ |
+| `LU.Determinant(Matrix A)` | Определитель |
+
+При решении нескольких систем с одной и той же матрицей `Solve` каждый раз раскладывает её заново — выигрыш от повторного использования разложения здесь не получить.
+
+Исходник: `src/AI.ClassicMath/MatrixUtils/LU.cs`.
+
+## Код
+
+```csharp
+using AI.ClassicMath.MatrixUtils;
+using AI.DataStructs.Algebraic;
+
+var A = new Matrix(3, 3);
+A[0, 0] = 2; A[0, 1] = 1; A[0, 2] = -1;
+A[1, 0] = -3; A[1, 1] = -1; A[1, 2] = 2;
+A[2, 0] = -2; A[2, 1] = 1; A[2, 2] = 2;
+
+var b = new Vector(new[] { 8.0, -11.0, -3.0 });
+
+var x = LU.Solve(A, b);
+Console.WriteLine($"x = [{x[0]:F4}, {x[1]:F4}, {x[2]:F4}]");   // [2, 3, -1]
+
+Console.WriteLine($"det(A) = {LU.Determinant(A):F4}");
+
+// Разложение с частичным выбором ведущего элемента
+var (L, U, perm) = LU.Decompose(A);
+Console.WriteLine($"Перестановка строк: [{string.Join(", ", perm)}]");
+
+// Проверка невязки
+var residual = (A * x).LikeVector() - b;
+Console.WriteLine($"‖Ax − b‖ = {residual.NormL2():E3}");
+```

@@ -40,5 +40,39 @@ FloydWarshall(W):
 
 ## API
 
-Класс `FloydWarshall` в пространстве имён `AI.Graphs`. Метод `ComputeAllPairs(adjacencyMatrix)` возвращает матрицу расстояний. Метод `GetPath(i, j)` восстанавливает кратчайший путь.
+Пространство имён `AI.Algorithms.EWG`. Матрица считается в конструкторе.
+
+| Член | Описание |
+|------|----------|
+| `FloydWarshall<Edge>(GraphW<Edge> g)` | Кратчайшие пути между всеми парами |
+| `.Dist` | `double[,]`: матрица расстояний; недостижимость — значение ≥ 1e15 |
+| `.Next` | `int[,]`: матрица переходов для восстановления пути |
+| `.DistanceBetween(u, v)` | Расстояние между парой |
+| `.PathBetween(u, v)` | Список вершин пути |
+
+Исходник: `src/AI.Algorithms/EWG/FloydWarshall.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.EWG;
+
+var g = new GraphW<Edge>(4);
+g.AddArce(0, 1, 5); g.AddArce(1, 2, 3);
+g.AddArce(2, 3, 1); g.AddArce(0, 3, 10);
+
+var fw = new FloydWarshall<Edge>(g);
+
+// Обход через 1 и 2 короче прямой дуги 0->3: 5+3+1 = 9 против 10
+Console.WriteLine($"d(0,3) = {fw.DistanceBetween(0, 3):F1}");
+Console.WriteLine($"Путь: {string.Join("->", fw.PathBetween(0, 3))}");
+
+// Полная матрица
+for (int i = 0; i < g.V; i++)
+{
+    var row = Enumerable.Range(0, g.V)
+        .Select(j => fw.Dist[i, j] >= 1e15 ? "∞" : fw.Dist[i, j].ToString("F0"));
+    Console.WriteLine(string.Join("\t", row));
+}
+```
 

@@ -33,8 +33,8 @@
   inset: 0;
   background: radial-gradient(
     ellipse at 50% 30%,
-    rgba(99, 102, 241, 0.16) 0%,
-    rgba(99, 102, 241, 0.05) 35%,
+    var(--aif-accent-a16) 0%,
+    var(--aif-accent-a04) 35%,
     transparent 70%
   );
   pointer-events: none;
@@ -43,7 +43,7 @@
 [data-theme="light"] .aif-hero::before {
   background: radial-gradient(
     ellipse at 50% 30%,
-    rgba(99, 102, 241, 0.04) 0%,
+    var(--aif-accent-a04) 0%,
     transparent 50%
   );
 }
@@ -63,7 +63,7 @@
   width: clamp(100px, 18vw, 160px);
   height: auto;
   display: block;
-  filter: drop-shadow(0 10px 40px rgba(99, 102, 241, 0.4));
+  filter: drop-shadow(0 10px 40px var(--aif-accent-a40));
   animation: aif-float 6s ease-in-out infinite;
 }
 
@@ -148,7 +148,7 @@
 .aif-hero--landing::before {
   background: radial-gradient(
     ellipse at 50% 20%,
-    rgba(99, 102, 241, 0.22) 0%,
+    var(--aif-accent-a20) 0%,
     rgba(124, 58, 237, 0.08) 40%,
     transparent 70%
   );
@@ -156,7 +156,7 @@
 [data-theme="light"] .aif-hero--landing::before {
   background: radial-gradient(
     ellipse at 50% 20%,
-    rgba(99, 102, 241, 0.06) 0%,
+    var(--aif-accent-a08) 0%,
     transparent 50%
   );
 }
@@ -179,7 +179,7 @@
 .aif-aurora-blob--1 {
   width: 55vw; max-width: 700px;
   height: 40vw; max-height: 450px;
-  background: radial-gradient(ellipse, rgba(99, 102, 241, 0.45) 0%, transparent 70%);
+  background: radial-gradient(ellipse, var(--aif-accent-a45) 0%, transparent 70%);
   top: -8%; left: 10%;
   animation-delay: 0s;
 }
@@ -201,7 +201,7 @@
 /* Блобы в светлой теме — почти невидимые, чтобы не давать лаванду */
 [data-theme="light"] .aif-aurora-blob { opacity: 0.08; }
 [data-theme="light"] .aif-aurora-blob--1 {
-  background: radial-gradient(ellipse, rgba(99, 102, 241, 0.35) 0%, transparent 70%);
+  background: radial-gradient(ellipse, var(--aif-accent-a35) 0%, transparent 70%);
 }
 [data-theme="light"] .aif-aurora-blob--2 {
   background: radial-gradient(ellipse, rgba(124, 58, 237, 0.25) 0%, transparent 70%);
@@ -223,18 +223,18 @@
   font-weight: 600;
   letter-spacing: 0.015em;
   color: var(--aif-accent-light);
-  background: rgba(99, 102, 241, 0.1);
+  background: var(--aif-accent-a12);
   -webkit-backdrop-filter: blur(12px) saturate(1.4);
   backdrop-filter: blur(12px) saturate(1.4);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  border: 1px solid var(--aif-accent-a25);
   border-radius: var(--aif-r-full);
   padding: 0.3rem 0.85rem;
   margin-bottom: 1.25rem;
 }
 [data-theme="light"] .aif-hero-badge {
   color: #4f46e5;
-  background: rgba(99, 102, 241, 0.08);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: var(--aif-accent-a08);
+  border-color: var(--aif-accent-a25);
 }
 .aif-hero-badge-dot {
   width: 6px;
@@ -245,8 +245,8 @@
   animation: aif-pulse-dot 2.2s ease-in-out infinite;
 }
 @keyframes aif-pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.5); }
-  50%       { box-shadow: 0 0 0 5px rgba(129, 140, 248, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--aif-accent-light-a50); }
+  50%       { box-shadow: 0 0 0 5px var(--aif-accent-light-a00); }
 }
 
 /* ─── Кнопки CTA ────────────────────────────────────────────────── */
@@ -327,8 +327,8 @@
 }
 .aif-tech-pill--accent {
   color: var(--aif-accent-bright);
-  background: rgba(99, 102, 241, 0.12);
-  border-color: rgba(99, 102, 241, 0.30);
+  background: var(--aif-accent-a12);
+  border-color: var(--aif-accent-a30);
 }
 [data-theme="light"] .aif-tech-pill--accent {
   color: #3730a3;
@@ -337,8 +337,8 @@
 }
 .aif-tech-pill--accent:hover {
   color: #c7d2fe;
-  background: rgba(99, 102, 241, 0.20);
-  border-color: rgba(99, 102, 241, 0.45);
+  background: var(--aif-accent-a20);
+  border-color: var(--aif-accent-a45);
 }
 
 /* ════════════════════════════════════════════════════════════════════

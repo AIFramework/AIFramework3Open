@@ -45,4 +45,51 @@ $$p(s) = \begin{pmatrix} s^3 & s^2 & s & 1 \end{pmatrix} \begin{pmatrix} 2 & -2 
 
 ## API
 
-Класс `AI.Geometry.HermiteSpline` — методы `Evaluate(double t)`, `AddPoint(Point p, Vector tangent)`.
+Пространство имён `AI.Geometry.Curves`, класс называется `HermiteCurve`. Метода `AddPoint` нет: все узлы вместе с касательными задаются сразу в конструкторе, кривая неизменяема.
+
+| Член | Описание |
+|------|----------|
+| `new HermiteCurve((Vector point, Vector tangent)[] segments)` | Узлы и касательные в них |
+| `.Evaluate(double t)` | Точка при $t \in [0, 1]$ по всей цепочке сегментов |
+| `.Sample(int n)` | `Vector[]` из `n` точек |
+
+Исходник: `src/AI.Geometry/Curves/HermiteCurve.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Curves;
+
+// Узел = (точка, касательная). Касательная задаёт направление и «силу» выхода
+var segments = new (Vector point, Vector tangent)[]
+{
+    (new Vector(new[] { 0.0, 0.0 }), new Vector(new[] { 2.0,  2.0 })),
+    (new Vector(new[] { 2.0, 1.0 }), new Vector(new[] { 2.0, -1.0 })),
+    (new Vector(new[] { 4.0, 0.5 }), new Vector(new[] { 2.0,  1.0 })),
+};
+
+var curve = new HermiteCurve(segments);
+
+// В отличие от Безье, кривая Эрмита проходит через ВСЕ узлы
+foreach (var (point, _) in segments)
+{
+    // подберём t, при котором кривая ближе всего к узлу
+    var pts = curve.Sample(200);
+    double best = pts.Min(p => (p - point).NormL2());
+    Console.WriteLine($"Узел ({point[0]:F1}, {point[1]:F1}): отклонение {best:E2}");
+}
+
+var mid = curve.Evaluate(0.5);
+Console.WriteLine($"Середина: ({mid[0]:F3}, {mid[1]:F3})");
+```
+
+Длина касательной управляет «натяжением»: удлинение вытягивает кривую в сторону касательной, укорочение прижимает её к ломаной по узлам.
+
+```csharp
+var tight = new HermiteCurve(new (Vector, Vector)[]
+{
+    (new Vector(new[] { 0.0, 0.0 }), new Vector(new[] { 0.5, 0.5 })),   // короткие
+    (new Vector(new[] { 2.0, 1.0 }), new Vector(new[] { 0.5, -0.25 })),
+});
+```

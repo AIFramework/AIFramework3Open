@@ -54,4 +54,57 @@ $$N = \frac{\ln(1 - p)}{\ln(1 - w^s)}$$
 
 ## API
 
-Класс `AI.Geometry.LineFit` — методы `FitOLS`, `FitTLS`, `FitRANSAC`.
+Пространство имён `AI.Geometry.Fitting`, статический класс `LineFit`. Методы называются без префикса `Fit`, и — важно — **возвращают разное**: OLS и RANSAC дают коэффициенты прямой, а TLS — точку и направление, потому что вертикальную прямую наклоном не описать.
+
+| Член | Описание |
+|------|----------|
+| `LineFit.Ols(Vector[] points)` | `(double slope, double intercept)` — минимум по вертикали |
+| `LineFit.Tls(Vector[] points)` | `(Vector direction, Vector point)` — минимум по перпендикуляру |
+| `LineFit.Ransac(Vector[] points, int iterations, double threshold, Random rng)` | `(double slope, double intercept, bool[] inliers)` |
+
+Исходник: `src/AI.Geometry/Fitting/LineFit.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Fitting;
+
+var rng = new Random(42);
+var points = new Vector[60];
+
+// Первые 9 точек — выбросы, остальные лежат на прямой y = 1.5x + 0.5
+for (int i = 0; i < points.Length; i++)
+{
+    double x = rng.NextDouble() * 6 - 1;
+    double y = i < 9
+        ? rng.NextDouble() * 10 - 3
+        : 1.5 * x + 0.5 + (rng.NextDouble() - 0.5) * 0.6;
+    points[i] = new Vector(new[] { x, y });
+}
+
+var ols = LineFit.Ols(points);
+Console.WriteLine($"OLS:    y = {ols.slope:F3}x + {ols.intercept:F3}");
+
+var ransac = LineFit.Ransac(points, iterations: 500, threshold: 0.9, rng);
+Console.WriteLine($"RANSAC: y = {ransac.slope:F3}x + {ransac.intercept:F3}");
+Console.WriteLine($"Инлаеров: {ransac.inliers.Count(v => v)} из {points.Length}");
+
+// OLS «утягивают» 9 выбросов, RANSAC их игнорирует и попадает в 1.5 / 0.5
+```
+
+TLS минимизирует перпендикулярные расстояния и потому симметричен по осям — в отличие от OLS, где x считается точным:
+
+```csharp
+var tls = LineFit.Tls(points);
+Console.WriteLine($"TLS: точка ({tls.point[0]:F3}, {tls.point[1]:F3}), " +
+                  $"направление ({tls.direction[0]:F3}, {tls.direction[1]:F3})");
+
+// Перевод в наклон возможен, только если направление не вертикально
+if (Math.Abs(tls.direction[0]) > 1e-12)
+{
+    double k = tls.direction[1] / tls.direction[0];
+    double b = tls.point[1] - k * tls.point[0];
+    Console.WriteLine($"TLS: y = {k:F3}x + {b:F3}");
+}
+```

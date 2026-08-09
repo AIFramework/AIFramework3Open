@@ -53,4 +53,55 @@ $$\text{slerp}(q_0, q_1, t) = q_0\,(q_0^{-1}\,q_1)^t = \frac{\sin((1-t)\theta)}{
 
 ## API
 
-Класс `AI.Geometry.Quaternion` — конструктор, `Multiply`, `Conjugate`, `Normalize`, `RotatePoint`, `Slerp`, `ToMatrix`.
+Пространство имён `AI.Geometry.Transforms`. `Quaternion` — **структура** (`readonly struct`), а не класс; умножение задано оператором `*`, а `Conjugate` и `Normalize` — свойства, а не методы.
+
+| Член | Описание |
+|------|----------|
+| `new Quaternion(w, x, y, z)` | Компоненты; поля `W`, `X`, `Y`, `Z` доступны только для чтения |
+| `Quaternion.Identity` | Единичный кватернион (без поворота) |
+| `Quaternion.FromAxisAngle(Vector axis, double angle)` | Поворот вокруг оси на угол в радианах |
+| `Quaternion.FromEuler(yaw, pitch, roll)` | Из углов Эйлера |
+| `Quaternion.FromRotationMatrix(Matrix m)` | Из матрицы поворота |
+| `a * b` | Композиция поворотов (оператор, не `Multiply`) |
+| `.Conjugate`, `.Inverse`, `.Normalize` | **Свойства**, возвращают новый кватернион |
+| `.Norm` | Длина |
+| `.Rotate(Vector point)` | Повернуть точку (не `RotatePoint`) |
+| `.ToRotationMatrix3()` | Матрица 3×3 (не `ToMatrix`) |
+| `Quaternion.Slerp(a, b, t)` | Сферическая интерполяция ориентаций |
+
+Исходник: `src/AI.Geometry/Transforms/Quaternion.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using Quaternion = AI.Geometry.Transforms.Quaternion;
+
+var axis = new Vector(new[] { 0.0, 0.0, 1.0 });
+var q90  = Quaternion.FromAxisAngle(axis, Math.PI / 2);
+
+var point   = new Vector(new[] { 1.0, 0.0, 0.0 });
+var rotated = q90.Rotate(point);
+Console.WriteLine($"[{rotated[0]:F3}, {rotated[1]:F3}, {rotated[2]:F3}]");   // [0, 1, 0]
+
+// Композиция: два поворота по 90° дают 180°
+var q180 = q90 * q90;
+var back = q180.Rotate(point);
+Console.WriteLine($"[{back[0]:F3}, {back[1]:F3}, {back[2]:F3}]");            // [-1, 0, 0]
+
+// Обратный поворот возвращает точку на место
+var restored = q90.Inverse.Rotate(rotated);
+Console.WriteLine($"[{restored[0]:F3}, {restored[1]:F3}, {restored[2]:F3}]");
+```
+
+Slerp по кватернионам даёт равномерное вращение — в отличие от покомпонентной интерполяции углов Эйлера, страдающей шарнирным замком:
+
+```csharp
+for (int i = 0; i <= 4; i++)
+{
+    double t = i / 4.0;
+    var qi = Quaternion.Slerp(Quaternion.Identity, q90, t);
+    var pi = qi.Rotate(point);
+    Console.WriteLine($"t={t:F2}  ({pi[0]:F3}, {pi[1]:F3})  |q|={qi.Norm:F6}");
+}
+```

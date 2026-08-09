@@ -43,5 +43,44 @@ $$f(n) = g(n) + h(n), \quad g(n) \leq w$$
 
 ## API
 
-Классы `CooperativeAStar`, `WHCAStar` в пространстве имён `AI.MAPF`. Метод `Solve(graph, agents, windowSize)` принимает размер окна планирования.
+Пространство имён `AI.Algorithms.MAPF`. Классы называются `HCA` и `WHCA`; размер окна задаётся в **конструкторе**, а не в `Solve()`.
+
+| Член | Описание |
+|------|----------|
+| `HCA(GridMap map, List<MAPFAgent> agents)` | Hierarchical Cooperative A*: резервирование на весь горизонт |
+| `WHCA(GridMap map, List<MAPFAgent> agents, int windowSize = 16)` | Оконный вариант: резервирование только на `windowSize` тактов |
+| `.Solve()` | `MAPFSolution` |
+
+Окно — компромисс: чем оно меньше, тем дешевле планирование, но тем чаще агенты заходят в тупики, которых не видели заранее.
+
+Исходники: `src/AI.Algorithms/MAPF/HCA.cs`, `WHCA.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.MAPF;
+
+var map = new GridMap(15, 15);
+for (int y = 3; y < 12; y++) map.SetBlocked(7, y, true);
+
+var agents = new List<MAPFAgent>();
+for (int i = 0; i < 4; i++)
+    agents.Add(new MAPFAgent
+    {
+        Id = i,
+        StartX = 0, StartY = i * 3,
+        GoalX = 14, GoalY = i * 3,
+    });
+
+var hca = new HCA(map, agents).Solve();
+Console.WriteLine($"HCA*: makespan={hca.Makespan}, sumOfCosts={hca.SumOfCosts}");
+
+// Сравнение окон: короткое окно дешевле, но качество решения падает
+foreach (int w in new[] { 4, 8, 16, 32 })
+{
+    var sol = new WHCA(map, agents, windowSize: w).Solve();
+    Console.WriteLine($"WHCA* (окно {w,2}): makespan={sol.Makespan}, " +
+                      $"валидно={sol.IsValid(map, agents)}");
+}
+```
 

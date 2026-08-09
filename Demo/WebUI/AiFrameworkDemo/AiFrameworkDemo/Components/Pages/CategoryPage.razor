@@ -8,7 +8,9 @@
 }
 else
 {
-    <nav class="aif-topbar aif-topbar--@_mod.Color">
+    @* data-color включает контекстные токены --aif-cur-* для всего
+       поддерева: карточки и границы следуют цвету модуля. *@
+    <nav class="aif-topbar aif-topbar--@_mod.Color" data-color="@_mod.Color">
         <div class="aif-topbar-inner">
             <a class="aif-topbar-back" href="/lib/@_mod.Id">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -27,7 +29,7 @@ else
         <p class="aif-summary">@_cat.Summary</p>
     }
 
-    <div class="aif-cards-grid aif-cards-grid--xs">
+    <div class="aif-cards-grid aif-cards-grid--xs" data-color="@_mod.Color">
         @foreach (var algo in _cat.Algorithms)
         {
             <a href="/lib/@_mod.Id/algo/@algo.Key" class="aif-card aif-card--vertical aif-card--@_mod.Color"

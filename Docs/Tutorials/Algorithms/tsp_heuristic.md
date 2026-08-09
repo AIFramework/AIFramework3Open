@@ -51,5 +51,57 @@ $$G = \sum_{i=1}^{k} g_i > 0, \quad g_i = d(x_i) - d(y_i)$$
 
 ## API
 
-Класс `TSPSolver` в пространстве имён `AI.Routing`. Методы `Solve2Opt()`, `SolveLK()`, `SolveChristofides()`.
+Пространство имён `AI.Algorithms.VRP`. Единого `TSPSolver` нет: TSP задаётся как VRP с одним транспортом и неограниченной вместимостью.
+
+| Член | Описание |
+|------|----------|
+| `LocalSearch(VRPInstance inst)` | Локальный поиск поверх готового решения |
+| `.TwoOpt(sol)`, `.ThreeOpt(sol)`, `.OrOpt(sol)` | Соответствующие окрестности; возвращают улучшенное `VRPSolution` |
+| `LinKernighan(VRPInstance inst)` | Переменная глубина обмена |
+| `.Solve(VRPSolution initial = null)` | Улучшает `initial` или строит решение с нуля |
+| `Christofides(VRPInstance inst)` | Приближение с гарантией 3/2 |
+| `.SolveTSP()` | `List<int>` — тур; в `VRPSolution` его нужно завернуть вручную |
+
+`Christofides.SolveTSP()` возвращает **список вершин**, а не `VRPSolution`, — это единственный метод с таким возвратом.
+
+Исходники: `src/AI.Algorithms/VRP/`.
+
+## Код
+
+```csharp
+using AI.Algorithms.VRP;
+
+var rng = new Random(42);
+int n = 20;
+var cx = new double[n];
+var cy = new double[n];
+var demand = new double[n];
+for (int i = 0; i < n; i++)
+{
+    cx[i] = rng.NextDouble() * 20 - 10;
+    cy[i] = rng.NextDouble() * 20 - 10;
+    demand[i] = 1;
+}
+
+// TSP = VRP с одним транспортом и заведомо избыточной вместимостью
+var inst = new VRPInstance(0, 0, cx, cy, demand, vehicleCapacity: 1e9, numVehicles: 1);
+
+var initial = new ClarkeWright(inst).Solve();
+Console.WriteLine($"Начальное:      {initial.TotalDistance(inst):F1}");
+
+var twoOpt = new LocalSearch(inst).TwoOpt(initial);
+Console.WriteLine($"После 2-opt:    {twoOpt.TotalDistance(inst):F1}");
+
+var lk = new LinKernighan(inst).Solve(initial);
+Console.WriteLine($"Lin-Kernighan:  {lk.TotalDistance(inst):F1}");
+```
+
+Christofides даёт доказанную границу 3/2 от оптимума — но только для метрики, удовлетворяющей неравенству треугольника:
+
+```csharp
+var tour = new Christofides(inst).SolveTSP();
+var sol  = new VRPSolution { Routes = new List<List<int>> { tour } };
+
+Console.WriteLine($"Christofides:   {sol.TotalDistance(inst):F1}");
+```
 

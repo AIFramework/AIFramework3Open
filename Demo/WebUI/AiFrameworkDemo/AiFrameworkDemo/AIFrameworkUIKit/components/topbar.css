@@ -111,7 +111,7 @@
   background: rgba(5, 6, 14, 0.82);
   backdrop-filter: blur(24px) saturate(1.6);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 0 rgba(99, 102, 241, 0.1), 0 4px 24px -8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 1px 0 var(--aif-accent-a12), 0 4px 24px -8px rgba(0, 0, 0, 0.5);
   transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 [data-theme="light"] .aif-header {
@@ -148,7 +148,7 @@
   object-fit: contain;
   border-radius: 0.45rem;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.35));
+  filter: drop-shadow(0 2px 8px var(--aif-accent-a35));
 }
 .aif-brand-text {
   font-size: 1rem;
@@ -265,8 +265,8 @@
 }
 .aif-gh-btn:hover {
   color: var(--aif-text-1);
-  border-color: rgba(129, 140, 248, 0.4);
-  background: rgba(99, 102, 241, 0.12);
+  border-color: var(--aif-accent-light-a40);
+  background: var(--aif-accent-a12);
   transform: translateY(-1px);
 }
 

@@ -48,5 +48,56 @@ AStar(start, goal, h):
 
 ## API
 
-Класс `AStarPathFinder` в пространстве имён `AI.Graphs`. Конструктор принимает `IHeuristic<T>`. Метод `FindPath(start, goal)` возвращает оптимальный путь.
+Пространство имён `AI.Algorithms.EWG`. Эвристика передаётся делегатом `Func<int, double>` — интерфейса `IHeuristic` в библиотеке нет.
+
+| Член | Описание |
+|------|----------|
+| `AStarSearch<Edge>(GraphW<Edge> g, int start, int goal, Func<int, double> h)` | Поиск с эвристикой `h` |
+| `.Found` | Путь найден |
+| `.PathCost` | Стоимость найденного пути |
+| `.GetPath()` | Список вершин от старта к цели |
+| `.GScore` | `double[]`: фактические стоимости от старта |
+| `.CameFrom` | `Edge[]`: ребро, по которому пришли в вершину |
+
+Для инкрементального перепланирования при изменении весов см. [D* Lite, LPA* и ARA*](dynamic_pathfinding.md).
+
+Исходник: `src/AI.Algorithms/EWG/AStar.cs`.
+
+## Код
+
+Сетка 10×10 с препятствиями; эвристика — манхэттенское расстояние, допустимое для 4-связной сетки с единичными весами:
+
+```csharp
+using AI.Algorithms.EWG;
+
+const int W = 10, H = 10;
+var g = new GraphW<Edge>(W * H);
+var blocked = new bool[W, H];
+for (int y = 3; y < 8; y++) blocked[5, y] = true;   // стена
+
+int Idx(int x, int y) => y * W + x;
+
+for (int x = 0; x < W; x++)
+    for (int y = 0; y < H; y++)
+    {
+        if (blocked[x, y]) continue;
+        int[] dx = { 1, 0, -1, 0 }, dy = { 0, 1, 0, -1 };
+        for (int d = 0; d < 4; d++)
+        {
+            int nx = x + dx[d], ny = y + dy[d];
+            if (nx >= 0 && nx < W && ny >= 0 && ny < H && !blocked[nx, ny])
+                g.AddArce(Idx(x, y), Idx(nx, ny), 1);
+        }
+    }
+
+// Манхэттенская эвристика: никогда не переоценивает — значит A* оптимален
+double Heuristic(int v) => Math.Abs(v % W - (W - 1)) + Math.Abs(v / W - (H - 1));
+
+var astar = new AStarSearch<Edge>(g, Idx(0, 0), Idx(W - 1, H - 1), Heuristic);
+
+if (astar.Found)
+    Console.WriteLine($"Длина пути: {astar.PathCost:F0}, вершин: {astar.GetPath().Count}");
+else
+    Console.WriteLine("Путь не найден");
+```
 

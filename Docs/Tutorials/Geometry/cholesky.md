@@ -51,4 +51,44 @@ $$(A^T A + \lambda I)\,x = A^T b$$
 
 ## API
 
-Класс `AI.Geometry.Cholesky` — метод `Decompose(Matrix A)`, `Solve(Vector b)`, свойство `L`.
+Класс `Cholesky` лежит в `AI.ClassicMath.MatrixUtils` и статичен: свойства `L` нет — множитель возвращает сам `Decompose`.
+
+| Член | Описание |
+|------|----------|
+| `Cholesky.Decompose(Matrix A)` | `Matrix L` — нижнетреугольный множитель, $A = LL^{\top}$ |
+| `Cholesky.Solve(Matrix A, Vector b)` | Решение $Ax = b$ для симметричной положительно определённой $A$ |
+
+Матрица обязана быть симметричной и положительно определённой. На неподходящей матрице разложение не имеет смысла — проверяйте это до вызова, а не по результату.
+
+Исходник: `src/AI.ClassicMath/MatrixUtils/Cholesky.cs`.
+
+## Код
+
+```csharp
+using AI.ClassicMath.MatrixUtils;
+using AI.DataStructs.Algebraic;
+
+// Надёжный способ получить SPD-матрицу: A = RᵀR + λI
+var R = new Matrix(3, 3);
+R[0, 0] = 1; R[0, 1] = 2; R[0, 2] = 0;
+R[1, 0] = 0; R[1, 1] = 1; R[1, 2] = 1;
+R[2, 0] = 1; R[2, 1] = 0; R[2, 2] = 2;
+
+var A = R.Transpose() * R;
+for (int i = 0; i < 3; i++) A[i, i] += 3;   // диагональное преобладание
+
+var L = Cholesky.Decompose(A);
+
+// Проверка A = LLᵀ
+var restored = L * L.Transpose();
+double err = 0;
+for (int r = 0; r < 3; r++)
+    for (int c = 0; c < 3; c++)
+        err += Math.Pow(A[r, c] - restored[r, c], 2);
+Console.WriteLine($"‖A − LLᵀ‖²F = {err:E3}");
+
+var b = new Vector(new[] { 1.0, 2.0, 3.0 });
+var x = Cholesky.Solve(A, b);
+Console.WriteLine($"x = [{x[0]:F4}, {x[1]:F4}, {x[2]:F4}]");
+Console.WriteLine($"Невязка: {((A * x).LikeVector() - b).NormL2():E3}");
+```

@@ -61,9 +61,9 @@
 }
 
 /* Тон: цветом выделяется только левая грань, чтобы плашки не пестрили */
-.aif-metric--good { border-left-color: var(--aif-status-ok); }
-.aif-metric--warn { border-left-color: #fbbf24; }
-.aif-metric--bad  { border-left-color: var(--aif-status-err); }
+.aif-metric--good { border-left-color: var(--aif-status-ok-text); }
+.aif-metric--warn { border-left-color: var(--aif-status-warn-text); }
+.aif-metric--bad  { border-left-color: var(--aif-status-err-text); }
 
 .aif-metrics-note {
   margin: -0.2rem 0 0;

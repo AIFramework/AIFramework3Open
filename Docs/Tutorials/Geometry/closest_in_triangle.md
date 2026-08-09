@@ -50,4 +50,48 @@ $$\det = ac - b^2, \quad u = (be - cd)/\det, \quad v = (bd - ae)/\det$$
 
 ## API
 
-Класс `AI.Geometry.Triangle` — метод `ClosestPoint(Point p)`.
+Ближайшая точка ищется **статическими классами**, а не методом самого треугольника; их два, с разными сигнатурами.
+
+| Член | Описание |
+|------|----------|
+| `AI.Geometry.Polygons.ClosestInTriangle.ClosestPoint(Vector p, Vector a, Vector b, Vector c)` | Вершины отдельными аргументами |
+| `AI.Geometry.Distances.PointTriangle.ClosestPoint(Vector p, Triangle tri)` | Через примитив `Triangle` |
+| `AI.Geometry.Distances.PointTriangle.Distance(Vector p, Triangle tri)` | Сразу расстояние |
+| `Triangle.BarycentricCoords(Vector p)` | `(u, v, w)` — область проекции читается по знакам |
+
+Исходники: `src/AI.Geometry/Polygons/ClosestInTriangle.cs`, `src/AI.Geometry/Distances/PointTriangle.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Distances;
+using AI.Geometry.Polygons;
+using AI.Geometry.Primitives;
+
+var a = new Vector(new[] { 1.0, 1.0 });
+var b = new Vector(new[] { 5.0, 1.0 });
+var c = new Vector(new[] { 3.0, 4.5 });
+
+// Точка снаружи: проекция попадёт на ребро или в вершину
+var p = new Vector(new[] { 6.0, 0.0 });
+var closest = ClosestInTriangle.ClosestPoint(p, a, b, c);
+Console.WriteLine($"Ближайшая: ({closest[0]:F3}, {closest[1]:F3})");
+
+// Точка внутри проецируется сама в себя
+var inner = new Vector(new[] { 3.0, 2.0 });
+var same = ClosestInTriangle.ClosestPoint(inner, a, b, c);
+Console.WriteLine($"Внутри без изменений: {Math.Abs(same[0] - inner[0]) < 1e-9}");
+```
+
+Через примитив `Triangle` доступно и расстояние, и барицентрические координаты — по ним видно, в какую из семи областей попала точка:
+
+```csharp
+var tri = new Triangle(a, b, c);
+Console.WriteLine($"Расстояние: {PointTriangle.Distance(p, tri):F4}");
+
+var (u, v, w) = tri.BarycentricCoords(p);
+Console.WriteLine($"u={u:F3} v={v:F3} w={w:F3}");
+// Отрицательная координата означает, что точка лежит за противоположным ребром
+Console.WriteLine(u >= 0 && v >= 0 && w >= 0 ? "внутри" : "снаружи");
+```

@@ -48,4 +48,45 @@ $$\tan 2\theta = \frac{2\,a_{pq}}{a_{qq} - a_{pp}}$$
 
 ## API
 
-Класс `AI.Geometry.JacobiEigen` — метод `Compute(Matrix A)`, свойства `Eigenvalues`, `Eigenvectors`.
+Класс `JacobiEigen` лежит в `AI.ClassicMath.MatrixUtils` и статичен: свойств `Eigenvalues`/`Eigenvectors` нет — всё возвращается кортежем.
+
+| Член | Описание |
+|------|----------|
+| `JacobiEigen.Compute(Matrix A)` | `(double[] eigenvalues, Matrix eigenvectors)` |
+| `JacobiEigen.ComputeVector(Matrix A)` | То же, но собственные значения как `Vector` |
+
+Матрица должна быть **симметричной**: метод вращений Якоби на несимметричной даст бессмысленный результат без всякой диагностики.
+
+Собственные векторы лежат в **столбцах** возвращаемой матрицы.
+
+Исходник: `src/AI.ClassicMath/MatrixUtils/JacobiEigen.cs`.
+
+## Код
+
+```csharp
+using AI.ClassicMath.MatrixUtils;
+using AI.DataStructs.Algebraic;
+
+var A = new Matrix(3, 3);
+A[0, 0] = 4; A[0, 1] = 1; A[0, 2] = -2;
+A[1, 0] = 1; A[1, 1] = 2; A[1, 2] = 0;
+A[2, 0] = -2; A[2, 1] = 0; A[2, 2] = 3;
+
+var (lambda, V) = JacobiEigen.Compute(A);
+
+Console.WriteLine($"λ = [{string.Join(", ", lambda.Select(l => l.ToString("F4")))}]");
+Console.WriteLine($"След A = {A[0, 0] + A[1, 1] + A[2, 2]:F4}, сумма λ = {lambda.Sum():F4}");
+
+// Проверка Av = λv для первого собственного вектора (столбец 0)
+var v0 = new Vector(3);
+for (int i = 0; i < 3; i++) v0[i] = V[i, 0];
+
+// Matrix * Vector даёт Matrix-столбец — приводим обратно через LikeVector()
+var Av = (A * v0).LikeVector();
+Console.WriteLine($"‖Av − λv‖ = {(Av - lambda[0] * v0).NormL2():E3}");
+
+// Собственные векторы симметричной матрицы ортогональны
+var v1 = new Vector(3);
+for (int i = 0; i < 3; i++) v1[i] = V[i, 1];
+Console.WriteLine($"v₀ · v₁ = {v0.Dot(v1):E3}");   // ≈ 0
+```

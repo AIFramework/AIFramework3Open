@@ -49,4 +49,52 @@ $$x = A^+ b = \arg\min_x \|x\|_2 \quad \text{при}\quad Ax = b$$
 
 ## API
 
-Класс `AI.Geometry.Pseudoinverse` — метод `Compute(Matrix A)`, `Solve(Matrix A, Vector b)`.
+Класс `Pseudoinverse` лежит в `AI.ClassicMath.MatrixUtils`. Метода `Solve` у него **нет** — решение получают умножением на $A^{+}$.
+
+| Член | Описание |
+|------|----------|
+| `Pseudoinverse.Compute(Matrix A, double tolerance = 1e-10)` | $A^{+}$ через SVD; сингулярные числа ниже `tolerance` отбрасываются |
+
+Порог отсечения — главный параметр: слишком малый превращает шум в огромные компоненты решения, слишком большой отбрасывает полезные направления.
+
+Исходник: `src/AI.ClassicMath/MatrixUtils/Pseudoinverse.cs`.
+
+## Код
+
+Переопределённая система (4 уравнения, 3 неизвестных) — решения нет, но $A^{+}b$ даёт наименьшие квадраты:
+
+```csharp
+using AI.ClassicMath.MatrixUtils;
+using AI.DataStructs.Algebraic;
+
+var A = new Matrix(4, 3);
+A[0, 0] = 1; A[0, 1] = 1; A[0, 2] = 0;
+A[1, 0] = 1; A[1, 1] = 0; A[1, 2] = 1;
+A[2, 0] = 0; A[2, 1] = 1; A[2, 2] = 1;
+A[3, 0] = 1; A[3, 1] = 1; A[3, 2] = 1;
+
+var b = new Vector(new[] { 2.0, 3.0, 4.0, 6.0 });
+
+var Aplus = Pseudoinverse.Compute(A);
+
+// Matrix * Vector даёт Matrix-столбец, поэтому нужен LikeVector()
+var x = (Aplus * b).LikeVector();
+
+Console.WriteLine($"x = [{x[0]:F4}, {x[1]:F4}, {x[2]:F4}]");
+Console.WriteLine($"Невязка ‖Ax − b‖ = {((A * x).LikeVector() - b).NormL2():F6}");
+
+// Условие Мура—Пенроуза A·A⁺·A = A выполняется всегда
+var check = A * Aplus * A;
+double err = 0;
+for (int r = 0; r < 4; r++)
+    for (int c = 0; c < 3; c++)
+        err += Math.Pow(A[r, c] - check[r, c], 2);
+Console.WriteLine($"‖A − AA⁺A‖²F = {err:E3}");
+```
+
+Порог отсечения управляет устойчивостью на плохо обусловленных матрицах:
+
+```csharp
+var strict  = Pseudoinverse.Compute(A, tolerance: 1e-14);
+var relaxed = Pseudoinverse.Compute(A, tolerance: 1e-3);   // режет слабые направления
+```

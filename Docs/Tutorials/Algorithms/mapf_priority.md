@@ -37,5 +37,42 @@
 
 ## API
 
-Классы `PriorityBasedSearch`, `PIBT` в пространстве имён `AI.MAPF`. Метод `Solve(graph, agents)` возвращает пути с учётом приоритетов.
+Пространство имён `AI.Algorithms.MAPF`. Класса `PriorityBasedSearch` нет — приоритетный поиск в дереве это `PBS`, а однотактовые алгоритмы вынесены отдельно.
+
+| Член | Описание |
+|------|----------|
+| `PIBT(GridMap map, List<MAPFAgent> agents, int maxTimesteps = 200)` | Priority Inheritance with Backtracking |
+| `TokenPassing(GridMap map, List<MAPFAgent> agents)` | Передача токена |
+| `.Solve()` | `MAPFSolution` |
+
+Оба алгоритма планируют на **один такт вперёд**: приоритеты пересчитываются каждый шаг, поэтому решение получается быстро, но без гарантии оптимальности.
+
+Исходники: `src/AI.Algorithms/MAPF/PIBT.cs`, `TokenPassing.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.MAPF;
+
+var map = new GridMap(12, 12);
+map.SetBlocked(6, 6, true);
+
+var agents = new List<MAPFAgent>();
+for (int i = 0; i < 6; i++)
+    agents.Add(new MAPFAgent
+    {
+        Id = i,
+        StartX = i, StartY = 0,
+        GoalX = 11 - i, GoalY = 11,
+    });
+
+var pibt  = new PIBT(map, agents, maxTimesteps: 300).Solve();
+var token = new TokenPassing(map, agents).Solve();
+
+Console.WriteLine($"PIBT:         makespan={pibt.Makespan}, валидно={pibt.IsValid(map, agents)}");
+Console.WriteLine($"TokenPassing: makespan={token.Makespan}, валидно={token.IsValid(map, agents)}");
+
+// maxTimesteps — предохранитель от зацикливания: если агенты
+// не разошлись за это число тактов, решение придёт неполным
+```
 

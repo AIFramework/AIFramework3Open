@@ -53,5 +53,43 @@ LaCAM: экспоненциален в теории, но на практике 
 
 ## API
 
-Класс `LaCAM` в пространстве имён `AI.MAPF`. Метод `Solve(graph, agents)` возвращает бесконфликтные пути. Параметр `optimal: true` включает режим LaCAM*.
+Пространство имён `AI.Algorithms.MAPF`. Параметра `optimal` нет — LaCAM* это **отдельный класс** `LaCAMStar`.
+
+| Член | Описание |
+|------|----------|
+| `LaCAM(GridMap map, List<MAPFAgent> agents, int maxIter = 10000)` | Быстрый поиск первого решения |
+| `LaCAMStar(GridMap map, List<MAPFAgent> agents, int maxIter = 10000)` | Anytime-вариант: улучшает решение, пока не исчерпан `maxIter` |
+| `.Solve()` | `MAPFSolution` |
+
+`maxIter` — предел числа раскрытых конфигураций. Для `LaCAM` он ограничивает поиск первого решения, для `LaCAMStar` — ещё и бюджет на улучшение.
+
+Исходники: `src/AI.Algorithms/MAPF/LaCAM.cs`, `LaCAMStar.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.MAPF;
+
+var map = new GridMap(20, 20);
+var rng = new Random(42);
+for (int i = 0; i < 40; i++)
+    map.SetBlocked(rng.Next(20), rng.Next(20), true);
+
+var agents = new List<MAPFAgent>();
+for (int i = 0; i < 10; i++)
+{
+    int sx, sy, gx, gy;
+    do { sx = rng.Next(20); sy = rng.Next(20); } while (map.IsBlocked(sx, sy));
+    do { gx = rng.Next(20); gy = rng.Next(20); } while (map.IsBlocked(gx, gy));
+    agents.Add(new MAPFAgent { Id = i, StartX = sx, StartY = sy, GoalX = gx, GoalY = gy });
+}
+
+var fast = new LaCAM(map, agents, maxIter: 10000).Solve();
+Console.WriteLine($"LaCAM:  sumOfCosts={fast.SumOfCosts}, makespan={fast.Makespan}");
+
+// LaCAM* тратит тот же бюджет, но не останавливается на первом решении
+var better = new LaCAMStar(map, agents, maxIter: 10000).Solve();
+Console.WriteLine($"LaCAM*: sumOfCosts={better.SumOfCosts}, makespan={better.Makespan}");
+Console.WriteLine($"Выигрыш: {fast.SumOfCosts - better.SumOfCosts}");
+```
 

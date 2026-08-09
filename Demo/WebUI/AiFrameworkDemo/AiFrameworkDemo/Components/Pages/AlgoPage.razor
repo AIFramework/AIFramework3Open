@@ -12,7 +12,11 @@
 }
 else
 {
-    <nav class="aif-topbar aif-topbar--wide aif-topbar--@_mod.Color">
+    @* data-color включает контекстные токены --aif-cur-*: без него
+       карточка теории и скроллбар оставались индиговыми в любом модуле.
+       Явные модификаторы --@_mod.Color ниже сохранены — они специфичнее
+       и продолжают выигрывать там, где заданы. *@
+    <nav class="aif-topbar aif-topbar--wide aif-topbar--@_mod.Color" data-color="@_mod.Color">
         <div class="aif-topbar-inner">
             <a class="aif-topbar-back" href="/lib/@_mod.Id/cat/@_cat.Id">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -27,7 +31,7 @@ else
         </div>
     </nav>
 
-    <div class="aif-algo-layout">
+    <div class="aif-algo-layout" data-color="@_mod.Color">
         <!-- LEFT: THEORY -->
         <aside class="aif-algo-theory">
             <div class="aif-theory-card">

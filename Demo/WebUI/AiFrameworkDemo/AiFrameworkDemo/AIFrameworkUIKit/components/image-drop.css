@@ -39,8 +39,8 @@
   position: relative;
 }
 .aif-img-drop:hover {
-  border-color: rgba(129, 140, 248, 0.5);
-  background: rgba(129, 140, 248, 0.05);
+  border-color: var(--aif-cur, var(--aif-accent-light-a50));
+  background: var(--aif-cur-a08, var(--aif-accent-a08));
 }
 
 /* Текст внутри зоны */

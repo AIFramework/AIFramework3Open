@@ -35,14 +35,30 @@ dotnet pack src/AI/AI.csproj -c Release -o ./artifacts
 
 ## Тесты
 
-- **xUnit:** проект [tests/unit/AIFramework.UnitTests/AIFramework.UnitTests.csproj](tests/unit/AIFramework.UnitTests/AIFramework.UnitTests.csproj) подключён к `AIFramework.sln` и выполняется в CI.
+- **xUnit:** проекты [Tests/unit/AIFramework.UnitTests/](Tests/unit/AIFramework.UnitTests/) и [Tests/unit/AI.LLM.UnitTests/](Tests/unit/AI.LLM.UnitTests/) подключены к `AIFramework.sln`; запускайте их локально через `dotnet test` (в CI автотесты пока не прогоняются — см. [CI](#ci)).
 - **Интеграция AI.ML 4.x:** [Tests/AI.ML.Integration/AI.ML.Integration.csproj](Tests/AI.ML.Integration/AI.ML.Integration.csproj) — дымовые проверки доменов после рефакторинга.
-- **Общий код тестов:** [tests/shared/AIFramework.TestHelpers/](tests/shared/AIFramework.TestHelpers/) — разбор вывода калькулятора (`ProcessorOutputReader`); подключайте этот проект вместо копирования логики в консольных тестах.
+- **Общий код тестов:** [Tests/shared/AIFramework.TestHelpers/](Tests/shared/AIFramework.TestHelpers/) — разбор вывода калькулятора (`ProcessorOutputReader`); подключайте этот проект вместо копирования логики в консольных тестах.
 - **Консольные сценарии** в каталоге `Tests/` остаются дополнительными проверками и демо; при добавлении регрессий по возможности дублируйте критичные проверки в xUnit.
 
 ## CI
 
-Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) выполняет сборку и тесты на **Windows** (`windows-latest`), так как часть проектов зависит от WinForms (например `AI.Charts`).
+В репозитории настроен один workflow — [`.github/workflows/docs-lint.yml`](.github/workflows/docs-lint.yml) («Docs lint»):
+
+- **Что проверяет:** соответствие теоретической документации канону [Docs/Tutorials/STRUCTURE.md](Docs/Tutorials/STRUCTURE.md) через линтер [Tools/DocsLint](Tools/DocsLint/) (`dotnet run --project Tools/DocsLint -- --strict`).
+- **Когда запускается:** push в `main` и pull request, если затронуты `Docs/Tutorials/**`, `Demo/WebUI/AiFrameworkDemo/AiFrameworkDemo/Modules/**`, `Tools/DocsLint/**` или сам workflow; плюс `workflow_dispatch` вручную.
+- **Среда:** `ubuntu-latest`, .NET SDK `9.0.x`. Линтер не зависит от решения — `src/` и демо не собираются.
+- **Ошибки** роняют проверку всегда; **предупреждения** — только новые, не занесённые в `Docs/Tutorials/.docslint-baseline`.
+
+Локальный прогон перед PR (и автоисправление синонимов разделов):
+
+```bash
+dotnet run --project Tools/DocsLint -- --strict
+dotnet run --project Tools/DocsLint -- --fix
+```
+
+**Сборка и автотесты в CI пока не настроены** — прогоняйте их локально (см. [Сборка](#сборка) и [Тесты](#тесты)). Когда такой workflow появится, он должен запускаться на **Windows** (`windows-latest`): `AI.Charts.WinForms` нацелен на `net9.0-windows` и требует WinForms.
+
+> **Пути в `.sln`.** Windows нечувствителен к регистру, поэтому опечатка в пути к проекту здесь не проявляется, а на Linux-раннере роняет `dotnet restore`. Записывайте пути ровно в том регистре, в каком каталоги лежат в репозитории (`Tests\unit\...`, а не `tests\unit\...`), и не оставляйте в решении записи об удалённых проектах.
 
 ## Качество кода
 

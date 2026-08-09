@@ -78,7 +78,7 @@ else
     Console.WriteLine($"d[3] = {bf.Distances[3]:F1}");   // 3 через 0->1->2->3
 
     foreach (var e in bf.PathTo(3))
-        Console.WriteLine($"  {e.StartV} -> {e.EndV} (w = {e.Weight})");
+        Console.WriteLine($"  {e.StartV} -> {e.EndV} (w = {e.W})");
 }
 ```
 

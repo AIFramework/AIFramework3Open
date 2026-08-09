@@ -42,5 +42,35 @@ $$b \times c = (6, 0, 0), \quad a \cdot (6,0,0) = 6$$
 
 ## API
 
-Класс `AI.Geometry.VectorOps` — метод `TripleProduct(Vector a, Vector b, Vector c)`.
+Класса `AI.Geometry.VectorOps` нет: смешанное произведение — **статический метод** `AI.DataStructs.Algebraic.Vector`.
+
+| Член | Описание |
+|------|----------|
+| `Vector.TripleProduct(Vector a, Vector b, Vector c)` | $(a \times b) \cdot c$; все три вектора трёхмерные |
+
+Знак результата задаёт ориентацию тройки: положительный — правая, отрицательный — левая, ноль — векторы компланарны.
+
+Исходник: `src/AI/DataStructs/Algebraic/Vector.Factory.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+
+var a = new Vector(new[] { 1.0, 0.0, 0.0 });
+var b = new Vector(new[] { 0.0, 1.0, 0.0 });
+var c = new Vector(new[] { 0.0, 0.0, 1.0 });
+
+double v = Vector.TripleProduct(a, b, c);
+Console.WriteLine($"(a,b,c) = {v:F4}");                 // 1 — единичный куб
+Console.WriteLine($"Объём параллелепипеда = {Math.Abs(v):F4}");
+Console.WriteLine($"Объём тетраэдра = {Math.Abs(v) / 6:F4}");
+
+// Перестановка двух векторов меняет знак: тройка стала левой
+Console.WriteLine($"(b,a,c) = {Vector.TripleProduct(b, a, c):F4}");   // -1
+
+// Компланарные векторы дают ноль — удобная проверка вырожденности
+var d = new Vector(new[] { 1.0, 1.0, 0.0 });
+Console.WriteLine($"Компланарны: {Math.Abs(Vector.TripleProduct(a, b, d)) < 1e-12}");
+```
 

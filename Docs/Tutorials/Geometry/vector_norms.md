@@ -35,4 +35,31 @@ $$\hat{x} = \frac{x}{\|x\|_2}$$
 
 ## API
 
-Класс `AI.Geometry.VectorNorms` — статические методы `L1`, `L2`, `LInf`, `Normalize`.
+Отдельного класса `VectorNorms` нет: нормы — **методы самого вектора** `AI.DataStructs.Algebraic.Vector`.
+
+| Член | Описание |
+|------|----------|
+| `v.NormL1()` | $\|v\|_1 = \sum_i \|v_i\|$ |
+| `v.NormL2()` | $\|v\|_2 = \sqrt{\sum_i v_i^2}$ |
+| `v.MaxAbs()` | $\|v\|_\infty = \max_i \|v_i\|$ |
+| `v.GetUnitVector()` | $v / \|v\|_2$ — новый вектор, исходный не меняется |
+
+Исходники: `src/AI/DataStructs/Algebraic/Vector.Statistics.cs`, `Vector.Operations.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+
+var v = new Vector(new[] { 3.0, -4.0, 12.0 });
+
+Console.WriteLine($"‖v‖₁ = {v.NormL1():F4}");    // 19
+Console.WriteLine($"‖v‖₂ = {v.NormL2():F4}");    // 13
+Console.WriteLine($"‖v‖∞ = {v.MaxAbs():F4}");    // 12
+
+var unit = v.GetUnitVector();
+Console.WriteLine($"‖v̂‖₂ = {unit.NormL2():F6}");  // 1
+
+// Неравенство норм ‖v‖∞ ≤ ‖v‖₂ ≤ ‖v‖₁ выполняется для любого вектора
+Console.WriteLine(v.MaxAbs() <= v.NormL2() && v.NormL2() <= v.NormL1());
+```

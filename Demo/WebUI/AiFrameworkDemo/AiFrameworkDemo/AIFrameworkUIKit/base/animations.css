@@ -9,11 +9,12 @@
   to { transform: rotate(360deg); }
 }
 
-/* Пульсирующее кольцо — акцентный highlight */
+/* Пульсирующее кольцо — акцентный highlight.
+   Токены, а не литералы: в светлой теме индиго берётся темнее. */
 @keyframes aif-pulse-ring {
-  0%   { box-shadow: 0 0 0 0   rgba(99, 102, 241, 0.4); }
-  70%  { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
-  100% { box-shadow: 0 0 0 0   rgba(99, 102, 241, 0); }
+  0%   { box-shadow: 0 0 0 0   var(--aif-accent-a40); }
+  70%  { box-shadow: 0 0 0 8px var(--aif-accent-a00); }
+  100% { box-shadow: 0 0 0 0   var(--aif-accent-a00); }
 }
 
 /* Shimmer — скелетон-загрузка */

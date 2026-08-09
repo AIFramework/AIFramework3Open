@@ -45,5 +45,51 @@ $$c_{ij}(S \cup \{j\}) \leq c_{ij}(S' \cup \{j\}) \quad \text{если } S \sups
 
 ## API
 
-Класс `CBBAAllocator` в пространстве имён `AI.TaskAllocation`. Метод `Allocate(agents, tasks, communicationGraph)` возвращает пакеты задач для каждого агента.
+Пространство имён `AI.Algorithms.TaskAllocation`. Класс называется `CBBA`; **граф связи в API не передаётся** — реализация считает связность полной.
+
+| Член | Описание |
+|------|----------|
+| `CBBA(List<AgentDef>, List<TaskDef>, int maxIterations = 100)` | Consensus-Based Bundle Algorithm |
+| `GreedyAllocation(List<AgentDef>, List<TaskDef>)` | Жадное назначение — базовая линия для сравнения |
+| `.Solve()` | `AllocationResult` |
+
+Размер пакета задаётся полем `AgentDef.Capacity`: именно оно ограничивает, сколько задач может взять один агент.
+
+Исходники: `src/AI.Algorithms/TaskAllocation/CBBA.cs`, `GreedyAllocation.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.TaskAllocation;
+
+var rng = new Random(42);
+
+var agents = Enumerable.Range(0, 4)
+    .Select(i => new AgentDef
+    {
+        Id = i,
+        X = rng.NextDouble() * 10,
+        Y = rng.NextDouble() * 10,
+        Capacity = 2,          // размер пакета: не более двух задач на агента
+    })
+    .ToList();
+
+var tasks = Enumerable.Range(0, 8)
+    .Select(i => new TaskDef { Id = i, X = rng.NextDouble() * 10, Y = rng.NextDouble() * 10, Value = rng.Next(1, 10) })
+    .ToList();
+
+var cbba   = new CBBA(agents, tasks, maxIterations: 100).Solve();
+var greedy = new GreedyAllocation(agents, tasks).Solve();
+
+Console.WriteLine($"CBBA:   стоимость={cbba.TotalCost:F2}, назначено={cbba.Assignments.Count}");
+Console.WriteLine($"Greedy: стоимость={greedy.TotalCost:F2}, назначено={greedy.Assignments.Count}");
+
+// Пакеты по агентам
+foreach (var group in cbba.Assignments.GroupBy(a => a.AgentId))
+    Console.WriteLine($"  агент {group.Key}: [{string.Join(", ", group.Select(g => g.TaskId))}]");
+
+// Суммарная вместимость 4×2 = 8 равна числу задач: при меньшей
+// вместимости часть задач останется в UnassignedTasks
+Console.WriteLine($"Без исполнителя: {cbba.UnassignedTasks}");
+```
 

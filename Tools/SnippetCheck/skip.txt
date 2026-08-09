@@ -1,0 +1,122 @@
+# Документы, чьи примеры кода НЕ компилируются.
+#
+# Формат: путь относительно Docs/Tutorials, по одному на строку.
+# Комментарии (#) и пустые строки игнорируются.
+#
+# КАК ЭТО РАБОТАЕТ
+# Генератор (DocsLint, режим emit-snippets) выкладывает в .cs всё, кроме
+# перечисленного здесь. Значит ЛЮБАЯ ошибка сборки Tools/SnippetCheck — это
+# документ, который обязан был собраться, но не собрался, и CI падает.
+#
+# Фрагменты с многоточием (// ..., /* ... */, …) в списке не нужны:
+# генератор распознаёт их сам и пропускает.
+#
+# ЭТОТ СПИСОК НУЖНО СОКРАЩАТЬ.
+# Он зафиксирован по факту на момент внедрения проверки: примеры в этих
+# документах писались как иллюстрации — с необъявленными переменными, без
+# using, с обрывками циклов, и компилятор их не принимает. Починив пример,
+# удалите строку отсюда: документ попадёт под защиту.
+#
+# Новый документ сюда добавлять НЕ НАДО. Пишите пример так, чтобы он
+# компилировался: ради этого проверка и заведена — в документации уже
+# находили целые несуществующие пространства имён (AI.Graphs, AI.Routing).
+
+# ── Принципиально не компилируется ──────────────────────────────────────
+# Шаблон нового модуля демо: пространства имён AI.Template и классов
+# AlgorithmA/B/C не существует и существовать не должно — это рыба,
+# которую копируют при создании настоящего модуля.
+#
+# algo_b.md сейчас отсеялся бы и без записи здесь — в его примере есть
+# «// ... заполнение x ...», и генератор считает документ фрагментом.
+# Внесён явно: уберут многоточие — документ упрётся в несуществующий
+# AI.Template и уронит CI, хотя причина будет вовсе не в правке примера.
+Template/algo_a.md
+Template/algo_b.md
+Template/algo_c.md
+
+# ── Не проверено: примеры-иллюстрации (долг, 85 документов) ─────────────
+AiCore/autocorr.md
+AiCore/cauchy_laplace.md
+AiCore/clt.md
+AiCore/convolution.md
+AiCore/crosscorr.md
+AiCore/descriptive.md
+AiCore/diff_integr.md
+AiCore/exponential.md
+AiCore/form_factors.md
+AiCore/gamma_beta.md
+AiCore/gauss2d.md
+AiCore/histogram_pdf.md
+AiCore/kl_divergence.md
+AiCore/metric_balls.md
+AiCore/moments_scan.md
+AiCore/monte_carlo_nd.md
+AiCore/moving_stats.md
+AiCore/normality_test.md
+AiCore/pearson.md
+AiCore/projection.md
+AiCore/quantiles.md
+AiCore/uniform_normal.md
+AiCore/weibull_poisson.md
+AutoControl/KalmanFilter.md
+AutoControl/LQR.md
+AutoControl/LuenbergerObserver.md
+AutoControl/PID.md
+AutoControl/RLS.md
+AutoControl/SlidingMode.md
+AutoControl/StateSpace.md
+Charts/ChartViewAndControls.md
+ClassicMath/Algebra.md
+ClassicMath/Combinatorics.md
+ClassicMath/Metrics.md
+ClassicMath/ODE.md
+ClassicMath/SpecialFunctions.md
+ComputerVision/FFT2D.md
+DSP/Convolution.md
+DSP/Filtering.md
+DSP/HilbertTransform.md
+DSP/Signals.md
+DSP/Spectral.md
+DataPrepaire/dp_bpe.md
+DataPrepaire/dp_datatable.md
+DataPrepaire/dp_hmm.md
+DataPrepaire/dp_ner.md
+DataPrepaire/dp_sent_tok.md
+DataPrepaire/dp_word_tok.md
+Faiss/faiss_knn.md
+Faiss/faiss_metrics.md
+LLM/context.md
+LLM/image_generation.md
+LLM/semantic_kernel.md
+ML/ar_predict.md
+ML/bayes_cls.md
+ML/corr_cls.md
+ML/fast_kmeans.md
+ML/forel.md
+ML/genetic.md
+ML/kmeans.md
+ML/kohonen.md
+ML/lin_reg.md
+ML/linear_cls.md
+ML/multiple_reg.md
+ML/nn_cls.md
+ML/pca.md
+ML/poly_reg.md
+ML/svm_binary.md
+NLP/nlp_lemma.md
+NLP/nlp_markov.md
+NLP/nlp_ner.md
+NLP/nlp_prob_dict.md
+NLP/nlp_stemmer.md
+NLP/nlp_summarize.md
+NLP/nlp_text_norm.md
+NLP/nlp_text_tok.md
+NLP/nlp_tfidf.md
+NeuralNetworks/autoencoder.md
+NeuralNetworks/gru_predict.md
+NeuralNetworks/lstm_lm.md
+NeuralNetworks/lstm_predict.md
+NeuralNetworks/mlp_reg_1d.md
+NeuralNetworks/mlp_reg_2d.md
+NeuralNetworks/transformer_predict.md
+ONNX/onnx_bert_embed.md

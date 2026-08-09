@@ -349,3 +349,8 @@ _vc*/
 _vd*/
 _ve*/
 _dv*/
+
+# Примеры кода, сгенерированные из документации (Tools/SnippetCheck).
+# Источник правды — сами .md; файлы восстанавливаются командой
+# dotnet run --project Tools/DocsLint -- --emit-snippets Tools/SnippetCheck
+Tools/SnippetCheck/*.g.cs

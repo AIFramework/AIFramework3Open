@@ -54,8 +54,8 @@
   box-shadow: 0 8px 32px -8px rgba(14, 165, 233, 0.15);
 }
 .aif-card--indigo:hover {
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 8px 32px -8px rgba(99, 102, 241, 0.15);
+  border-color: var(--aif-cur-hover-border, var(--aif-accent-a35));
+  box-shadow: 0 8px 32px -8px var(--aif-cur-hover-shadow, var(--aif-accent-a16));
 }
 .aif-card--violet:hover {
   border-color: rgba(124, 58, 237, 0.35);

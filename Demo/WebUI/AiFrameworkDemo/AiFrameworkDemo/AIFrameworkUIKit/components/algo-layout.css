@@ -49,11 +49,11 @@
   max-height: calc(100dvh - 7.5rem);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+  scrollbar-color: var(--aif-cur-scroll, var(--aif-accent-a30)) transparent;
 }
 .aif-algo-theory::-webkit-scrollbar { width: 4px; }
 .aif-algo-theory::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
+  background: var(--aif-cur-scroll, var(--aif-accent-a30));
   border-radius: 2px;
 }
 
@@ -115,8 +115,8 @@
   font-family: var(--aif-font-mono);
   font-size: 0.62rem;
   font-weight: 600;
-  color: var(--aif-accent-light);
-  background: rgba(99, 102, 241, 0.1);
+  color: var(--aif-cur, var(--aif-accent-light));
+  background: var(--aif-cur-a12, var(--aif-accent-a12));
   padding: 0.12rem 0.45rem;
   border-radius: var(--aif-r-xs);
   white-space: nowrap;
@@ -257,12 +257,12 @@
   border-color: var(--aif-text-4);
 }
 .aif-btn-sm--save {
-  background: rgba(52, 211, 153, 0.12);
-  border-color: rgba(52, 211, 153, 0.35);
-  color: #34d399;
+  background: var(--aif-status-ok-bg);
+  border-color: var(--aif-status-ok-border);
+  color: var(--aif-status-ok-text);
 }
 .aif-btn-sm--save:hover {
-  background: rgba(52, 211, 153, 0.22);
+  background: var(--aif-status-ok-bg-hover);
 }
 .aif-md-editor {
   display: block;

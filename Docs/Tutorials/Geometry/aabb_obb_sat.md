@@ -47,4 +47,66 @@ $$t_{\text{enter}} = \max_i(\min(t_{\min,i}, t_{\max,i})), \quad t_{\text{exit}}
 
 ## API
 
-Класс `AI.Geometry.BoundingBox` — методы `IntersectAABB`, `RayIntersectAABB`, `IntersectOBB_SAT`.
+Класса `BoundingBox` нет: примитивы лежат в `AI.Geometry.Primitives`, тесты пересечения — в `AI.Geometry.Intersections`, каждый отдельным статическим классом.
+
+| Член | Описание |
+|------|----------|
+| `new Aabb(Vector Min, Vector Max)` | Осевой бокс |
+| `.Center`, `.HalfExtents` | Центр и полуразмеры |
+| `.Contains(Vector point)` | Точка внутри |
+| `.Intersects(Aabb other)` | Пересечение с другим боксом (метод самого бокса) |
+| `Aabb.FromPoints(points)` | Обёртка вокруг облака точек |
+| `AabbAabbIntersection.Test(a, b)` | То же тестом-функцией |
+| `RayAabbIntersection.Intersect(ray, box)` | `(double tMin, double tMax)?` — интервал вдоль луча |
+| `new Obb(Vector Center, Vector HalfExtents, Matrix Rotation)` | Ориентированный бокс; `.Contains`, `.Corners()` |
+| `ObbObbIntersection.Test(a, b)` | Тест по теореме о разделяющей оси |
+
+Исходники: `src/AI.Geometry/Primitives/`, `src/AI.Geometry/Intersections/`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Intersections;
+using AI.Geometry.Primitives;
+
+var a = new Aabb(new Vector(new[] { 0.0, 0.0 }), new Vector(new[] { 2.0, 2.0 }));
+var b = new Aabb(new Vector(new[] { 1.5, 1.5 }), new Vector(new[] { 3.0, 3.0 }));
+var c = new Aabb(new Vector(new[] { 5.0, 5.0 }), new Vector(new[] { 6.0, 6.0 }));
+
+Console.WriteLine($"a ∩ b: {AabbAabbIntersection.Test(a, b)}");   // true
+Console.WriteLine($"a ∩ c: {AabbAabbIntersection.Test(a, c)}");   // false
+
+// Обёртка вокруг облака точек — типовой шаг построения BVH
+var cloud = new[]
+{
+    new Vector(new[] { 1.0, 4.0 }),
+    new Vector(new[] { -2.0, 0.5 }),
+    new Vector(new[] { 3.0, 2.0 }),
+};
+var box = Aabb.FromPoints(cloud);
+Console.WriteLine($"AABB: [{box.Min[0]}, {box.Min[1]}] .. [{box.Max[0]}, {box.Max[1]}]");
+```
+
+Луч против бокса — базовый запрос трассировки; метод отдаёт интервал, а не одну точку:
+
+```csharp
+var ray = new Ray(
+    Origin:    new Vector(new[] { -5.0, 1.0, 1.0 }),
+    Direction: new Vector(new[] {  1.0, 0.0, 0.0 }));
+
+var box3 = new Aabb(
+    new Vector(new[] { 0.0, 0.0, 0.0 }),
+    new Vector(new[] { 2.0, 2.0, 2.0 }));
+
+var hit = RayAabbIntersection.Intersect(ray, box3);
+if (hit.HasValue)
+{
+    var (tMin, tMax) = hit.Value;
+    Console.WriteLine($"Вход t={tMin:F2}, выход t={tMax:F2}");
+}
+else
+{
+    Console.WriteLine("Луч проходит мимо бокса");
+}
+```

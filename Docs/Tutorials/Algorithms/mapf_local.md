@@ -46,5 +46,42 @@ $$v_1 \to v_2 \to \ldots \to v_m \to v_1$$
 
 ## API
 
-Классы `PushAndSwap`, `PushAndRotate` в пространстве имён `AI.MAPF`. Метод `Solve(graph, agents)` возвращает последовательность ходов.
+Пространство имён `AI.Algorithms.MAPF`. Карта и агенты передаются в конструктор, `Solve()` вызывается без аргументов.
+
+| Член | Описание |
+|------|----------|
+| `PushAndSwap(GridMap map, List<MAPFAgent> agents)` | Проталкивание и обмен |
+| `PushAndRotate(GridMap map, List<MAPFAgent> agents)` | Дополнительно умеет вращать агентов по циклу |
+| `.Solve()` | `MAPFSolution` с пошаговыми позициями агентов |
+
+Исходники: `src/AI.Algorithms/MAPF/PushAndSwap.cs`, `PushAndRotate.cs`.
+
+## Код
+
+Тесный коридор — случай, где локальные перестановки работают, а раздельное планирование заходит в тупик:
+
+```csharp
+using AI.Algorithms.MAPF;
+
+// Коридор шириной в одну клетку: разъехаться можно только через карман
+var map = new GridMap(7, 3);
+for (int x = 0; x < 7; x++)
+{
+    map.SetBlocked(x, 0, true);
+    map.SetBlocked(x, 2, true);
+}
+map.SetBlocked(3, 2, false);   // карман для расхождения
+
+var agents = new List<MAPFAgent>
+{
+    new() { Id = 0, StartX = 0, StartY = 1, GoalX = 6, GoalY = 1 },
+    new() { Id = 1, StartX = 6, StartY = 1, GoalX = 0, GoalY = 1 },
+};
+
+var sol = new PushAndSwap(map, agents).Solve();
+Console.WriteLine($"Makespan: {sol.Makespan}, валидно: {sol.IsValid(map, agents)}");
+
+var rot = new PushAndRotate(map, agents).Solve();
+Console.WriteLine($"Push & Rotate makespan: {rot.Makespan}");
+```
 

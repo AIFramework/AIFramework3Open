@@ -43,5 +43,57 @@ $$p_{ij} = \frac{\tau_{ij}^\alpha \cdot \eta_{ij}^\beta}{\sum_k \tau_{ik}^\alpha
 
 ## API
 
-Класс `ALNSSolver`, `GeneticVRP`, `TabuSearchVRP` в пространстве имён `AI.Routing`. Метод `Solve(problem, timeLimit)` возвращает лучшее найденное решение.
+Пространство имён `AI.Algorithms.VRP`. Ограничения по времени в API нет — бюджет задаётся **числом итераций** в конструкторе.
+
+| Член | Описание |
+|------|----------|
+| `GeneticVRP(inst, populationSize = 100, generations = 500, seed = 42)` | Генетический алгоритм; `.Solve()` |
+| `TabuSearchVRP(inst, maxIterations = 3000, tabuTenure = 15, seed = 42)` | Табу-поиск; `.Solve(initial = null)` |
+| `AntColony(inst, numAnts = 30, maxIterations = 200, …)` | Муравьиный алгоритм; `.Solve()` |
+| `SimulatedAnnealingVRP(inst, initialTemp = 1000, …)` | Отжиг; `.Solve(initial = null)` |
+| `ALNS(inst, maxIterations = 5000, seed = 42)` | Адаптивный поиск с разрушением/восстановлением; `.Solve(initial = null)` |
+
+Все принимают `seed` — результат воспроизводим. Те, у кого `Solve` принимает `initial`, стартуют с готового решения: это обычно заметно лучше старта с нуля.
+
+Исходники: `src/AI.Algorithms/VRP/`.
+
+## Код
+
+```csharp
+using AI.Algorithms.VRP;
+
+var rng = new Random(42);
+int n = 25;
+var cx = new double[n];
+var cy = new double[n];
+var demand = new double[n];
+for (int i = 0; i < n; i++)
+{
+    cx[i] = rng.NextDouble() * 30 - 15;
+    cy[i] = rng.NextDouble() * 30 - 15;
+    demand[i] = rng.Next(1, 12);
+}
+
+var inst = new VRPInstance(0, 0, cx, cy, demand, vehicleCapacity: 60, numVehicles: 4);
+
+// Конструктивная эвристика как стартовая точка для метаэвристик
+var initial = new ClarkeWright(inst).Solve();
+Console.WriteLine($"Clarke-Wright: {initial.TotalDistance(inst):F1}");
+
+var alns = new ALNS(inst, maxIterations: 3000, seed: 42).Solve(initial);
+var tabu = new TabuSearchVRP(inst, maxIterations: 2000, tabuTenure: 15, seed: 42).Solve(initial);
+var ga   = new GeneticVRP(inst, populationSize: 60, generations: 300, seed: 42).Solve();
+
+foreach (var (name, sol) in new[] { ("ALNS", alns), ("Tabu", tabu), ("GA", ga) })
+    Console.WriteLine($"{name,-6} {sol.TotalDistance(inst),8:F1}  " +
+                      $"маршрутов={sol.Routes.Count}  допустимо={sol.IsValid(inst)}");
+```
+
+Один и тот же `seed` даёт один и тот же результат — на этом строится честное сравнение алгоритмов:
+
+```csharp
+var a = new ALNS(inst, 1000, seed: 7).Solve(initial);
+var b = new ALNS(inst, 1000, seed: 7).Solve(initial);
+Console.WriteLine($"Совпадают: {Math.Abs(a.TotalDistance(inst) - b.TotalDistance(inst)) < 1e-9}");
+```
 

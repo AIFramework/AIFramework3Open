@@ -40,5 +40,56 @@ CBS оптимален, но в худшем случае экспоненциа
 
 ## API
 
-Класс `ConflictBasedSearch` в пространстве имён `AI.MAPF`. Метод `Solve(graph, agents)` возвращает набор бесконфликтных путей.
+Пространство имён `AI.Algorithms.MAPF`. Класс называется `CBS` (не `ConflictBasedSearch`), карта задаётся сеткой `GridMap`, а не графом.
+
+| Член | Описание |
+|------|----------|
+| `GridMap(int width, int height)` | Сетка; `.SetBlocked(x, y, true)` — препятствие |
+| `MAPFAgent` | `Id`, `StartX`, `StartY`, `GoalX`, `GoalY` |
+| `CBS(GridMap map, List<MAPFAgent> agents, int timeLimit = 1000)` | Conflict-Based Search |
+| `ECBS(GridMap map, List<MAPFAgent> agents, double suboptimalityBound = 1.5, …)` | Ограниченно-субоптимальный вариант |
+| `PBS(GridMap map, List<MAPFAgent> agents, int timeLimit = 1000)` | Приоритетный поиск |
+| `.Solve()` | `MAPFSolution` |
+| `MAPFSolution.Paths` | `List<List<(int X, int Y)>>` — путь каждого агента по тактам |
+| `.Makespan` | Длина самого долгого пути |
+| `.SumOfCosts` | Сумма длин путей |
+| `.IsValid(map, agents)` | Проверка бесконфликтности решения |
+
+`timeLimit` — предел числа раскрытых узлов дерева ограничений, а не время в миллисекундах.
+
+Исходники: `src/AI.Algorithms/MAPF/`.
+
+## Код
+
+```csharp
+using AI.Algorithms.MAPF;
+
+var map = new GridMap(10, 10);
+for (int y = 2; y < 8; y++) map.SetBlocked(5, y, true);   // стена с проходом
+
+var agents = new List<MAPFAgent>
+{
+    new() { Id = 0, StartX = 0, StartY = 0, GoalX = 9, GoalY = 9 },
+    new() { Id = 1, StartX = 9, StartY = 0, GoalX = 0, GoalY = 9 },
+    new() { Id = 2, StartX = 0, StartY = 9, GoalX = 9, GoalY = 0 },
+};
+
+var solution = new CBS(map, agents, timeLimit: 5000).Solve();
+
+Console.WriteLine($"Makespan: {solution.Makespan}, SumOfCosts: {solution.SumOfCosts}");
+Console.WriteLine($"Бесконфликтно: {solution.IsValid(map, agents)}");
+
+foreach (var path in solution.Paths)
+    Console.WriteLine(string.Join(" ", path.Select(c => $"({c.X},{c.Y})")));
+```
+
+ECBS торгует оптимальность на скорость: решение не хуже, чем в `suboptimalityBound` раз от оптимума.
+
+```csharp
+var optimal   = new CBS(map, agents, 5000).Solve();
+var bounded   = new ECBS(map, agents, suboptimalityBound: 1.5).Solve();
+
+Console.WriteLine($"CBS  SumOfCosts = {optimal.SumOfCosts}");
+Console.WriteLine($"ECBS SumOfCosts = {bounded.SumOfCosts} (гарантия ≤ 1.5×)");
+```
 

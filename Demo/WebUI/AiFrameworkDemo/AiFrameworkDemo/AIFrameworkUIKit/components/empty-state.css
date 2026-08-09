@@ -80,7 +80,7 @@
 .aif-404-code {
   font-size: 4rem;
   font-weight: 900;
-  color: rgba(99, 102, 241, 0.2);
+  color: var(--aif-cur-a20, var(--aif-accent-a20));
   letter-spacing: -0.04em;
   line-height: 1;
 }

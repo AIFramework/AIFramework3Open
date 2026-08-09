@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Компиляция примеров кода из документации.
+
+       Файлы *.g.cs генерирует DocsLint в режиме emit-snippets
+       (точную команду см. в Tools/SnippetCheck/README.md).
+
+       Проект намеренно библиотека, а не приложение: код примеров нужно
+       только скомпилировать. Запускать его нельзя — примеры обращаются к
+       сети, читают файлы и считают тяжёлые метаэвристики.
+       ═══════════════════════════════════════════════════════════════ -->
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+
+    <!-- Анализаторы и стиль к примерам из документации неприменимы:
+         они пишутся ради ясности, а не ради соответствия правилам репозитория -->
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- Неиспользованная переменная, недостижимый код, метка goto: в примере
+         это норма. Ошибки типов и несуществующие API при этом остаются. -->
+    <NoWarn>$(NoWarn);CS0219;CS0168;CS8321;CS0164;CS0162;CS0472;CS1998;CS0618</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AI\AI.csproj" />
+    <ProjectReference Include="..\..\src\AI.Algorithms\AI.Algorithms.csproj" />
+    <ProjectReference Include="..\..\src\AI.Geometry\AI.Geometry.csproj" />
+    <ProjectReference Include="..\..\src\AI.ClassicMath\AI.ClassicMath.csproj" />
+    <ProjectReference Include="..\..\src\AI.Fuzzy\AI.Fuzzy.csproj" />
+    <ProjectReference Include="..\..\src\AI.NLP\AI.NLP.csproj" />
+    <ProjectReference Include="..\..\src\AI.ML\AI.ML.csproj" />
+    <ProjectReference Include="..\..\src\AI.NeuralNetworks\AI.NeuralNetworks.csproj" />
+    <ProjectReference Include="..\..\src\AI.DSP\AI.DSP.csproj" />
+    <ProjectReference Include="..\..\src\AI.DataPrepaire\AI.DataPrepaire.csproj" />
+    <ProjectReference Include="..\..\src\AI.ComputerVision\AI.ComputerVision.csproj" />
+    <ProjectReference Include="..\..\src\AI.ControlSystems\AI.ControlSystems.csproj" />
+    <ProjectReference Include="..\..\src\AI.SignalLabs\AI.SignalLabs.csproj" />
+    <ProjectReference Include="..\..\src\AI.Charts\AI.Charts.csproj" />
+    <ProjectReference Include="..\..\src\AI.Faiss\AI.Faiss.csproj" />
+    <ProjectReference Include="..\..\src\AI.ONNX\AI.ONNX.csproj" />
+    <ProjectReference Include="..\..\src\AI.LLM\AI.LLM.csproj" />
+  </ItemGroup>
+
+</Project>

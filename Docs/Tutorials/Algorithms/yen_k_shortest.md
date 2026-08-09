@@ -30,5 +30,36 @@ $$O(KV(V + E) \log V)$$
 
 ## API
 
-Класс `YenKShortestPaths` в пространстве имён `AI.Graphs`. Метод `FindKPaths(graph, source, target, k)` возвращает список из $K$ путей с их стоимостями.
+Пространство имён `AI.Algorithms.EWG`. Пути ищутся в конструкторе.
+
+| Член | Описание |
+|------|----------|
+| `YenKShortestPaths<Edge>(GraphW<Edge> g, int source, int target, int K)` | До `K` кратчайших путей |
+| `.Paths` | `List<(List<int> Path, double Cost)>` в порядке возрастания стоимости |
+
+Список может оказаться короче `K`: столько простых путей в графе может просто не быть.
+
+Исходник: `src/AI.Algorithms/EWG/YenKShortest.cs`.
+
+## Код
+
+```csharp
+using AI.Algorithms.EWG;
+
+var g = new GraphW<Edge>(6);
+g.AddEdge(0, 1, 3); g.AddEdge(0, 2, 2);
+g.AddEdge(1, 3, 4); g.AddEdge(2, 3, 1);
+g.AddEdge(2, 4, 3); g.AddEdge(3, 5, 2);
+g.AddEdge(4, 5, 2);
+
+var yen = new YenKShortestPaths<Edge>(g, source: 0, target: 5, K: 3);
+
+foreach (var (path, cost) in yen.Paths)
+    Console.WriteLine($"{cost,5:F1}  {string.Join("->", path)}");
+
+// Запас по стоимости между лучшим и худшим из найденных маршрутов:
+// на нём строится выбор резервного пути при отказе основного
+if (yen.Paths.Count > 1)
+    Console.WriteLine($"Запас: {yen.Paths[^1].Cost - yen.Paths[0].Cost:F1}");
+```
 

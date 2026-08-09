@@ -52,5 +52,68 @@ $$\text{bid}_{ij} = c_i(B_i \cup \{t_j\}) - c_i(B_i)$$
 
 ## API
 
-Класс `AuctionTaskAllocator` в пространстве имён `AI.TaskAllocation`. Метод `Allocate(agents, tasks)` возвращает распределение задач.
+Пространство имён `AI.Algorithms.TaskAllocation`. Единого `AuctionTaskAllocator` нет — каждый протокол отдельный класс с одинаковой сигнатурой.
+
+| Член | Описание |
+|------|----------|
+| `AgentDef` | `Id`, `X`, `Y`, `Capacity` (по умолчанию 1), `Capabilities` |
+| `TaskDef` | `Id`, `X`, `Y`, `Value` |
+| `ContractNet(List<AgentDef>, List<TaskDef>)` | Протокол контрактных сетей |
+| `SSIAuction(List<AgentDef>, List<TaskDef>)` | Последовательный однопредметный аукцион |
+| `SequentialAuction(List<AgentDef>, List<TaskDef>)` | Последовательный аукцион |
+| `.Solve()` | `AllocationResult` |
+| `AllocationResult.Assignments` | `List<(int AgentId, int TaskId)>` |
+| `.TotalCost`, `.TotalValue`, `.UnassignedTasks` | Итоговые показатели |
+
+Исходники: `src/AI.Algorithms/TaskAllocation/`.
+
+## Код
+
+```csharp
+using AI.Algorithms.TaskAllocation;
+
+var rng = new Random(42);
+
+var agents = Enumerable.Range(0, 4)
+    .Select(i => new AgentDef
+    {
+        Id = i,
+        X = rng.NextDouble() * 10,
+        Y = rng.NextDouble() * 10,
+        Capacity = 3,
+    })
+    .ToList();
+
+var tasks = Enumerable.Range(0, 8)
+    .Select(i => new TaskDef
+    {
+        Id = i,
+        X = rng.NextDouble() * 10,
+        Y = rng.NextDouble() * 10,
+        Value = rng.Next(1, 10),
+    })
+    .ToList();
+
+var result = new ContractNet(agents, tasks).Solve();
+
+Console.WriteLine($"Назначено: {result.Assignments.Count} из {tasks.Count}");
+Console.WriteLine($"Не назначено: {result.UnassignedTasks}");
+Console.WriteLine($"Суммарная стоимость: {result.TotalCost:F2}");
+
+foreach (var (agentId, taskId) in result.Assignments)
+    Console.WriteLine($"  агент {agentId} <- задача {taskId}");
+```
+
+Три протокола на одних данных: разница в качестве и в числе «раундов торгов» — именно она определяет выбор для реальной сети со связью.
+
+```csharp
+foreach (var (name, r) in new (string, AllocationResult)[]
+{
+    ("ContractNet",       new ContractNet(agents, tasks).Solve()),
+    ("SSI Auction",       new SSIAuction(agents, tasks).Solve()),
+    ("SequentialAuction", new SequentialAuction(agents, tasks).Solve()),
+})
+    Console.WriteLine($"{name,-18} стоимость={r.TotalCost,7:F2}  " +
+                      $"назначено={r.Assignments.Count}  без исполнителя={r.UnassignedTasks}");
+```
 

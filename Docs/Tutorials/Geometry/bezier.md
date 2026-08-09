@@ -45,4 +45,49 @@ $$P_i^{(r)}(t) = (1-t)\,P_i^{(r-1)} + t\,P_{i+1}^{(r-1)}, \quad r = 1,\ldots,n$$
 
 ## API
 
-Класс `AI.Geometry.BezierCurve` — методы `Evaluate(double t)`, `DeCasteljau(double t)`, `Split(double t)`.
+Пространство имён `AI.Geometry.Curves`. Методов `DeCasteljau` и `Split` в публичном API **нет**: доступны вычисление точки и равномерная выборка.
+
+| Член | Описание |
+|------|----------|
+| `new BezierCurve(Vector[] controlPoints)` | Кривая степени `controlPoints.Length − 1` |
+| `.Evaluate(double t)` | Точка при $t \in [0, 1]$ |
+| `.Sample(int n)` | `Vector[]` из `n` точек, равномерно по параметру |
+
+Равномерность по параметру $t$ — не равномерность по длине дуги: на участках большой кривизны точки сгущаются.
+
+Исходник: `src/AI.Geometry/Curves/BezierCurve.cs`.
+
+## Код
+
+```csharp
+using AI.DataStructs.Algebraic;
+using AI.Geometry.Curves;
+
+// Кубическая кривая: четыре контрольные точки
+var control = new[]
+{
+    new Vector(new[] { 0.0, 0.0 }),
+    new Vector(new[] { 1.0, 3.0 }),
+    new Vector(new[] { 4.0, 3.0 }),
+    new Vector(new[] { 5.0, 0.0 }),
+};
+
+var curve = new BezierCurve(control);
+
+// Кривая проходит через первую и последнюю контрольные точки,
+// но не через промежуточные — это её определяющее свойство
+var start = curve.Evaluate(0);
+var end   = curve.Evaluate(1);
+var mid   = curve.Evaluate(0.5);
+
+Console.WriteLine($"t=0.0 -> ({start[0]:F3}, {start[1]:F3})");
+Console.WriteLine($"t=0.5 -> ({mid[0]:F3}, {mid[1]:F3})");
+Console.WriteLine($"t=1.0 -> ({end[0]:F3}, {end[1]:F3})");
+
+// Выборка для отрисовки
+var pts = curve.Sample(50);
+double length = 0;
+for (int i = 1; i < pts.Length; i++)
+    length += (pts[i] - pts[i - 1]).NormL2();
+Console.WriteLine($"Длина ломаной по 50 точкам: {length:F4}");
+```

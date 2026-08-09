@@ -35,7 +35,7 @@
 }
 .aif-icon-pill--indigo {
   background: linear-gradient(145deg, #6366f1, #4f46e5);
-  box-shadow: 0 4px 16px -4px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 4px 16px -4px var(--aif-accent-a45);
 }
 .aif-icon-pill--violet {
   background: linear-gradient(145deg, #a78bfa, #7c3aed);

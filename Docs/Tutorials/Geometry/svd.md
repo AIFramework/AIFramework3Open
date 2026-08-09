@@ -45,4 +45,54 @@ $$A = U\,\Sigma\,V^T$$
 
 ## API
 
-Класс `AI.Geometry.SVD` — метод `Decompose(Matrix A)`, свойства `U`, `S`, `V`.
+Разложение живёт **не в `AI.Geometry`**, а в `AI.ClassicMath.MatrixUtils` — это статический класс `Svd` без состояния, поэтому свойств `U`, `S`, `V` у него нет: всё возвращается кортежем.
+
+| Член | Описание |
+|------|----------|
+| `Svd.Decompose(Matrix A)` | `(Matrix U, double[] sigma, Matrix V)` |
+| `Svd.DecomposeVector(Matrix A)` | То же, но $\sigma$ как `Vector` |
+
+$\Sigma$ отдаётся вектором сингулярных чисел, а не матрицей: диагональ приходится собирать самому.
+
+Исходник: `src/AI.ClassicMath/MatrixUtils/Svd.cs`.
+
+## Код
+
+```csharp
+using AI.ClassicMath.MatrixUtils;
+using AI.DataStructs.Algebraic;
+
+var A = new Matrix(3, 3);
+A[0, 0] = 4; A[0, 1] = 0; A[0, 2] = 1;
+A[1, 0] = 0; A[1, 1] = 3; A[1, 2] = 0;
+A[2, 0] = 1; A[2, 1] = 0; A[2, 2] = 2;
+
+var (U, sigma, V) = Svd.Decompose(A);
+
+Console.WriteLine($"σ = [{string.Join(", ", sigma.Select(s => s.ToString("F4")))}]");
+Console.WriteLine($"Число обусловленности: {sigma[0] / sigma[^1]:F2}");
+
+// Проверка A = U Σ Vᵀ: Σ приходится собирать из вектора вручную
+var S = new Matrix(3, 3);
+for (int i = 0; i < sigma.Length; i++) S[i, i] = sigma[i];
+
+var restored = U * S * V.Transpose();
+double err = 0;
+for (int r = 0; r < 3; r++)
+    for (int c = 0; c < 3; c++)
+        err += Math.Pow(A[r, c] - restored[r, c], 2);
+
+Console.WriteLine($"‖A − UΣVᵀ‖²F = {err:E3}");
+```
+
+Усечённое SVD — отбрасывание малых $\sigma_i$ — даёт наилучшее приближение матрицы меньшего ранга:
+
+```csharp
+int k = 2;                            // оставляем две компоненты
+var Sk = new Matrix(3, 3);
+for (int i = 0; i < k; i++) Sk[i, i] = sigma[i];
+
+var Ak = U * Sk * V.Transpose();
+Console.WriteLine($"Доля сохранённой энергии: " +
+                  $"{sigma.Take(k).Sum(s => s * s) / sigma.Sum(s => s * s):P1}");
+```

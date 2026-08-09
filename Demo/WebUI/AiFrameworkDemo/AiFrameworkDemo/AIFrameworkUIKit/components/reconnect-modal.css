@@ -43,7 +43,7 @@
   margin: 20vh auto;
   padding: 2rem;
   border-radius: 1.25rem;
-  box-shadow: 0 40px 120px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 40px 120px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--aif-accent-a16);
   font-family: var(--aif-font-sans);
   opacity: 0;
   transition: display 0.5s allow-discrete, overlay 0.5s allow-discrete;
@@ -107,7 +107,7 @@
   font-weight: 700;
   font-family: var(--aif-font-sans);
   cursor: pointer;
-  box-shadow: 0 4px 16px -4px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 4px 16px -4px var(--aif-accent-a45);
   transition: filter 0.15s, transform 0.15s;
 }
 #components-reconnect-modal button:hover {

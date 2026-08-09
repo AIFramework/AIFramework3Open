@@ -56,4 +56,45 @@ $$\det(Q) = \begin{vmatrix} A & B/2 & D/2 \\ B/2 & C & E/2 \\ D/2 & E/2 & F \end
 
 ## API
 
-Класс `AI.Geometry.Conic` — методы `Classify(double A, B, C, D, E, F)`, `Fit(Point[] points)`, `ToCanonical()`.
+Пространство имён `AI.Geometry.Conics`, класс называется `ConicSection`. Коэффициенты задаются **в конструкторе**, а не аргументами `Classify`; методов `Fit` и `ToCanonical` в публичном API нет.
+
+| Член | Описание |
+|------|----------|
+| `new ConicSection(a, b, c, d, e, f)` | $ax^2 + bxy + cy^2 + dx + ey + f = 0$ |
+| `.A` … `.F` | Коэффициенты, только для чтения |
+| `.Classify()` | `ConicType` — тип кривой по дискриминанту |
+| `.Sample(int n)` | `Vector[]` — точки на кривой |
+| `ConicSection.FromCircle(Circle c)`, `.FromEllipse(Ellipse e)` | Из примитива |
+
+Исходник: `src/AI.Geometry/Conics/ConicSection.cs`.
+
+## Код
+
+```csharp
+using AI.Geometry.Conics;
+
+// Дискриминант B² − 4AC определяет тип: < 0 эллипс, = 0 парабола, > 0 гипербола
+var cases = new (string name, ConicSection conic)[]
+{
+    ("окружность x²+y²=4", new ConicSection(1, 0, 1, 0, 0, -4)),
+    ("эллипс x²/4+y²=1",   new ConicSection(0.25, 0, 1, 0, 0, -1)),
+    ("парабола y=x²",      new ConicSection(1, 0, 0, 0, -1, 0)),
+    ("гипербола x²−y²=1",  new ConicSection(1, 0, -1, 0, 0, -1)),
+};
+
+foreach (var (name, conic) in cases)
+{
+    double disc = conic.B * conic.B - 4 * conic.A * conic.C;
+    Console.WriteLine($"{name,-22} B²−4AC = {disc,6:F2}  тип: {conic.Classify()}");
+}
+```
+
+Поворот осей проявляется ненулевым коэффициентом $B$, но на тип кривой не влияет — дискриминант инвариантен:
+
+```csharp
+var rotated = new ConicSection(1, 2, 1, 0, 0, -4);   // B ≠ 0
+Console.WriteLine($"Повёрнутая: {rotated.Classify()}");
+
+var pts = rotated.Sample(200);
+Console.WriteLine($"Точек на кривой: {pts.Length}");
+```

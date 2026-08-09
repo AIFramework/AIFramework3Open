@@ -40,5 +40,52 @@ $$\forall x: \; x \text{ и } \neg x \text{ в разных SCC}$$
 
 ## API
 
-Классы `TopologicalSort`, `TarjanSCC`, `BridgeFinder` в пространстве имён `AI.Graphs`.
+Пространство имён `AI.Algorithms.GraphStructure`; сам граф — `AI.Algorithms.EWG.Graph`.
+Класса `BridgeFinder` в библиотеке нет: мосты и точки сочленения ищет `ArticulationBridges`.
+
+| Член | Описание |
+|------|----------|
+| `TopologicalSort(Graph g)` | Топологическая сортировка орграфа |
+| `.Order` | `int[]`: порядок вершин |
+| `.HasCycle` | Граф содержит цикл — порядок не определён |
+| `TarjanSCC(Graph g)` | Сильно связные компоненты за один проход |
+| `.ComponentId` | `int[]`: номер компоненты для каждой вершины |
+| `.Count` | Число компонент |
+| `.StronglyConnected(u, v)` | Лежат ли вершины в одной компоненте |
+| `ArticulationBridges(Graph g)` | Точки сочленения и мосты неориентированного графа |
+| `.ArticulationPoints` | `List<int>` |
+| `.Bridges` | `List<(int U, int V)>` |
+
+Исходники: `src/AI.Algorithms/GraphStructure/`.
+
+## Код
+
+```csharp
+using AI.Algorithms.EWG;
+using AI.Algorithms.GraphStructure;
+
+// Орграф с циклом 1->2->3->1
+var dir = new Graph(5);
+dir.AddArc(0, 1); dir.AddArc(1, 2);
+dir.AddArc(2, 3); dir.AddArc(3, 1); dir.AddArc(3, 4);
+
+var topo = new TopologicalSort(dir);
+Console.WriteLine(topo.HasCycle
+    ? "Цикл есть — топологический порядок не существует"
+    : string.Join("->", topo.Order));
+
+var scc = new TarjanSCC(dir);
+Console.WriteLine($"Компонент сильной связности: {scc.Count}");
+Console.WriteLine($"1 и 3 в одной компоненте: {scc.StronglyConnected(1, 3)}");   // true
+
+// Неориентированный граф: 2—3 — мост, вершина 2 — точка сочленения
+var und = new Graph(5);
+und.AddEdge(0, 1); und.AddEdge(1, 2);
+und.AddEdge(0, 2); und.AddEdge(2, 3); und.AddEdge(3, 4);
+
+var ab = new ArticulationBridges(und);
+Console.WriteLine($"Точки сочленения: {string.Join(", ", ab.ArticulationPoints)}");
+foreach (var (u, v) in ab.Bridges)
+    Console.WriteLine($"Мост: {u} — {v}");
+```
 

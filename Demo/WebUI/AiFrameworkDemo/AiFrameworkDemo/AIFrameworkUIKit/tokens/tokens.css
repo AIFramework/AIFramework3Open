@@ -150,6 +150,50 @@
   --aif-status-ok:  #a5f3fc;
   --aif-status-err: #f87171;
 
+  /* Полный набор статусов: текст + фон + граница.
+     Раньше зелёный «сохранить» и янтарное предупреждение задавались
+     литералами в трёх местах каждый — при смене темы они не менялись. */
+  --aif-status-ok-text:      #34d399;
+  --aif-status-ok-bg:        rgba(52, 211, 153, 0.12);
+  --aif-status-ok-bg-hover:  rgba(52, 211, 153, 0.22);
+  --aif-status-ok-border:    rgba(52, 211, 153, 0.35);
+
+  --aif-status-warn-text:    #fbbf24;
+  --aif-status-warn-bg:      rgba(251, 191, 36, 0.12);
+  --aif-status-warn-border:  rgba(251, 191, 36, 0.35);
+
+  --aif-status-err-text:     #f87171;
+  --aif-status-err-bg:       rgba(248, 113, 113, 0.12);
+  --aif-status-err-border:   rgba(248, 113, 113, 0.35);
+
+  --aif-status-info-text:    #38bdf8;
+  --aif-status-info-bg:      rgba(56, 189, 248, 0.12);
+  --aif-status-info-border:  rgba(56, 189, 248, 0.35);
+
+  /* ─── ГЛОБАЛЬНЫЙ АКЦЕНТ: лестница прозрачностей ──────────────────── */
+  /* Для «хрома» приложения (фон страницы, hero, анимации), который не
+     зависит от цвета текущего модуля. Компонентам, которые ДОЛЖНЫ менять
+     цвет вместе с модулем, нужны --aif-cur-a* из themes.css.
+     Значения задаются литералами, а не color-mix(): последний не
+     поддерживается Safari < 16.2, а кит рассчитан и на него. */
+  --aif-accent-a04: rgba(99, 102, 241, 0.04);
+  --aif-accent-a08: rgba(99, 102, 241, 0.08);
+  --aif-accent-a12: rgba(99, 102, 241, 0.12);
+  --aif-accent-a16: rgba(99, 102, 241, 0.16);
+  --aif-accent-a20: rgba(99, 102, 241, 0.20);
+  --aif-accent-a25: rgba(99, 102, 241, 0.25);
+  --aif-accent-a30: rgba(99, 102, 241, 0.30);
+  --aif-accent-a35: rgba(99, 102, 241, 0.35);
+  --aif-accent-a40: rgba(99, 102, 241, 0.40);
+  --aif-accent-a45: rgba(99, 102, 241, 0.45);
+  --aif-accent-a55: rgba(99, 102, 241, 0.55);
+  --aif-accent-a00: rgba(99, 102, 241, 0);      /* конечный кадр пульсации */
+
+  /* Светлый акцент (#818cf8) — для границ и колец на тёмном фоне */
+  --aif-accent-light-a40: rgba(129, 140, 248, 0.40);
+  --aif-accent-light-a50: rgba(129, 140, 248, 0.50);
+  --aif-accent-light-a00: rgba(129, 140, 248, 0);
+
   /* ─── FOCUS — клавиатурная навигация (:focus-visible) ────────────── */
   /* Кольцо строится из двух слоёв: внутренний контрастный к фону
      компонента, внешний — к фону страницы. Так индикатор остаётся
@@ -361,6 +405,43 @@
   /* ─── Status (светлая тема) ──────────────────────────────────────── */
   --aif-status-ok:  #0c4a6e;
   --aif-status-err: #b91c1c;
+
+  /* Насыщенность на белом фоне другая: тот же зелёный читается хуже,
+     поэтому текст берётся темнее, а подложка светлее. */
+  --aif-status-ok-text:      #047857;
+  --aif-status-ok-bg:        rgba(5, 150, 105, 0.10);
+  --aif-status-ok-bg-hover:  rgba(5, 150, 105, 0.18);
+  --aif-status-ok-border:    rgba(5, 150, 105, 0.35);
+
+  --aif-status-warn-text:    #b45309;
+  --aif-status-warn-bg:      rgba(217, 119, 6, 0.10);
+  --aif-status-warn-border:  rgba(217, 119, 6, 0.35);
+
+  --aif-status-err-text:     #b91c1c;
+  --aif-status-err-bg:       rgba(220, 38, 38, 0.10);
+  --aif-status-err-border:   rgba(220, 38, 38, 0.35);
+
+  --aif-status-info-text:    #0369a1;
+  --aif-status-info-bg:      rgba(2, 132, 199, 0.10);
+  --aif-status-info-border:  rgba(2, 132, 199, 0.35);
+
+  /* ─── Акцент (светлая тема): база #4338ca вместо #6366f1 ─────────── */
+  --aif-accent-a04: rgba(67, 56, 202, 0.04);
+  --aif-accent-a08: rgba(67, 56, 202, 0.07);
+  --aif-accent-a12: rgba(67, 56, 202, 0.10);
+  --aif-accent-a16: rgba(67, 56, 202, 0.13);
+  --aif-accent-a20: rgba(67, 56, 202, 0.16);
+  --aif-accent-a25: rgba(67, 56, 202, 0.20);
+  --aif-accent-a30: rgba(67, 56, 202, 0.24);
+  --aif-accent-a35: rgba(67, 56, 202, 0.28);
+  --aif-accent-a40: rgba(67, 56, 202, 0.32);
+  --aif-accent-a45: rgba(67, 56, 202, 0.36);
+  --aif-accent-a55: rgba(67, 56, 202, 0.45);
+  --aif-accent-a00: rgba(67, 56, 202, 0);
+
+  --aif-accent-light-a40: rgba(67, 56, 202, 0.35);
+  --aif-accent-light-a50: rgba(67, 56, 202, 0.45);
+  --aif-accent-light-a00: rgba(67, 56, 202, 0);
 
   /* ─── Focus (светлая тема) ───────────────────────────────────────── */
   --aif-focus-ring:       #3730a3;

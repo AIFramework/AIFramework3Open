@@ -35,5 +35,69 @@ $$f(n) = g(n) + \varepsilon \cdot h(n), \quad \varepsilon \geq 1$$
 
 ## API
 
-Классы `DStarLite`, `LPAStar`, `ARAStarPathFinder` в пространстве имён `AI.Graphs`. Метод `UpdateEdge(u, v, newWeight)` обновляет граф, `Replan()` пересчитывает путь инкрементально.
+Пространство имён `AI.Algorithms.DynamicPathfinding`. `DStarLite` и `LPAStar` работают **по сетке** (не по произвольному графу), `ARAStar` — по `GraphW<T>`. Метода `UpdateEdge(u, v, newWeight)` нет: изменения задаются через блокировку клетки.
+
+| Член | Описание |
+|------|----------|
+| `DStarLite(int width, int height, (int X, int Y) start, (int X, int Y) goal)` | Планировщик по сетке |
+| `.SetBlocked(x, y, blocked)` | Изменить проходимость клетки |
+| `.Replan()` | Инкрементальный пересчёт после изменений |
+| `.GetPath()` | `List<(int X, int Y)>` — текущий путь |
+| `LPAStar(int width, int height, start, goal)` | То же для неподвижного наблюдателя |
+| `.UpdateEdgeCost(x, y, blocked)` | Изменить клетку |
+| `.ComputeShortestPath()` | Пересчёт |
+| `.GetPath()` | Путь |
+| `ARAStar<Edge>(GraphW<Edge> g, int start, int goal, Func<int,double> h, double initialEpsilon)` | Anytime-поиск |
+| `.ImprovePath()` | Улучшить решение при текущем $\varepsilon$ |
+| `.DecreaseEpsilon(delta)` | Понизить $\varepsilon$ — путь становится ближе к оптимальному |
+| `.Epsilon`, `.PathCost`, `.GetPath()` | Текущая гарантия, стоимость и путь |
+
+Разница между `DStarLite` и `LPAStar` в API — только в названии метода пересчёта: `Replan()` против `ComputeShortestPath()`.
+
+Исходники: `src/AI.Algorithms/DynamicPathfinding/`.
+
+## Код
+
+D* Lite: робот узнаёт о препятствии уже в пути и перепланирует, не пересчитывая всё с нуля.
+
+```csharp
+using AI.Algorithms.DynamicPathfinding;
+
+var dstar = new DStarLite(20, 20, start: (0, 0), goal: (19, 19));
+var initial = dstar.GetPath();
+Console.WriteLine($"Исходный путь: {initial.Count} клеток");
+
+// Сенсор обнаружил стену поперёк маршрута
+for (int y = 0; y < 15; y++)
+    dstar.SetBlocked(10, y, true);
+
+dstar.Replan();
+var replanned = dstar.GetPath();
+Console.WriteLine($"После перепланирования: {replanned.Count} клеток");
+```
+
+ARA*: сначала быстрый путь с гарантией $\varepsilon$, затем последовательное улучшение, пока есть время.
+
+```csharp
+using AI.Algorithms.DynamicPathfinding;
+using AI.Algorithms.EWG;
+
+var g = new GraphW<Edge>(100);
+// ... заполнение графа ...
+
+var ara = new ARAStar<Edge>(g, start: 0, goal: 99,
+    heuristic: v => Math.Abs(v - 99), initialEpsilon: 3.0);
+
+ara.ImprovePath();
+Console.WriteLine($"ε = {ara.Epsilon:F1}, стоимость = {ara.PathCost:F1}");
+
+// Есть ещё время — сужаем гарантию
+while (ara.Epsilon > 1.0)
+{
+    ara.DecreaseEpsilon(0.5);
+    ara.ImprovePath();
+    Console.WriteLine($"ε = {ara.Epsilon:F1}, стоимость = {ara.PathCost:F1}");
+}
+// При ε = 1 путь оптимален
+```
 
