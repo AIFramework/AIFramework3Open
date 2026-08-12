@@ -34,6 +34,16 @@ public class ProxyHTTPClientOptions
     public string UserAgent { get; set; }
 
     /// <summary>
+    /// Заголовки, уходящие с каждым запросом клиента: атрибуция приложения у провайдера
+    /// (например, HTTP-Referer и X-Title у OpenRouter) и подобное постоянное сопровождение.
+    /// </summary>
+    /// <remarks>
+    /// Ставятся на клиента при создании, а не на запрос: значения постоянны, а запрос собирается
+    /// заново на каждую попытку через очередной прокси.
+    /// </remarks>
+    public IEnumerable<KeyValuePair<string, string>> DefaultHeaders { get; set; }
+
+    /// <summary>
     /// Таймаут на установку соединения (ConnectTimeout)
     /// Защита от зависших proxy или недоступных серверов
     /// </summary>

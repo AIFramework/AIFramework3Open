@@ -457,6 +457,15 @@ public class ProxyHTTPClient : IWebAPIClient
         httpClient.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
 
+        // Постоянное сопровождение запросов: атрибуция приложения у провайдера и подобное.
+        // TryAddWithoutValidation — значения задаёт вызывающий, и падать на строгой проверке
+        // формата здесь незачем: заголовок либо уйдёт, либо будет тихо пропущен.
+        if (_options.DefaultHeaders != null)
+        {
+            foreach (var header in _options.DefaultHeaders)
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+        }
+
         return httpClient;
     }
 
