@@ -1,7 +1,7 @@
 ﻿namespace AI.LLM.Core.Models.Common.Messages.Content;
 
 /// <summary>
-/// Содержание контента (тексты, изображения)
+/// Содержание контента (тексты, изображения, звук)
 /// </summary>
 [Serializable]
 public class MessageContent : List<IContentItem>
@@ -26,6 +26,21 @@ public class MessageContent : List<IContentItem>
     {
         ImageContent imageContent = new ImageContent(image);
         Add(imageContent);
+    }
+
+
+    /// <param name="format">Контейнер записи: <c>wav</c>, <c>mp3</c>, <c>ogg</c>, <c>flac</c>, <c>m4a</c>.</param>
+    public void AddAudio(string base64, string format)
+    {
+        AudioContent audioContent = new AudioContent(base64, format);
+        Add(audioContent);
+    }
+
+
+    public void AddAudio(IEnumerable<byte> audio)
+    {
+        AudioContent audioContent = new AudioContent(audio);
+        Add(audioContent);
     }
 
 
