@@ -19,7 +19,9 @@ public class ExtractItemResult
     [JsonPropertyName("raw_content")]
     public string RawContent { get; set; }
 
-    // public IEnumerable<> Images { get; set; }
+    /// <summary>Картинки страницы; приходят только при <c>include_images=true</c>.</summary>
+    [JsonPropertyName("images")]
+    public IEnumerable<TavilyImage> Images { get; set; }
 }
 
 public class ExtractItemFailedResult

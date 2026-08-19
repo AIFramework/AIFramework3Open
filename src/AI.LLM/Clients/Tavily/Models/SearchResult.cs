@@ -12,6 +12,14 @@ public class SearchResult
 
     [JsonPropertyName("results")]
     public IEnumerable<SearchItemResult> Results { get; set; }
+
+    /// <summary>Готовая выжимка по запросу; приходит только при <c>include_answer=true</c>.</summary>
+    [JsonPropertyName("answer")]
+    public string Answer { get; set; }
+
+    /// <summary>Картинки выдачи; приходят только при <c>include_images=true</c>.</summary>
+    [JsonPropertyName("images")]
+    public IEnumerable<TavilyImage> Images { get; set; }
 }
 
 public class SearchItemResult
