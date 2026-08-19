@@ -4,6 +4,7 @@ using AI.Solvers.Math.Core;
 using AI.Solvers.Math.Core.Functions;
 using AI.Solvers.Math.Core.Operators;
 using AI.Solvers.Math.Core.Parsers;
+using AI.Solvers.Math.Core.Patterns;
 
 namespace AI.Solvers.Math.Core.Solvers;
 
@@ -12,13 +13,20 @@ namespace AI.Solvers.Math.Core.Solvers;
 /// </summary>
 public static class LaplaceTable
 {
-    // Структура для хранения преобразования
+    /// <summary>Наибольшее n, для которого n! ещё помещается в long (21! уже переполняется).</summary>
+    private const int MaxExactFactorial = 20;
+
+
+    // Структура для хранения преобразования.
+    // Matcher возвращает ТОЛЬКО правую часть F(s): собирать «L{f} = F(s)» и разбирать
+    // такую строку обратно по '=' и '(' — как делалось раньше — значит терять всё
+    // после первой скобки, превращая 1/(s²+1) в «1/».
     private class LaplaceEntry
     {
         public string Pattern { get; set; } = "";
         public string Transform { get; set; } = "";
         public string Description { get; set; } = "";
-        public Func<Expression, string, (bool matches, string result)> Matcher { get; set; } = null!;
+        public Func<Expression, string, (bool matches, string transform)> Matcher { get; set; } = null!;
     }
 
     private static readonly List<LaplaceEntry> _table = new()
@@ -31,7 +39,7 @@ public static class LaplaceTable
             Matcher = (expr, var) =>
             {
                 if (expr is Constant c && System.Math.Abs(c.Value - 1) < 1e-10)
-                    return (true, "L{1} = 1/s");
+                    return (true, "1/s");
                 return (false, "");
             }
         },
@@ -44,7 +52,7 @@ public static class LaplaceTable
             Matcher = (expr, var) =>
             {
                 if (expr is Variable v && v.Name == var)
-                    return (true, $"L{{{var}}} = 1/s²");
+                    return (true, "1/s²");
                 return (false, "");
             }
         },
@@ -60,8 +68,13 @@ public static class LaplaceTable
                     pow.Exponent is Constant cp && cp.Value > 0 && cp.Value == System.Math.Floor(cp.Value))
                 {
                     int n = (int)cp.Value;
-                    long factorial = FunctionsForEachElements.Factorial(n);
-                    return (true, $"L{{t^{n}}} = {factorial}/s^{n + 1}");
+                    // Factorial возвращает long и с 21! молча переполняется в отрицательное
+                    // число. За границей точного представления пишем «n!» и рядом
+                    // порядок величины через Gamma(n+1) = n!.
+                    string numerator = n <= MaxExactFactorial
+                        ? FunctionsForEachElements.Factorial(n).ToString()
+                        : $"{n}! (≈{FunctionsForEachElements.Gamma(n + 1):G6})";
+                    return (true, $"{numerator}/s^{n + 1}");
                 }
                 return (false, "");
             }
@@ -82,11 +95,10 @@ public static class LaplaceTable
                     {
                         double a = ca.Value;
                         string denom = a >= 0 ? $"(s-{a})" : $"(s+{-a})";
-                        string expArg = a == 1 ? "exp(t)" : a == -1 ? "exp(-t)" : $"exp({a}t)";
-                        return (true, $"L{{{expArg}}} = 1/{denom}");
+                        return (true, $"1/{denom}");
                     }
                     if (exp1.Argument is Variable vexp && vexp.Name == var)
-                        return (true, "L{exp(t)} = 1/(s-1)");
+                        return (true, "1/(s-1)");
                 }
                 return (false, "");
             }
@@ -106,10 +118,10 @@ public static class LaplaceTable
                         multSin.Right is Variable vsin && vsin.Name == var)
                     {
                         double omega = csin.Value;
-                        return (true, $"L{{sin({omega}t)}} = {omega}/(s² + {omega * omega})");
+                        return (true, $"{omega}/(s² + {omega * omega})");
                     }
                     if (sin.Argument is Variable vsinSimple && vsinSimple.Name == var)
-                        return (true, "L{sin(t)} = 1/(s² + 1)");
+                        return (true, "1/(s² + 1)");
                 }
                 return (false, "");
             }
@@ -128,10 +140,10 @@ public static class LaplaceTable
                         multCos.Right is Variable vcos && vcos.Name == var)
                     {
                         double omega = ccos.Value;
-                        return (true, $"L{{cos({omega}t)}} = s/(s² + {omega * omega})");
+                        return (true, $"s/(s² + {omega * omega})");
                     }
                     if (cos.Argument is Variable vcosSimple && vcosSimple.Name == var)
-                        return (true, "L{cos(t)} = s/(s² + 1)");
+                        return (true, "s/(s² + 1)");
                 }
                 return (false, "");
             }
@@ -151,10 +163,10 @@ public static class LaplaceTable
                         multSinh.Right is Variable vsinh && vsinh.Name == var)
                     {
                         double a = csinh.Value;
-                        return (true, $"L{{sinh({a}t)}} = {a}/(s² - {a * a})");
+                        return (true, $"{a}/(s² - {a * a})");
                     }
                     if (sinh.Argument is Variable vsinhSimple && vsinhSimple.Name == var)
-                        return (true, "L{sinh(t)} = 1/(s² - 1)");
+                        return (true, "1/(s² - 1)");
                 }
                 return (false, "");
             }
@@ -173,10 +185,10 @@ public static class LaplaceTable
                         multCosh.Right is Variable vcosh && vcosh.Name == var)
                     {
                         double a = ccosh.Value;
-                        return (true, $"L{{cosh({a}t)}} = s/(s² - {a * a})");
+                        return (true, $"s/(s² - {a * a})");
                     }
                     if (cosh.Argument is Variable vcoshSimple && vcoshSimple.Name == var)
-                        return (true, "L{cosh(t)} = s/(s² - 1)");
+                        return (true, "s/(s² - 1)");
                 }
                 return (false, "");
             }
@@ -188,53 +200,17 @@ public static class LaplaceTable
     /// </summary>
     private static Expression ApplyTrigIdentities(Expression expr, string variable)
     {
-        // sin(t)*cos(t) = sin(2t)/2
-        if (expr is Multiply mult)
-        {
-            Sin? sinPart = null;
-            Cos? cosPart = null;
+        // sin(ωt)·cos(ωt) = sin(2ωt)/2
+        if (!ExpressionPatterns.TryMatchSinCosProduct(expr, out var argument))
+            return expr;
 
-            if (mult.Left is Sin s1) sinPart = s1;
-            else if (mult.Right is Sin s2) sinPart = s2;
+        if (!ExpressionPatterns.TryMatchLinear(argument, variable, out double omega, out double shift) ||
+            System.Math.Abs(shift) > 1e-12)
+            return expr;
 
-            if (mult.Left is Cos c1) cosPart = c1;
-            else if (mult.Right is Cos c2) cosPart = c2;
-
-            // sin(ωt)*cos(ωt) = sin(2ωt)/2
-            if (sinPart != null && cosPart != null)
-            {
-                var sinArg = sinPart.Argument;
-                var cosArg = cosPart.Argument;
-
-                // Проверяем, что аргументы одинаковые
-                if (sinArg.ToString() == cosArg.ToString())
-                {
-                    // sin(ωt)*cos(ωt) = sin(2ωt)/2
-                    Expression newArg;
-                    if (sinArg is Variable v && v.Name == variable)
-                    {
-                        // sin(t)*cos(t) = sin(2t)/2
-                        newArg = new Multiply(new Constant(2), new Variable(variable));
-                    }
-                    else if (sinArg is Multiply m && m.Left is Constant c && m.Right is Variable vv && vv.Name == variable)
-                    {
-                        // sin(ωt)*cos(ωt) = sin(2ωt)/2
-                        double omega = c.Value;
-                        newArg = new Multiply(new Constant(2 * omega), new Variable(variable));
-                    }
-                    else
-                    {
-                        return expr; // Не можем упростить
-                    }
-
-                    return new Multiply(new Constant(0.5), new Sin(newArg));
-                }
-            }
-
-  
-        }
-
-        return expr;
+        return new Multiply(
+            new Constant(0.5),
+            new Sin(new Multiply(new Constant(2 * omega), new Variable(variable))));
     }
 
     /// <summary>
@@ -243,53 +219,41 @@ public static class LaplaceTable
     public static string Find(Expression expr, string variable = "t")
     {
         var simplified = ApplyTrigIdentities(expr, variable);
+        var transform  = FindTransform(simplified, variable);
 
+        return transform is null
+            ? $"L{{{simplified}}} - не найдено в таблице"
+            : $"L{{{simplified}}} = {transform}";
+    }
+
+    /// <summary>
+    /// Возвращает правую часть F(s) или null, если образ не найден.
+    /// Рекурсия работает с самим F(s), а не с готовой строкой «L{f} = F(s)».
+    /// </summary>
+    private static string? FindTransform(Expression expr, string variable)
+    {
         foreach (var entry in _table)
         {
-            var (matches, result) = entry.Matcher(simplified, variable);
-            if (matches)
-                return result;
+            var (matches, transform) = entry.Matcher(expr, variable);
+            if (matches) return transform;
         }
 
-        // Обработка произведений с константами
-        if (simplified is Multiply mult && mult.Left is Constant c)
+        // Линейность: L{c·f} = c·F(s)
+        if (expr is Multiply mult && mult.Left is Constant c)
         {
-            var innerResult = Find(mult.Right, variable);
-            if (!innerResult.Contains("требуется") && !innerResult.Contains("не удалось"))
-            {
-                // Извлекаем преобразование из строки результата
-                var parts = innerResult.Split('=');
-                if (parts.Length == 2)
-                {
-                    var transform = parts[1].Trim();
-                    return $"L{{{simplified}}} = {c.Value}·{transform}  (по линейности)";
-                }
-            }
+            var inner = FindTransform(mult.Right, variable);
+            if (inner != null) return $"{c.Value}·({inner})";
         }
 
-        // Обработка суммы (линейность преобразования Лапласа)
-        if (simplified is Add add)
+        // Линейность: L{f + g} = F(s) + G(s)
+        if (expr is Add add)
         {
-            var leftResult = Find(add.Left, variable);
-            var rightResult = Find(add.Right, variable);
-
-            if (!leftResult.Contains("требуется") && !rightResult.Contains("требуется") &&
-                !leftResult.Contains("не удалось") && !rightResult.Contains("не удалось"))
-            {
-                var leftParts = leftResult.Split('=');
-                var rightParts = rightResult.Split('=');
-
-                if (leftParts.Length == 2 && rightParts.Length == 2)
-                {
-                    var leftTransform = leftParts[1].Trim().Split("(")[0].Trim();
-                    var rightTransform = rightParts[1].Trim().Split("(")[0].Trim();
-
-                    return $"L{{{simplified}}} = {leftTransform} + {rightTransform}  (по линейности)";
-                }
-            }
+            var left  = FindTransform(add.Left,  variable);
+            var right = FindTransform(add.Right, variable);
+            if (left != null && right != null) return $"{left} + {right}";
         }
 
-        return $"L{{{simplified}}} - не найдено в таблице";
+        return null;
     }
 
     /// <summary>

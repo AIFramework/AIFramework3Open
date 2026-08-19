@@ -13,7 +13,7 @@ namespace AI.Solvers.Math.Core.Solvers;
 /// (через AST-разбор), системы ОДУ и нелинейные ОДУ (численно через RK4).
 /// Все публичные методы потокобезопасны (без разделяемого состояния).
 /// </summary>
-public static class ODESolver
+public static partial class ODESolver
 {
     #region Результат парсинга коэффициентов
 
@@ -377,36 +377,6 @@ public static class ODESolver
             }
 
             return sb.ToString();
-        }
-        catch (Exception ex)
-        {
-            return $"Ошибка: {ex.Message}";
-        }
-    }
-
-    #endregion
-
-    #region Система ОДУ
-
-    public static string SolveSystemODE(List<string> equations)
-    {
-        try
-        {
-            if (equations.Count == 2)
-            {
-                var match1 = Regex.Match(equations[0].Trim(), @"([a-z])'\s*=\s*([+\-]?)([a-z])");
-                var match2 = Regex.Match(equations[1].Trim(), @"([a-z])'\s*=\s*([+\-]?)([a-z])");
-
-                if (match1.Success && match2.Success)
-                {
-                    var var1 = match1.Groups[1].Value;
-                    var var2 = match1.Groups[3].Value;
-                    var sign1 = match1.Groups[2].Value == "-" ? "-" : "";
-                    var sign2 = match2.Groups[2].Value == "-" ? "-" : "";
-                    return $"{var1}(t) = C1*cos(t) + C2*sin(t)\n{var2}(t) = {sign1}C1*sin(t) {sign2} C2*cos(t)";
-                }
-            }
-            return "Решение системы ОДУ: общий вид\nx(t) = C1*f1(t) + C2*f2(t)\ny(t) = C3*g1(t) + C4*g2(t)";
         }
         catch (Exception ex)
         {

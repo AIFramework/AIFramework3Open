@@ -77,7 +77,7 @@ public static partial class AdvancedIntegrationEngine
                 return new Multiply(new Constant(1.0 / aL), new Ln(new Abs(pow1.Base)));
         }
 
-        // ∫ 1/sqrt(a²-x²) dx = arcsin(x/a)
+        // ∫ 1/sqrt(A-B·x²) dx = (1/√B)·arcsin(x·√(B/A)),  A > 0, B > 0
         if (expr is Power pow3 && pow3.Exponent is Constant ce3 && System.Math.Abs(ce3.Value + 0.5) < 1e-10)
         {
             if (pow3.Base is Add add2 &&
@@ -88,8 +88,10 @@ public static partial class AdvancedIntegrationEngine
                 pow4.Base is Variable v2 && v2.Name == variable &&
                 pow4.Exponent is Constant ce4 && System.Math.Abs(ce4.Value - 2) < 1e-10)
             {
-                double a = System.Math.Sqrt(c2.Value);
-                return new Asin(new Multiply(new Constant(1.0 / a), x));
+                double bCoeff = -c3.Value;
+                return new Multiply(
+                    new Constant(1.0 / System.Math.Sqrt(bCoeff)),
+                    new Asin(new Multiply(new Constant(System.Math.Sqrt(bCoeff / c2.Value)), x)));
             }
         }
 

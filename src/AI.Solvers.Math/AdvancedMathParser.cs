@@ -59,33 +59,19 @@ public class AdvancedMathParser
 
     private Expression ParseMultiplyDivide()
     {
-        var left = ParsePower();
+        var left = ParseUnary();
 
         while (CurrentToken.Type == TokenType.Multiply ||
                CurrentToken.Type == TokenType.Divide)
         {
             var op = CurrentToken.Type;
             Advance();
-            var right = ParsePower();
+            var right = ParseUnary();
 
             if (op == TokenType.Multiply)
                 left = new Multiply(left, right);
             else
                 left = new Multiply(left, new Power(right, new Constant(-1)));
-        }
-
-        return left;
-    }
-
-    private Expression ParsePower()
-    {
-        var left = ParseUnary();
-
-        if (CurrentToken.Type == TokenType.Power)
-        {
-            Advance();
-            var right = ParsePower();
-            return new Power(left, right);
         }
 
         return left;
@@ -108,11 +94,17 @@ public class AdvancedMathParser
         return ParsePostfix();
     }
 
+    /// <summary>
+    /// Атом со степенями. Возведение в степень разбирается ТОЛЬКО здесь:
+    /// отдельный ParsePower делал ту же работу вторым способом, и какая из двух
+    /// веток отработает, зависело от того, кто вызвал первым.
+    /// Правая ассоциативность обеспечивается рекурсией через ParseUnary:
+    /// 2^3^2 = 2^(3^2) = 512, а -2^2 = -(2^2) = -4.
+    /// </summary>
     private Expression ParsePostfix()
     {
         var expr = ParseAtom();
 
-        // Обработка постфиксных операторов, например ^2 после функции
         while (CurrentToken.Type == TokenType.Power)
         {
             Advance();
@@ -243,6 +235,15 @@ public class AdvancedMathParser
             "sign" => new Sgn(arg),
             "heaviside" => new Heaviside(arg),
             "h" => new Heaviside(arg),
+            // Токенайзер знает эти имена как функции, поэтому без веток здесь
+            // разбор si(x) заканчивался исключением «Неизвестная функция»,
+            // хотя узлы для них есть и вычислитель их считает.
+            "si" => new Si(arg),
+            "ci" => new Ci(arg),
+            "ei" => new Ei(arg),
+            "li" => new Li(arg),
+            "fresnels" => new FresnelS(arg),
+            "fresnelc" => new FresnelC(arg),
             _ => throw new Exception($"Неизвестная функция: {funcName}")
         };
     }
@@ -277,7 +278,7 @@ public class AdvancedMathParser
         }
         else
         {
-            integrand = ParsePower();
+            integrand = ParseUnary();
 
             if (CurrentToken.Type == TokenType.Function &&
                 CurrentToken.Value.ToLower() == "d")

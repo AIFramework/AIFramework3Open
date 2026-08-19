@@ -55,10 +55,20 @@ public static partial class PDESolver
     public static string SolveWaveEquation(string equation)
     {
         var match = Regex.Match(equation, @"([a-z])_tt\s*=\s*([a-z\d\.]+)\s*\*\s*([a-z])_xx");
-        var c = match.Success ? match.Groups[2].Value : "c";
+
+        // В уравнении при u_xx стоит c², а не c. Раньше это же число подставлялось
+        // в шаблон как {c}, и для «u_tt = 4*u_xx» печаталось «u_tt = 4²·u_xx» (=16),
+        // хотя считалось всё с правильной скоростью c = 2.
         double cValue = 1.0;
-        if (match.Success && double.TryParse(match.Groups[2].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double parsedC))
+        string c = "c";
+        if (match.Success &&
+            double.TryParse(match.Groups[2].Value, System.Globalization.NumberStyles.Float,
+                            System.Globalization.CultureInfo.InvariantCulture, out double parsedC) &&
+            parsedC >= 0)
+        {
             cValue = System.Math.Sqrt(parsedC);
+            c = cValue.ToString("G6", System.Globalization.CultureInfo.InvariantCulture);
+        }
 
         var theory = $@"=== ВОЛНОВОЕ УРАВНЕНИЕ ===
 

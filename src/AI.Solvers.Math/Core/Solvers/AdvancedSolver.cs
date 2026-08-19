@@ -79,12 +79,12 @@ public static partial class AdvancedSolver
         Expression current = expr;
         for (int i = 0; i < maxIterations; i++)
         {
-            if (current is not Divide div) break;
+            if (!TryAsQuotient(current, out var numerator, out var denominator)) break;
+            if (!IsIndeterminateQuotient(numerator, denominator, variable, point)) break;
 
             // Применяем правило: дифференцируем числитель и знаменатель.
-            var numD = div.Numerator.Derivative(variable).Simplify();
-            var denD = div.Denominator.Derivative(variable).Simplify();
-            current  = new Divide(numD, denD);
+            current = new Divide(numerator.Derivative(variable).Simplify(),
+                                 denominator.Derivative(variable).Simplify());
 
             try
             {
@@ -99,22 +99,124 @@ public static partial class AdvancedSolver
             }
         }
 
-        // Боковой подход — ε-возмущение. Может расходиться для сильных сингулярностей.
-        var epsilon = 1e-4;
-        try
+        return ProbeAroundPoint(expr, variable, point);
+    }
+
+    /// <summary>
+    /// Видит частное и в узле Divide, и в форме f·g^(-1): парсер кодирует деление
+    /// именно так (см. ParseMultiplyDivide), поэтому проверка «is Divide» никогда
+    /// не срабатывала для разобранного выражения, и правило Лопиталя не применялось.
+    /// </summary>
+    private static bool TryAsQuotient(Expression expr, out Expression numerator, out Expression denominator)
+    {
+        numerator = expr;
+        denominator = new Constant(1);
+
+        static bool IsInverse(Expression e, out Expression baseExpr)
         {
-            double leftVal  = EvaluateExpression(expr,
-                new Dictionary<string, double> { { variable, point - epsilon } });
-            double rightVal = EvaluateExpression(expr,
-                new Dictionary<string, double> { { variable, point + epsilon } });
-            if (System.Math.Abs(leftVal - rightVal) < 1e-3)
-                return ((leftVal + rightVal) / 2).ToString("G6");
-            return $"Левый предел = {leftVal:G6},  правый = {rightVal:G6} (различаются -> возможна разрывность)";
+            baseExpr = e;
+            if (e is Power p && p.Exponent is Constant c && System.Math.Abs(c.Value + 1) < 1e-10)
+            {
+                baseExpr = p.Base;
+                return true;
+            }
+            return false;
         }
-        catch
+
+        switch (expr)
         {
+            case Divide div:
+                numerator = div.Numerator;
+                denominator = div.Denominator;
+                return true;
+
+            case Multiply mult when IsInverse(mult.Right, out var denRight):
+                numerator = mult.Left;
+                denominator = denRight;
+                return true;
+
+            case Multiply mult when IsInverse(mult.Left, out var denLeft):
+                numerator = mult.Right;
+                denominator = denLeft;
+                return true;
+
+            case Power when IsInverse(expr, out var denPow):
+                numerator = new Constant(1);
+                denominator = denPow;
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Правило Лопиталя применимо только к 0/0 и ∞/∞. Если значение хотя бы одной
+    /// части посчитать не удалось, считаем случай неопределённым и правило пробуем.
+    /// </summary>
+    private static bool IsIndeterminateQuotient(Expression numerator, Expression denominator,
+                                                string variable, double point)
+    {
+        var vars = new Dictionary<string, double> { { variable, point } };
+
+        double? Value(Expression e)
+        {
+            try
+            {
+                double v = EvaluateExpression(e, vars);
+                return double.IsNaN(v) ? null : v;
+            }
+            catch { return null; }
+        }
+
+        double? f = Value(numerator), g = Value(denominator);
+        if (f is null || g is null) return true;
+
+        bool bothZero     = System.Math.Abs(f.Value) < 1e-9 && System.Math.Abs(g.Value) < 1e-9;
+        bool bothInfinite = double.IsInfinity(f.Value) && double.IsInfinity(g.Value);
+        return bothZero || bothInfinite;
+    }
+
+    /// <summary>
+    /// Боковой подход с двумя масштабами ε. Рост значения на порядок при
+    /// десятикратном приближении к точке — признак расходимости, и выдавать
+    /// в этом случае «предел = 1e8» (значение в пробной точке) нельзя.
+    /// </summary>
+    private static string ProbeAroundPoint(Expression expr, string variable, double point)
+    {
+        double? At(double x)
+        {
+            try
+            {
+                double v = EvaluateExpression(expr, new Dictionary<string, double> { { variable, x } });
+                return double.IsNaN(v) ? null : v;
+            }
+            catch { return null; }
+        }
+
+        const double epsilon = 1e-4;
+        double? left = At(point - epsilon), right = At(point + epsilon);
+        if (left is null || right is null)
             return "Предел требует символьного аналитического вычисления.";
+
+        double? leftNear = At(point - (epsilon / 10)), rightNear = At(point + (epsilon / 10));
+        bool Diverges(double? far, double? near) =>
+            near is not null && far is not null &&
+            System.Math.Abs(near.Value) > 5 * System.Math.Max(1.0, System.Math.Abs(far.Value));
+
+        if (Diverges(left, leftNear) || Diverges(right, rightNear))
+        {
+            bool sameSign = leftNear is not null && rightNear is not null &&
+                            System.Math.Sign(leftNear.Value) == System.Math.Sign(rightNear.Value);
+            if (!sameSign)
+                return "Предел не существует: слева и справа функция уходит в бесконечности разных знаков.";
+            return leftNear!.Value > 0 ? "+∞  (функция неограниченно растёт)" : "-∞  (функция неограниченно убывает)";
         }
+
+        if (System.Math.Abs(left.Value - right.Value) < 1e-3)
+            return ((left.Value + right.Value) / 2).ToString("G6");
+
+        return $"Левый предел = {left.Value:G6},  правый = {right.Value:G6} (различаются -> возможна разрывность)";
     }
 
     #endregion

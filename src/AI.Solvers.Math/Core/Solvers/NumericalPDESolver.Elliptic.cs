@@ -11,15 +11,21 @@ public static partial class NumericalPDESolver
         double dx = 1.0 / (nx - 1);
         double dy = 1.0 / (ny - 1);
 
-        double[,] u    = new double[nx, ny];
-        double[,] uNew = new double[nx, ny];
+        double[,] u = new double[nx, ny];
 
         for (int i = 0; i < nx; i++) { u[i, 0] = 0; u[i, ny - 1] = 100; }
         for (int j = 0; j < ny; j++) { u[0, j] = 0; u[nx - 1, j] = 0; }
 
+        double alpha2 = a / (dx * dx);
+        double beta   = b / (dy * dy);
+        double denom  = 2 * (alpha2 + beta);
+
         int iter = 0;
         double error = double.MaxValue;
 
+        // Метод Либмана — это Гаусс-Зейдель: новые значения используются
+        // в том же проходе. Прежняя версия писала в отдельный слой (метод Якоби),
+        // то есть носила чужое имя и сходилась примерно вдвое медленнее.
         while (iter < maxIter && error > tol)
         {
             error = 0;
@@ -27,17 +33,12 @@ public static partial class NumericalPDESolver
             {
                 for (int j = 1; j < ny - 1; j++)
                 {
-                    double alpha2 = a / (dx * dx);
-                    double beta   = b / (dy * dy);
-                    uNew[i, j] = (alpha2 * (u[i - 1, j] + u[i + 1, j]) +
-                                  beta   * (u[i, j - 1] + u[i, j + 1])) /
-                                 (2 * (alpha2 + beta));
-                    error = System.Math.Max(error, System.Math.Abs(uNew[i, j] - u[i, j]));
+                    double updated = ((alpha2 * (u[i - 1, j] + u[i + 1, j])) +
+                                      (beta   * (u[i, j - 1] + u[i, j + 1]))) / denom;
+                    error = System.Math.Max(error, System.Math.Abs(updated - u[i, j]));
+                    u[i, j] = updated;
                 }
             }
-            for (int i = 1; i < nx - 1; i++)
-                for (int j = 1; j < ny - 1; j++)
-                    u[i, j] = uNew[i, j];
             iter++;
         }
 

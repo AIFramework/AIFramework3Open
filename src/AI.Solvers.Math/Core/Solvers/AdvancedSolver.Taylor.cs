@@ -1,5 +1,4 @@
 using System.Text;
-using AI.HighLevelFunctions;
 using AI.Solvers.Math.Core.Parsers;
 
 namespace AI.Solvers.Math.Core.Solvers;
@@ -26,11 +25,17 @@ public static partial class AdvancedSolver
             var currentExpr = expr;
             bool firstTerm = System.Math.Abs(f0) < 1e-10;
 
+            // Факториал накапливаем в double: FunctionsForEachElements.Factorial возвращает
+            // long и при terms > 21 молча переполняется в отрицательное число,
+            // переворачивая знаки коэффициентов ряда.
+            double factorial = 1.0;
+
             for (int n = 1; n < terms; n++)
             {
+                factorial *= n;
                 currentExpr = currentExpr.Derivative(variable).Simplify();
                 double derivValue = EvaluateExpression(currentExpr, vars);
-                double coeff = derivValue / FunctionsForEachElements.Factorial(n);
+                double coeff = derivValue / factorial;
 
                 if (System.Math.Abs(coeff) > 1e-10)
                 {

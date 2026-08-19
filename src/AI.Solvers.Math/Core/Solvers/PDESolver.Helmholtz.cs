@@ -43,7 +43,9 @@ public static partial class PDESolver
 | u_ξξ + u_ηη + (k²/a)·u = 0,  k²_эфф = {k2Value / a:F4} |
 +----------------------------------------------------+
 
-Условие резонанса: (mπ/L_x)² + (nπ·√(a/b)/L_y)² = k²/a
+Условие резонанса: (mπ/L_x)² + (nπ·√(b/a)/L_y)² = k²/a
+  (после замены длина по η равна L_y·√(a/b), поэтому nπ/L_η вносит множитель √(b/a);
+   это то же самое, что исходное a·(mπ/L_x)² + b·(nπ/L_y)² = k², делённое на a)
 
 " + NumericalPDESolver.SolveHelmholtzNumerical(a, b, k2Value);
         }

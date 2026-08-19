@@ -1,4 +1,7 @@
-﻿using System.Text;
+using System.Numerics;
+using System.Text;
+using AI.ClassicMath.Calculator.Libs.Algebra;
+using AI.Solvers.Math.Core.Operators;
 using AI.Solvers.Math.Core.Parsers;
 
 namespace AI.Solvers.Math.Core.Solvers;
@@ -7,100 +10,14 @@ public static partial class AdvancedSolver
 {
     #region Решение уравнений
 
+    /// <summary>Наибольшая степень, для которой в EquationLib есть точная формула (Феррари).</summary>
+    private const int MaxAlgebraicDegree = 4;
+
+    /// <summary>
+    /// Разбирает уравнение через AST и решает: многочлены степени 1..4 — точно
+    /// (EquationLib: линейное, квадратное, Кардано, Феррари), остальное — численно.
+    /// </summary>
     public static string SolveEquation(string equation)
-    {
-        try
-        {
-            // Квадратное: x^2 ± bx ± c = 0
-            var match = System.Text.RegularExpressions.Regex.Match(
-                equation,
-                @"([a-z])\^2\s*([+\-])\s*([\d\.]+)\*?\1\s*([+\-])\s*([\d\.]+)\s*=\s*0");
-
-            if (match.Success)
-                return SolveQuadratic(match);
-
-            // Линейное: ax + b = 0
-            match = System.Text.RegularExpressions.Regex.Match(
-                equation,
-                @"([\d\.]+)?\*?([a-z])\s*([+\-])\s*([\d\.]+)\s*=\s*0");
-
-            if (match.Success)
-                return SolveLinear(match);
-
-            return SolveNumerically(equation);
-        }
-        catch (Exception ex)
-        {
-            return $"Ошибка: {ex.Message}";
-        }
-    }
-
-    private static string SolveQuadratic(System.Text.RegularExpressions.Match m)
-    {
-        var variable    = m.Groups[1].Value;
-        double b = double.Parse(m.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
-        double c = double.Parse(m.Groups[5].Value, System.Globalization.CultureInfo.InvariantCulture);
-        if (m.Groups[2].Value == "-") b = -b;
-        if (m.Groups[4].Value == "-") c = -c;
-
-        double discriminant = b * b - 4 * c;
-
-        var sb = new StringBuilder();
-        sb.AppendLine("=== СИМВОЛЬНОЕ РЕШЕНИЕ ===");
-        sb.AppendLine();
-        sb.AppendLine($"Квадратное уравнение: {variable}² {(b >= 0 ? "+" : "")}{b}{variable} {(c >= 0 ? "+" : "")}{c} = 0");
-        sb.AppendLine($"Дискриминант: D = b² - 4ac = {discriminant:G6}");
-        sb.AppendLine();
-
-        if (discriminant > 0)
-        {
-            sb.AppendLine($"D > 0 -> два действительных корня:");
-            sb.AppendLine($"  {variable}₁ = {(-b + System.Math.Sqrt(discriminant)) / 2:G10}");
-            sb.AppendLine($"  {variable}₂ = {(-b - System.Math.Sqrt(discriminant)) / 2:G10}");
-        }
-        else if (System.Math.Abs(discriminant) < 1e-10)
-        {
-            sb.AppendLine($"D = 0 -> один кратный корень:");
-            sb.AppendLine($"  {variable} = {-b / 2:G10}");
-        }
-        else
-        {
-            double real = -b / 2;
-            double imag = System.Math.Sqrt(-discriminant) / 2;
-            sb.AppendLine($"D < 0 -> два комплексных корня:");
-            sb.AppendLine($"  {variable}₁ = {real:G6} + {imag:G6}i");
-            sb.AppendLine($"  {variable}₂ = {real:G6} - {imag:G6}i");
-        }
-
-        return sb.ToString();
-    }
-
-    private static string SolveLinear(System.Text.RegularExpressions.Match m)
-    {
-        // Шаблон ax + b = 0  (или ax - b = 0). Группы:
-        //   [1] = "a" (опционально, по умолчанию 1)
-        //   [2] = переменная
-        //   [3] = знак между ax и b ("+" или "-")
-        //   [4] = модуль b
-        // Чтобы получить b со знаком, нужно умножить на -1, если оператор "-".
-        double a = m.Groups[1].Success && !string.IsNullOrEmpty(m.Groups[1].Value)
-            ? double.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) : 1.0;
-        var variable = m.Groups[2].Value;
-        double bAbs = double.Parse(m.Groups[4].Value, System.Globalization.CultureInfo.InvariantCulture);
-        double b = m.Groups[3].Value == "-" ? -bAbs : bAbs;
-        if (System.Math.Abs(a) < 1e-12)
-            return "Линейное уравнение вырождено: коэффициент при переменной равен 0.";
-        double x = -b / a;
-
-        var sb = new StringBuilder();
-        sb.AppendLine("=== СИМВОЛЬНОЕ РЕШЕНИЕ ===");
-        sb.AppendLine();
-        sb.AppendLine($"Линейное уравнение: {a}{variable} {(b >= 0 ? "+" : "")}{b} = 0");
-        sb.AppendLine($"Решение: {variable} = -({b})/{a} = {x:G10}");
-        return sb.ToString();
-    }
-
-    private static string SolveNumerically(string equation)
     {
         try
         {
@@ -124,24 +41,103 @@ public static partial class AdvancedSolver
             CollectVariables(rightExpr, variables);
 
             if (variables.Count == 0)
-            {
-                var leftVal  = EvaluateExpression(leftExpr,  new Dictionary<string, double>());
-                var rightVal = EvaluateExpression(rightExpr, new Dictionary<string, double>());
-                return System.Math.Abs(leftVal - rightVal) < 1e-10
-                    ? $"Уравнение верно: {leftVal:G10} = {rightVal:G10}"
-                    : $"Уравнение неверно: {leftVal:G10} ≠ {rightVal:G10}";
-            }
+                return CheckIdentity(leftExpr, rightExpr);
 
             if (variables.Count > 1)
                 return $"Уравнение содержит несколько переменных: {string.Join(", ", variables)}\n" +
                        "Решение систем уравнений пока не поддерживается";
 
-            return NumericalEquationSolver.SolveNumerically(leftExpr, rightExpr, variables.First());
+            string variable = variables.First();
+            var difference = new Add(leftExpr, new Multiply(new Constant(-1), rightExpr)).Simplify();
+
+            if (PolynomialCoefficients.TryExtract(difference, variable, MaxAlgebraicDegree, out var coefficients))
+            {
+                int degree = PolynomialCoefficients.Degree(coefficients);
+                if (degree >= 1)
+                    return SolvePolynomial(coefficients, degree, variable, leftExpr, rightExpr);
+
+                return System.Math.Abs(coefficients[0]) < 1e-12
+                    ? "Уравнение выполняется при любом значении переменной."
+                    : "Уравнение не имеет решений: после приведения осталась ненулевая константа.";
+            }
+
+            return NumericalEquationSolver.SolveNumerically(leftExpr, rightExpr, variable);
         }
         catch (Exception ex)
         {
-            return $"Ошибка численного решения: {ex.Message}";
+            return $"Ошибка: {ex.Message}";
         }
+    }
+
+    private static string CheckIdentity(Expression left, Expression right)
+    {
+        var noVariables = new Dictionary<string, double>();
+        double leftValue  = EvaluateExpression(left,  noVariables);
+        double rightValue = EvaluateExpression(right, noVariables);
+
+        return System.Math.Abs(leftValue - rightValue) < 1e-10
+            ? $"Уравнение верно: {leftValue:G10} = {rightValue:G10}"
+            : $"Уравнение неверно: {leftValue:G10} ≠ {rightValue:G10}";
+    }
+
+    private static string SolvePolynomial(double[] c, int degree, string variable,
+                                          Expression left, Expression right)
+    {
+        Complex[] roots = degree switch
+        {
+            1 => [LinearEquationSolver.Solve(c[1], c[0])],
+            2 => QuadraticEquationSolver.Solve(c[2], c[1], c[0]).ToArray(),
+            3 => CubicEquationSolver.Solve(c[3], c[2], c[1], c[0]).ToArray(),
+            _ => QuarticEquationSolver.Solve(c[4], c[3], c[2], c[1], c[0]).ToArray()
+        };
+
+        var sb = new StringBuilder();
+        sb.AppendLine("=== СИМВОЛЬНОЕ РЕШЕНИЕ ===");
+        sb.AppendLine();
+        sb.AppendLine($"Уравнение: {left} = {right}");
+        sb.AppendLine($"Приведённый вид: {FormatPolynomial(c, degree, variable)} = 0");
+        sb.AppendLine($"Степень: {degree}");
+        if (degree == 2)
+            sb.AppendLine($"Дискриминант: D = b² - 4ac = {c[1] * c[1] - 4 * c[2] * c[0]:G6}");
+        sb.AppendLine();
+        sb.AppendLine($"КОРНИ ({roots.Length}):");
+
+        for (int i = 0; i < roots.Length; i++)
+            sb.AppendLine($"  {variable}_{i + 1} = {FormatComplex(roots[i])}");
+
+        return sb.ToString();
+    }
+
+    private static string FormatComplex(Complex value)
+    {
+        if (System.Math.Abs(value.Imaginary) < 1e-10)
+            return $"{value.Real:G10}";
+
+        string sign = value.Imaginary >= 0 ? "+" : "-";
+        return $"{value.Real:G6} {sign} {System.Math.Abs(value.Imaginary):G6}i";
+    }
+
+    private static string FormatPolynomial(double[] c, int degree, string variable)
+    {
+        var sb = new StringBuilder();
+        for (int k = degree; k >= 0; k--)
+        {
+            double value = c[k];
+            if (System.Math.Abs(value) < 1e-12) continue;
+
+            if (sb.Length > 0) sb.Append(value > 0 ? " + " : " - ");
+            else if (value < 0) sb.Append('-');
+
+            double magnitude = System.Math.Abs(value);
+            string coefficient = k > 0 && System.Math.Abs(magnitude - 1) < 1e-12 ? "" : $"{magnitude:G6}";
+            sb.Append(k switch
+            {
+                0 => coefficient,
+                1 => $"{coefficient}{variable}",
+                _ => $"{coefficient}{variable}^{k}"
+            });
+        }
+        return sb.Length == 0 ? "0" : sb.ToString();
     }
 
     #endregion

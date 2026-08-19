@@ -120,11 +120,28 @@ public static class FractalMathStyleParser
         }
 
         // ODE и PDE
-        match = Regex.Match(input, @"^solve\s+(.+?)(?:,\s*(.+))?$", RegexOptions.IgnoreCase);
+        match = Regex.Match(input, @"^solve\s+(.+)$", RegexOptions.IgnoreCase);
         if (match.Success)
         {
-            var equation = match.Groups[1].Value.Trim();
-            var initialConds = match.Groups[2].Success ? match.Groups[2].Value.Trim() : "";
+            var tail = match.Groups[1].Value.Trim();
+
+            // Система ОДУ: каждая часть — уравнение с производной.
+            // Проверять это надо ДО деления на «уравнение + начальные условия»:
+            // ленивая группа (.+?) отрезала по первой же запятой, и вторая строка
+            // системы («y' = -x») уходила в начальные условия, а не в решатель систем.
+            var parts = tail.Split(',').Select(p => p.Trim()).ToList();
+            if (parts.Count > 1 && parts.All(p => Regex.IsMatch(p, @"^[a-z]'\s*=", RegexOptions.IgnoreCase)))
+            {
+                return new FractalMathCommand
+                {
+                    Type = CommandType.SystemODE,
+                    Equations = parts
+                };
+            }
+
+            int commaIndex = tail.IndexOf(',');
+            var equation     = commaIndex >= 0 ? tail[..commaIndex].Trim() : tail;
+            var initialConds = commaIndex >= 0 ? tail[(commaIndex + 1)..].Trim() : "";
 
             // Проверка на PDE (уравнения в частных производных)
             if (Regex.IsMatch(equation, @"u_[a-z]{1,2}") || equation.Contains("u_xx") || equation.Contains("u_yy") ||
@@ -134,17 +151,6 @@ public static class FractalMathStyleParser
                 {
                     Type = CommandType.PDE,
                     Expression = equation
-                };
-            }
-
-            // Проверка на систему уравнений
-            if (equation.Contains(','))
-            {
-                var eqs = equation.Split(',').Select(e => e.Trim()).ToList();
-                return new FractalMathCommand
-                {
-                    Type = CommandType.SystemODE,
-                    Equations = eqs
                 };
             }
 

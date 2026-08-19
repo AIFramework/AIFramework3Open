@@ -2,6 +2,7 @@
 using AI.Solvers.Math.Core.Functions;
 using AI.Solvers.Math.Core.Operators;
 using AI.Solvers.Math.Core.Parsers;
+using AI.Solvers.Math.Core.Patterns;
 
 namespace AI.Solvers.Math.Core.Solvers;
 
@@ -93,31 +94,27 @@ public static partial class AdvancedSolver
     private static string? TryFourierExp(Exp expNode, string variable)
     {
         // F{exp(-ax²)}
-        if (expNode.Argument is Multiply mg &&
-            mg.Left is Constant cg && cg.Value < 0 &&
-            mg.Right is Power pg &&
-            pg.Base is Variable vg && vg.Name == variable &&
-            pg.Exponent is Constant ceg && System.Math.Abs(ceg.Value - 2) < 1e-10)
+        if (ExpressionPatterns.TryMatchGaussian(expNode, variable, out double decay))
         {
-            double a = -cg.Value;
-            return System.Math.Abs(a - 1) < 1e-10
+            return System.Math.Abs(decay - 1) < 1e-10
                 ? "F{exp(-x²)} = √π · exp(-ω²/4)"
-                : $"F{{exp(-{a}x²)}} = √(π/{a}) · exp(-ω²/{4 * a})";
+                : $"F{{exp(-{decay}x²)}} = √(π/{decay}) · exp(-ω²/{4 * decay})";
         }
 
-        // F{exp(ax)}
+        // F{exp(ax)}: e^(ax) = e^(i·(-ia)x), а F{e^(iξx)} = 2π·δ(ω-ξ),
+        // поэтому ξ = -ia и полюс стоит в ω = -ia, то есть δ(ω + i·a).
         if (expNode.Argument is Multiply ml &&
             ml.Left is Constant cl &&
             ml.Right is Variable vl && vl.Name == variable)
         {
             double a = cl.Value;
             return a > 0
-                ? $"F{{exp({a}x)}} = 2π·δ(ω-i·{a})  (сдвиг в комплексной плоскости)"
-                : $"F{{exp({a}x)}} = 2π·δ(ω+i·{-a})  (сдвиг в комплексной плоскости)";
+                ? $"F{{exp({a}x)}} = 2π·δ(ω+i·{a})  (сдвиг в комплексной плоскости)"
+                : $"F{{exp({a}x)}} = 2π·δ(ω-i·{-a})  (сдвиг в комплексной плоскости)";
         }
 
         if (expNode.Argument is Variable ve && ve.Name == variable)
-            return "F{exp(x)} = 2π·δ(ω-i)  (сдвиг в комплексной плоскости)";
+            return "F{exp(x)} = 2π·δ(ω+i)  (сдвиг в комплексной плоскости)";
 
         return null;
     }
@@ -132,10 +129,10 @@ public static partial class AdvancedSolver
             string w1 = omega0 >= 0 ? $"(ω-{omega0})" : $"(ω+{-omega0})";
             string w2 = omega0 >= 0 ? $"(ω+{omega0})" : $"(ω-{-omega0})";
             string arg = omega0 == 1 ? "sin(x)" : omega0 == -1 ? "sin(-x)" : $"sin({omega0}x)";
-            return $"F{{{arg}}} = i·π[δ{w1} - δ{w2}]";
+            return $"F{{{arg}}} = -i·π[δ{w1} - δ{w2}]";
         }
         if (sin.Argument is Variable vs2 && vs2.Name == variable)
-            return "F{sin(x)} = i·π[δ(ω-1) - δ(ω+1)]";
+            return "F{sin(x)} = -i·π[δ(ω-1) - δ(ω+1)]";
         return null;
     }
 
@@ -180,24 +177,21 @@ public static partial class AdvancedSolver
         var trigArg  = isSin ? sinPart!.Argument : cosPart!.Argument;
 
         // Гауссиан × trig
-        if (expPart.Argument is Multiply mgExp &&
-            mgExp.Left is Constant cgExp && cgExp.Value < 0 &&
-            mgExp.Right is Power pgExp &&
-            pgExp.Base is Variable vgExp && vgExp.Name == variable &&
-            pgExp.Exponent is Constant cegExp && System.Math.Abs(cegExp.Value - 2) < 1e-10)
+        if (ExpressionPatterns.TryMatchGaussian(expPart, variable, out double gaussA))
         {
-            double gaussA = -cgExp.Value;
-            double b = ExtractLinearCoeff(trigArg, variable);
+            double b = ExpressionPatterns.LinearCoefficient(trigArg, variable);
             string expStr  = System.Math.Abs(gaussA - 1) < 1e-10 ? "exp(-x²)" : $"exp(-{gaussA}x²)";
             string trigStr = b == 1 ? (isSin ? "sin(x)" : "cos(x)") : (isSin ? $"sin({b}x)" : $"cos({b}x)");
 
+            // F{exp(-ax²)·sin(bx)} = (1/2i)[G(ω-b) - G(ω+b)] = -i·√(π/a)·exp(-(ω²+b²)/4a)·sinh(bω/2a)
+            // F{exp(-ax²)·cos(bx)} = (1/2) [G(ω-b) + G(ω+b)] =    √(π/a)·exp(-(ω²+b²)/4a)·cosh(bω/2a)
             if (System.Math.Abs(gaussA - 1) < 1e-10 && System.Math.Abs(b - 1) < 1e-10)
                 return isSin
-                    ? "F{exp(-x²)·sin(x)} = (√π/2)·exp(-(ω²+1)/4)·sinh(ω/2)"
+                    ? "F{exp(-x²)·sin(x)} = -i·√π·exp(-(ω²+1)/4)·sinh(ω/2)"
                     : "F{exp(-x²)·cos(x)} = √π·exp(-(ω²+1)/4)·cosh(ω/2)";
 
             return isSin
-                ? $"F{{{expStr}·{trigStr}}} = ({b}/(2·{gaussA}))·√(π/{gaussA})·exp(-(ω²+{b * b})/(4·{gaussA}))·sinh({b}ω/(2·{gaussA}))"
+                ? $"F{{{expStr}·{trigStr}}} = -i·√(π/{gaussA})·exp(-(ω²+{b * b})/(4·{gaussA}))·sinh({b}ω/(2·{gaussA}))"
                 : $"F{{{expStr}·{trigStr}}} = √(π/{gaussA})·exp(-(ω²+{b * b})/(4·{gaussA}))·cosh({b}ω/(2·{gaussA}))";
         }
 
@@ -213,8 +207,12 @@ public static partial class AdvancedSolver
 
         if (!isLinear) return null;
 
-        double bTrig = ExtractLinearCoeff(trigArg, variable);
-        string shift = a >= 0 ? $"+{a}" : $"{a}";
+        double bTrig = ExpressionPatterns.LinearCoefficient(trigArg, variable);
+
+        // Множитель e^(ax) сдвигает спектр на МНИМУЮ величину: F{e^(ax)g(x)} = G(ω + i·a).
+        // Раньше здесь складывались вещественная частота и вещественное a,
+        // и получалось δ(ω-b+a) вместо δ(ω-b+i·a).
+        string shift = a >= 0 ? $"+i·{a}" : $"-i·{-a}";
         string omega1 = bTrig >= 0 ? $"(ω-{bTrig}{shift})" : $"(ω+{-bTrig}{shift})";
         string omega2 = bTrig >= 0 ? $"(ω+{bTrig}{shift})" : $"(ω-{-bTrig}{shift})";
 
@@ -226,11 +224,11 @@ public static partial class AdvancedSolver
         if (cPart != null)
         {
             return isSin
-                ? $"F{{{exprStr}}} = {cPart.Value}·i·π[δ{omega1} - δ{omega2}]  (теорема сдвига)"
+                ? $"F{{{exprStr}}} = -{cPart.Value}·i·π[δ{omega1} - δ{omega2}]  (теорема сдвига)"
                 : $"F{{{exprStr}}} = {cPart.Value}·π[δ{omega1} + δ{omega2}]  (теорема сдвига)";
         }
         return isSin
-            ? $"F{{{expPStr}{trig2}}} = i·π[δ{omega1} - δ{omega2}]  (теорема сдвига)"
+            ? $"F{{{expPStr}{trig2}}} = -i·π[δ{omega1} - δ{omega2}]  (теорема сдвига)"
             : $"F{{{expPStr}{trig2}}} = π[δ{omega1} + δ{omega2}]  (теорема сдвига)";
     }
 
@@ -315,24 +313,18 @@ public static partial class AdvancedSolver
             if (s is Constant c)
                 return System.Math.Abs(c.Value - 1) < 1e-10 ? "2π·δ(ω)" : $"{c.Value}·2π·δ(ω)";
 
-            if (s is Exp eg && eg.Argument is Multiply mg &&
-                mg.Left is Constant cg && cg.Value < 0 &&
-                mg.Right is Power pg && pg.Base is Variable vg && vg.Name == variable &&
-                pg.Exponent is Constant ceg && System.Math.Abs(ceg.Value - 2) < 1e-10)
-            {
-                double a = -cg.Value;
+            if (s is Exp eg && ExpressionPatterns.TryMatchGaussian(eg, variable, out double a))
                 return System.Math.Abs(a - 1) < 1e-10 ? "√π · exp(-ω²/4)" : $"√(π/{a}) · exp(-ω²/{4 * a})";
-            }
 
             if (s is Sin sin)
             {
                 if (sin.Argument is Multiply ms && ms.Left is Constant cs && ms.Right is Variable vs && vs.Name == variable)
                 {
                     double o = cs.Value;
-                    return $"i·π[δ{(o >= 0 ? $"(ω-{o})" : $"(ω+{-o})")} - δ{(o >= 0 ? $"(ω+{o})" : $"(ω-{-o})")}]";
+                    return $"-i·π[δ{(o >= 0 ? $"(ω-{o})" : $"(ω+{-o})")} - δ{(o >= 0 ? $"(ω+{o})" : $"(ω-{-o})")}]";
                 }
                 if (sin.Argument is Variable vs2 && vs2.Name == variable)
-                    return "i·π[δ(ω-1) - δ(ω+1)]";
+                    return "-i·π[δ(ω-1) - δ(ω+1)]";
             }
 
             if (s is Cos cos)
@@ -368,8 +360,18 @@ public static partial class AdvancedSolver
         }
     }
 
-    // -- Численный FFT (Блэкман) -----------------------------------------
+    // -- Численная оценка F(ω) на конечном окне (ДПФ + окно Блэкмана) -----
 
+    /// <summary>
+    /// Оценивает F(ω) = ∫f(x)·e^(-iωx)dx на окне [-T/2, T/2].
+    /// <para>
+    /// Три поправки, без которых числа в выводе не значили ничего:
+    /// сетка частот — угловая (ω_k = 2πk/T, а не k/T); множитель dt, без которого
+    /// это просто сумма отсчётов, а не интеграл; фаза приводится к центру окна
+    /// (сдвиг на -T/2 даёт множитель e^(iω_k·T/2) = (-1)^k). Окно Блэкмана
+    /// компенсируется по когерентному усилению, иначе амплитуда занижена в ~2.4 раза.
+    /// </para>
+    /// </summary>
     private static string ComputeNumericalFourier(Expression expr, string exprStr, string variable)
     {
         try
@@ -378,59 +380,76 @@ public static partial class AdvancedSolver
             const double T = 10.0;
             double dt = T / N;
 
-            var samples = new System.Numerics.Complex[N];
-            var vars    = new Dictionary<string, double>();
+            var values = new double[N];
+            var vars   = new Dictionary<string, double>();
 
             for (int n = 0; n < N; n++)
             {
-                vars[variable] = -T / 2 + n * dt;
+                vars[variable] = (-T / 2) + (n * dt);
                 try
                 {
-                    double val = EvaluateExpression(expr, vars);
-                    double win = 0.42 - 0.5 * System.Math.Cos(2 * System.Math.PI * n / (N - 1))
-                                      + 0.08 * System.Math.Cos(4 * System.Math.PI * n / (N - 1));
-                    samples[n] = new System.Numerics.Complex(val * win, 0);
+                    double value = EvaluateExpression(expr, vars);
+                    values[n] = double.IsNaN(value) || double.IsInfinity(value) ? 0 : value;
                 }
                 catch
                 {
                     // В точке n выражение неопределено (например, 1/x в нуле):
                     // используем 0 как значение сэмпла. Это вносит небольшую
-                    // ошибку в спектр, но позволяет продолжить FFT-анализ.
-                    samples[n] = System.Numerics.Complex.Zero;
+                    // ошибку в спектр, но позволяет продолжить анализ.
+                    values[n] = 0;
                 }
             }
 
-            var spectrum = ComputeDFT(samples);
+            // Окно нужно только тому сигналу, который на краях окна не затух:
+            // иначе оно давит уже затухшую функцию, а компенсация усиления
+            // (деление на 0.42) завышает амплитуду импульса в центре в 2.4 раза.
+            double peakValue = values.Max(System.Math.Abs);
+            double edgeValue = System.Math.Max(System.Math.Abs(values[0]), System.Math.Abs(values[N - 1]));
+            bool   windowed  = peakValue > 0 && edgeValue > 0.01 * peakValue;
 
-            var top = Enumerable.Range(0, N / 2)
-                .Select(k => (k, mag: spectrum[k].Magnitude, freq: k / T))
-                .Where(h => h.mag > 0.1)
-                .OrderByDescending(h => h.mag)
+            var samples = new System.Numerics.Complex[N];
+            double windowSum = 0;
+
+            for (int n = 0; n < N; n++)
+            {
+                double window = windowed
+                    ? 0.42 - (0.5 * System.Math.Cos(2 * System.Math.PI * n / (N - 1)))
+                           + (0.08 * System.Math.Cos(4 * System.Math.PI * n / (N - 1)))
+                    : 1.0;
+                windowSum += window;
+                samples[n] = new System.Numerics.Complex(values[n] * window, 0);
+            }
+
+            var spectrum = ComputeDFT(samples);
+            double coherentGain = windowSum / N;
+
+            var harmonics = Enumerable.Range(0, N / 2)
+                .Select(k => (
+                    omega: 2 * System.Math.PI * k / T,
+                    value: spectrum[k] * (dt / coherentGain) * (k % 2 == 0 ? 1 : -1)))
+                .ToList();
+
+            double peak = harmonics.Max(h => h.value.Magnitude);
+            if (peak < 1e-9)
+                return $"F{{{exprStr}}} ≈ 0  (численно: значимых компонент нет)";
+
+            var top = harmonics
+                .Where(h => h.value.Magnitude > 0.01 * peak)
+                .OrderByDescending(h => h.value.Magnitude)
                 .Take(5)
                 .ToList();
 
-            if (top.Count == 0)
-                return $"F{{{exprStr}}} ≈ 0  (численно: нет значимых гармоник)";
-
             var sb = new StringBuilder();
-            sb.AppendLine($"F{{{exprStr}}} ≈ численное вычисление (FFT + окно Блэкмана):");
-            sb.AppendLine($"  Параметры: N={N}, T={T}, dt={dt:F4}");
-            sb.AppendLine($"  Доминантные гармоники:");
+            sb.AppendLine($"F{{{exprStr}}} ≈ численная оценка (ДПФ по {N} точкам, " +
+                          $"{(windowed ? "окно Блэкмана с компенсацией усиления" : "без окна: функция затухает на краях")}):");
+            sb.AppendLine($"  Окно: x ∈ [{-T / 2:F1}, {T / 2:F1}], dt={dt:F4}, шаг по частоте Δω={2 * System.Math.PI / T:F4}");
+            sb.AppendLine($"  Наибольшие по модулю значения F(ω):");
 
-            foreach (var (k, mag, freq) in top)
-            {
-                double phase = System.Math.Atan2(spectrum[k].Imaginary, spectrum[k].Real) * 180 / System.Math.PI;
-                sb.AppendLine($"    ω={freq:F3}: |F|={mag:F3}, φ={phase:F1}°");
-            }
+            foreach (var (omega, value) in top)
+                sb.AppendLine($"    ω={omega:F3}: |F|={value.Magnitude:F4}, φ={value.Phase * 180 / System.Math.PI:F1}°");
 
-            sb.Append("  Приближение: F(ω) ≈ ");
-            for (int i = 0; i < System.Math.Min(3, top.Count); i++)
-            {
-                if (i > 0) sb.Append(" + ");
-                sb.Append($"{top[i].mag:F2}·δ(ω-{top[i].freq:F2})");
-            }
-            if (top.Count > 3) sb.Append(" + ...");
-
+            sb.Append("  Это оценка непрерывного преобразования на конечном окне: " +
+                      "разрывы и медленно убывающие функции дают растекание спектра.");
             return sb.ToString();
         }
         catch (Exception ex)
@@ -439,6 +458,11 @@ public static partial class AdvancedSolver
         }
     }
 
+    /// <summary>
+    /// Прямое суммирование ДПФ без нормировки: масштаб задаёт вызывающий код.
+    /// O(N²) при N=512 — доли миллисекунды; готовый БПФ живёт в AI.DSP, но тянет
+    /// за собой AI.ML и AI.KNN, что для одной трансформации несоразмерно.
+    /// </summary>
     private static System.Numerics.Complex[] ComputeDFT(System.Numerics.Complex[] input)
     {
         int N = input.Length;
@@ -451,17 +475,9 @@ public static partial class AdvancedSolver
                 double angle = -2 * System.Math.PI * k * n / N;
                 sum += input[n] * new System.Numerics.Complex(System.Math.Cos(angle), System.Math.Sin(angle));
             }
-            output[k] = sum / System.Math.Sqrt(N);
+            output[k] = sum;
         }
         return output;
     }
 
-    // -- Вспомогательный: извлечь линейный коэффициент из аргумента trig -
-
-    private static double ExtractLinearCoeff(Expression arg, string variable)
-    {
-        if (arg is Variable v && v.Name == variable) return 1;
-        if (arg is Multiply m && m.Left is Constant cl && m.Right is Variable vr && vr.Name == variable) return cl.Value;
-        return 0;
-    }
 }

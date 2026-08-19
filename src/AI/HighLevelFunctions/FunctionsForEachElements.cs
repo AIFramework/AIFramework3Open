@@ -233,15 +233,84 @@ public static partial class FunctionsForEachElements
         return x.Transform(r => Walsh(r, num));
     }
     /// <summary>
-    /// Функция ошибки
+    /// Функция ошибок erf(x) = 2/√π ∫₀ˣ e^(-t²) dt.
+    /// <para>
+    /// Считается через неполную гамма-функцию: erf(x) = P(½, x²).
+    /// Прежняя версия использовала искажённую формулу Виницки
+    /// (в знаменателе стояло 1 + a·x вместо 1 + a·x²) и ошибалась до 7% —
+    /// на erf(0.5) давала 0.4823 вместо 0.5205.
+    /// </para>
     /// </summary>
     /// <param name="x">Аргумент</param>
     public static double Erf(double x)
     {
+        double t = x * x;
+        // При малых x берём ряд для P: 1 - Q дало бы вычитание близких величин
+        double magnitude = t < IncompleteGammaSeriesLimit
+            ? IncompleteGammaP(0.5, t)
+            : 1.0 - IncompleteGammaQ(0.5, t);
 
-        double a = 8 / (3 * Math.PI) * (3 - Math.PI) / (Math.PI - 4),
-            exp1 = ((-x * x * (4 / Math.PI)) + (a * x * x)) / (1 + (a * x));
-        return Math.Sign(x) * Math.Sqrt(1 - Math.Exp(exp1));
+        return x < 0 ? -magnitude : magnitude;
+    }
+
+    /// <summary>
+    /// Дополнительная функция ошибок erfc(x) = 1 - erf(x), вычисленная напрямую.
+    /// <para>
+    /// Именно прямое вычисление и важно: разность 1 - erf(x) при x &gt; 5 состоит
+    /// из одних разрядов округления, а erfc(5) = 1.54e-12 — величина, ради
+    /// которой функцию и зовут.
+    /// </para>
+    /// </summary>
+    /// <param name="x">Аргумент</param>
+    public static double Erfc(double x)
+    {
+        if (x < 0) return 2.0 - Erfc(-x);
+
+        double t = x * x;
+        return t < IncompleteGammaSeriesLimit
+            ? 1.0 - IncompleteGammaP(0.5, t)
+            : IncompleteGammaQ(0.5, t);
+    }
+
+    /// <summary>Граница между рядом для P и цепной дробью для Q: x &lt; a + 1.</summary>
+    private const double IncompleteGammaSeriesLimit = 1.5;
+
+    /// <summary>Регуляризованная нижняя неполная гамма-функция P(a, x) — ряд.</summary>
+    private static double IncompleteGammaP(double a, double x)
+    {
+        if (x <= 0) return 0;
+
+        double ap = a, del = 1.0 / a, sum = del;
+        for (int n = 0; n < 500; n++)
+        {
+            ap += 1;
+            del *= x / ap;
+            sum += del;
+            if (Math.Abs(del) < Math.Abs(sum) * 1e-16) break;
+        }
+        return sum * Math.Exp(-x + (a * Math.Log(x)) - LogGamma(a));
+    }
+
+    /// <summary>Регуляризованная верхняя неполная гамма-функция Q(a, x) — цепная дробь (Лентц).</summary>
+    private static double IncompleteGammaQ(double a, double x)
+    {
+        const double tiny = 1e-300;
+        double b = x + 1.0 - a, c = 1.0 / tiny, d = 1.0 / b, h = d;
+
+        for (int i = 1; i <= 500; i++)
+        {
+            double an = -i * (i - a);
+            b += 2.0;
+            d = (an * d) + b;
+            if (Math.Abs(d) < tiny) d = tiny;
+            c = b + (an / c);
+            if (Math.Abs(c) < tiny) c = tiny;
+            d = 1.0 / d;
+            double del = d * c;
+            h *= del;
+            if (Math.Abs(del - 1.0) < 1e-16) break;
+        }
+        return Math.Exp(-x + (a * Math.Log(x)) - LogGamma(a)) * h;
     }
 
     /// <summary>

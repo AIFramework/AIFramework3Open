@@ -1,6 +1,7 @@
 using AI.Solvers.Math.Core.Functions;
 using AI.Solvers.Math.Core.Operators;
 using AI.Solvers.Math.Core.Parsers;
+using AI.Solvers.Math.Core.Patterns;
 
 namespace AI.Solvers.Math.Core.Integrations;
 
@@ -13,9 +14,8 @@ public static partial class AdvancedIntegrationEngine
         var x = new Variable(variable);
 
         // ∫ exp(-x²) dx = √π/2 · erf(x)
-        if (expr is Exp exp1 && TryExtractGaussian(exp1, variable, out double k1) && k1 < 0)
+        if (expr is Exp exp1 && ExpressionPatterns.TryMatchGaussian(exp1, variable, out double a))
         {
-            double a = -k1;
             return System.Math.Abs(a - 1) < 1e-10
                 ? new Multiply(new Constant(System.Math.Sqrt(System.Math.PI) / 2), new Erf(x))
                 : new Multiply(
@@ -57,17 +57,13 @@ public static partial class AdvancedIntegrationEngine
             powLi.Base is Ln lnLi && lnLi.Argument is Variable vLi && vLi.Name == variable)
             return new Li(x);
 
-        // ∫ sin(x²) dx = FresnelS(x)
-        if (expr is Sin sinFr && sinFr.Argument is Power powFr &&
-            powFr.Base is Variable vFr && vFr.Name == variable &&
-            powFr.Exponent is Constant ceFr && System.Math.Abs(ceFr.Value - 2) < 1e-10)
-            return new FresnelS(x);
+        // ∫ sin(x²) dx = √(π/2)·S(x·√(2/π)),  где S — интеграл Френеля S(t) = ∫₀ᵗ sin(πu²/2) du
+        if (expr is Sin sinFr && IsSquareOfVariable(sinFr.Argument, variable))
+            return ScaledFresnel(x, isSin: true);
 
-        // ∫ cos(x²) dx = FresnelC(x)
-        if (expr is Cos cosFr && cosFr.Argument is Power powFr2 &&
-            powFr2.Base is Variable vFr2 && vFr2.Name == variable &&
-            powFr2.Exponent is Constant ceFr2 && System.Math.Abs(ceFr2.Value - 2) < 1e-10)
-            return new FresnelC(x);
+        // ∫ cos(x²) dx = √(π/2)·C(x·√(2/π))
+        if (expr is Cos cosFr && IsSquareOfVariable(cosFr.Argument, variable))
+            return ScaledFresnel(x, isSin: false);
 
         // Явно нелементарные интегралы
         return TryNonElementary(expr, variable, x);
@@ -122,19 +118,20 @@ public static partial class AdvancedIntegrationEngine
 
     #region Паттерн-хелперы
 
-    private static bool TryExtractGaussian(Exp exp, string variable, out double coeff)
+    private static bool IsSquareOfVariable(Expression expr, string variable) =>
+        expr is Power pow &&
+        pow.Base is Variable v && v.Name == variable &&
+        pow.Exponent is Constant ce && System.Math.Abs(ce.Value - 2) < 1e-10;
+
+    /// <summary>
+    /// Узлы FresnelS/FresnelC определены как ∫₀ˣ sin(πt²/2) dt и ∫₀ˣ cos(πt²/2) dt,
+    /// поэтому ∫ sin(x²) dx требует масштабирования и аргумента, и результата.
+    /// </summary>
+    private static Expression ScaledFresnel(Variable x, bool isSin)
     {
-        coeff = 0;
-        if (exp.Argument is Multiply mult &&
-            mult.Left is Constant c && c.Value < 0 &&
-            mult.Right is Power pow &&
-            pow.Base is Variable v && v.Name == variable &&
-            pow.Exponent is Constant ce && System.Math.Abs(ce.Value - 2) < 1e-10)
-        {
-            coeff = c.Value;
-            return true;
-        }
-        return false;
+        var outer = new Constant(System.Math.Sqrt(System.Math.PI / 2));
+        var inner = new Multiply(new Constant(System.Math.Sqrt(2 / System.Math.PI)), x);
+        return new Multiply(outer, isSin ? new FresnelS(inner) : new FresnelC(inner));
     }
 
     private static bool IsInvSqrt1MinusX2(Expression expr, string variable)
@@ -234,10 +231,12 @@ public static partial class AdvancedIntegrationEngine
             e is Power p && p.Exponent is Constant ce && System.Math.Abs(ce.Value + 1) < 1e-10 &&
             p.Base is Cos c && c.Argument is Variable vc && vc.Name == variable;
 
+        // Первообразная выражается через полилогарифмы (Li₂ от e^(±ix)),
+        // а не через интегральный логарифм li(x) — это разные функции.
         if ((HasVarX(mult.Left) && HasInvSin(mult.Right)) || (HasVarX(mult.Right) && HasInvSin(mult.Left)))
-            { desc = "x/sin(x) - логарифмический интеграл"; return true; }
+            { desc = "x/sin(x) - выражается через полилогарифм Li₂"; return true; }
         if ((HasVarX(mult.Left) && HasInvCos(mult.Right)) || (HasVarX(mult.Right) && HasInvCos(mult.Left)))
-            { desc = "x/cos(x) - логарифмический интеграл"; return true; }
+            { desc = "x/cos(x) - выражается через полилогарифм Li₂"; return true; }
 
         return false;
     }

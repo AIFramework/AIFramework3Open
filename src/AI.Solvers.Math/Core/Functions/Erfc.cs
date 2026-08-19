@@ -31,12 +31,11 @@ public class Erfc : Expression
     {
         var arg = Argument.Simplify();
 
-        if (arg is Constant c)
-        {
-            if (c.Value == 0) return new Constant(1);
-            if (c.Value > 5) return new Constant(0);
-            if (c.Value < -5) return new Constant(2);
-        }
+        // Округление хвоста здесь недопустимо: erfc(5) = 1.54e-12, erfc(10) = 2.09e-45 —
+        // это осмысленные значения, а прежние правила x > 5 -> 0 и x < -5 -> 2
+        // обнуляли ровно ту область, ради которой берут erfc вместо 1 - erf.
+        if (arg is Constant c && c.Value == 0)
+            return new Constant(1);
 
         return new Erfc(arg);
     }

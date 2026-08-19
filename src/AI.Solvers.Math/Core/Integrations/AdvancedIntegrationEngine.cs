@@ -2,6 +2,7 @@
 using AI.Solvers.Math.Core.Functions;
 using AI.Solvers.Math.Core.Operators;
 using AI.Solvers.Math.Core.Parsers;
+using AI.Solvers.Math.Core.Patterns;
 
 namespace AI.Solvers.Math.Core.Integrations;
 
@@ -168,35 +169,13 @@ public static partial class AdvancedIntegrationEngine
 
     #region Вспомогательный: проверка линейности ax+b
 
-    internal static bool IsLinearInVariable(Expression expr, string variable, out double a, out double b)
-    {
-        a = 0; b = 0;
-
-        if (expr is Variable v && v.Name == variable) { a = 1; return true; }
-
-        if (expr is Multiply mult)
-        {
-            if (mult.Left  is Constant c1 && mult.Right is Variable v2 && v2.Name == variable) { a = c1.Value; return System.Math.Abs(a) > 1e-12; }
-            if (mult.Right is Constant c2 && mult.Left  is Variable v3 && v3.Name == variable) { a = c2.Value; return System.Math.Abs(a) > 1e-12; }
-        }
-
-        if (expr is Add add)
-        {
-            bool l = IsLinearInVariable(add.Left,  variable, out double a1, out double b1);
-            bool r = IsLinearInVariable(add.Right, variable, out double a2, out double b2);
-            if (l && r)
-            {
-                a = a1 + a2; b = b1 + b2;
-                // Линейность с нулевым коэффициентом — фактически константа,
-                // непригодна для табличных интегралов с множителем 1/a.
-                return System.Math.Abs(a) > 1e-12;
-            }
-        }
-
-        if (expr is Constant c3) { a = 0; b = c3.Value; return true; }
-
-        return false;
-    }
+    /// <summary>
+    /// Имя, под которым линейный шаблон известен движку интегрирования;
+    /// сама проверка живёт в <see cref="ExpressionPatterns"/> вместе с остальными
+    /// распознавателями форм AST.
+    /// </summary>
+    internal static bool IsLinearInVariable(Expression expr, string variable, out double a, out double b) =>
+        ExpressionPatterns.TryMatchLinear(expr, variable, out a, out b);
 
     #endregion
 }

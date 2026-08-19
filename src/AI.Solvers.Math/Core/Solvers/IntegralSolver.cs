@@ -1,4 +1,8 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
+using AI.ClassicMath.MatrixUtils.FindFraction;
 using AI.Solvers.Math.Core.Integrations;
+using AI.Solvers.Math.Core.Numerics;
 using AI.Solvers.Math.Core.Parsers;
 
 namespace AI.Solvers.Math.Core.Solvers;
@@ -22,38 +26,42 @@ public static class IntegralSolver
         }
     }
 
-    // Форматирование с дробями вместо десятичных дробей
-    private static string FormatWithFractions(Expression expr)
-    {
-        string str = expr.ToString();
+    /// <summary>
+    /// Наибольший знаменатель, при котором дробь читается лучше десятичной записи.
+    /// </summary>
+    private const int MaxReadableDenominator = 64;
 
-        // Заменяем распространенные десятичные дроби на обычные
-        var fractions = new Dictionary<string, string>
+    /// <summary>
+    /// Заменяет десятичные литералы рациональными дробями.
+    /// Поиск идёт по ЦЕЛОМУ литералу (границы \b), а не по подстроке: замена подстрок
+    /// превращала 10.5 в «11/2», а 20.4 — в «22/5». Дробь берётся из
+    /// <see cref="NumberConverter"/> и всегда скобкуется, иначе x^0.5 дало бы x^1/2,
+    /// что разбирается обратно как (x^1)/2.
+    /// </summary>
+    private static string FormatWithFractions(Expression expr) =>
+        // Границы: слева не цифра и не точка (иначе 10.5 матчится как «0.5»),
+        // справа не цифра, не точка и не признак экспоненты (иначе 2.75573E-06
+        // распадётся на дробь и хвост «E-06»). Буква справа допустима: ToString
+        // печатает произведение как «0.5asin(x)», без знака умножения.
+        Regex.Replace(expr.ToString(), @"(?<![\d.])\d+\.\d+(?![\d.eE])", m =>
         {
-            { "0.3333333333333333", "1/3" },
-            { "0.333333333", "1/3" },
-            { "0.6666666666666666", "2/3" },
-            { "0.666666667", "2/3" },
-            { "0.5", "1/2" },
-            { "0.25", "1/4" },
-            { "0.75", "3/4" },
-            { "0.2", "1/5" },
-            { "0.4", "2/5" },
-            { "0.6", "3/5" },
-            { "0.8", "4/5" },
-            { "0.1666666666666667", "1/6" },
-            { "0.166666667", "1/6" },
-            { "0.8333333333333333", "5/6" },
-            { "0.833333333", "5/6" }
-        };
+            if (!double.TryParse(m.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+                return m.Value;
 
-        foreach (var (decimalStr, fractionStr) in fractions)
-        {
-            str = str.Replace(decimalStr, fractionStr);
-        }
+            var analysis = NumberConverter.Analyze(value);
+            if (analysis.Type is not (ConversionType.Terminating or ConversionType.Repeating))
+                return m.Value;
+            if (analysis.Denominator <= 1 || analysis.Denominator > MaxReadableDenominator)
+                return m.Value;
 
-        return str;
-    }
+            // Analyze умеет отдавать и π/4, и √2/2 — там Numerator/Denominator
+            // относятся к множителю, а не к самому числу. Проверка возвратом отсекает такие случаи.
+            double restored = (double)analysis.Numerator / (double)analysis.Denominator;
+            if (System.Math.Abs(restored - value) > 1e-10 * System.Math.Max(1, System.Math.Abs(value)))
+                return m.Value;
+
+            return $"({analysis.Numerator}/{analysis.Denominator})";
+        });
 
     // Определенный интеграл (метод трапеций)
     public static string DefiniteIntegral(string expression, string variable, double lowerBound, double upperBound)
@@ -86,7 +94,7 @@ public static class IntegralSolver
                 // неудачу для сложных подынтегральных выражений или из-за пропущенных
                 // AST-узлов в ExpressionEvaluator. Падаем на численный метод (ниже).
             }
-            var numericalResult = TrapezoidalRule(expr, variable, lowerBound, upperBound, 1000);
+            var numericalResult = IntegrateNumerically(expr, variable, lowerBound, upperBound);
             return $"{numericalResult:G6}";
 
         }
@@ -96,31 +104,15 @@ public static class IntegralSolver
         }
     }
 
-    // Метод трапеций для численного интегрирования
-    private static double TrapezoidalRule(Expression expr, string variable, double a, double b, int n)
+    // Численное интегрирование общей квадратурой зоны
+    private static double IntegrateNumerically(Expression expr, string variable, double a, double b)
     {
-        if (n <= 0)
-            throw new ArgumentOutOfRangeException(nameof(n), "Число подынтервалов n должно быть положительным.");
-        if (a == b) return 0.0;
-        double h = (b - a) / n;
-        double sum = 0.0;
         var vars = new Dictionary<string, double>();
-
-        // f(a) + f(b)
-        vars[variable] = a;
-        sum += EvaluateExpression(expr, vars);
-
-        vars[variable] = b;
-        sum += EvaluateExpression(expr, vars);
-
-        // 2 * [f(x1) + f(x2) + ... + f(x_{n-1})]
-        for (int i = 1; i < n; i++)
+        return Quadrature.Integrate(x =>
         {
-            vars[variable] = a + i * h;
-            sum += 2 * EvaluateExpression(expr, vars);
-        }
-
-        return h / 2 * sum;
+            vars[variable] = x;
+            return EvaluateExpression(expr, vars);
+        }, a, b);
     }
 
     // Двойной интеграл (символьный)

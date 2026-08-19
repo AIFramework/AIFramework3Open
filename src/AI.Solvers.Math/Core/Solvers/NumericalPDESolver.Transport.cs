@@ -12,12 +12,18 @@ public static partial class NumericalPDESolver
         if (System.Math.Abs(D) < 1e-15)
             return "ОШИБКА: D = 0. Для чистой адвекции (без диффузии) используйте solveAdvection.";
         double dx = 1.0 / (nx - 1);
-        double dt = T / nt;
-        double r   = D * dt / (dx * dx);
-        double Pe  = System.Math.Abs(c) * dx / D;
+        double Pe = System.Math.Abs(c) * dx / D;
 
-        if (r > 0.5)
-            return $"ОШИБКА: Условие устойчивости нарушено! r = {r:F4} > 0.5\nУменьшите dt или увеличьте nx.";
+        // Условие фон Неймана для явной схемы «центральная диффузия + апвинд-адвекция»:
+        // dt·(2D/dx² + |c|/dx) ≤ 1. Проверка одного лишь r ≤ 0.5 пропускала неустойчивость
+        // по адвекции — при параметрах по умолчанию 2r + CFL = 1.06, и решение разносило.
+        double dtMax    = 1.0 / ((2 * D / (dx * dx)) + (System.Math.Abs(c) / dx));
+        int    substeps = System.Math.Max(1, (int)System.Math.Ceiling(T / nt / dtMax));
+        double dt       = T / nt / substeps;
+        int    steps    = nt * substeps;
+
+        double r   = D * dt / (dx * dx);
+        double CFL = System.Math.Abs(c) * dt / dx;
 
         double[] u    = new double[nx];
         double[] uNew = new double[nx];
@@ -29,7 +35,7 @@ public static partial class NumericalPDESolver
         }
         u[0] = 0; u[nx - 1] = 0;
 
-        for (int n = 0; n < nt; n++)
+        for (int n = 0; n < steps; n++)
         {
             for (int i = 1; i < nx - 1; i++)
             {
@@ -53,8 +59,9 @@ public static partial class NumericalPDESolver
         result.AppendLine(Pe < 1 ? "  -> Доминирует ДИФФУЗИЯ" : Pe > 10 ? "  -> Доминирует АДВЕКЦИЯ" : "  -> Смешанный режим");
         result.AppendLine();
         result.AppendLine($"Время: t = {T:F2}");
-        result.AppendLine($"Сетка: {nx} точек, {nt} шагов по времени");
-        result.AppendLine($"Параметр устойчивости: r = {r:F4} < 0.5");
+        result.AppendLine($"Сетка: {nx} точек, {steps} шагов по времени" +
+                          (substeps > 1 ? $" (запрошено {nt}, дроблено ×{substeps} по устойчивости)" : ""));
+        result.AppendLine($"Устойчивость: 2r + CFL = {2 * r + CFL:F4} ≤ 1  (r = {r:F4}, CFL = {CFL:F4})");
         result.AppendLine();
         result.AppendLine("Начальное условие: Гауссов импульс в центре");
         result.AppendLine("Граничные условия: u(0, t) = u(1, t) = 0");
@@ -208,7 +215,6 @@ public static partial class NumericalPDESolver
         if (nx < 2) return "ОШИБКА: nx должен быть >= 2.";
         if (nt < 1) return "ОШИБКА: nt должен быть >= 1.";
         double dx = 1.0 / (nx - 1);
-        double dt = T / nt;
 
         double[] u    = new double[nx];
         double[] uNew = new double[nx];
@@ -216,13 +222,33 @@ public static partial class NumericalPDESolver
         for (int i = 0; i < nx; i++)
             u[i] = i * dx < 0.5 ? 1.0 : 0.2;
 
-        for (int n = 0; n < nt; n++)
+        // Шаг по времени ограничен нелинейной скоростью и вязкостью; при
+        // необходимости дробим запрошенный шаг, а не считаем заведомо неустойчиво.
+        double maxSpeed = System.Math.Abs(alpha) * u.Max(System.Math.Abs);
+        double dtMax    = 1.0 / ((maxSpeed / dx) + (2 * System.Math.Abs(nu) / (dx * dx)) + 1e-300);
+        int    substeps = System.Math.Max(1, (int)System.Math.Ceiling(T / nt / dtMax));
+        double dt       = T / nt / substeps;
+        int    steps    = nt * substeps;
+
+        // Поток Русанова для консервативной формы u_t + (α·u²/2)_x = ν·u_xx.
+        // Неконсервативная запись α·u·u_x при ν → 0 даёт неверную скорость ударной
+        // волны: она обязана равняться α(u_L+u_R)/2 по условию Ренкина-Гюгонио.
+        double Flux(double left, double right)
+        {
+            double fLeft  = alpha * left  * left  / 2;
+            double fRight = alpha * right * right / 2;
+            double speed  = System.Math.Max(System.Math.Abs(alpha * left), System.Math.Abs(alpha * right));
+            return (0.5 * (fLeft + fRight)) - (0.5 * speed * (right - left));
+        }
+
+        for (int n = 0; n < steps; n++)
         {
             for (int i = 1; i < nx - 1; i++)
             {
-                double advection = alpha * u[i] * (u[i] - u[i - 1]) / dx;
-                double diffusion = nu * (u[i - 1] - 2 * u[i] + u[i + 1]) / (dx * dx);
-                uNew[i] = u[i] - dt * advection + dt * diffusion;
+                double fluxRight = Flux(u[i], u[i + 1]);
+                double fluxLeft  = Flux(u[i - 1], u[i]);
+                double diffusion = nu * (u[i - 1] - (2 * u[i]) + u[i + 1]) / (dx * dx);
+                uNew[i] = u[i] - (dt / dx * (fluxRight - fluxLeft)) + (dt * diffusion);
             }
             uNew[0]       = uNew[1];
             uNew[nx - 1]  = uNew[nx - 2];
@@ -240,9 +266,13 @@ public static partial class NumericalPDESolver
             ? $"Отношение α/ν = {alpha / nu:F2}"
             : "Отношение α/ν = ∞ (ν = 0, чистая нелинейная адвекция)");
         result.AppendLine($"Время: t = {T:F2}");
-        result.AppendLine($"Сетка: {nx} точек, {nt} шагов");
+        result.AppendLine($"Сетка: {nx} точек, {steps} шагов" +
+                          (substeps > 1 ? $" (запрошено {nt}, дроблено ×{substeps} по устойчивости)" : ""));
+        result.AppendLine("Схема: консервативная, поток Русанова");
         result.AppendLine();
-        result.AppendLine("Начальное условие: Ступенька (формирует ударную волну)");
+        result.AppendLine("Начальное условие: Ступенька 1.0 -> 0.2 при x = 0.5");
+        result.AppendLine($"Скорость ударной волны по Ренкину-Гюгонио: s = α(u_L+u_R)/2 = {alpha * 0.6:F3}" +
+                          $"  ->  фронт ожидается при x ≈ {0.5 + (alpha * 0.6 * T):F3}");
         result.AppendLine();
         result.AppendLine($"РЕШЕНИЕ в момент времени t = {T:F2}:");
         result.AppendLine();

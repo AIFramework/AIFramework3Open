@@ -120,6 +120,11 @@ public class MainFractalMathProcessor
         bool ContainsBareUx() =>
             System.Text.RegularExpressions.Regex.IsMatch(eqLower, @"(?:^|[+\-\*=(])u_x(?!x)");
 
+        // То же для u_t: обычная проверка Contains("u_t") истинна и для "u_tt",
+        // из-за чего волновое уравнение уходило в ветку теплопроводности.
+        bool ContainsBareUt() =>
+            System.Text.RegularExpressions.Regex.IsMatch(eqLower, @"(?:^|[+\-\*=(])u_t(?!t)");
+
         // Уравнение Бюргерса (нелинейное)
         if (eqLower.Contains("u*u_x") || eqLower.Contains("u·u_x"))
             return PDESolver.SolveBurgersEquation(equation);
@@ -131,22 +136,22 @@ public class MainFractalMathProcessor
             return PDESolver.SolveSchrodingerEquation(equation);
 
         // Уравнение диффузии 2D (проверяем первым, т.к. содержит и u_t и u_xx и u_yy)
-        if (eqLower.Contains("u_t") && eqLower.Contains("u_xx") && eqLower.Contains("u_yy"))
+        if (ContainsBareUt() && eqLower.Contains("u_xx") && eqLower.Contains("u_yy"))
             return PDESolver.SolveDiffusionEquation(equation);
 
         // Уравнение теплопроводности (ВАЖНО: ДО диффузии-адвекции!)
         // Проверяем, что НЕТ явного бесконечно-производного u_x как отдельного слагаемого.
-        if (eqLower.Contains("u_t") && eqLower.Contains("u_xx") && !eqLower.Contains("u_yy") &&
+        if (ContainsBareUt() && eqLower.Contains("u_xx") && !eqLower.Contains("u_yy") &&
             !ContainsBareUx())
             return PDESolver.SolveHeatEquation(equation);
 
         // Уравнение диффузии-адвекции
-        if (eqLower.Contains("u_t") && ContainsBareUx() &&
+        if (ContainsBareUt() && ContainsBareUx() &&
             eqLower.Contains("u_xx") && !eqLower.Contains("u_yy"))
             return PDESolver.SolveDiffusionAdvectionEquation(equation);
 
         // Уравнение адвекции (переноса)
-        if (eqLower.Contains("u_t") && ContainsBareUx() && !eqLower.Contains("u_xx"))
+        if (ContainsBareUt() && ContainsBareUx() && !eqLower.Contains("u_xx"))
             return PDESolver.SolveAdvectionEquation(equation);
 
         // Волновое уравнение
@@ -155,7 +160,7 @@ public class MainFractalMathProcessor
 
         // Уравнение Гельмгольца
         if (eqLower.Contains("u_xx") && eqLower.Contains("u_yy") && eqLower.Contains("=0") &&
-            !eqLower.Contains("u_t") && !eqLower.Contains("u_tt"))
+            !ContainsBareUt() && !eqLower.Contains("u_tt"))
         {
             var hasUTerm = System.Text.RegularExpressions.Regex.IsMatch(eqLower, @"[+\-]\s*\d*\.?\d*\s*\*?\s*u\s*=\s*0");
             if (hasUTerm)
@@ -164,12 +169,12 @@ public class MainFractalMathProcessor
 
         // Уравнение Лапласа (проверяем ПОСЛЕ Гельмгольца, когда точно нет члена с u)
         if (eqLower.Contains("u_xx") && eqLower.Contains("u_yy") && eqLower.Contains("=0") &&
-            !eqLower.Contains("u_t") && !eqLower.Contains("u_tt"))
+            !ContainsBareUt() && !eqLower.Contains("u_tt"))
             return PDESolver.SolveLaplaceEquation(equation);
 
         // Уравнение Пуассона
         if (eqLower.Contains("u_xx") && eqLower.Contains("u_yy") && !eqLower.Contains("=0") &&
-            !eqLower.Contains("u_t") && !eqLower.Contains("u_tt"))
+            !ContainsBareUt() && !eqLower.Contains("u_tt"))
             return PDESolver.SolvePoissonEquation(equation);
 
         return "Неизвестный тип PDE. Поддерживаются:\n" +

@@ -49,13 +49,9 @@ public static partial class AdvancedIntegrationEngine
             return new Multiply(new Constant(0.5),
                 new Multiply(new Exp(x), new Add(new Sin(x), new Cos(x))));
 
-        // ∫ sin(x)·cos(x) dx = sin²(x)/2
-        if ((mult.Left is Sin s1 && mult.Right is Cos c1 && s1.Argument.ToString() == c1.Argument.ToString()) ||
-            (mult.Left is Cos c2 && mult.Right is Sin s2 && s2.Argument.ToString() == c2.Argument.ToString()))
-        {
-            var sinNode = mult.Left is Sin ? mult.Left : mult.Right;
-            return new Multiply(new Constant(0.5), new Power(sinNode, new Constant(2)));
-        }
+        // ∫ sin(ax+b)·cos(ax+b) dx = sin²(ax+b)/(2a)
+        var sinCos = TryIntegrateSinCosProduct(mult, variable);
+        if (sinCos != null) return sinCos;
 
         // ∫ exp(ax)·sin(bx) dx = exp(ax)·(a·sin(bx) - b·cos(bx))/(a²+b²)
         if (TryExpTrigProduct(mult, variable, out var expTrigResult))

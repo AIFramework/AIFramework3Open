@@ -1,6 +1,7 @@
 using AI.Solvers.Math.Core.Functions;
 using AI.Solvers.Math.Core.Operators;
 using AI.Solvers.Math.Core.Parsers;
+using AI.Solvers.Math.Core.Patterns;
 
 namespace AI.Solvers.Math.Core.Integrations;
 
@@ -56,29 +57,55 @@ public static partial class AdvancedIntegrationEngine
             pow4.Exponent is Constant ce4 && System.Math.Abs(ce4.Value - 2) < 1e-10)
             return new Multiply(new Constant(0.5), new Exp(new Power(x, new Constant(2))));
 
-        // ∫ sin(x)·cos(x) dx = sin²(x)/2
-        if ((mult.Left is Sin sin2 && mult.Right is Cos cos2) ||
-            (mult.Left is Cos cos3 && mult.Right is Sin sin3))
-        {
-            var sinArg = mult.Left  is Sin s1 ? s1.Argument : ((Sin)mult.Right).Argument;
-            var cosArg = mult.Left  is Cos c4 ? c4.Argument : ((Cos)mult.Right).Argument;
-            if (sinArg.ToString() == cosArg.ToString())
-                return new Multiply(new Constant(0.5), new Power(new Sin(sinArg), new Constant(2)));
-        }
+        // ∫ sin(ax+b)·cos(ax+b) dx = sin²(ax+b)/(2a)
+        var sinCos = TryIntegrateSinCosProduct(mult, variable);
+        if (sinCos != null) return sinCos;
 
-        // ∫ x/(x²+c) dx = (1/2)·ln|x²+c|
-        if (mult.Left is Variable vx && vx.Name == variable)
-        {
-            if (mult.Right is Power pow5 && pow5.Exponent is Constant ce5 && System.Math.Abs(ce5.Value + 1) < 1e-10)
-            {
-                if (pow5.Base is Add add && add.Left is Power powx &&
-                    powx.Base is Variable vbx && vbx.Name == variable &&
-                    powx.Exponent is Constant cex && System.Math.Abs(cex.Value - 2) < 1e-10)
-                    return new Multiply(new Constant(0.5), new Ln(new Abs(pow5.Base)));
-            }
-        }
+        // ∫ x/(a·x²+c) dx = (1/(2a))·ln|a·x²+c|
+        if (mult.Left is Variable vx && vx.Name == variable &&
+            mult.Right is Power pow5 && pow5.Exponent is Constant ce5 && System.Math.Abs(ce5.Value + 1) < 1e-10 &&
+            TryQuadraticPlusConstant(pow5.Base, variable, out double aQuad))
+            return new Multiply(new Constant(0.5 / aQuad), new Ln(new Abs(pow5.Base)));
 
         return null;
+    }
+
+    /// <summary>
+    /// ∫ sin(u)·cos(u) dx при u = ax+b даёт sin²(u)/(2a): множитель 1/a от подстановки
+    /// теряется, если брать формулу sin²(u)/2, верную только при a = 1.
+    /// </summary>
+    private static Expression? TryIntegrateSinCosProduct(Multiply mult, string variable)
+    {
+        if (!ExpressionPatterns.TryMatchSinCosProduct(mult, out var argument)) return null;
+        if (!ExpressionPatterns.TryMatchLinear(argument, variable, out double a, out _)) return null;
+
+        return new Multiply(
+            new Constant(0.5 / a),
+            new Power(new Sin(argument), new Constant(2)));
+    }
+
+    /// <summary>
+    /// Распознаёт a·x² + c (в любом порядке слагаемых), где c не зависит от переменной.
+    /// Без проверки второго слагаемого форма x/(x²+x) ошибочно считалась бы как x/(x²+c).
+    /// </summary>
+    private static bool TryQuadraticPlusConstant(Expression expr, string variable, out double a)
+    {
+        a = 0;
+        if (expr is not Add add) return false;
+
+        bool IsSquareTerm(Expression e, out double coeff)
+        {
+            coeff = 1;
+            if (e is Multiply m && m.Left is Constant cm) { coeff = cm.Value; e = m.Right; }
+            return System.Math.Abs(coeff) > 1e-12 &&
+                   e is Power p && p.Base is Variable v && v.Name == variable &&
+                   p.Exponent is Constant ce && System.Math.Abs(ce.Value - 2) < 1e-10;
+        }
+
+        if (IsSquareTerm(add.Left, out a) && add.Right is Constant) return true;
+        if (IsSquareTerm(add.Right, out a) && add.Left is Constant) return true;
+        a = 0;
+        return false;
     }
 
     #endregion

@@ -20,13 +20,17 @@ public static partial class NumericalPDESolver
         double[] uNew = new double[nx];
 
         for (int i = 0; i < nx; i++)
-        {
-            double x = i * dx;
-            u[i] = uOld[i] = System.Math.Sin(2 * System.Math.PI * x);
-        }
-        u[0] = u[nx - 1] = uOld[0] = uOld[nx - 1] = 0;
+            uOld[i] = System.Math.Sin(2 * System.Math.PI * i * dx);
+        uOld[0] = uOld[nx - 1] = 0;
 
-        for (int n = 0; n < nt; n++)
+        // Первый шаг считается отдельно: при u_t(x,0) = 0 разложение Тейлора даёт
+        // u¹ = u⁰ + ½r²·δ²u⁰. Если же стартовать с uOld = u и общей трёхслойной
+        // формулы, первое приращение удваивается и схема теряет второй порядок.
+        for (int i = 1; i < nx - 1; i++)
+            u[i] = uOld[i] + 0.5 * r * r * (uOld[i + 1] - 2 * uOld[i] + uOld[i - 1]);
+        u[0] = u[nx - 1] = 0;
+
+        for (int n = 1; n < nt; n++)
         {
             for (int i = 1; i < nx - 1; i++)
                 uNew[i] = 2 * u[i] - uOld[i] + r * r * (u[i + 1] - 2 * u[i] + u[i - 1]);

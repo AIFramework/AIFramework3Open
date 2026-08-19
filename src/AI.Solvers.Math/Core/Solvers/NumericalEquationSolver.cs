@@ -176,11 +176,24 @@ public static class NumericalEquationSolver
     }
 
     /// <summary>
-    /// Вычисление численной производной
+    /// Оптимальный шаг центральной разности: ∛eps ≈ 6.06e-6.
+    /// Ошибка складывается из округления (~eps/h) и обрезания (~h²), минимум даёт ∛eps;
+    /// прежний шаг 1e-8 хорош для односторонней разности, а для центральной
+    /// увеличивает ошибку с ~1e-11 до ~1e-8.
     /// </summary>
-    public static Func<double, double> NumericalDerivative(Func<double, double> f, double h = 1e-8)
+    private const double CentralDifferenceStep = 6.055454e-6;
+
+    /// <summary>
+    /// Вычисление численной производной центральной разностью.
+    /// </summary>
+    /// <param name="h">Шаг; при h ≤ 0 подбирается автоматически по масштабу точки.</param>
+    public static Func<double, double> NumericalDerivative(Func<double, double> f, double h = 0)
     {
-        return x => (f(x + h) - f(x - h)) / (2 * h);
+        return x =>
+        {
+            double step = h > 0 ? h : CentralDifferenceStep * System.Math.Max(1.0, System.Math.Abs(x));
+            return (f(x + step) - f(x - step)) / (2 * step);
+        };
     }
 
     /// <summary>
@@ -257,9 +270,13 @@ public static class NumericalEquationSolver
                 {
                     double root = allRoots[i];
 
-                    
-                    var (success, refinedRoot, iterations) = Newton(f, df, root, tolerance: 1e-10);
-                    if (success)
+                    // Уточнение принимаем, только если Ньютон остался у того же корня
+                    // и стал ближе к нулю: иначе он уводит на соседний корень,
+                    // и локализованный бисекцией результат подменяется чужим.
+                    var (success, refinedRoot, iterations) = Newton(f, df, root, tolerance: 1e-12);
+                    if (success &&
+                        System.Math.Abs(refinedRoot - root) < 1e-3 &&
+                        System.Math.Abs(f(refinedRoot)) <= System.Math.Abs(f(root)))
                         root = refinedRoot;
 
                     double fRoot = f(root);

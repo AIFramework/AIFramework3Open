@@ -31,11 +31,13 @@ public class Erf : Expression
     {
         var arg = Argument.Simplify();
 
+        // erf(6) = 1 - 2.2e-17 — в double уже неотличимо от единицы; на 5 округлять рано:
+        // там ещё 1.5e-12, и знание этого хвоста иногда и есть цель вычисления.
         if (arg is Constant c)
         {
             if (c.Value == 0) return new Constant(0);
-            if (c.Value > 5) return new Constant(1);
-            if (c.Value < -5) return new Constant(-1);
+            if (c.Value >= 6) return new Constant(1);
+            if (c.Value <= -6) return new Constant(-1);
         }
 
         return new Erf(arg);
