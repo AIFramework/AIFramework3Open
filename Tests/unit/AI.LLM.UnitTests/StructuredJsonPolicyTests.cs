@@ -96,6 +96,41 @@ public class StructuredJsonPolicyTests
     }
 
     [Fact]
+    public void StructuredJsonPolicy_Parse_RepairsJsonTruncatedInsideStringValue()
+    {
+        // Обрезка по лимиту токенов: объект не закрыт, значение оборвано на середине.
+        // Уцелевшие поля должны дать действие, а не «не удалось разобрать».
+        ReActDecision decision = StructuredJsonPolicy.Parse(
+            """{"thought":"ищу конкурентов","action":"web_search","arg":"МойСклад позициони""");
+
+        Assert.False(decision.IsMalformed);
+        ReActAction action = Assert.Single(decision.Actions);
+        Assert.Equal("web_search", action.ToolName);
+        Assert.StartsWith("МойСклад", action.Arguments);
+    }
+
+    [Fact]
+    public void StructuredJsonPolicy_Parse_RepairsJsonTruncatedAfterComma()
+    {
+        ReActDecision decision = StructuredJsonPolicy.Parse(
+            """{"thought":"данных достаточно","action":"final",""");
+
+        Assert.False(decision.IsMalformed);
+        Assert.True(decision.IsFinal);
+    }
+
+    [Fact]
+    public void StructuredJsonPolicy_Parse_RepairsJsonTruncatedOnEscape()
+    {
+        // Обрыв ровно на символе экрана: висячий '\' не должен ломать достроенную строку.
+        ReActDecision decision = StructuredJsonPolicy.Parse(
+            "{\"action\":\"web_search\",\"arg\":\"текст \\");
+
+        Assert.False(decision.IsMalformed);
+        Assert.Equal("web_search", Assert.Single(decision.Actions).ToolName);
+    }
+
+    [Fact]
     public void StructuredJsonPolicy_Parse_ReturnsMalformedForUnparseableText()
     {
         ReActDecision decision = StructuredJsonPolicy.Parse("Извините, я не понял вопрос.");

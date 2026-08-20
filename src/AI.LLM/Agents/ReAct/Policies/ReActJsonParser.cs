@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 
 namespace AI.LLM.Agents.ReAct.Policies;
@@ -88,11 +89,15 @@ internal static class ReActJsonParser
         return null;
     }
 
-    /// <summary>Разбирает текст в JSON-объект; <c>null</c>, если ничего пригодного нет.</summary>
+    /// <summary>
+    /// Разбирает текст в JSON-объект; <c>null</c>, если ничего пригодного нет.
+    /// Несбалансированный объект (обрезка ответа по лимиту токенов) пробует достроить —
+    /// см. <see cref="RepairTruncatedObject"/>.
+    /// </summary>
     /// <param name="text">Сырой ответ модели.</param>
     public static JsonDocument TryParseObject(string text)
     {
-        string json = ExtractObject(text);
+        string json = ExtractObject(text) ?? RepairTruncatedObject(text);
         if (json == null)
             return null;
 
@@ -109,6 +114,91 @@ internal static class ReActJsonParser
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Достраивает JSON-объект, обрезанный на середине (лимит токенов): закрывает
+    /// незавершённую строку и незакрытые скобки. Значение оборванного поля при этом
+    /// остаётся неполным — но уцелевшие поля лучше потерянного шага целиком.
+    /// </summary>
+    /// <param name="text">Сырой ответ модели.</param>
+    /// <returns>Валидно закрытый объект либо <c>null</c>, если чинить нечего или не вышло.</returns>
+    public static string RepairTruncatedObject(string text)
+    {
+        string value = StripCodeFences(text);
+        int start = value.IndexOf('{');
+        if (start < 0)
+            return null;
+
+        var closers = new Stack<char>();
+        bool inString = false;
+
+        for (int i = start; i < value.Length; i++)
+        {
+            char c = value[i];
+
+            if (inString)
+            {
+                if (c == '\\')
+                {
+                    i++;
+                    continue;
+                }
+
+                if (c == '"')
+                    inString = false;
+
+                continue;
+            }
+
+            switch (c)
+            {
+                case '"':
+                    inString = true;
+                    break;
+                case '{':
+                    closers.Push('}');
+                    break;
+                case '[':
+                    closers.Push(']');
+                    break;
+                case '}':
+                case ']':
+                    // Сломанная вложенность — это не обрезка, такое не чиним.
+                    if (closers.Count == 0 || closers.Peek() != c)
+                        return null;
+
+                    closers.Pop();
+                    break;
+            }
+        }
+
+        // Сбалансированный объект нашёл бы ExtractObject — здесь делать нечего.
+        if (closers.Count == 0)
+            return null;
+
+        string body = value[start..].TrimEnd();
+
+        // Оборванный экран в конце строки ломает и достроенную версию.
+        if (inString && body.EndsWith("\\", StringComparison.Ordinal))
+            body = body[..^1];
+
+        if (inString)
+            body += "\"";
+
+        body = body.TrimEnd();
+
+        // Обрыв сразу после запятой или двоеточия: голый хвост не даст распарситься.
+        if (body.EndsWith(",", StringComparison.Ordinal))
+            body = body[..^1];
+        else if (body.EndsWith(":", StringComparison.Ordinal))
+            body += "null";
+
+        var sb = new StringBuilder(body);
+        while (closers.Count > 0)
+            sb.Append(closers.Pop());
+
+        return sb.ToString();
     }
 
     /// <summary>
