@@ -9,7 +9,7 @@ namespace AI.LLM.Services.Reranking.OpenRouter;
 public record OpenRouterRerankModel(string Id, int MaxContextTokens, bool SupportsImages);
 
 /// <summary>
-/// Каталог моделей реранкинга, доступных через OpenRouter (на 27.07.2026).
+/// Каталог моделей реранкинга, доступных через OpenRouter (на 24.08.2026).
 /// Слаг можно передать и строкой напрямую — тогда проверки просто не применяются.
 /// </summary>
 public static class OpenRouterRerankModels
@@ -29,6 +29,15 @@ public static class OpenRouterRerankModels
     /// <summary>Бесплатный вариант <see cref="NemotronRerankVL"/></summary>
     public const string NemotronRerankVLFree = "nvidia/llama-nemotron-rerank-vl-1b-v2:free";
 
+    /// <summary>Voyage rerank-2.5: контекст 32K на пару, тарификация за токены, следование инструкции</summary>
+    public const string VoyageRerank25 = "voyageai/rerank-2.5";
+
+    /// <summary>Облегчённый вариант <see cref="VoyageRerank25"/>: вчетверо дешевле</summary>
+    public const string VoyageRerank25Lite = "voyageai/rerank-2.5-lite";
+
+    /// <summary>Qwen3 Reranker 8B: контекст 41K, 100+ языков; 8B — это латентность LLM, а не кросс-энкодера</summary>
+    public const string Qwen3Reranker8B = "qwen/qwen3-reranker-8b";
+
     private static readonly Dictionary<string, OpenRouterRerankModel> _catalog =
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -37,6 +46,9 @@ public static class OpenRouterRerankModels
             [CohereRerankV35] = new(CohereRerankV35, 4096, false),
             [NemotronRerankVL] = new(NemotronRerankVL, 10240, true),
             [NemotronRerankVLFree] = new(NemotronRerankVLFree, 10240, true),
+            [VoyageRerank25] = new(VoyageRerank25, 32000, false),
+            [VoyageRerank25Lite] = new(VoyageRerank25Lite, 32000, false),
+            [Qwen3Reranker8B] = new(Qwen3Reranker8B, 40960, false),
         };
 
     /// <summary>
