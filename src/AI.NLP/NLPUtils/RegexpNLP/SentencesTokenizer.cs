@@ -3,6 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+// ПЕРЕЕХАЛО из AI.DataPrepaire в AI.NLP: разбиение на предложения понадобилось поиску
+// по документам (чанкер корпуса), а ссылка на AI.DataPrepaire затащила бы в закрытие
+// ссылок веб-хостов AI.ML, AI.DSP, AI.KNN и AI.Fuzzy — ровно то, от чего Rag и Syntez
+// избавлялись. Пространство имён СОХРАНЕНО: типы самодостаточны (только System.*), и
+// прежние потребители видят их транзитивно — AI.DataPrepaire ссылается на AI.NLP.
 namespace AI.DataPrepaire.NLPUtils.RegexpNLP;
 
 /// <summary>
