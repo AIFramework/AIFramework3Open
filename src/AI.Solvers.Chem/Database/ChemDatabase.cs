@@ -1,9 +1,9 @@
 ﻿// ═══════════════════════════════════════════════════════════
 // NUGET PACKAGES REQUIRED:
 
-using FractalAgentsAI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Models;
 
-namespace FractalAgentsAI.Solvers.Chem.Database;
+namespace AI.Solvers.Chem.Database;
 
 public partial class ChemDatabase
 {
@@ -3434,10 +3434,56 @@ public partial class ChemDatabase
             c.CommonName.Equals(identifier, StringComparison.OrdinalIgnoreCase));
     }
 
-    public double? GetStandardEnthalpy(string formula)
+    /// <summary>
+    /// Стандартная энтальпия образования, кДж/моль.
+    /// Ключи справочника содержат состояние ("H2O(l)"), поэтому запись без состояния
+    /// ищется по единственному подходящему варианту.
+    /// </summary>
+    /// <param name="formula">Формула без состояния или вместе с ним</param>
+    /// <param name="state">Агрегатное состояние: g, l, s, aq</param>
+    public double? GetStandardEnthalpy(string formula, string state = null)
     {
-        return _standardEnthalpies.TryGetValue(formula, out var value) ? value : null;
+        if (string.IsNullOrWhiteSpace(formula))
+            return null;
+
+        if (_standardEnthalpies.TryGetValue(formula, out var value))
+            return value;
+
+        if (!string.IsNullOrEmpty(state) && _standardEnthalpies.TryGetValue($"{formula}({state})", out value))
+            return value;
+
+        // Состояние не указано: берётся стандартное состояние вещества
+        // (для воды это жидкость, поэтому порядок предпочтения l -> s -> g -> aq)
+        foreach (string standardState in StatePreference)
+        {
+            if (_standardEnthalpies.TryGetValue($"{formula}({standardState})", out value))
+                return value;
+        }
+
+        var candidates = _standardEnthalpies
+            .Where(kvp => kvp.Key.StartsWith(formula + "(", StringComparison.Ordinal))
+            .Select(kvp => kvp.Value)
+            .ToList();
+
+        if (candidates.Count == 1)
+            return candidates[0];
+
+        // Простое вещество в стандартном состоянии: ΔHf° = 0 по определению
+        return IsElementInStandardState(formula) ? 0.0 : null;
     }
+
+    /// <summary>
+    /// Простое вещество в стандартном состоянии (Fe, C, O2, Cl2, S8, ...)
+    /// </summary>
+    public bool IsElementInStandardState(string formula)
+        => formula != null && (_elements.ContainsKey(formula) || StandardStateMolecules.Contains(formula));
+
+    // Простые вещества, стандартная форма которых - молекула
+    private static readonly HashSet<string> StandardStateMolecules = new(StringComparer.Ordinal)
+        { "H2", "N2", "O2", "F2", "Cl2", "Br2", "I2", "P4", "S8" };
+
+    // Порядок выбора агрегатного состояния, если оно не указано в запросе
+    private static readonly string[] StatePreference = { "l", "s", "g", "aq" };
 
     public double? GetStandardPotential(string halfReaction)
     {

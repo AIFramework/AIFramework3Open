@@ -1,8 +1,9 @@
-﻿using FractalAgentsAI.Solvers.Chem.Core;
-using FractalAgentsAI.Solvers.Chem.Database;
-using System.Text.RegularExpressions;
+﻿using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Inorganic;
+namespace AI.Solvers.Chem.Processors.Inorganic;
 
 // ═══════════════════════════════════════════════════════════
 // ТЕРМОХИМИЯ
@@ -23,25 +24,21 @@ public class ThermochemistryCalculator
         try
         {
             // ΔH = Σ ΔHf(products) - Σ ΔHf(reactants)
-            var reactants = ParseSide(cmd.Parameters["reactants"]);
-            var products = ParseSide(cmd.Parameters["products"]);
+            var reactants = MolecularFormula.ParseSide(cmd.GetString("reactants"));
+            var products = MolecularFormula.ParseSide(cmd.GetString("products"));
 
-            double deltaH_reactants = 0;
-            double deltaH_products = 0;
+            // Отсутствие ΔHf в справочнике - это ошибка, а не ноль: иначе ΔH молча занижается
+            var missing = reactants.Concat(products)
+                .Where(f => _database.GetStandardEnthalpy(f.CoreFormula, f.State) == null)
+                .Select(f => f.CoreFormula + (f.State == null ? string.Empty : $"({f.State})"))
+                .Distinct()
+                .ToList();
 
-            foreach (var r in reactants)
-            {
-                var enthalpy = _database.GetStandardEnthalpy(r.Formula);
-                if (enthalpy.HasValue)
-                    deltaH_reactants += enthalpy.Value * r.Coefficient;
-            }
+            if (missing.Count > 0)
+                return ChemResult.Error($"Standard enthalpy of formation is not available for: {string.Join(", ", missing)}");
 
-            foreach (var p in products)
-            {
-                var enthalpy = _database.GetStandardEnthalpy(p.Formula);
-                if (enthalpy.HasValue)
-                    deltaH_products += enthalpy.Value * p.Coefficient;
-            }
+            double deltaH_reactants = reactants.Sum(r => _database.GetStandardEnthalpy(r.CoreFormula, r.State).Value * r.Coefficient);
+            double deltaH_products = products.Sum(p => _database.GetStandardEnthalpy(p.CoreFormula, p.State).Value * p.Coefficient);
 
             var deltaH = deltaH_products - deltaH_reactants;
 
@@ -53,16 +50,16 @@ public class ThermochemistryCalculator
                 result.Steps.Add("\nReactants:");
                 foreach (var r in reactants)
                 {
-                    var enthalpy = _database.GetStandardEnthalpy(r.Formula);
-                    result.Steps.Add($"  {r.Formula}: {enthalpy:F1} kJ/mol × {r.Coefficient}");
+                    var enthalpy = _database.GetStandardEnthalpy(r.CoreFormula, r.State);
+                    result.Steps.Add($"  {r}: {enthalpy:F1} kJ/mol × {r.Coefficient}");
                 }
                 result.Steps.Add($"  Sum = {deltaH_reactants:F1} kJ");
 
                 result.Steps.Add("\nProducts:");
                 foreach (var p in products)
                 {
-                    var enthalpy = _database.GetStandardEnthalpy(p.Formula);
-                    result.Steps.Add($"  {p.Formula}: {enthalpy:F1} kJ/mol × {p.Coefficient}");
+                    var enthalpy = _database.GetStandardEnthalpy(p.CoreFormula, p.State);
+                    result.Steps.Add($"  {p}: {enthalpy:F1} kJ/mol × {p.Coefficient}");
                 }
                 result.Steps.Add($"  Sum = {deltaH_products:F1} kJ");
 
@@ -82,32 +79,6 @@ public class ThermochemistryCalculator
         {
             return ChemResult.Error($"Thermochemistry calculation failed: {ex.Message}");
         }
-    }
-
-    private List<(string Formula, int Coefficient)> ParseSide(string side)
-    {
-        var result = new List<(string, int)>();
-        var parts = side.Split('+').Select(p => p.Trim()).ToList();
-
-        foreach (var part in parts)
-        {
-            // Извлекаем коэффициент
-            var match = Regex.Match(part, @"^(\d+)?\s*(.+)");
-            if (match.Success)
-            {
-                var coeff = string.IsNullOrEmpty(match.Groups[1].Value)
-                    ? 1
-                    : int.Parse(match.Groups[1].Value);
-                var formula = match.Groups[2].Value.Trim();
-
-                // Убираем состояния (g), (l), (s)
-                formula = Regex.Replace(formula, @"\(.*?\)", "").Trim();
-
-                result.Add((formula, coeff));
-            }
-        }
-
-        return result;
     }
 
     public ChemResult HessLaw(ParsedCommand cmd)

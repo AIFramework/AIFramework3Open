@@ -1,7 +1,7 @@
 ﻿// ═══════════════════════════════════════════════════════════
 // NUGET PACKAGES REQUIRED:
 
-namespace FractalAgentsAI.Solvers.Chem.Core;
+namespace AI.Solvers.Chem.Core;
 
 // РЕЗУЛЬТАТ ВЫПОЛНЕНИЯ
 

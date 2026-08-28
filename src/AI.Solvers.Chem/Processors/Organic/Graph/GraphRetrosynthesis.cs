@@ -1,4 +1,4 @@
-using FractalAgentsAI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Core;
 using NCDK;
 using NCDK.Default;
 using NCDK.Graphs;
@@ -6,8 +6,10 @@ using NCDK.SMARTS;
 using NCDK.Smiles;
 using NCDK.Tools.Manipulator;
 using System.Text;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Organic.Graph;
+namespace AI.Solvers.Chem.Processors.Organic.Graph;
 
 /// <summary>
 /// Узел в дереве ретросинтеза

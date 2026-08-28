@@ -1,9 +1,9 @@
 ﻿// ═══════════════════════════════════════════════════════════
 // NUGET PACKAGES REQUIRED:
 
-using FractalAgentsAI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Core;
 
-namespace FractalAgentsAI.Solvers.Chem;
+namespace AI.Solvers.Chem.Core;
 
 // ГЛАВНЫЙ ИНТЕРФЕЙС ДВИЖКА
 public interface IChemEngine

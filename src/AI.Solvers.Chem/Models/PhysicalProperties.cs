@@ -1,7 +1,7 @@
 ﻿// ═══════════════════════════════════════════════════════════
 // NUGET PACKAGES REQUIRED:
 
-namespace FractalAgentsAI.Solvers.Chem.Models;
+namespace AI.Solvers.Chem.Models;
 
 public class PhysicalProperties
 {

@@ -1,6 +1,8 @@
-﻿using FractalAgentsAI.Solvers.Chem.Core;
+﻿using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Physical;
+namespace AI.Solvers.Chem.Processors.Physical;
 
 // ═══════════════════════════════════════════════════════════
 // ГАЗОВЫЕ ЗАКОНЫ
@@ -20,12 +22,12 @@ public class GasLawCalculator
         try
         {
             // PV = nRT
-            double? P = cmd.Parameters.ContainsKey("P") ? double.Parse(cmd.Parameters["P"]) : null;
-            double? V = cmd.Parameters.ContainsKey("V") ? double.Parse(cmd.Parameters["V"]) : null;
-            double? n = cmd.Parameters.ContainsKey("N") ? double.Parse(cmd.Parameters["N"]) : null;
-            double? T = cmd.Parameters.ContainsKey("T") ? double.Parse(cmd.Parameters["T"]) : null;
+            double? P = cmd.TryGetDouble(out double p, "P", "pressure") ? p : null;
+            double? V = cmd.TryGetDouble(out double v, "V", "volume") ? v : null;
+            double? n = cmd.TryGetDouble(out double nu, "N", "n", "moles") ? nu : null;
+            double? T = cmd.TryGetDouble(out double t, "T", "temperature") ? t : null;
 
-            var find = cmd.Parameters.ContainsKey("find") ? cmd.Parameters["find"] : "";
+            var find = cmd.GetStringOrDefault(string.Empty, "find");
 
             double result = 0;
             string variable = "";

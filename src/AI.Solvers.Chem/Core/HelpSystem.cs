@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace FractalAgentsAI.Solvers.Chem.Core;
+namespace AI.Solvers.Chem.Core;
 
 // ═══════════════════════════════════════════════════════════
 // СИСТЕМА ПОМОЩИ

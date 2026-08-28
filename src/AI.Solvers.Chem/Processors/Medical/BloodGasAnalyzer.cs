@@ -1,7 +1,9 @@
-using FractalAgentsAI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Core;
 using System.Globalization;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Medical;
+namespace AI.Solvers.Chem.Processors.Medical;
 
 // ═══════════════════════════════════════════════════════════
 // КИСЛОТНО-ОСНОВНОЕ РАВНОВЕСИЕ КРОВИ (BLOOD GAS ANALYSIS)
@@ -20,9 +22,9 @@ public class BloodGasAnalyzer
     {
         try
         {
-            double pH = double.Parse(cmd.Parameters["pH"], CultureInfo.InvariantCulture);
-            double pCO2 = double.Parse(cmd.Parameters["pCO2"], CultureInfo.InvariantCulture); // mmHg
-            double HCO3 = double.Parse(cmd.Parameters.GetValueOrDefault("HCO3", "0"), CultureInfo.InvariantCulture); // mEq/L
+            double pH = cmd.GetDouble("pH");
+            double pCO2 = cmd.GetDouble("pCO2"); // mmHg
+            double HCO3 = cmd.GetDoubleOrDefault(0, "HCO3"); // mEq/L
 
             // Если HCO3 не задан, рассчитываем по Henderson-Hasselbalch
             if (HCO3 == 0)
@@ -47,10 +49,10 @@ public class BloodGasAnalyzer
 
             // Расчёт анионной разницы (если есть данные по электролитам)
             double? anionGap = null;
-            if (cmd.Parameters.ContainsKey("Na") && cmd.Parameters.ContainsKey("Cl"))
+            if (cmd.Has("Na") && cmd.Has("Cl"))
             {
-                double Na = double.Parse(cmd.Parameters["Na"]);
-                double Cl = double.Parse(cmd.Parameters["Cl"]);
+                double Na = cmd.GetDouble("Na");
+                double Cl = cmd.GetDouble("Cl");
                 anionGap = Na - (Cl + HCO3);
             }
 
@@ -119,8 +121,8 @@ public class BloodGasAnalyzer
     {
         try
         {
-            double pH = double.Parse(cmd.Parameters["pH"], CultureInfo.InvariantCulture);
-            double pCO2 = double.Parse(cmd.Parameters["pCO2"], CultureInfo.InvariantCulture); // mmHg
+            double pH = cmd.GetDouble("pH");
+            double pCO2 = cmd.GetDouble("pCO2"); // mmHg
 
             // Henderson-Hasselbalch для бикарбонатной буферной системы:
             // pH = 6.1 + log([HCO3-] / [H2CO3])
@@ -157,8 +159,8 @@ public class BloodGasAnalyzer
     {
         try
         {
-            double HCO3 = double.Parse(cmd.Parameters["HCO3"], CultureInfo.InvariantCulture); // mEq/L
-            double pH = double.Parse(cmd.Parameters["pH"], CultureInfo.InvariantCulture);
+            double HCO3 = cmd.GetDouble("HCO3"); // mEq/L
+            double pH = cmd.GetDouble("pH");
 
             // Упрощённая формула Van Slyke:
             // BE = 0.93 × (HCO3 - 24.4 + 14.8 × (pH - 7.4))

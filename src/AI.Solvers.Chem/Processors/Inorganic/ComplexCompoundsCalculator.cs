@@ -1,8 +1,10 @@
-using FractalAgentsAI.Solvers.Chem.Core;
-using FractalAgentsAI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Database;
 using System.Globalization;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Inorganic;
+namespace AI.Solvers.Chem.Processors.Inorganic;
 
 // ═══════════════════════════════════════════════════════════
 // КОМПЛЕКСНЫЕ СОЕДИНЕНИЯ
@@ -55,6 +57,56 @@ public class ComplexCompoundsCalculator
         },
     };
 
+    /// <summary>
+    /// Приводит имя металла к ключу таблицы констант: "Cu" -> "Cu2+"
+    /// </summary>
+    private string NormalizeMetal(string metal)
+    {
+        if (metal == null || _stabilityConstants.ContainsKey(metal))
+            return metal;
+
+        foreach (string key in _stabilityConstants.Keys)
+        {
+            // "Cu2+" -> "Cu"
+            string symbol = new string(key.TakeWhile(char.IsLetter).ToArray());
+
+            if (string.Equals(symbol, metal, StringComparison.OrdinalIgnoreCase))
+                return key;
+        }
+
+        return metal;
+    }
+
+    /// <summary>
+    /// Приводит имя лиганда к ключу таблицы констант: "Cl" -> "Cl-"
+    /// </summary>
+    private string NormalizeLigand(string metal, string ligand)
+    {
+        if (ligand == null || !_stabilityConstants.TryGetValue(metal, out var ligands) || ligands.ContainsKey(ligand))
+            return ligand;
+
+        foreach (string key in ligands.Keys)
+        {
+            string core = key.TrimEnd('+', '-', '^', '0', '1', '2', '3', '4', '5', '6');
+
+            if (string.Equals(core, ligand, StringComparison.OrdinalIgnoreCase))
+                return key;
+        }
+
+        return ligand;
+    }
+
+    // Концентрация: "[metal]=0.1M" / "metal_concentration=0.1" / "[Cu2+]=0.1M"
+    private static bool TryGetSpeciesConcentration(ParsedCommand cmd, string role, string species, out double value)
+        => cmd.TryGetConcentration(out value, role)
+        || (species != null && cmd.TryGetConcentration(out value, species))
+        || cmd.TryGetDouble(out value, $"{role}_total", $"{role}_conc");
+
+    private static double GetSpeciesConcentration(ParsedCommand cmd, string role, string species)
+        => TryGetSpeciesConcentration(cmd, role, species, out double value)
+            ? value
+            : throw new MissingParameterException(new[] { $"[{role}]", $"[{species}]", $"{role}_concentration" });
+
     public ComplexCompoundsCalculator(ChemDatabase database, VerbosityLevel verbosity)
     {
         _database = database;
@@ -66,10 +118,10 @@ public class ComplexCompoundsCalculator
     {
         try
         {
-            var metal = cmd.Parameters["metal"];
-            var ligand = cmd.Parameters["ligand"];
-            double metalConc = double.Parse(cmd.Parameters["metal_concentration"], CultureInfo.InvariantCulture);
-            double ligandConc = double.Parse(cmd.Parameters["ligand_concentration"], CultureInfo.InvariantCulture);
+            var metal = NormalizeMetal(cmd.GetString("metal", "M"));
+            var ligand = NormalizeLigand(metal, cmd.GetString("ligand", "L"));
+            double metalConc = GetSpeciesConcentration(cmd, "metal", metal);
+            double ligandConc = GetSpeciesConcentration(cmd, "ligand", ligand);
 
             if (!_stabilityConstants.ContainsKey(metal) || !_stabilityConstants[metal].ContainsKey(ligand))
                 return ChemResult.Error($"Stability constant not available for {metal}-{ligand}");
@@ -126,10 +178,12 @@ public class ComplexCompoundsCalculator
     {
         try
         {
-            var metal = cmd.Parameters["metal"];
-            var ligand = cmd.Parameters["ligand"];
-            double metalConc = double.Parse(cmd.Parameters["metal_concentration"], CultureInfo.InvariantCulture);
-            double ligandConc = double.Parse(cmd.Parameters["ligand_concentration"], CultureInfo.InvariantCulture);
+            var metal = NormalizeMetal(cmd.GetString("metal", "M"));
+            var ligand = NormalizeLigand(metal, cmd.GetString("ligand", "L"));
+            double ligandConc = GetSpeciesConcentration(cmd, "ligand", ligand);
+
+            // Общая концентрация металла нужна только для пересчёта долей в концентрации
+            bool metalConcKnown = TryGetSpeciesConcentration(cmd, "metal", metal, out double metalConc);
 
             // Для Cu2+ + NH3 (пример):
             // K1 = 1.9e4, K2 = 3.9e3, K3 = 1.0e3, K4 = 1.5e2
@@ -159,8 +213,13 @@ public class ComplexCompoundsCalculator
                 for (int i = 0; i <= 4; i++)
                 {
                     result.Data[$"alpha_{i}"] = alpha[i];
-                    result.Data[$"concentration_ML{i}"] = alpha[i] * metalConc;
+
+                    if (metalConcKnown)
+                        result.Data[$"concentration_ML{i}"] = alpha[i] * metalConc;
                 }
+
+                if (!metalConcKnown)
+                    result.Steps.Add("Total metal concentration is not specified: only mole fractions are reported");
 
                 if (_verbosity >= VerbosityLevel.Detailed)
                 {
@@ -198,11 +257,11 @@ public class ComplexCompoundsCalculator
     {
         try
         {
-            var metal = cmd.Parameters["metal"];
-            var ligand = cmd.Parameters["ligand"];
-            double pH = double.Parse(cmd.Parameters["pH"], CultureInfo.InvariantCulture);
-            double metalConc = double.Parse(cmd.Parameters["metal_concentration"], CultureInfo.InvariantCulture);
-            double ligandTotalConc = double.Parse(cmd.Parameters["ligand_total"], CultureInfo.InvariantCulture);
+            var metal = NormalizeMetal(cmd.GetString("metal", "M"));
+            var ligand = NormalizeLigand(metal, cmd.GetString("ligand", "L"));
+            double pH = cmd.GetDouble("pH");
+            double metalConc = GetSpeciesConcentration(cmd, "metal", metal);
+            double ligandTotalConc = GetSpeciesConcentration(cmd, "ligand", ligand);
 
             // Для EDTA (пример)
             if (ligand == "EDTA")

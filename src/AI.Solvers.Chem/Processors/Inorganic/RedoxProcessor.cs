@@ -1,8 +1,10 @@
-using FractalAgentsAI.Solvers.Chem.Core;
-using FractalAgentsAI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Database;
 using System.Text;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem;
+namespace AI.Solvers.Chem.Processors.Inorganic;
 
 // ═══════════════════════════════════════════════════════════
 // ОКИСЛИТЕЛЬНО-ВОССТАНОВИТЕЛЬНЫЕ РЕАКЦИИ
@@ -42,9 +44,7 @@ public class RedoxProcessor
     {
         try
         {
-            var formula = cmd.Parameters.ContainsKey("formula")
-                ? cmd.Parameters["formula"]
-                : cmd.Parameters["reactants"];
+            var formula = cmd.GetString("formula", "compound", "substance", "reactants");
 
             var molecular = new MolecularFormula(formula);
             var oxidationStates = CalculateOxidationStates(molecular);
@@ -53,12 +53,12 @@ public class RedoxProcessor
             result.AppendLine($"Oxidation states in {formula}:");
 
             foreach (var kvp in oxidationStates)
-            {
-                var sign = kvp.Value >= 0 ? "+" : "";
-                result.AppendLine($"  {kvp.Key}: {sign}{kvp.Value}");
-            }
+                result.AppendLine($"  {kvp.Key}: {FormatState(kvp.Value)}");
 
-            return ChemResult.Ok(result.ToString());
+            var chemResult = ChemResult.Ok(result.ToString());
+            chemResult.Data["oxidation_states"] = oxidationStates;
+
+            return chemResult;
         }
         catch (Exception ex)
         {
@@ -66,20 +66,21 @@ public class RedoxProcessor
         }
     }
 
-    private Dictionary<string, int> CalculateOxidationStates(MolecularFormula formula)
+    private Dictionary<string, double> CalculateOxidationStates(MolecularFormula formula)
     {
-        var states = new Dictionary<string, int>();
+        var states = new Dictionary<string, double>();
 
-        // Простые случаи
+        // Простое вещество: степень окисления 0 (у одноатомного иона - его заряд)
         if (formula.Elements.Count == 1)
         {
             var element = formula.Elements.Keys.First();
-            states[element] = 0; // Простое вещество
+            int count = formula.Elements[element];
+            states[element] = formula.Charge == 0 ? 0 : (double)formula.Charge / count;
             return states;
         }
 
         // Применяем известные правила
-        int totalCharge = 0;
+        int knownCharge = 0;
         var unknownElements = new List<string>();
 
         foreach (var kvp in formula.Elements)
@@ -92,10 +93,9 @@ public class RedoxProcessor
                 var state = _fixedOxidationStates[element];
 
                 // Исключения
-                if (element == "H" && formula.Elements.ContainsKey("O") &&
-                    formula.Elements.ContainsKey("Na"))
+                if (element == "H" && IsMetalHydride(formula))
                 {
-                    // В NaH водород -1
+                    // В гидридах металлов (NaH, CaH2) водород -1
                     state = -1;
                 }
                 else if (element == "O" && formula.Elements.ContainsKey("F"))
@@ -105,7 +105,7 @@ public class RedoxProcessor
                 }
 
                 states[element] = state;
-                totalCharge += state * count;
+                knownCharge += state * count;
             }
             else
             {
@@ -113,13 +113,14 @@ public class RedoxProcessor
             }
         }
 
-        // Определяем неизвестные элементы
+        // Сумма степеней окисления равна заряду частицы (для молекулы - нулю)
         if (unknownElements.Count == 1)
         {
             var element = unknownElements[0];
             var count = formula.Elements[element];
-            var oxidationState = -totalCharge / count;
-            states[element] = oxidationState;
+
+            // Деление вещественное: в Fe3O4 железо имеет дробную степень +8/3
+            states[element] = (formula.Charge - knownCharge) / (double)count;
         }
         else if (unknownElements.Count > 1)
         {
@@ -127,28 +128,57 @@ public class RedoxProcessor
             foreach (var element in unknownElements)
             {
                 var elementData = _database.GetElement(element);
-                if (elementData != null && elementData.OxidationStates.Length > 0)
-                {
-                    // Берем наиболее распространенную
-                    states[element] = elementData.OxidationStates[0];
-                }
-                else
-                {
-                    states[element] = 0;
-                }
+
+                states[element] = elementData != null && elementData.OxidationStates.Length > 0
+                    ? elementData.OxidationStates[0]
+                    : 0;
             }
         }
 
         return states;
     }
 
+    /// <summary>
+    /// Степень окисления в виде текста: целая печатается без дробной части
+    /// </summary>
+    private static string FormatState(double state)
+    {
+        string sign = state >= 0 ? "+" : "-";
+        double magnitude = Math.Abs(state);
+
+        return Math.Abs(magnitude - Math.Round(magnitude)) < 1e-9
+            ? $"{sign}{Math.Round(magnitude):F0}"
+            : $"{sign}{magnitude:F2}";
+    }
+
+    // Гидрид металла: кроме водорода в формуле только металлы
+    private bool IsMetalHydride(MolecularFormula formula)
+    {
+        if (!formula.Elements.ContainsKey("H") || formula.Elements.Count < 2)
+            return false;
+
+        foreach (string symbol in formula.Elements.Keys)
+        {
+            if (symbol == "H")
+                continue;
+
+            var element = _database.GetElement(symbol);
+
+            // Металлы: невысокая электроотрицательность
+            if (element == null || element.Electronegativity >= 2.0)
+                return false;
+        }
+
+        return true;
+    }
+
     public ChemResult BalanceRedox(ParsedCommand cmd)
     {
         try
         {
-            var reactants = cmd.Parameters["reactants"].Split('+').Select(s => s.Trim()).ToList();
-            var products = cmd.Parameters["products"].Split('+').Select(s => s.Trim()).ToList();
-            var medium = cmd.Parameters.GetValueOrDefault("medium", "acidic");
+            var reactants = MolecularFormula.SplitSide(cmd.GetString("reactants")).ToList();
+            var products = MolecularFormula.SplitSide(cmd.GetString("products")).ToList();
+            var medium = cmd.GetStringOrDefault("acidic", "medium");
 
             var result = new StringBuilder();
             result.AppendLine($"Redox Balance in {medium} medium");

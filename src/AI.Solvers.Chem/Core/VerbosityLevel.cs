@@ -1,7 +1,7 @@
 ﻿// ═══════════════════════════════════════════════════════════
 // NUGET PACKAGES REQUIRED:
 
-namespace FractalAgentsAI.Solvers.Chem;
+namespace AI.Solvers.Chem.Core;
 
 public enum VerbosityLevel
 {

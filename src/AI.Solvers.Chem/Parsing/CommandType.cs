@@ -1,4 +1,4 @@
-﻿namespace FractalAgentsAI.Solvers.Chem.Parsing;
+﻿namespace AI.Solvers.Chem.Parsing;
 
 public enum CommandType
 {

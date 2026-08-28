@@ -1,57 +1,88 @@
-﻿// ═══════════════════════════════════════════════════════════
-// NUGET PACKAGES REQUIRED:
+using AI.ClassicMath.MatrixUtils;
+using AI.DataStructs.Algebraic;
+using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
+using System.Globalization;
 
+namespace AI.Solvers.Chem.Processors.Inorganic;
 
-using FractalAgentsAI.Solvers.Chem.Core;
-using FractalAgentsAI.Solvers.Chem.Database;
-using MathNet.Numerics.LinearAlgebra;
-
-namespace FractalAgentsAI.Solvers.Chem.Processors.Inorganic;
-
-// БАЛАНСИРОВКА УРАВНЕНИЙ
+/// <summary>
+/// Балансировка химических уравнений через ядро стехиометрической матрицы.
+/// Матрица содержит строку на каждый элемент и, для ионных уравнений, строку заряда.
+/// </summary>
 public class EquationBalancer
 {
+    private const double SingularTolerance = 1e-8;
+    private const double IntegerTolerance = 1e-6;
+    private const int MaxMultiplier = 500;
+
     private readonly ChemDatabase _database;
     private readonly VerbosityLevel _verbosity;
 
+    /// <summary>
+    /// Создаёт балансировщик уравнений
+    /// </summary>
     public EquationBalancer(ChemDatabase database, VerbosityLevel verbosity)
     {
         _database = database;
         _verbosity = verbosity;
     }
 
+    /// <summary>
+    /// Балансирует уравнение реакции
+    /// </summary>
     public ChemResult Balance(ParsedCommand cmd)
     {
         try
         {
-            var reactants = ParseSide(cmd.Parameters["reactants"]);
-            var products = ParseSide(cmd.Parameters["products"]);
+            var reactants = MolecularFormula.ParseSide(cmd.GetString("reactants"));
+            var products = MolecularFormula.ParseSide(cmd.GetString("products"));
 
-            // Построение матрицы элементов
             var elements = GetAllElements(reactants, products);
-            var matrix = BuildMatrix(reactants, products, elements);
 
-            // Решение системы методом Гаусса
-            var coefficients = SolveByGaussian(matrix);
+            var unknown = elements.Where(e => _database.GetElement(e) == null).ToList();
 
-            // Нормализация к целым числам
-            coefficients = NormalizeCoefficients(coefficients);
+            if (unknown.Count > 0)
+                return ChemResult.Error($"Unknown element(s) in the equation: {string.Join(", ", unknown)}");
 
-            // Форматирование результата
-            var result = FormatBalancedEquation(reactants, products, coefficients);
+            bool hasCharge = reactants.Concat(products).Any(f => f.Charge != 0);
 
-            var chemResult = ChemResult.Ok(result);
+            var matrix = BuildMatrix(reactants, products, elements, hasCharge);
+            var solution = FindNullSpaceVector(matrix, out int nullity);
+
+            if (solution == null)
+                return ChemResult.Error(nullity > 1
+                    ? $"Equation is underdetermined: the species admit {nullity} independent balances, remove or add species"
+                    : "Equation cannot be balanced: no solution with positive coefficients");
+
+            if (!TryRationalize(solution, out int[] coefficients))
+                return ChemResult.Error("Equation cannot be balanced with reasonable integer coefficients");
+
+            string mismatch = Verify(reactants, products, coefficients, elements, hasCharge);
+
+            if (mismatch != null)
+                return ChemResult.Error($"Equation cannot be balanced: {mismatch}");
+
+            var result = ChemResult.Ok(FormatBalancedEquation(reactants, products, coefficients));
+            result.Data["coefficients"] = coefficients;
+            result.Data["elements"] = elements;
+
+            if (nullity > 1)
+                result.Steps.Add($"Warning: the system is underdetermined ({nullity} independent solutions), one of them is shown");
 
             if (_verbosity >= VerbosityLevel.Detailed)
             {
-                chemResult.Steps.Add("1. Parsed reactants and products");
-                chemResult.Steps.Add($"2. Elements involved: {string.Join(", ", elements)}");
-                chemResult.Steps.Add("3. Built stoichiometric matrix");
-                chemResult.Steps.Add("4. Solved using Gaussian elimination");
-                chemResult.Steps.Add($"5. Normalized coefficients: {string.Join(", ", coefficients.Select(c => c.ToString("F2")))}");
+                result.Steps.Add($"1. Species: {reactants.Count} reactant(s), {products.Count} product(s)");
+                result.Steps.Add($"2. Elements involved: {string.Join(", ", elements)}" + (hasCharge ? " (+ charge balance)" : ""));
+                result.Steps.Add($"3. Stoichiometric matrix: {matrix.Height}×{matrix.Width}");
+                result.Steps.Add("4. Solved as the null space of the matrix (SVD)");
+                result.Steps.Add($"5. Integer coefficients: {string.Join(", ", coefficients)}");
+                result.Steps.Add("6. Atom (and charge) conservation verified");
             }
 
-            return chemResult;
+            return result;
         }
         catch (Exception ex)
         {
@@ -59,257 +90,223 @@ public class EquationBalancer
         }
     }
 
-    private List<MolecularFormula> ParseSide(string side)
+    private static List<string> GetAllElements(List<MolecularFormula> reactants, List<MolecularFormula> products)
     {
-        var parts = side.Split('+').Select(p => p.Trim()).ToList();
-        return parts.Select(p => new MolecularFormula(p)).ToList();
-    }
-
-    private List<string> GetAllElements(List<MolecularFormula> reactants, List<MolecularFormula> products)
-    {
-        var elements = new HashSet<string>();
+        var elements = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var formula in reactants.Concat(products))
         {
-            foreach (var element in formula.Elements.Keys)
+            foreach (string element in formula.Elements.Keys)
                 elements.Add(element);
         }
 
-        return elements.OrderBy(e => e).ToList();
+        return elements.OrderBy(e => e, StringComparer.Ordinal).ToList();
     }
 
-    private Matrix<double> BuildMatrix(List<MolecularFormula> reactants,
+    // Реагенты дают положительные столбцы, продукты - отрицательные
+    private static Matrix BuildMatrix(List<MolecularFormula> reactants,
                                       List<MolecularFormula> products,
-                                      List<string> elements)
+                                      List<string> elements,
+                                      bool hasCharge)
     {
-        int rows = elements.Count;
-        int cols = reactants.Count + products.Count;
-
-        var matrix = Matrix<double>.Build.Dense(rows, cols);
+        int rows = elements.Count + (hasCharge ? 1 : 0);
+        int columns = reactants.Count + products.Count;
+        var matrix = new Matrix(rows, columns);
 
         for (int i = 0; i < elements.Count; i++)
         {
-            var element = elements[i];
-
-            // Реагенты (положительные)
             for (int j = 0; j < reactants.Count; j++)
-            {
-                matrix[i, j] = reactants[j].Elements.ContainsKey(element)
-                    ? reactants[j].Elements[element]
-                    : 0;
-            }
+                matrix[i, j] = reactants[j].GetCount(elements[i]);
 
-            // Продукты (отрицательные)
             for (int j = 0; j < products.Count; j++)
-            {
-                matrix[i, reactants.Count + j] = products[j].Elements.ContainsKey(element)
-                    ? -products[j].Elements[element]
-                    : 0;
-            }
+                matrix[i, reactants.Count + j] = -products[j].GetCount(elements[i]);
+        }
+
+        if (hasCharge)
+        {
+            int row = elements.Count;
+
+            for (int j = 0; j < reactants.Count; j++)
+                matrix[row, j] = reactants[j].Charge;
+
+            for (int j = 0; j < products.Count; j++)
+                matrix[row, reactants.Count + j] = -products[j].Charge;
         }
 
         return matrix;
     }
 
-    private double[] SolveByGaussian(Matrix<double> matrix)
+    /// <summary>
+    /// Вектор ядра матрицы: столбец V, отвечающий наименьшему сингулярному числу.
+    /// Возвращает null, если решение содержит компоненты разных знаков
+    /// (уравнение не сводится к положительным коэффициентам).
+    /// </summary>
+    private static double[] FindNullSpaceVector(Matrix matrix, out int nullity)
     {
-        // Используем более надёжный метод через SVD
-        try
+        var (_, sigma, v) = Svd.Decompose(matrix);
+
+        double maxSigma = sigma.Length == 0 ? 0 : sigma.Max();
+        double threshold = Math.Max(maxSigma * SingularTolerance, 1e-12);
+
+        nullity = sigma.Count(s => s <= threshold);
+
+        int minIndex = 0;
+        for (int i = 1; i < sigma.Length; i++)
         {
-            var svd = matrix.Svd(true);
-            var nullSpace = svd.VT.Row(svd.VT.RowCount - 1);
-            
-            // Конвертируем в массив
-            var solution = new double[nullSpace.Count];
-            for (int i = 0; i < nullSpace.Count; i++)
-            {
-                solution[i] = Math.Abs(nullSpace[i]); // Берём абсолютные значения
-            }
-            
-            return solution;
+            if (sigma[i] < sigma[minIndex])
+                minIndex = i;
         }
-        catch
+
+        int n = matrix.Width;
+        var solution = new double[n];
+
+        for (int i = 0; i < n; i++)
+            solution[i] = v[i, minIndex];
+
+        double scale = solution.Select(Math.Abs).DefaultIfEmpty(0).Max();
+
+        if (scale < 1e-12)
+            return null;
+
+        // Знак выбирается так, чтобы наибольшая по модулю компонента была положительной
+        int pivot = Array.FindIndex(solution, x => Math.Abs(x) >= scale - 1e-12);
+        if (solution[pivot] < 0)
         {
-            // Fallback к ручному методу
-            return SolveByManualMethod(matrix);
+            for (int i = 0; i < n; i++)
+                solution[i] = -solution[i];
         }
-    }
-    
-    private double[] SolveByManualMethod(Matrix<double> matrix)
-    {
-        int rows = matrix.RowCount;
-        int cols = matrix.ColumnCount;
-        
-        // Клонируем матрицу для работы
-        var m = matrix.Clone();
-        
-        // Прямой ход Гаусса
-        for (int i = 0; i < Math.Min(rows, cols); i++)
-        {
-            // Находим максимальный элемент для pivot
-            int maxRow = i;
-            for (int k = i + 1; k < rows; k++)
-            {
-                if (Math.Abs(m[k, i]) > Math.Abs(m[maxRow, i]))
-                    maxRow = k;
-            }
-            
-            // Меняем строки
-            if (maxRow != i)
-            {
-                for (int k = 0; k < cols; k++)
-                {
-                    var temp = m[i, k];
-                    m[i, k] = m[maxRow, k];
-                    m[maxRow, k] = temp;
-                }
-            }
-            
-            // Обнуляем элементы под pivot
-            for (int k = i + 1; k < rows; k++)
-            {
-                if (Math.Abs(m[i, i]) < 1e-10) continue;
-                
-                double factor = m[k, i] / m[i, i];
-                for (int j = i; j < cols; j++)
-                {
-                    m[k, j] -= factor * m[i, j];
-                }
-            }
-        }
-        
-        // Находим свободную переменную (последний столбец)
-        var solution = new double[cols];
-        solution[cols - 1] = 1.0;
-        
-        // Обратная подстановка
-        for (int i = Math.Min(rows, cols) - 2; i >= 0; i--)
-        {
-            double sum = 0;
-            for (int j = i + 1; j < cols; j++)
-            {
-                sum += m[i, j] * solution[j];
-            }
-            
-            if (Math.Abs(m[i, i]) > 1e-10)
-            {
-                solution[i] = -sum / m[i, i];
-            }
-        }
-        
-        // Делаем все положительными
-        for (int i = 0; i < solution.Length; i++)
-        {
-            solution[i] = Math.Abs(solution[i]);
-        }
-        
+
+        // Все коэффициенты обязаны быть положительными
+        if (solution.Any(x => x < -IntegerTolerance * scale))
+            return null;
+
         return solution;
     }
 
-
-    private double[] NormalizeCoefficients(double[] coefficients)
+    /// <summary>
+    /// Приводит вещественное решение к наименьшим натуральным коэффициентам
+    /// </summary>
+    private static bool TryRationalize(double[] solution, out int[] coefficients)
     {
-        // Делаем все положительными
-        for (int i = 0; i < coefficients.Length; i++)
-        {
-            coefficients[i] = Math.Abs(coefficients[i]);
-        }
+        coefficients = null;
 
-        // Находим минимальный ненулевой коэффициент
-        double minCoeff = coefficients.Where(c => c > 1e-10).Min();
-        
-        // Нормализуем относительно минимального
-        for (int i = 0; i < coefficients.Length; i++)
-        {
-            coefficients[i] /= minCoeff;
-        }
+        double minValue = solution.Where(x => x > IntegerTolerance).DefaultIfEmpty(0).Min();
 
-        // Пробуем разные множители, чтобы найти наименьшие целые
-        double[] result = null;
-        for (int multiplier = 1; multiplier <= 100; multiplier++)
+        if (minValue <= 0)
+            return false;
+
+        var normalized = solution.Select(x => x / minValue).ToArray();
+
+        for (int multiplier = 1; multiplier <= MaxMultiplier; multiplier++)
         {
-            var temp = new double[coefficients.Length];
+            var scaled = new long[normalized.Length];
             bool allIntegers = true;
-            
-            for (int i = 0; i < coefficients.Length; i++)
+
+            for (int i = 0; i < normalized.Length; i++)
             {
-                temp[i] = coefficients[i] * multiplier;
-                double rounded = Math.Round(temp[i]);
-                
-                if (Math.Abs(temp[i] - rounded) > 1e-6)
+                double value = normalized[i] * multiplier;
+                double rounded = Math.Round(value);
+
+                if (Math.Abs(value - rounded) > IntegerTolerance * Math.Max(1.0, Math.Abs(value)) || rounded < 1)
                 {
                     allIntegers = false;
                     break;
                 }
-                
-                temp[i] = rounded;
+
+                scaled[i] = (long)rounded;
             }
-            
-            if (allIntegers)
-            {
-                // Нашли целые числа, проверяем НОД
-                long gcd = (long)temp[0];
-                for (int i = 1; i < temp.Length; i++)
-                {
-                    gcd = GCD(gcd, (long)temp[i]);
-                }
-                
-                // Делим на НОД
-                for (int i = 0; i < temp.Length; i++)
-                {
-                    temp[i] /= gcd;
-                }
-                
-                result = temp;
-                break;
-            }
+
+            if (!allIntegers)
+                continue;
+
+            long gcd = scaled[0];
+            foreach (long value in scaled)
+                gcd = Gcd(gcd, value);
+
+            coefficients = scaled.Select(x => (int)(x / gcd)).ToArray();
+            return true;
         }
 
-        // Если не нашли, просто округляем
-        if (result == null)
-        {
-            result = new double[coefficients.Length];
-            for (int i = 0; i < coefficients.Length; i++)
-            {
-                result[i] = Math.Round(coefficients[i]);
-            }
-        }
-
-        return result;
+        return false;
     }
 
-    private long GCD(long a, long b)
+    /// <summary>
+    /// Проверка сохранения атомов и заряда. Возвращает описание расхождения или null
+    /// </summary>
+    private static string Verify(List<MolecularFormula> reactants,
+                                 List<MolecularFormula> products,
+                                 int[] coefficients,
+                                 List<string> elements,
+                                 bool hasCharge)
     {
+        foreach (string element in elements)
+        {
+            long left = 0, right = 0;
+
+            for (int i = 0; i < reactants.Count; i++)
+                left += (long)coefficients[i] * reactants[i].GetCount(element);
+
+            for (int i = 0; i < products.Count; i++)
+                right += (long)coefficients[reactants.Count + i] * products[i].GetCount(element);
+
+            if (left != right)
+                return $"{element} is not conserved ({left} vs {right})";
+        }
+
+        if (hasCharge)
+        {
+            long left = 0, right = 0;
+
+            for (int i = 0; i < reactants.Count; i++)
+                left += (long)coefficients[i] * reactants[i].Charge;
+
+            for (int i = 0; i < products.Count; i++)
+                right += (long)coefficients[reactants.Count + i] * products[i].Charge;
+
+            if (left != right)
+                return $"charge is not conserved ({left:+#;-#;0} vs {right:+#;-#;0})";
+        }
+
+        return null;
+    }
+
+    private static long Gcd(long a, long b)
+    {
+        a = Math.Abs(a);
+        b = Math.Abs(b);
+
         while (b != 0)
         {
             long temp = b;
             b = a % b;
             a = temp;
         }
-        return Math.Abs(a);
+
+        return a == 0 ? 1 : a;
     }
 
-    private string FormatBalancedEquation(List<MolecularFormula> reactants,
-                                          List<MolecularFormula> products,
-                                          double[] coefficients)
+    private static string FormatBalancedEquation(List<MolecularFormula> reactants,
+                                                 List<MolecularFormula> products,
+                                                 int[] coefficients)
     {
-        var left = new List<string>();
-        var right = new List<string>();
+        string Term(MolecularFormula formula, int coefficient) => coefficient > 1
+            ? coefficient.ToString(CultureInfo.InvariantCulture) + " " + formula.CoreFormula + ChargeSuffix(formula)
+            : formula.CoreFormula + ChargeSuffix(formula);
 
-        for (int i = 0; i < reactants.Count; i++)
-        {
-            int coeff = (int)coefficients[i];
-            string term = coeff > 1 ? $"{coeff} {reactants[i].Formula}" : reactants[i].Formula;
-            left.Add(term);
-        }
-
-        for (int i = 0; i < products.Count; i++)
-        {
-            int coeff = (int)coefficients[reactants.Count + i];
-            string term = coeff > 1 ? $"{coeff} {products[i].Formula}" : products[i].Formula;
-            right.Add(term);
-        }
+        var left = reactants.Select((f, i) => Term(f, coefficients[i]));
+        var right = products.Select((f, i) => Term(f, coefficients[reactants.Count + i]));
 
         return $"{string.Join(" + ", left)} = {string.Join(" + ", right)}";
+    }
+
+    private static string ChargeSuffix(MolecularFormula formula)
+    {
+        if (formula.Charge == 0)
+            return string.Empty;
+
+        int magnitude = Math.Abs(formula.Charge);
+        string digits = magnitude == 1 ? string.Empty : magnitude.ToString(CultureInfo.InvariantCulture);
+
+        return digits + (formula.Charge > 0 ? "+" : "-");
     }
 }

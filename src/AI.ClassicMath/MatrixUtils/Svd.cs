@@ -63,7 +63,11 @@ public static class Svd
                         continue;
 
                     double zeta = (beta - alpha) / (2.0 * gamma);
-                    double t = Math.Sign(zeta) / (Math.Abs(zeta) + Math.Sqrt(1.0 + zeta * zeta));
+
+                    // При равных нормах столбцов zeta = 0 и нужен поворот на 45 градусов;
+                    // Math.Sign(0) дал бы t = 0, то есть вращение молча пропускалось бы
+                    double sign = zeta >= 0 ? 1.0 : -1.0;
+                    double t = sign / (Math.Abs(zeta) + Math.Sqrt(1.0 + zeta * zeta));
                     double c = 1.0 / Math.Sqrt(1.0 + t * t);
                     double s = c * t;
 

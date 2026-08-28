@@ -1,7 +1,7 @@
-using FractalAgentsAI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Models;
 using System.Text.Json;
 
-namespace FractalAgentsAI.Solvers.Chem.Database;
+namespace AI.Solvers.Chem.Database;
 
 /// <summary>
 /// Управление базой данных ретросинтетических маршрутов

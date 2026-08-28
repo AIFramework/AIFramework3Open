@@ -1,4 +1,4 @@
-namespace FractalAgentsAI.Solvers.Chem.Models;
+namespace AI.Solvers.Chem.Models;
 
 /// <summary>
 /// Представляет целевое соединение для синтеза

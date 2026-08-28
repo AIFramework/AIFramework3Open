@@ -1,7 +1,9 @@
-﻿using FractalAgentsAI.Solvers.Chem.Core;
-using FractalAgentsAI.Solvers.Chem.Database;
+﻿using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Inorganic;
+namespace AI.Solvers.Chem.Processors.Inorganic;
 
 // ═══════════════════════════════════════════════════════════
 // РАСЧЕТЫ С РАСТВОРАМИ
@@ -21,9 +23,9 @@ public class SolutionCalculator
     {
         try
         {
-            var mass = double.Parse(cmd.Parameters["mass"]);
-            var substance = cmd.Parameters["substance"];
-            var volumeML = double.Parse(cmd.Parameters["volume"]);
+            var mass = cmd.GetDouble("mass", "m");
+            var substance = cmd.GetString("substance", "compound", "formula");
+            var volumeML = cmd.GetDouble("volume", "V");
             var volumeL = volumeML / 1000.0;
 
             var formula = new MolecularFormula(substance);
@@ -58,9 +60,9 @@ public class SolutionCalculator
     {
         try
         {
-            var C1 = double.Parse(cmd.Parameters["C1"]);
-            var C2 = double.Parse(cmd.Parameters["C2"]);
-            var V2 = double.Parse(cmd.Parameters["V2"]);
+            var C1 = cmd.GetDouble("C1", "c1", "stock");
+            var C2 = cmd.GetDouble("C2", "c2", "target");
+            var V2 = cmd.GetDouble("V2", "v2", "volume");
 
             // C1*V1 = C2*V2
             var V1 = C2 * V2 / C1;

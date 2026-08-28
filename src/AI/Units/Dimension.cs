@@ -109,8 +109,13 @@ public readonly struct Dimension : IEquatable<Dimension>
     /// <summary>
     /// Признак безразмерной величины (все показатели нулевые)
     /// </summary>
-    public bool IsDimensionless =>
-        (_length | _mass | _time | _current | _temperature | _amount | _luminousIntensity) == 0;
+    public bool IsDimensionless => OrOfHalves() == 0;
+
+    private int OrOfHalves()
+    {
+        return (byte)_length | (byte)_mass | (byte)_time | (byte)_current
+            | (byte)_temperature | (byte)_amount | (byte)_luminousIntensity;
+    }
 
     #endregion
 
@@ -249,7 +254,7 @@ public readonly struct Dimension : IEquatable<Dimension>
     /// <exception cref="InvalidOperationException">Показатель не делится на два нацело</exception>
     public Dimension Sqrt()
     {
-        if (((_length | _mass | _time | _current | _temperature | _amount | _luminousIntensity) & 1) != 0)
+        if ((OrOfHalves() & 1) != 0)
             throw new InvalidOperationException($"Размерность {this} не имеет представимого квадратного корня");
 
         return new Dimension(

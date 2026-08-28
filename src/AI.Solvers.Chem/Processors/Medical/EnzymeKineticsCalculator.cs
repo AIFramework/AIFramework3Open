@@ -1,7 +1,9 @@
-using FractalAgentsAI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Core;
 using System.Globalization;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Medical;
+namespace AI.Solvers.Chem.Processors.Medical;
 
 // ═══════════════════════════════════════════════════════════
 // КИНЕТИКА ФЕРМЕНТОВ (МИХАЭЛИС-МЕНТЕН)
@@ -20,9 +22,9 @@ public class EnzymeKineticsCalculator
     {
         try
         {
-            double Vmax = double.Parse(cmd.Parameters["Vmax"], CultureInfo.InvariantCulture); // максимальная скорость
-            double Km = double.Parse(cmd.Parameters["Km"], CultureInfo.InvariantCulture); // константа Михаэлиса
-            double S = double.Parse(cmd.Parameters["S"], CultureInfo.InvariantCulture); // концентрация субстрата
+            double Vmax = cmd.GetDouble("Vmax"); // максимальная скорость
+            double Km = cmd.GetDouble("Km"); // константа Михаэлиса
+            double S = cmd.GetDouble("S"); // концентрация субстрата
 
             // v = (Vmax * [S]) / (Km + [S])
             double v = (Vmax * S) / (Km + S);
@@ -72,8 +74,8 @@ public class EnzymeKineticsCalculator
         try
         {
             // Ожидаем массивы данных [S] и v
-            var substrateData = cmd.Parameters["substrate"].Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
-            var velocityData = cmd.Parameters["velocity"].Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
+            var substrateData = cmd.GetArray("substrate");
+            var velocityData = cmd.GetArray("velocity");
 
             if (substrateData.Length != velocityData.Length || substrateData.Length < 3)
                 return ChemResult.Error("Need at least 3 data points with matching S and v values");
@@ -85,7 +87,7 @@ public class EnzymeKineticsCalculator
             var y = velocityData.Select(v => 1.0 / v).ToArray();
 
             // Линейная регрессия
-            var (slope, intercept, r2) = LinearRegression(x, y);
+            var (slope, intercept, r2) = LeastSquares.Fit(x, y);
 
             double Vmax = 1.0 / intercept;
             double Km = slope * Vmax;
@@ -131,11 +133,11 @@ public class EnzymeKineticsCalculator
     {
         try
         {
-            double Vmax = double.Parse(cmd.Parameters["Vmax"], CultureInfo.InvariantCulture);
-            double Km = double.Parse(cmd.Parameters["Km"], CultureInfo.InvariantCulture);
-            double S = double.Parse(cmd.Parameters["S"], CultureInfo.InvariantCulture);
-            double I = double.Parse(cmd.Parameters["I"], CultureInfo.InvariantCulture); // концентрация ингибитора
-            double Ki = double.Parse(cmd.Parameters["Ki"], CultureInfo.InvariantCulture); // константа ингибирования
+            double Vmax = cmd.GetDouble("Vmax");
+            double Km = cmd.GetDouble("Km");
+            double S = cmd.GetDouble("S");
+            double I = cmd.GetDouble("I"); // концентрация ингибитора
+            double Ki = cmd.GetDouble("Ki"); // константа ингибирования
 
             // Конкурентное ингибирование: v = Vmax·[S] / (Km·(1 + [I]/Ki) + [S])
             // Эффект: Km увеличивается, Vmax не изменяется
@@ -186,11 +188,11 @@ public class EnzymeKineticsCalculator
     {
         try
         {
-            double Vmax = double.Parse(cmd.Parameters["Vmax"], CultureInfo.InvariantCulture);
-            double Km = double.Parse(cmd.Parameters["Km"], CultureInfo.InvariantCulture);
-            double S = double.Parse(cmd.Parameters["S"], CultureInfo.InvariantCulture);
-            double I = double.Parse(cmd.Parameters["I"], CultureInfo.InvariantCulture);
-            double Ki = double.Parse(cmd.Parameters["Ki"], CultureInfo.InvariantCulture);
+            double Vmax = cmd.GetDouble("Vmax");
+            double Km = cmd.GetDouble("Km");
+            double S = cmd.GetDouble("S");
+            double I = cmd.GetDouble("I");
+            double Ki = cmd.GetDouble("Ki");
 
             // Неконкурентное ингибирование: v = (Vmax·[S]) / ((1 + [I]/Ki)·(Km + [S]))
             // Эффект: Vmax уменьшается, Km не изменяется
@@ -234,8 +236,8 @@ public class EnzymeKineticsCalculator
     {
         try
         {
-            double enzymeActivity = double.Parse(cmd.Parameters["activity"], CultureInfo.InvariantCulture); // units
-            double proteinConc = double.Parse(cmd.Parameters["protein"], CultureInfo.InvariantCulture); // mg
+            double enzymeActivity = cmd.GetDouble("activity"); // units
+            double proteinConc = cmd.GetDouble("protein"); // mg
 
             // Удельная активность = units / mg protein
             double specificActivity = enzymeActivity / proteinConc;
@@ -258,27 +260,5 @@ public class EnzymeKineticsCalculator
         {
             return ChemResult.Error($"Specific activity calculation failed: {ex.Message}");
         }
-    }
-
-    // Линейная регрессия (вспомогательный метод)
-    private (double slope, double intercept, double r2) LinearRegression(double[] x, double[] y)
-    {
-        int n = x.Length;
-        double sumX = x.Sum();
-        double sumY = y.Sum();
-        double sumXY = x.Zip(y, (a, b) => a * b).Sum();
-        double sumX2 = x.Sum(a => a * a);
-        double sumY2 = y.Sum(a => a * a);
-
-        double slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        double intercept = (sumY - slope * sumX) / n;
-
-        // R²
-        double meanY = sumY / n;
-        double ssTotal = y.Sum(yi => Math.Pow(yi - meanY, 2));
-        double ssResidual = x.Zip(y, (xi, yi) => Math.Pow(yi - (slope * xi + intercept), 2)).Sum();
-        double r2 = 1 - (ssResidual / ssTotal);
-
-        return (slope, intercept, r2);
     }
 }

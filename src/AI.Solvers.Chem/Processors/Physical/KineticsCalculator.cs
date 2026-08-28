@@ -1,7 +1,9 @@
-﻿using FractalAgentsAI.Solvers.Chem.Core;
+﻿using AI.Solvers.Chem.Core;
 using System.Globalization;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Physical;
+namespace AI.Solvers.Chem.Processors.Physical;
 
 // ═══════════════════════════════════════════════════════════
 // КИНЕТИКА (РАСШИРЕННАЯ)
@@ -9,6 +11,9 @@ namespace FractalAgentsAI.Solvers.Chem.Processors.Physical;
 public class KineticsCalculator
 {
     private readonly VerbosityLevel _verbosity;
+
+    // Имена реагентов в записи "rate law k=0.05 A=0.1 B=0.2 orderA=1 orderB=2"
+    private static readonly string[] ReagentNames = { "A", "B", "C", "D" };
 
     public KineticsCalculator(VerbosityLevel verbosity)
     {
@@ -20,9 +25,33 @@ public class KineticsCalculator
     {
         try
         {
-            double k = double.Parse(cmd.Parameters["k"], CultureInfo.InvariantCulture); // константа скорости
-            var concentrations = cmd.Parameters["concentrations"].Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
-            var orders = cmd.Parameters["orders"].Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
+            double k = cmd.GetDouble("k"); // константа скорости
+
+            // Поддерживаются оба документированных вида записи:
+            // "rate law k=0.05 concentrations=0.1,0.2 orders=1,2" и "rate law k=0.05 A=0.1 B=0.2 orderA=1 orderB=2"
+            double[] concentrations, orders;
+
+            if (cmd.Has("concentrations"))
+            {
+                concentrations = cmd.GetArray("concentrations");
+                orders = cmd.GetArray("orders");
+            }
+            else
+            {
+                var reagents = new List<(double Concentration, double Order)>();
+
+                foreach (string name in ReagentNames)
+                {
+                    if (cmd.TryGetDouble(out double concentration, name))
+                        reagents.Add((concentration, cmd.GetDoubleOrDefault(1.0, $"order{name}", $"order_{name}", $"n{name}")));
+                }
+
+                if (reagents.Count == 0)
+                    throw new MissingParameterException(new[] { "concentrations", "A" });
+
+                concentrations = reagents.Select(r => r.Concentration).ToArray();
+                orders = reagents.Select(r => r.Order).ToArray();
+            }
 
             if (concentrations.Length != orders.Length)
                 return ChemResult.Error("Number of concentrations must match number of orders");
@@ -73,9 +102,9 @@ public class KineticsCalculator
     {
         try
         {
-            int order = int.Parse(cmd.Parameters["order"]); // порядок реакции
-            double k = double.Parse(cmd.Parameters["k"], CultureInfo.InvariantCulture); // константа скорости
-            double C0 = order >= 1 ? double.Parse(cmd.Parameters.GetValueOrDefault("C0", "1.0"), CultureInfo.InvariantCulture) : 1.0;
+            int order = cmd.GetInt("order", "n"); // порядок реакции
+            double k = cmd.GetDouble("k"); // константа скорости
+            double C0 = cmd.GetDoubleOrDefault(1.0, "C0", "A0", "[A]0", "initial_concentration");
 
             double t_half;
             string formula;
@@ -135,14 +164,17 @@ public class KineticsCalculator
     {
         try
         {
-            var calcType = cmd.Parameters.GetValueOrDefault("calculate", "k");
+            // Что считать, видно по набору данных: пара (k1,T1)-(k2,T2) даёт Ea, иначе считается k
+            var calcType = cmd.GetStringOrDefault(
+                cmd.Has("k1") && cmd.Has("k2") ? "Ea" : "k",
+                "calculate", "find");
 
             if (calcType == "k")
             {
                 // Расчёт константы скорости: k = A·exp(-Ea/RT)
-                double A = double.Parse(cmd.Parameters["A"], CultureInfo.InvariantCulture); // предэкспоненциальный множитель
-                double Ea = double.Parse(cmd.Parameters["Ea"], CultureInfo.InvariantCulture); // энергия активации, кДж/моль
-                double T = double.Parse(cmd.Parameters["T"], CultureInfo.InvariantCulture); // температура, K
+                double A = cmd.GetDouble("A"); // предэкспоненциальный множитель
+                double Ea = cmd.GetDouble("Ea"); // энергия активации, кДж/моль
+                double T = cmd.GetDouble("T", "temperature"); // температура, K
                 const double R = 8.314; // Дж/(моль·К)
 
                 double k = A * Math.Exp(-Ea * 1000 / (R * T));
@@ -167,10 +199,10 @@ public class KineticsCalculator
             else if (calcType == "Ea")
             {
                 // Расчёт энергии активации из двух температур
-                double k1 = double.Parse(cmd.Parameters["k1"], CultureInfo.InvariantCulture);
-                double T1 = double.Parse(cmd.Parameters["T1"], CultureInfo.InvariantCulture); // K
-                double k2 = double.Parse(cmd.Parameters["k2"], CultureInfo.InvariantCulture);
-                double T2 = double.Parse(cmd.Parameters["T2"], CultureInfo.InvariantCulture); // K
+                double k1 = cmd.GetDouble("k1");
+                double T1 = cmd.GetDouble("T1"); // K
+                double k2 = cmd.GetDouble("k2");
+                double T2 = cmd.GetDouble("T2"); // K
                 const double R = 8.314;
 
                 // ln(k2/k1) = -Ea/R · (1/T2 - 1/T1)
@@ -207,13 +239,19 @@ public class KineticsCalculator
     {
         try
         {
-            var method = cmd.Parameters.GetValueOrDefault("method", "graphical");
+            // Метод по умолчанию - начальных скоростей: он единственный реализован
+            var method = cmd.GetStringOrDefault("initial_rates", "method");
 
             if (method == "initial_rates")
             {
-                // Метод начальных скоростей
-                var concentrations = cmd.Parameters["concentrations"].Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
-                var rates = cmd.Parameters["rates"].Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
+                // Данные принимаются и списком ("rates=0.1,0.4"), и парами ("rate1=0.1 rate2=0.4")
+                double[] concentrations = cmd.Has("concentrations")
+                    ? cmd.GetArray("concentrations")
+                    : new[] { cmd.GetDouble("conc1", "c1", "C1"), cmd.GetDouble("conc2", "c2", "C2") };
+
+                double[] rates = cmd.Has("rates")
+                    ? cmd.GetArray("rates")
+                    : new[] { cmd.GetDouble("rate1", "v1"), cmd.GetDouble("rate2", "v2") };
 
                 if (concentrations.Length < 2 || rates.Length < 2)
                     return ChemResult.Error("Need at least 2 data points");
@@ -259,10 +297,10 @@ public class KineticsCalculator
     {
         try
         {
-            int order = int.Parse(cmd.Parameters["order"]);
-            double k = double.Parse(cmd.Parameters["k"], CultureInfo.InvariantCulture);
-            double C0 = double.Parse(cmd.Parameters["C0"], CultureInfo.InvariantCulture);
-            double t = double.Parse(cmd.Parameters["t"], CultureInfo.InvariantCulture);
+            int order = cmd.GetInt("order", "n");
+            double k = cmd.GetDouble("k");
+            double C0 = cmd.GetDouble("C0", "A0", "[A]0", "initial_concentration");
+            double t = cmd.GetDouble("t", "time");
 
             double Ct;
             string equation;

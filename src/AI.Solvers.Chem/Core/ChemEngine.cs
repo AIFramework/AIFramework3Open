@@ -2,17 +2,18 @@
 // NUGET PACKAGES REQUIRED:
 
 
-using FractalAgentsAI.Solvers.Chem.Database;
-using FractalAgentsAI.Solvers.Chem.Parsing;
-using FractalAgentsAI.Solvers.Chem.Processors;
-using FractalAgentsAI.Solvers.Chem.Processors.Inorganic;
-using FractalAgentsAI.Solvers.Chem.Processors.Organic;
-using FractalAgentsAI.Solvers.Chem.Processors.Physical;
-using FractalAgentsAI.Solvers.Chem.Processors.Medical;
-using FractalAgentsAI.Solvers.Chem.Processors.Analytical;
+using AI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Parsing;
+using AI.Solvers.Chem.Processors;
+using AI.Solvers.Chem.Processors.Inorganic;
+using AI.Solvers.Chem.Processors.Organic;
+using AI.Solvers.Chem.Processors.Physical;
+using AI.Solvers.Chem.Processors.Medical;
+using AI.Solvers.Chem.Processors.Analytical;
 using System.Text;
+using AI.Solvers.Chem.Models;
 
-namespace FractalAgentsAI.Solvers.Chem.Core;
+namespace AI.Solvers.Chem.Core;
 
 // ОСНОВНОЙ ДВИЖОК
 
@@ -151,7 +152,7 @@ public class ChemEngine : IChemEngine
                 CommandType.PredictProduct => _organic.PredictProduct(parsed),
                 CommandType.Retrosynthesis => _organic.Retrosynthesis(parsed),
                 CommandType.IUPACNaming => _organic.IUPACName(parsed),
-                CommandType.Properties => _propsCalculator.CalculateProperties(parsed.Parameters["smiles"]),
+                CommandType.Properties => _propsCalculator.CalculateProperties(parsed.GetString("smiles", "structure", "compound")),
 
                 // Медицинские расчёты
                 CommandType.Pharmacokinetics => _pharmacokinetics.OneCompartmentModel(parsed),
@@ -164,7 +165,7 @@ public class ChemEngine : IChemEngine
                 // Кинетика ферментов
                 CommandType.MichaelisMenten => _enzymeKinetics.MichaelisMenten(parsed),
                 CommandType.LineweaverBurk => _enzymeKinetics.LineweaverBurk(parsed),
-                CommandType.EnzymeInhibition => parsed.Parameters.GetValueOrDefault("inhibition_type", "competitive") == "competitive"
+                CommandType.EnzymeInhibition => parsed.GetStringOrDefault("competitive", "type", "inhibition_type") == "competitive"
                     ? _enzymeKinetics.CompetitiveInhibition(parsed)
                     : _enzymeKinetics.NonCompetitiveInhibition(parsed),
                 CommandType.SpecificActivity => _enzymeKinetics.CalculateSpecificActivity(parsed),
@@ -177,6 +178,7 @@ public class ChemEngine : IChemEngine
                 // Справочные
                 CommandType.ElementInfo => GetElementInfo(parsed),
                 CommandType.CompoundLookup => LookupCompound(parsed),
+                CommandType.Help => ChemResult.Ok(HelpSystem.GetHelp(parsed.GetStringOrDefault(string.Empty, "topic"))),
 
                 _ => ChemResult.Error($"Command type '{parsed.CommandType}' not implemented")
             };
@@ -209,7 +211,7 @@ public class ChemEngine : IChemEngine
 
     private ChemResult GetElementInfo(ParsedCommand cmd)
     {
-        var symbol = cmd.Parameters["element"];
+        var symbol = cmd.GetString("element");
         var element = _database.GetElement(symbol);
 
         if (element == null)
@@ -234,7 +236,7 @@ public class ChemEngine : IChemEngine
 
     private ChemResult LookupCompound(ParsedCommand cmd)
     {
-        var identifier = cmd.Parameters["compound"];
+        var identifier = cmd.GetString("compound");
         var compound = _database.LookupCompound(identifier);
 
         if (compound == null)

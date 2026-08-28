@@ -1,7 +1,9 @@
-using FractalAgentsAI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Core;
 using System.Globalization;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Medical;
+namespace AI.Solvers.Chem.Processors.Medical;
 
 // ═══════════════════════════════════════════════════════════
 // ФАРМАКОКИНЕТИКА
@@ -20,7 +22,7 @@ public class PharmacokineticCalculator
     {
         try
         {
-            var modelType = cmd.Parameters.GetValueOrDefault("type", "iv_bolus");
+            var modelType = cmd.GetStringOrDefault("iv_bolus", "type");
 
             return modelType switch
             {
@@ -39,10 +41,10 @@ public class PharmacokineticCalculator
     // Внутривенное болюсное введение
     private ChemResult IVBolus(ParsedCommand cmd)
     {
-        double dose = double.Parse(cmd.Parameters["dose"], CultureInfo.InvariantCulture); // мг
-        double Vd = double.Parse(cmd.Parameters["Vd"], CultureInfo.InvariantCulture); // L (объём распределения)
-        double t_half = double.Parse(cmd.Parameters["t_half"], CultureInfo.InvariantCulture); // часы
-        double time = double.Parse(cmd.Parameters.GetValueOrDefault("time", "0"), CultureInfo.InvariantCulture); // часы
+        double dose = cmd.GetDouble("dose"); // мг
+        double Vd = cmd.GetDouble("Vd"); // L (объём распределения)
+        double t_half = cmd.GetDouble("t_half"); // часы
+        double time = cmd.GetDoubleOrDefault(0, "time"); // часы
 
         // Константа элиминации: k = 0.693 / t_half
         double k = 0.693 / t_half;
@@ -87,10 +89,10 @@ public class PharmacokineticCalculator
     // Непрерывная инфузия
     private ChemResult ContinuousInfusion(ParsedCommand cmd)
     {
-        double infusionRate = double.Parse(cmd.Parameters["infusion_rate"], CultureInfo.InvariantCulture); // мг/ч
-        double Vd = double.Parse(cmd.Parameters["Vd"], CultureInfo.InvariantCulture); // L
-        double t_half = double.Parse(cmd.Parameters["t_half"], CultureInfo.InvariantCulture); // часы
-        double time = double.Parse(cmd.Parameters.GetValueOrDefault("time", "0"), CultureInfo.InvariantCulture); // часы
+        double infusionRate = cmd.GetDouble("infusion_rate"); // мг/ч
+        double Vd = cmd.GetDouble("Vd"); // L
+        double t_half = cmd.GetDouble("t_half"); // часы
+        double time = cmd.GetDoubleOrDefault(0, "time"); // часы
 
         double k = 0.693 / t_half;
         double CL = k * Vd;
@@ -134,12 +136,12 @@ public class PharmacokineticCalculator
     // Пероральное введение (с абсорбцией)
     private ChemResult OralAdministration(ParsedCommand cmd)
     {
-        double dose = double.Parse(cmd.Parameters["dose"], CultureInfo.InvariantCulture); // мг
-        double F = double.Parse(cmd.Parameters.GetValueOrDefault("bioavailability", "1.0"), CultureInfo.InvariantCulture); // биодоступность
-        double Vd = double.Parse(cmd.Parameters["Vd"], CultureInfo.InvariantCulture); // L
-        double ka = double.Parse(cmd.Parameters["ka"], CultureInfo.InvariantCulture); // константа абсорбции, ч⁻¹
-        double t_half = double.Parse(cmd.Parameters["t_half"], CultureInfo.InvariantCulture); // часы
-        double time = double.Parse(cmd.Parameters.GetValueOrDefault("time", "0"), CultureInfo.InvariantCulture); // часы
+        double dose = cmd.GetDouble("dose"); // мг
+        double F = cmd.GetDoubleOrDefault(1.0, "bioavailability"); // биодоступность
+        double Vd = cmd.GetDouble("Vd"); // L
+        double ka = cmd.GetDouble("ka"); // константа абсорбции, ч⁻¹
+        double t_half = cmd.GetDouble("t_half"); // часы
+        double time = cmd.GetDoubleOrDefault(0, "time"); // часы
 
         double k = 0.693 / t_half; // константа элиминации
         
@@ -179,9 +181,9 @@ public class PharmacokineticCalculator
     {
         try
         {
-            double targetConc = double.Parse(cmd.Parameters["target_concentration"], CultureInfo.InvariantCulture); // мг/L
-            double Vd = double.Parse(cmd.Parameters["Vd"], CultureInfo.InvariantCulture); // L
-            double F = double.Parse(cmd.Parameters.GetValueOrDefault("bioavailability", "1.0"), CultureInfo.InvariantCulture);
+            double targetConc = cmd.GetDouble("target_concentration"); // мг/L
+            double Vd = cmd.GetDouble("Vd"); // L
+            double F = cmd.GetDoubleOrDefault(1.0, "bioavailability");
 
             // Loading dose: LD = Ctarget * Vd / F
             double loadingDose = targetConc * Vd / F;
@@ -189,9 +191,9 @@ public class PharmacokineticCalculator
             var result = ChemResult.Ok($"Loading dose = {loadingDose:F1} mg");
             result.Data["loading_dose"] = loadingDose;
 
-            if (cmd.Parameters.ContainsKey("t_half"))
+            if (cmd.Has("t_half"))
             {
-                double t_half = double.Parse(cmd.Parameters["t_half"], CultureInfo.InvariantCulture);
+                double t_half = cmd.GetDouble("t_half");
                 double k = 0.693 / t_half;
                 double CL = k * Vd;
                 
@@ -246,10 +248,10 @@ public class PharmacokineticCalculator
     {
         try
         {
-            double C1 = double.Parse(cmd.Parameters["C1"], CultureInfo.InvariantCulture); // концентрация в момент t1
-            double C2 = double.Parse(cmd.Parameters["C2"], CultureInfo.InvariantCulture); // концентрация в момент t2
-            double t1 = double.Parse(cmd.Parameters["t1"], CultureInfo.InvariantCulture); // часы
-            double t2 = double.Parse(cmd.Parameters["t2"], CultureInfo.InvariantCulture); // часы
+            double C1 = cmd.GetDouble("C1"); // концентрация в момент t1
+            double C2 = cmd.GetDouble("C2"); // концентрация в момент t2
+            double t1 = cmd.GetDouble("t1"); // часы
+            double t2 = cmd.GetDouble("t2"); // часы
 
             // C2 = C1 * exp(-k*(t2-t1))
             // k = -ln(C2/C1) / (t2-t1)

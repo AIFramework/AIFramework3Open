@@ -1,8 +1,10 @@
-using FractalAgentsAI.Solvers.Chem.Core;
-using FractalAgentsAI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Database;
 using System.Globalization;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Inorganic;
+namespace AI.Solvers.Chem.Processors.Inorganic;
 
 // ═══════════════════════════════════════════════════════════
 // РАСТВОРИМОСТЬ И ПРОИЗВЕДЕНИЕ РАСТВОРИМОСТИ (Ksp)
@@ -56,6 +58,11 @@ public class SolubilityCalculator
         ["Ca3(PO4)2"] = (2.07e-33, "3Ca²⁺ + 2PO₄³⁻"),
         ["Ag3PO4"] = (8.89e-17, "3Ag⁺ + PO₄³⁻"),
         
+        // Фториды
+        ["CaF2"] = (3.45e-11, "Ca²⁺ + 2F⁻"),
+        ["MgF2"] = (5.16e-11, "Mg²⁺ + 2F⁻"),
+        ["BaF2"] = (1.84e-7, "Ba²⁺ + 2F⁻"),
+
         // Хроматы
         ["BaCrO4"] = (1.17e-10, "Ba²⁺ + CrO₄²⁻"),
         ["Ag2CrO4"] = (1.12e-12, "2Ag⁺ + CrO₄²⁻"),
@@ -73,7 +80,7 @@ public class SolubilityCalculator
     {
         try
         {
-            var compound = cmd.Parameters["compound"];
+            var compound = cmd.GetString("compound", "salt");
             
             if (!_kspData.ContainsKey(compound))
                 return ChemResult.Error($"Ksp data not available for {compound}");
@@ -151,9 +158,13 @@ public class SolubilityCalculator
     {
         try
         {
-            var compound = cmd.Parameters["compound"];
-            var commonIon = cmd.Parameters["common_ion"];
-            var commonIonConc = double.Parse(cmd.Parameters["concentration"], CultureInfo.InvariantCulture);
+            var compound = cmd.GetString("compound", "salt");
+            var commonIon = cmd.GetString("ion", "common_ion");
+            var commonIonConc = cmd.TryGetDouble(out double conc, "concentration", "c", "conc")
+                ? conc
+                : cmd.TryGetConcentration(out conc, commonIon)
+                    ? conc
+                    : throw new MissingParameterException(new[] { "concentration", $"[{commonIon}]" });
 
             if (!_kspData.ContainsKey(compound))
                 return ChemResult.Error($"Ksp data not available for {compound}");
@@ -211,9 +222,18 @@ public class SolubilityCalculator
     {
         try
         {
-            var compound = cmd.Parameters["compound"];
-            var cationConc = double.Parse(cmd.Parameters["cation"], CultureInfo.InvariantCulture);
-            var anionConc = double.Parse(cmd.Parameters["anion"], CultureInfo.InvariantCulture);
+            var compound = cmd.GetString("compound", "salt");
+
+            // Концентрации ионов: "cation=/anion=" либо документированный вид "[Ca]=0.01M [F]=0.001M"
+            var bracketed = cmd.ConcentrationParameters.ToList();
+
+            double cationConc = cmd.TryGetDouble(out double c, "cation", "cation_concentration")
+                ? c
+                : ParseBracketed(bracketed, 0, "cation");
+
+            double anionConc = cmd.TryGetDouble(out double a, "anion", "anion_concentration")
+                ? a
+                : ParseBracketed(bracketed, 1, "anion");
 
             if (!_kspData.ContainsKey(compound))
                 return ChemResult.Error($"Ksp data not available for {compound}");
@@ -280,16 +300,14 @@ public class SolubilityCalculator
     {
         try
         {
-            var compound1 = cmd.Parameters["compound1"];
-            var compound2 = cmd.Parameters["compound2"];
-            // По умолчанию ищем параметр anion, если нет - то anion_concentration
-            var anionParam = cmd.Parameters.ContainsKey("anion") ? cmd.Parameters["anion"] : 
-                             cmd.Parameters.ContainsKey("anion_concentration") ? cmd.Parameters["anion_concentration"] : null;
-            
-            if (anionParam == null)
-                 return ChemResult.Error("Anion concentration required (use 'anion' or 'anion_concentration')");
+            var compound1 = cmd.GetString("compound1", "salt1");
+            var compound2 = cmd.GetString("compound2", "salt2");
 
-            var anionConc = double.Parse(anionParam, CultureInfo.InvariantCulture);
+            var bracketed = cmd.ConcentrationParameters.ToList();
+
+            double anionConc = cmd.TryGetDouble(out double a, "anion", "anion_concentration", "concentration")
+                ? a
+                : ParseBracketed(bracketed, 0, "anion");
 
             if (!_kspData.ContainsKey(compound1) || !_kspData.ContainsKey(compound2))
                 return ChemResult.Error("Ksp data not available for one or both compounds");
@@ -329,6 +347,19 @@ public class SolubilityCalculator
     }
 
     // Вспомогательные методы
+
+    // Концентрация иона из параметров вида "[Ca]=0.01M" по порядку их следования в команде
+    private static double ParseBracketed(List<KeyValuePair<string, string>> bracketed, int index, string role)
+    {
+        if (index >= bracketed.Count
+            || !double.TryParse(bracketed[index].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+        {
+            throw new MissingParameterException(new[] { role, $"{role}_concentration", "[ion]" });
+        }
+
+        return value;
+    }
+
     private (int cation, int anion) GetStoichiometry(string compound)
     {
         // Упрощённое определение стехиометрии на основе формулы
@@ -339,14 +370,15 @@ public class SolubilityCalculator
             "CaCO3" or "BaCO3" or "MgCO3" or "BaCrO4" or "PbCrO4" or
             "CuS" or "ZnS" or "FeS" or "PbS" => (1, 1),
             
-            "PbCl2" or "PbBr2" or "PbI2" or "Hg2Cl2" or "Mg(OH)2" or "Ca(OH)2" => (1, 2),
-            
+            "PbCl2" or "PbBr2" or "PbI2" or "Hg2Cl2" or "Mg(OH)2" or "Ca(OH)2" or
+            "CaF2" or "MgF2" or "BaF2" => (1, 2),
+
             "Ag2SO4" or "Ag2CO3" or "Ag2CrO4" => (2, 1),
-            
+
             "Fe(OH)3" or "Al(OH)3" => (1, 3),
-            
-            "Ag3PO4" or "3Ag⁺ + PO₄³⁻" => (3, 1), // исправление возможной опечатки в switch
-            
+
+            "Ag3PO4" => (3, 1),
+
             "Ca3(PO4)2" => (3, 2),
             
             _ => (1, 1) // по умолчанию

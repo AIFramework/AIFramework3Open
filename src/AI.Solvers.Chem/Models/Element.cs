@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NCDK;
 using NCDK.Smiles;
-namespace FractalAgentsAI.Solvers.Chem.Models;
+namespace AI.Solvers.Chem.Models;
 
 public class Element
 {

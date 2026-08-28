@@ -1,7 +1,7 @@
-using FractalAgentsAI.Solvers.Chem.Core;
-using FractalAgentsAI.Solvers.Chem.Database;
-using FractalAgentsAI.Solvers.Chem.Models;
-using FractalAgentsAI.Solvers.Chem.Processors.Organic.Graph;
+using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Processors.Organic.Graph;
 using NCDK;
 using NCDK.Aromaticities;
 using NCDK.Default;
@@ -9,8 +9,9 @@ using NCDK.SMARTS;
 using NCDK.Smiles;
 using NCDK.Tools.Manipulator;
 using System.Text;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Organic;
+namespace AI.Solvers.Chem.Processors.Organic;
 
 // ═══════════════════════════════════════════════════════════
 // ОРГАНИЧЕСКАЯ ХИМИЯ
@@ -44,7 +45,7 @@ public class OrganicChemProcessor
     {
         try
         {
-            var smiles = cmd.Parameters["smiles"];
+            var smiles = cmd.GetString("smiles");
             var molecule = _smilesParser.ParseSmiles(smiles);
 
             // Добавляем неявные водороды
@@ -86,7 +87,7 @@ public class OrganicChemProcessor
     {
         try
         {
-            var name = cmd.Parameters["name"].ToLower().Trim();
+            var name = cmd.GetString("name").ToLower().Trim();
 
             // 1. Попытка найти в базе данных
             var compound = _database.LookupCompound(name);
@@ -161,7 +162,7 @@ public class OrganicChemProcessor
     {
         try
         {
-            var formula = cmd.Parameters["formula"];
+            var formula = cmd.GetString("formula");
 
             // Упрощенная генерация изомеров для малых молекул
             var molecular = new MolecularFormula(formula);
@@ -227,9 +228,9 @@ public class OrganicChemProcessor
     {
         try
         {
-            var smiles = cmd.Parameters.ContainsKey("smiles")
-                ? cmd.Parameters["smiles"]
-                : cmd.Parameters["reactant1"];
+            var smiles = cmd.Has("smiles")
+                ? cmd.GetString("smiles")
+                : cmd.GetString("reactant1");
 
             var molecule = _smilesParser.ParseSmiles(smiles);
             AtomContainerManipulator.PercieveAtomTypesAndConfigureAtoms(molecule);
@@ -300,9 +301,9 @@ public class OrganicChemProcessor
     {
         try
         {
-            var reactantCount = int.Parse(cmd.Parameters["reactant_count"]);
-            var reactant1 = cmd.Parameters["reactant1"];
-            string reactant2 = reactantCount > 1 ? cmd.Parameters["reactant2"] : null;
+            var reactantCount = cmd.GetInt("reactant_count");
+            var reactant1 = cmd.GetString("reactant1");
+            string reactant2 = reactantCount > 1 ? cmd.GetString("reactant2") : null;
 
             var result = new StringBuilder();
             result.AppendLine($"Reactants: {reactant1}" +
@@ -363,25 +364,9 @@ public class OrganicChemProcessor
     {
         try
         {
-            // Извлечение параметров
-            string? target = null;
-            string? starting = null;
-
-            // Парсинг команды типа "retrosynthesis aspirin from benzene"
-            var originalCmd = cmd.OriginalCommand.ToLower();
-            var fromIndex = originalCmd.IndexOf(" from ");
-            
-            if (fromIndex > 0)
-            {
-                target = originalCmd.Substring(originalCmd.IndexOf("retrosynthesis") + 14, 
-                    fromIndex - originalCmd.IndexOf("retrosynthesis") - 14).Trim();
-                starting = originalCmd.Substring(fromIndex + 6).Trim();
-            }
-            else if (cmd.Parameters.ContainsKey("target"))
-            {
-                target = cmd.Parameters["target"];
-                starting = cmd.Parameters.ContainsKey("starting") ? cmd.Parameters["starting"] : null;
-            }
+            // Параметры берутся у парсера: регистр важен, в SMILES "C" и "c" - разные атомы
+            string? target = cmd.GetStringOrDefault(null, "target", "compound", "product");
+            string? starting = cmd.GetStringOrDefault(null, "starting", "from", "starting_material");
 
             if (string.IsNullOrWhiteSpace(target))
             {
@@ -401,19 +386,16 @@ public class OrganicChemProcessor
 
             if (compound == null)
             {
-                // 2. Попытка алгоритмического графового ретросинтеза (если target это SMILES)
-                bool isSmiles = target.Contains("C") || target.Contains("c") || target.Contains("O") || target.Contains("N");
-                
-                if (isSmiles)
+                // 2. Попытка алгоритмического графового ретросинтеза: цель разбирается как SMILES
                 {
                     try
                     {
-                        result.AppendLine("ВНИМАНИЕ: Соединение не найдено в базе данных. Запуск ГРАФОВОГО РЕТРОСИНТЕЗА...");
-                        result.AppendLine();
-
                         var molecule = _smilesParser.ParseSmiles(target);
                         AtomContainerManipulator.PercieveAtomTypesAndConfigureAtoms(molecule);
                         CDK.HydrogenAdder.AddImplicitHydrogens(molecule);
+
+                        result.AppendLine("ВНИМАНИЕ: Соединение не найдено в базе данных. Запуск ГРАФОВОГО РЕТРОСИНТЕЗА...");
+                        result.AppendLine();
 
                         // Запуск графового решателя
                         var tree = _graphSolver.Solve(molecule);
@@ -583,10 +565,10 @@ public class OrganicChemProcessor
     {
         try
         {
-            var smiles = cmd.Parameters.ContainsKey("smiles") 
-                ? cmd.Parameters["smiles"] 
-                : cmd.Parameters.ContainsKey("formula") 
-                    ? cmd.Parameters["formula"] 
+            var smiles = cmd.Has("smiles") 
+                ? cmd.GetString("smiles") 
+                : cmd.Has("formula") 
+                    ? cmd.GetString("formula") 
                     : null;
 
             if (smiles == null)

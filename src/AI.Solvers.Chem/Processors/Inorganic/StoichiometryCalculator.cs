@@ -1,7 +1,9 @@
-﻿using FractalAgentsAI.Solvers.Chem.Core;
-using FractalAgentsAI.Solvers.Chem.Database;
+﻿using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Database;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Inorganic;
+namespace AI.Solvers.Chem.Processors.Inorganic;
 
 // ═══════════════════════════════════════════════════════════
 // СТЕХИОМЕТРИЧЕСКИЕ РАСЧЕТЫ
@@ -21,7 +23,7 @@ public class StoichiometryCalculator
     {
         try
         {
-            var formula = cmd.Parameters["formula"];
+            var formula = cmd.GetString("formula", "compound", "substance");
             var molecular = new MolecularFormula(formula);
             var mass = molecular.CalculateMolarMass(_database);
 
@@ -55,13 +57,9 @@ public class StoichiometryCalculator
     {
         try
         {
-            var target = cmd.Parameters["target"];
-            var mass = double.Parse(cmd.Parameters["mass"]);
-            var source = cmd.Parameters["source"];
-
-            // Парсим уравнение реакции
-            var reactants = cmd.Parameters["reactants"];
-            var products = cmd.Parameters["products"];
+            var target = cmd.GetString("target");
+            var mass = cmd.GetDouble("mass");
+            var source = cmd.GetString("source");
 
             // Простейший случай: A -> B
             var sourceMol = new MolecularFormula(source);

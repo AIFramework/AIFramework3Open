@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>annotations</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Solvers.Chem</RootNamespace>
+    <AssemblyName>AI.Solvers.Chem</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Химический тулкит (структуры, SMILES/SMARTS). Математика - своя, из фреймворка. -->
+    <PackageReference Include="NCDK" Version="1.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+    <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\synthesis_database.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

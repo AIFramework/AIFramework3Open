@@ -1,7 +1,9 @@
-using FractalAgentsAI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Core;
 using System.Globalization;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Parsing;
 
-namespace FractalAgentsAI.Solvers.Chem.Processors.Analytical;
+namespace AI.Solvers.Chem.Processors.Analytical;
 
 // ═══════════════════════════════════════════════════════════
 // СПЕКТРОСКОПИЯ (ЗАКОН БУГЕРА-ЛАМБЕРТА-БЕРА)
@@ -9,6 +11,13 @@ namespace FractalAgentsAI.Solvers.Chem.Processors.Analytical;
 public class SpectroscopyCalculator
 {
     private readonly VerbosityLevel _verbosity;
+
+    // Алиасы величин закона Бера: "A", "eps", "l" - документированный синтаксис команд
+    private static readonly string[] AbsorbanceNames = { "absorbance", "A" };
+    private static readonly string[] ConcentrationNames = { "concentration", "c" };
+    private static readonly string[] EpsilonNames = { "epsilon", "eps" };
+    private static readonly string[] PathNames = { "pathlength", "l", "path" };
+    private static readonly string[] TransmittanceNames = { "transmittance", "T", "percentT" };
 
     public SpectroscopyCalculator(VerbosityLevel verbosity)
     {
@@ -20,21 +29,18 @@ public class SpectroscopyCalculator
     {
         try
         {
-            // Нормализация параметров (поддержка алиасов)
-            NormalizeParameters(cmd.Parameters);
-
-            var calculation = cmd.Parameters.GetValueOrDefault("calculate");
+            var calculation = cmd.GetStringOrDefault(null, "calculate", "find");
 
             // Автоматическое определение, что считать, если не указано
             if (string.IsNullOrEmpty(calculation))
             {
-                if (!cmd.Parameters.ContainsKey("absorbance") && cmd.Parameters.ContainsKey("epsilon") && cmd.Parameters.ContainsKey("concentration"))
+                if (!cmd.Has(AbsorbanceNames) && cmd.Has(EpsilonNames) && cmd.Has(ConcentrationNames))
                     calculation = "absorbance";
-                else if (!cmd.Parameters.ContainsKey("concentration") && cmd.Parameters.ContainsKey("absorbance") && cmd.Parameters.ContainsKey("epsilon"))
+                else if (!cmd.Has(ConcentrationNames) && cmd.Has(AbsorbanceNames) && cmd.Has(EpsilonNames))
                     calculation = "concentration";
-                else if (!cmd.Parameters.ContainsKey("epsilon") && cmd.Parameters.ContainsKey("absorbance") && cmd.Parameters.ContainsKey("concentration"))
+                else if (!cmd.Has(EpsilonNames) && cmd.Has(AbsorbanceNames) && cmd.Has(ConcentrationNames))
                     calculation = "molar_absorptivity";
-                else if (cmd.Parameters.ContainsKey("transmittance") || (cmd.Parameters.ContainsKey("absorbance") && !cmd.Parameters.ContainsKey("epsilon")))
+                else if (cmd.Has(TransmittanceNames) || (cmd.Has(AbsorbanceNames) && !cmd.Has(EpsilonNames)))
                     calculation = "transmittance"; // Конвертация, если мало данных для закона Бера
                 else
                     calculation = "concentration"; // По умолчанию
@@ -55,39 +61,15 @@ public class SpectroscopyCalculator
         }
     }
 
-    private void NormalizeParameters(Dictionary<string, string> p)
-    {
-        // Absorbance
-        if (!p.ContainsKey("absorbance") && p.ContainsKey("A")) p["absorbance"] = p["A"];
-        
-        // Concentration
-        if (!p.ContainsKey("concentration") && p.ContainsKey("c")) p["concentration"] = p["c"];
-        
-        // Epsilon
-        if (!p.ContainsKey("epsilon") && p.ContainsKey("eps")) p["epsilon"] = p["eps"];
-        
-        // Pathlength
-        if (!p.ContainsKey("pathlength"))
-        {
-            if (p.ContainsKey("l")) p["pathlength"] = p["l"];
-            else if (p.ContainsKey("L")) p["pathlength"] = p["L"];
-            else p["pathlength"] = "1.0"; // Default 1 cm
-        }
-
-        // Transmittance
-        if (!p.ContainsKey("transmittance") && p.ContainsKey("T")) p["transmittance"] = p["T"];
-        if (!p.ContainsKey("transmittance") && p.ContainsKey("percentT")) p["transmittance"] = p["percentT"];
-    }
-
     // Расчёт концентрации по поглощению
     private ChemResult CalculateConcentration(ParsedCommand cmd)
     {
-        if (!cmd.Parameters.ContainsKey("absorbance")) return ChemResult.Error("Absorbance (A) is required");
-        if (!cmd.Parameters.ContainsKey("epsilon")) return ChemResult.Error("Molar absorptivity (epsilon) is required");
+        if (!cmd.Has(AbsorbanceNames)) return ChemResult.Error("Absorbance (A) is required");
+        if (!cmd.Has(EpsilonNames)) return ChemResult.Error("Molar absorptivity (epsilon) is required");
 
-        double absorbance = double.Parse(cmd.Parameters["absorbance"], CultureInfo.InvariantCulture); // A
-        double epsilon = double.Parse(cmd.Parameters["epsilon"], CultureInfo.InvariantCulture); // L/(mol·cm), молярный коэффициент поглощения
-        double pathlength = double.Parse(cmd.Parameters["pathlength"], CultureInfo.InvariantCulture); // cm
+        double absorbance = cmd.GetDouble(AbsorbanceNames); // A
+        double epsilon = cmd.GetDouble(EpsilonNames); // L/(mol·cm), молярный коэффициент поглощения
+        double pathlength = cmd.GetDoubleOrDefault(1.0, PathNames); // cm
 
         // A = ε·c·l → c = A / (ε·l)
         double concentration = absorbance / (epsilon * pathlength);
@@ -117,12 +99,12 @@ public class SpectroscopyCalculator
     // Расчёт поглощения
     private ChemResult CalculateAbsorbance(ParsedCommand cmd)
     {
-        if (!cmd.Parameters.ContainsKey("concentration")) return ChemResult.Error("Concentration (c) is required");
-        if (!cmd.Parameters.ContainsKey("epsilon")) return ChemResult.Error("Molar absorptivity (epsilon) is required");
+        if (!cmd.Has(ConcentrationNames)) return ChemResult.Error("Concentration (c) is required");
+        if (!cmd.Has(EpsilonNames)) return ChemResult.Error("Molar absorptivity (epsilon) is required");
 
-        double concentration = double.Parse(cmd.Parameters["concentration"], CultureInfo.InvariantCulture); // M
-        double epsilon = double.Parse(cmd.Parameters["epsilon"], CultureInfo.InvariantCulture); // L/(mol·cm)
-        double pathlength = double.Parse(cmd.Parameters["pathlength"], CultureInfo.InvariantCulture); // cm
+        double concentration = cmd.GetDouble(ConcentrationNames); // M
+        double epsilon = cmd.GetDouble(EpsilonNames); // L/(mol·cm)
+        double pathlength = cmd.GetDoubleOrDefault(1.0, PathNames); // cm
 
         // A = ε·c·l
         double absorbance = epsilon * concentration * pathlength;
@@ -154,12 +136,12 @@ public class SpectroscopyCalculator
     // Определение молярного коэффициента поглощения
     private ChemResult CalculateMolarAbsorptivity(ParsedCommand cmd)
     {
-        if (!cmd.Parameters.ContainsKey("absorbance")) return ChemResult.Error("Absorbance (A) is required");
-        if (!cmd.Parameters.ContainsKey("concentration")) return ChemResult.Error("Concentration (c) is required");
+        if (!cmd.Has(AbsorbanceNames)) return ChemResult.Error("Absorbance (A) is required");
+        if (!cmd.Has(ConcentrationNames)) return ChemResult.Error("Concentration (c) is required");
 
-        double absorbance = double.Parse(cmd.Parameters["absorbance"], CultureInfo.InvariantCulture);
-        double concentration = double.Parse(cmd.Parameters["concentration"], CultureInfo.InvariantCulture); // M
-        double pathlength = double.Parse(cmd.Parameters["pathlength"], CultureInfo.InvariantCulture); // cm
+        double absorbance = cmd.GetDouble(AbsorbanceNames);
+        double concentration = cmd.GetDouble(ConcentrationNames); // M
+        double pathlength = cmd.GetDoubleOrDefault(1.0, PathNames); // cm
 
         // ε = A / (c·l)
         double epsilon = absorbance / (concentration * pathlength);
@@ -182,9 +164,9 @@ public class SpectroscopyCalculator
     // Конвертация между поглощением и пропусканием
     private ChemResult ConvertTransmittance(ParsedCommand cmd)
     {
-        if (cmd.Parameters.ContainsKey("absorbance"))
+        if (cmd.Has(AbsorbanceNames))
         {
-            double absorbance = double.Parse(cmd.Parameters["absorbance"], CultureInfo.InvariantCulture);
+            double absorbance = cmd.GetDouble(AbsorbanceNames);
             double transmittance = Math.Pow(10, -absorbance);
             double percentT = transmittance * 100;
 
@@ -202,9 +184,9 @@ public class SpectroscopyCalculator
 
             return result;
         }
-        else if (cmd.Parameters.ContainsKey("transmittance"))
+        else if (cmd.Has(TransmittanceNames))
         {
-            double percentT = double.Parse(cmd.Parameters["transmittance"], CultureInfo.InvariantCulture); // %
+            double percentT = cmd.GetDouble(TransmittanceNames); // %
             double transmittance = percentT / 100;
             double absorbance = -Math.Log10(transmittance);
 
@@ -230,27 +212,19 @@ public class SpectroscopyCalculator
     {
         try
         {
-            // Алиасы для смеси
-            var p = cmd.Parameters;
-            if (!p.ContainsKey("eps1_lambda1") && p.ContainsKey("eps1_1")) p["eps1_lambda1"] = p["eps1_1"];
-            if (!p.ContainsKey("eps1_lambda2") && p.ContainsKey("eps1_2")) p["eps1_lambda2"] = p["eps1_2"];
-            if (!p.ContainsKey("eps2_lambda1") && p.ContainsKey("eps2_1")) p["eps2_lambda1"] = p["eps2_1"];
-            if (!p.ContainsKey("eps2_lambda2") && p.ContainsKey("eps2_2")) p["eps2_lambda2"] = p["eps2_2"];
-            if (!p.ContainsKey("pathlength") && p.ContainsKey("l")) p["pathlength"] = p["l"];
-
             // Для двух компонентов при двух длинах волн:
             // A1 = ε1,λ1·c1·l + ε2,λ1·c2·l
             // A2 = ε1,λ2·c1·l + ε2,λ2·c2·l
 
-            double A1 = double.Parse(cmd.Parameters["A1"], CultureInfo.InvariantCulture); // поглощение на λ1
-            double A2 = double.Parse(cmd.Parameters["A2"], CultureInfo.InvariantCulture); // поглощение на λ2
-            
-            double eps1_lambda1 = double.Parse(cmd.Parameters["eps1_lambda1"], CultureInfo.InvariantCulture);
-            double eps1_lambda2 = double.Parse(cmd.Parameters["eps1_lambda2"], CultureInfo.InvariantCulture);
-            double eps2_lambda1 = double.Parse(cmd.Parameters["eps2_lambda1"], CultureInfo.InvariantCulture);
-            double eps2_lambda2 = double.Parse(cmd.Parameters["eps2_lambda2"], CultureInfo.InvariantCulture);
-            
-            double pathlength = double.Parse(cmd.Parameters.GetValueOrDefault("pathlength", "1.0"), CultureInfo.InvariantCulture);
+            double A1 = cmd.GetDouble("A1"); // поглощение на λ1
+            double A2 = cmd.GetDouble("A2"); // поглощение на λ2
+
+            double eps1_lambda1 = cmd.GetDouble("eps1_lambda1", "eps1_1");
+            double eps1_lambda2 = cmd.GetDouble("eps1_lambda2", "eps1_2");
+            double eps2_lambda1 = cmd.GetDouble("eps2_lambda1", "eps2_1");
+            double eps2_lambda2 = cmd.GetDouble("eps2_lambda2", "eps2_2");
+
+            double pathlength = cmd.GetDoubleOrDefault(1.0, "pathlength", "l", "path");
 
             // Решение системы 2x2:
             // c1 = (A1·ε2,λ2 - A2·ε2,λ1) / (ε1,λ1·ε2,λ2 - ε1,λ2·ε2,λ1) / l
@@ -310,19 +284,14 @@ public class SpectroscopyCalculator
     {
         try
         {
-            // Алиасы
-            var p = cmd.Parameters;
-            if (!p.ContainsKey("absorbances") && p.ContainsKey("absorbance")) p["absorbances"] = p["absorbance"];
-            if (!p.ContainsKey("concentrations") && p.ContainsKey("concentration")) p["concentrations"] = p["concentration"];
-
-            var concentrations = cmd.Parameters["concentrations"].Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
-            var absorbances = cmd.Parameters["absorbances"].Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
+            var concentrations = cmd.GetArray("concentrations", "concentration", "c");
+            var absorbances = cmd.GetArray("absorbances", "absorbance", "A");
 
             if (concentrations.Length != absorbances.Length || concentrations.Length < 3)
                 return ChemResult.Error("Need at least 3 data points");
 
             // Линейная регрессия: A = m·c + b
-            var (slope, intercept, r2) = LinearRegression(concentrations, absorbances);
+            var (slope, intercept, r2) = LeastSquares.Fit(concentrations, absorbances);
 
             // slope = ε·l (если концентрация в M и длина в см)
             double epsilon = slope; // если pathlength = 1 cm
@@ -364,26 +333,5 @@ public class SpectroscopyCalculator
         {
             return ChemResult.Error($"Calibration curve analysis failed: {ex.Message}");
         }
-    }
-
-    // Линейная регрессия
-    private (double slope, double intercept, double r2) LinearRegression(double[] x, double[] y)
-    {
-        int n = x.Length;
-        double sumX = x.Sum();
-        double sumY = y.Sum();
-        double sumXY = x.Zip(y, (a, b) => a * b).Sum();
-        double sumX2 = x.Sum(a => a * a);
-        double sumY2 = y.Sum(a => a * a);
-
-        double slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        double intercept = (sumY - slope * sumX) / n;
-
-        double meanY = sumY / n;
-        double ssTotal = y.Sum(yi => Math.Pow(yi - meanY, 2));
-        double ssResidual = x.Zip(y, (xi, yi) => Math.Pow(yi - (slope * xi + intercept), 2)).Sum();
-        double r2 = 1 - (ssResidual / ssTotal);
-
-        return (slope, intercept, r2);
     }
 }
