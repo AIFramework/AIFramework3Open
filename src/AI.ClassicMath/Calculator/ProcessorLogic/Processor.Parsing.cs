@@ -44,6 +44,18 @@ public partial class Processor
                 continue;
             }
 
+            // return — выход из функции скрипта с результатом.
+            var returnMatch = Regex.Match(line, @"^return\b\s*(.*)$");
+            if (returnMatch.Success)
+            {
+                statements.Add(new ReturnStatement(returnMatch.Groups[1].Value));
+                continue;
+            }
+
+            // def имя(аргументы): и for x in список: — оба только Python-style, с отступом.
+            var defMatch = Regex.Match(line, @"^def\s+(\w+)\s*\(([^)]*)\)\s*:\s*$");
+            var forEachMatch = Regex.Match(line, @"^for\s+(\w+)\s+in\s+(.+):\s*$");
+
             var ifMatch = Regex.Match(line, @"^if\s*\((.*)\)\s*\{?$");
             var ifColonMatch = Regex.Match(line, @"^if\s+(.+):\s*$");  // Python-style: if condition:
             var elifMatch = Regex.Match(line, @"^elif\s+(.+):\s*$");  // Python-style: elif condition:
@@ -53,7 +65,24 @@ public partial class Processor
             var forMatch = Regex.Match(line, @"^for\s*\(([^;]*);([^;]*);([^)]*)\)\s*\{?$");
             var forToMatch = Regex.Match(line, @"^for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+?)(?:\s+step\s+(.+?))?\s*:\s*$");
 
-            if (ifMatch.Success)
+            if (defMatch.Success)
+            {
+                var parameters = defMatch.Groups[2].Value
+                    .Split(',')
+                    .Select(parameter => parameter.Trim())
+                    .Where(parameter => parameter.Length > 0)
+                    .ToList();
+
+                var body = ParseIndentedBlock(lines, cancellationToken);
+                statements.Add(new FunctionStatement(defMatch.Groups[1].Value, parameters, body));
+            }
+            else if (forEachMatch.Success)
+            {
+                var body = ParseIndentedBlock(lines, cancellationToken);
+                statements.Add(new ForEachStatement(
+                    forEachMatch.Groups[1].Value, forEachMatch.Groups[2].Value, body));
+            }
+            else if (ifMatch.Success)
             {
                 var condition = ifMatch.Groups[1].Value;
                 var trueBody = ParseBlock(lines, cancellationToken);

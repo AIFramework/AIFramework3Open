@@ -354,3 +354,5 @@ _dv*/
 # Источник правды — сами .md; файлы восстанавливаются командой
 # dotnet run --project Tools/DocsLint -- --emit-snippets Tools/SnippetCheck
 Tools/SnippetCheck/*.g.cs
+src/AI.Script/DESIGN.md
+src/AI.Script/PROMPT_CARD.md

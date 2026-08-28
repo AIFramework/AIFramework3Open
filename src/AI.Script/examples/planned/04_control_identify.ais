@@ -1,0 +1,24 @@
+# Идентификация объекта по логу и синтез ПИД-регулятора с проверкой качества.
+
+let log = io.read_csv("plant_log.csv")
+
+let plant = ctrl.identify(
+    u: log["u"],
+    y: log["y"],
+    order: 2,
+    method: "rls")
+
+emit модель = plant.describe()
+
+let pid = ctrl.pid_tune(plant, method: "imc", target_overshoot: 0.05)
+let sim = ctrl.simulate(plant, controller: pid, setpoint: 1.0, time: 20s, dt: 0.01)
+
+emit перерегулирование  = stat.overshoot(sim.y, target: 1.0)
+emit время_установления = stat.settling_time(sim.t, sim.y, target: 1.0, band: 0.02)
+
+assert stat.overshoot(sim.y, target: 1.0) < 0.1, "перерегулирование выше допустимого"
+
+show plot.grid([
+    plot.line(sim.y, x: sim.t, title: "Переходный процесс"),
+    plot.line(sim.u, x: sim.t, title: "Управляющее воздействие")
+])

@@ -106,13 +106,8 @@ public partial class AdvancedCalculator
 
                 evalStack.Push(isTrue ? trueVal : falseVal);
             }
-            else if (token.StartsWith("vector_") || token.Contains('_'))
+            else if (TrySplitCall(token, out var funcName, out var argCount))
             {
-                var parts = token.Split(new[] { '_' }, 2);
-                var funcName = parts[0];
-                var argCountStr = parts[1];
-                if (!int.TryParse(argCountStr, out
-                    var argCount)) throw new InvalidOperationException("Поврежденный токен функции/вектора.");
                 if (argCount == 0 && funcName == "vector")
                 {
                     evalStack.Push(new ComplexVector(0));
@@ -144,10 +139,9 @@ public partial class AdvancedCalculator
                 }
                 else
                 {
-                    if (!Functions.ContainsKey(funcName)) throw new NotSupportedException($"Функция '{funcName}' не найдена.");
-                    var funcDef = Functions[funcName];
+                    if (!TryGetFunction(funcName, context, out var funcDef)) throw new NotSupportedException($"Функция '{funcName}' не найдена.");
                     if (funcDef.ArgumentCount != -1 && funcDef.ArgumentCount != argCount) throw new ArgumentException($"Функция '{funcName}' ожидает {funcDef.ArgumentCount} аргументов, но получила {argCount}.");
-                    evalStack.Push(funcDef.Delegate(args));
+                    evalStack.Push(funcDef.Invoke(args, context));
                 }
             }
             else
@@ -158,5 +152,28 @@ public partial class AdvancedCalculator
 
         if (evalStack.Count > 1) throw new InvalidOperationException("Ошибка в синтаксисе выражения: в стеке осталось больше одного элемента.");
         return evalStack.Count == 0 ? null : evalStack.Pop();
+    }
+
+    /// <summary>
+    /// Разбирает токен вызова вида «имя_числоАргументов».
+    /// </summary>
+    /// <remarks>
+    /// Делить надо по ПОСЛЕДНЕМУ подчёркиванию: имя функции само может его содержать, и деление
+    /// по первому ломало любой вызов вроде <c>s_nds(1000)</c> — обычное имя, как только функции
+    /// стал объявлять сам скрипт.
+    /// </remarks>
+    private static bool TrySplitCall(string token, out string name, out int argCount)
+    {
+        name = null;
+        argCount = 0;
+
+        var separator = token.LastIndexOf('_');
+        if (separator <= 0) return false;
+
+        if (!int.TryParse(token.Substring(separator + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out argCount))
+            return false;
+
+        name = token.Substring(0, separator);
+        return true;
     }
 }

@@ -1,0 +1,56 @@
+# Обзор возможностей этапа M0: всё, что здесь есть, исполняется реализацией ядра.
+# Запускается тестом AI.Script.UnitTests.ExamplesTests.
+
+options {
+    seed: 42
+    steps: 1000000
+}
+
+#| Z-нормировка вектора: (x - среднее) / СКО.
+fn zscore(x: vec) -> vec {
+    let s = stat.std(x)
+    if s == 0 { x - stat.mean(x) } else { (x - stat.mean(x)) / s }
+}
+
+# --- значения и операторы ---
+
+let sample = <12, 15, 11, 19, 14, 22, 13>
+let scaled = zscore(sample)
+
+assert math.approx(stat.mean(scaled), 0, eps: 1e-9), "нормированная выборка должна иметь нулевое среднее"
+
+# --- конвейер ---
+
+let outliers =
+    core.list(sample)
+    |> core.filter(x => x > stat.mean(sample) + stat.std(sample))
+    |> core.sort(desc: true)
+
+# --- записи, циклы, строки ---
+
+let report = { size: len(sample), mean: stat.mean(sample), spread: stat.std(sample) }
+let lines = []
+
+for (name, value) in core.pairs(report) {
+    set lines = lines + ["${name} = ${core.round(value, digits: 2)}"]
+}
+
+# --- ветвление и защита ---
+
+let verdict = if stat.std(sample) > 5 { "разброс велик" } else { "разброс умеренный" }
+
+try {
+    let bad = sample[100]
+} catch e {
+    print("перехвачено: ${e.code}")
+}
+
+print(lines |> str.join(by: "; "))
+print(verdict)
+
+emit размер = len(sample)
+emit среднее = core.round(stat.mean(sample), digits: 3)
+emit выбросы = outliers
+emit медиана = stat.median(sample)
+
+show stat.hist(sample, bins: 3)

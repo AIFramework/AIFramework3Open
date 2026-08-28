@@ -159,12 +159,16 @@ public partial class BaseMathLib
                 if (args[1] is not System.DateTime date2)
                     throw new ArgumentException($"Функция '{name}': второй аргумент должен быть DateTime");
 
-                var isNegative = date1 < date2;
-                var span = date1 - date2;
+                // Разница считается ОТ первой даты КО второй: DateDiff(начало, конец) даёт
+                // положительный срок. Так пишут задачу словами («от 1 января до 28 августа»),
+                // так же устроен DATEDIFF в SQL. Обратный порядок отдавал минус там, где ждут
+                // длительность, и этот минус уезжал в документ вместе с числом дней.
+                var isNegative = date2 < date1;
+                var span = date2 - date1;
 
                 // Работаем с абсолютными значениями для упрощения логики
-                var start = isNegative ? date1 : date2;
-                var end = isNegative ? date2 : date1;
+                var start = isNegative ? date2 : date1;
+                var end = isNegative ? date1 : date2;
 
                 // Вычисляем компоненты разницы
                 int years = end.Year - start.Year;
@@ -186,14 +190,20 @@ public partial class BaseMathLib
                 if (months < 0) { months += 12; years--; }
 
                 var sign = isNegative ? "-" : "";
-                return $"{sign}{years}y {months}m {days}d {hours}h {minutes}min {seconds}s (total: {span.TotalDays:F2} days)";
+
+                // Число печатается инвариантной культурой: на русской локали "F2" даёт
+                // «239,00», и такая запятая уходит и в текст ответа, и обратно в вычислитель,
+                // где уже не разбирается.
+                var total = span.TotalDays.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+
+                return $"{sign}{years}y {months}m {days}d {hours}h {minutes}min {seconds}s (total: {total} days)";
             },
             Description = new DescriptionFunction
             {
                 AreaList = ["Программирование", "Календарь"],
-                Description = "Вычисляет точную календарную разницу между двумя датами в годах, месяцах, днях, часах, минутах и секундах",
-                Signature = "Вход: 2 DateTime объекта. Выход: строка с детальной разницей.",
-                Example = "DateDiff(DateTime(\"2025-12-19\"), DateTime(\"2024-01-01\")) // Детальная разница"
+                Description = "Календарная разница ОТ первой даты КО второй: годы, месяцы, дни, часы, минуты, секунды и всего дней. Если вторая дата раньше первой, результат отрицательный",
+                Signature = "Вход: 2 DateTime объекта (начало, конец). Выход: строка с детальной разницей.",
+                Example = "DateDiff(DateTime(\"2026-01-01\"), DateTime(\"2026-08-28\")) // 0y 7m 27d ... (total: 239.00 days)"
             }
         };
     }

@@ -101,6 +101,10 @@ public partial class BaseMathLib : IMathLib
     CreateXorFunction(),
     CreateBitNotFunction(),
 
+    // Списки: накопить и отдать результат наружу
+    CreateAppendFunction(),
+    CreateEmitFunction(),
+
     // Строковые операции
     CreateLenFunction(),
     CreateConcatFunction(),

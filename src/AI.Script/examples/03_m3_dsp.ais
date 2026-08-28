@@ -1,0 +1,67 @@
+# Приёмка этапа M3: DSP-конвейер — генерация, фильтрация, спектральный анализ.
+# Запускается тестом AI.Script.UnitTests.ExamplesTests.
+
+options {
+    seed: 1
+}
+
+let fs = 8000
+let t = signal.time(1, fs: fs)
+
+# --- смесь полезного сигнала, помехи и шума ---
+
+let clean = signal.sine(t, freq: 440, amp: 1)
+let interference = signal.sine(t, freq: 1800, amp: 0.6)
+let noise = signal.noise(len(t), sigma: 0.15)
+
+let observed = clean + interference + noise
+
+# --- очистка ---
+
+let filtered = observed |> dsp.lowpass(cutoff: 900, fs: fs)
+
+emit снр_до = core.round(stat.snr_db(observed, clean), digits: 2)
+emit снр_после = core.round(stat.snr_db(filtered, clean), digits: 2)
+
+assert stat.snr_db(filtered, clean) > stat.snr_db(observed, clean),
+    "фильтрация обязана улучшить отношение сигнал/шум"
+
+# --- спектральный анализ ---
+
+let before = dsp.welch(observed, fs: fs, window: 1024)
+let after = dsp.welch(filtered, fs: fs, window: 1024)
+
+let peak = before.freq[vec.argmax(before.power)]
+
+emit основной_тон = core.round(peak, digits: 0)
+
+assert math.abs(peak - 440) < 20, "основной тон должен определяться спектром"
+
+# --- подавление помехи проверяем числом, а не на глаз ---
+
+fn powerNear(spectrum: record, freq: num, band: num) -> num {
+    let total = 0
+
+    for i in 0..len(spectrum.freq) {
+        if math.abs(spectrum.freq[i] - freq) < band { set total += spectrum.power[i] }
+    }
+
+    total
+}
+
+let interferenceBefore = powerNear(before, 1800, 60)
+let interferenceAfter = powerNear(after, 1800, 60)
+
+emit подавление_раз = core.round(interferenceBefore / math.max(interferenceAfter, 1e-12), digits: 1)
+
+assert interferenceAfter < interferenceBefore / 10, "помеха на 1800 Гц должна быть подавлена"
+
+# --- показать результат ---
+
+show plot.grid([
+    plot.line(observed[0..400], x: t[0..400], title: "Наблюдаемый сигнал"),
+    plot.line(filtered[0..400], x: t[0..400], title: "После ФНЧ"),
+    plot.spectrum(after, title: "Спектр после фильтрации")
+], title: "Очистка сигнала")
+
+emit длина = len(observed)

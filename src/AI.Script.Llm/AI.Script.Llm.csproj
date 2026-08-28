@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Script.Llm</RootNamespace>
+    <AssemblyName>AI.Script.Llm</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Отдельная сборка от AI.Script.Std по весу зависимостей: AI.LLM тянет Semantic Kernel,
+       Model Context Protocol и Serilog. Скрипт, которому нужны только таблицы и статистика,
+       не должен платить за это ни размером, ни временем запуска. -->
+  <!-- Карточка языка вшивается в сборку, а не читается с диска: системный промпт и правила
+       языка обязаны быть одним текстом, и файл, который можно забыть положить рядом, эту
+       связь рвёт при первом же развёртывании. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\AI.Script\PROMPT_CARD.md" LogicalName="AI.Script.Llm.PromptCard.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.LLM\AI.LLM.csproj" />
+    <ProjectReference Include="..\AI.NLP\AI.NLP.csproj" />
+    <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
+    <ProjectReference Include="..\AI.Script.Std\AI.Script.Std.csproj" />
+  </ItemGroup>
+
+</Project>

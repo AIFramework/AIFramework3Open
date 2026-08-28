@@ -1,0 +1,27 @@
+# DSP: генерация смеси, фильтрация ФНЧ, оценка спектра методом Уэлча.
+
+options { seed: 1 }
+
+let fs = 8000
+let t  = vec.linspace(0, 1, fs)
+
+let signal =
+    siglab.gen_sin(t, freq: 440, amp: 1.0)
+    + siglab.gen_sin(t, freq: 1200, amp: 0.4)
+    + siglab.gen_noise(len: fs, sigma: 0.2)
+
+let clean =
+    signal
+    |> dsp.fir(cutoff: 800, fs: fs, order: 129, kind: "lowpass")
+    |> dsp.filtfilt()
+
+let spec = dsp.welch(clean, fs: fs, window: 1024, overlap: 512)
+
+emit snr_db  = stat.snr_db(signal, clean)
+emit peak_hz = spec.freq[core.argmax(spec.power)]
+
+show plot.grid([
+    plot.line(signal[0..800], x: t[0..800], title: "Исходный"),
+    plot.line(clean[0..800], x: t[0..800],  title: "После ФНЧ"),
+    plot.spectrum(spec, title: "Спектр (Уэлч)")
+])

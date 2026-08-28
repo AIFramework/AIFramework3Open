@@ -26,13 +26,14 @@ internal class ExpressionStatement : Statement
         if (_isSilent)
         {
             // Тихий режим: просто выполняем, ничего не выводим.
-            processor.AdvancedCalculator.Evaluate(Expression, context, cancellationToken);
+            context.LastValue = processor.AdvancedCalculator.Evaluate(Expression, context, cancellationToken);
         }
         else
         {
             // Громкий режим: выводим команду и результат.
             output.Add($">> {Expression}");
             var result = processor.AdvancedCalculator.Evaluate(Expression, context, cancellationToken);
+            context.LastValue = result;
             if (result != null)
             {
                 output.Add($"=> {Processor.FormatResult(result)}");

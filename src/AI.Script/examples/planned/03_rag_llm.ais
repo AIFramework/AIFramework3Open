@@ -1,0 +1,38 @@
+# RAG: нарезка базы знаний, векторный индекс, поиск с переранжированием, ответ LLM.
+
+options { timeout: 10m, parallel: 8 }
+
+@cache
+stage chunks(dir: str) -> list {
+    io.ls(dir, mask: "*.md")
+    |> core.flat_map(p => nlp.sentences(io.read_text(p)) |> nlp.window(size: 5, stride: 3))
+}
+
+@cache
+@retry(2)
+stage index(cs: list) -> handle<search.index> {
+    let vectors = cs |> core.map(c => llm.embed(c.text), parallel: true)
+    search.index(vectors, payload: cs, metric: "cosine")
+}
+
+let cs  = chunks("./kb")
+let idx = index(cs)
+
+fn answer(question: str) -> str {
+    let hits = idx.query(llm.embed(question), top: 20)
+        |> llm.rerank(question, top: 5)
+
+    let context = hits |> core.map(h => "- ${h.payload.text}") |> str.join(by: "\n")
+
+    llm.chat("""
+        Ответь на вопрос, опираясь ТОЛЬКО на контекст. Если ответа нет — скажи об этом.
+
+        Контекст:
+        ${context}
+
+        Вопрос: ${question}
+        """, model: "gpt-4o-mini", temp: 0.1).text
+}
+
+emit ответ     = answer("Как настроить ротацию прокси?")
+emit стоимость = llm.usage().cost_usd

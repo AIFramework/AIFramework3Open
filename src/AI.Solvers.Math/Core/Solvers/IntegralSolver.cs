@@ -86,7 +86,7 @@ public static class IntegralSolver
 
                 // Проверяем, что результат валидный
                 if (!double.IsNaN(result) && !double.IsInfinity(result))
-                    return $"{result:G6}";
+                    return result.ToString("G15", CultureInfo.InvariantCulture);
             }
             catch
             {
@@ -95,7 +95,7 @@ public static class IntegralSolver
                 // AST-узлов в ExpressionEvaluator. Падаем на численный метод (ниже).
             }
             var numericalResult = IntegrateNumerically(expr, variable, lowerBound, upperBound);
-            return $"{numericalResult:G6}";
+            return numericalResult.ToString("G15", CultureInfo.InvariantCulture);
 
         }
         catch (Exception ex)

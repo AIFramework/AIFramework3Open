@@ -210,4 +210,64 @@ public partial class BaseMathLib
             }
         };
     }
+
+    //================== Списки и результаты прогона ==================
+
+    private static FunctionDefinition CreateAppendFunction()
+    {
+        const string name = "append";
+        return new FunctionDefinition
+        {
+            Name = name,
+            ArgumentCount = 2,
+            Delegate = args => ListOps.Append(args[0], args[1]),
+            Description = new DescriptionFunction
+            {
+                AreaList = ["Программирование", "Списки"],
+                Description = "Возвращает список с добавленным в конец элементом. Исходный список не меняется, результат нужно присвоить.",
+                Signature = "Вход: 1 список, 1 элемент. Выход: новый список.",
+                Example = "narusheniya = append(narusheniya, \"итог не сходится\")"
+            }
+        };
+    }
+
+    /// <summary>
+    /// Объявляет именованный результат прогона.
+    /// </summary>
+    /// <remarks>
+    /// Вывод скрипта — транскрипт, из него значения приходится вычитывать текстом: подстановка
+    /// в документ и приёмка числами так получают не число, а строку, которую кто-то распарсил.
+    /// <c>emit</c> кладёт значение под именем, и вызывающий берёт его как есть.
+    /// </remarks>
+    private static FunctionDefinition CreateEmitFunction()
+    {
+        const string name = "emit";
+        return new FunctionDefinition
+        {
+            Name = name,
+            ArgumentCount = 2,
+            ContextDelegate = (args, context) =>
+            {
+                var key = args[0] as string;
+                if (string.IsNullOrWhiteSpace(key))
+                    throw new ArgumentException($"Функция '{name}' ожидает имя результата строкой: emit(\"итого\", x).");
+
+                // Наружу отдаём число числом: внутри всё считается комплексным, и вызывающий
+                // получил бы «<232; 0>» вместо 232 — то есть значение, непригодное к подстановке.
+                var value = args[1] is Complex complex && Math.Abs(complex.Imaginary) < 1e-12
+                    ? complex.Real
+                    : args[1];
+
+                context.Emitted[key.Trim()] = value;
+                return args[1];
+            },
+            Description = new DescriptionFunction
+            {
+                AreaList = ["Программирование", "Результаты"],
+                Description = "Объявляет именованный результат прогона: значение уходит вызывающему как есть, а не текстом вывода.",
+                Signature = "Вход: 1 строка (имя), 1 значение. Выход: то же значение.",
+                Example = "emit(\"итого\", chasy * 1600)"
+            }
+        };
+    }
 }

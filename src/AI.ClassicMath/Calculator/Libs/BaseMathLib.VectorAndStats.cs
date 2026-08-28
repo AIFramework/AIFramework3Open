@@ -141,11 +141,13 @@ public partial class BaseMathLib
             {
                 if (!args.Any()) return Complex.Zero;
 
-                // ИСПРАВЛЕНИЕ: Поддержка массивов - если передан ComplexVector, используем его элементы
+                // Вещественный вектор наравне с комплексным: список [1, 2, 3] комплексный, а
+                // пришедший от хоста (колонка таблицы, seed-данные) — вещественный, и на нём
+                // функция отвечала «ожидает скалярный аргумент, но получила Vector».
                 Complex[] complexArgs;
-                if (args.Length == 1 && args[0] is ComplexVector vector)
+                if (args.Length == 1 && args[0] is ComplexVector or Vector)
                 {
-                    complexArgs = vector.ToArray();
+                    complexArgs = CastsVar.CastToComplexVector(args[0], name).ToArray();
                 }
                 else
                 {
@@ -175,11 +177,11 @@ public partial class BaseMathLib
             {
                 if (!args.Any()) throw new ArgumentException("Функция 'min' требует хотя бы один аргумент.");
 
-                // Поддержка массивов - если передан ComplexVector, используем его элементы
+                // Вещественный вектор наравне с комплексным — см. mean.
                 double[] values;
-                if (args.Length == 1 && args[0] is ComplexVector vector)
+                if (args.Length == 1 && args[0] is ComplexVector or Vector)
                 {
-                    values = vector.ToArray().Select(c => c.Real).ToArray();
+                    values = CastsVar.CastToComplexVector(args[0], name).Select(c => c.Real).ToArray();
                 }
                 else
                 {
@@ -209,11 +211,11 @@ public partial class BaseMathLib
             {
                 if (!args.Any()) throw new ArgumentException("Функция 'max' требует хотя бы один аргумент.");
 
-                // Поддержка массивов - если передан ComplexVector, используем его элементы
+                // Вещественный вектор наравне с комплексным — см. mean.
                 double[] values;
-                if (args.Length == 1 && args[0] is ComplexVector vector)
+                if (args.Length == 1 && args[0] is ComplexVector or Vector)
                 {
-                    values = vector.ToArray().Select(c => c.Real).ToArray();
+                    values = CastsVar.CastToComplexVector(args[0], name).Select(c => c.Real).ToArray();
                 }
                 else
                 {

@@ -34,7 +34,9 @@
     <ProjectReference Include="..\..\..\..\src\AI.Solvers.Math\AI.Solvers.Math.csproj" />
     <ProjectReference Include="..\..\..\..\src\AI.SignalLabs\AI.SignalLabs.csproj" />
     <ProjectReference Include="..\..\..\..\src\AI.Fuzzy\AI.Fuzzy.csproj" />
+    <ProjectReference Include="..\..\..\..\src\AI.Economics\AI.Economics.csproj" />
     <ProjectReference Include="..\..\..\..\src\AI.LLM\AI.LLM.csproj" />
+    <ProjectReference Include="..\..\..\..\src\AI.Microwave\AI.Microwave.csproj" />
   </ItemGroup>
 
 </Project>

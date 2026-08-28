@@ -14,6 +14,16 @@ namespace AI.ClassicMath.Calculator;
 
 public partial class AdvancedCalculator
 {
+    /// <summary>
+    /// Метка «эта скобка открывает ВЗЯТИЕ ЭЛЕМЕНТА», а не литерал списка.
+    /// </summary>
+    /// <remarks>
+    /// На вид скобки одинаковы: и <c>[1, 2, 3]</c>, и <c>a[0]</c> начинаются с '['. Различает их
+    /// предыдущий токен, и решение надо запомнить до закрывающей скобки — иначе она не знает,
+    /// собирать список или брать элемент. Символ выбран такой, какого в языке нет.
+    /// </remarks>
+    private const string IndexMarker = "@";
+
     private List<string> Tokenize(string expression, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -43,7 +53,10 @@ public partial class AdvancedCalculator
 
         // Токенизация: извлекаем строковые литералы (с поддержкой escaped кавычек),
         // числа (включая научную нотацию), идентификаторы, операторы
-        var pattern = @"(""(?:[^""\\]|\\.)*"")|([0-9]+\.?[0-9]*(?:[eE][+-]?[0-9]+)?|[0-9]*\.?[0-9]+(?:[eE][+-]?[0-9]+)?)|([a-zA-Z_][a-zA-Z0-9_]*)|(<<|>>|>=|<=|==|!=|&&|\|\|)|(.)";
+        // Идентификатор — буквы ЛЮБОГО алфавита: имена данных и результатов даёт не программист,
+        // а тот, кто их подаёт, и «часы» с «итого» латиницей никто писать не станет. До этого
+        // кириллическое имя не попадало в токен-идентификатор и разбор падал на «неизвестный токен».
+        var pattern = @"(""(?:[^""\\]|\\.)*"")|([0-9]+\.?[0-9]*(?:[eE][+-]?[0-9]+)?|[0-9]*\.?[0-9]+(?:[eE][+-]?[0-9]+)?)|([\p{L}_][\p{L}\p{N}_]*)|(<<|>>|>=|<=|==|!=|&&|\|\|)|(.)";
         var tokens = Regex.Matches(expression, pattern).Cast<Match>()
             .Where(m => !string.IsNullOrWhiteSpace(m.Value))
             .Select(m => m.Value).ToList();
@@ -120,7 +133,7 @@ public partial class AdvancedCalculator
                     }
                 }
             }
-            else if (Functions.ContainsKey(token))
+            else if (TryGetFunction(token, context, out _))
             {
                 operatorStack.Push(token);
                 argCountStack.Push(1);
@@ -152,7 +165,7 @@ public partial class AdvancedCalculator
             }
             else if (token == ",")
             {
-                while (operatorStack.Count > 0 && !"([".Contains(operatorStack.Peek()))
+                while (operatorStack.Count > 0 && !"([@".Contains(operatorStack.Peek()))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     outputQueue.Enqueue(operatorStack.Pop());
@@ -192,14 +205,24 @@ public partial class AdvancedCalculator
             }
             else if ("([".Contains(token))
             {
-                if (i > 0 && token == "(" && context.Memory.ContainsKey(tokens[i - 1]) && !Functions.ContainsKey(tokens[i - 1])) throw new ArgumentException($"Переменная '{tokens[i - 1]}' не является функцией.");
-                operatorStack.Push(token);
-                if (token == "[")
-                    argCountStack.Push(0); // УЛУЧШЕНИЕ 3: Начинаем с 0 для поддержки пустых массивов
+                if (i > 0 && token == "(" && context.Memory.ContainsKey(tokens[i - 1]) && !TryGetFunction(tokens[i - 1], context, out _)) throw new ArgumentException($"Переменная '{tokens[i - 1]}' не является функцией.");
+
+                if (token == "[" && i > 0 && IsIndexTarget(tokens[i - 1], context))
+                {
+                    // a[0], f(x)[1], [1, 2][0] — взятие элемента, а не новый список.
+                    operatorStack.Push(IndexMarker);
+                }
+                else
+                {
+                    operatorStack.Push(token);
+                    if (token == "[")
+                        argCountStack.Push(0); // УЛУЧШЕНИЕ 3: Начинаем с 0 для поддержки пустых массивов
+                }
             }
             else if (")]".Contains(token))
             {
-                string openBracket = token == ")" ? "(" : "[";
+                var indexing = token == "]" && ClosesIndex(operatorStack);
+                string openBracket = token == ")" ? "(" : indexing ? IndexMarker : "[";
 
                 // Проверка на пустой массив []
                 bool isEmptyArray = false;
@@ -218,9 +241,20 @@ public partial class AdvancedCalculator
                     throw new ArgumentException($"Отсутствует парная открывающая скобка '{openBracket}'.");
                 operatorStack.Pop();
 
-                if (token == ")" && operatorStack.Count > 0 && Functions.ContainsKey(operatorStack.Peek()))
+                if (indexing)
                 {
-                    outputQueue.Enqueue($"{operatorStack.Pop()}_{(argCountStack.Any() ? argCountStack.Pop() : 1)}");
+                    // Взятие элемента — это обычный вызов index(список, номер).
+                    outputQueue.Enqueue("index_2");
+                }
+                else if (token == ")" && operatorStack.Count > 0 && TryGetFunction(operatorStack.Peek(), context, out _))
+                {
+                    // f() — вызов без аргументов. Счётчик заводится на единице (первый аргумент
+                    // ожидается всегда), поэтому пустые скобки надо распознать отдельно: иначе
+                    // функция без параметров просит один и не находит его в стеке.
+                    var withoutArguments = i > 0 && tokens[i - 1] == "(";
+                    var count = argCountStack.Any() ? argCountStack.Pop() : 1;
+
+                    outputQueue.Enqueue($"{operatorStack.Pop()}_{(withoutArguments ? 0 : count)}");
                 }
                 else if (token == "]")
                 {
@@ -257,9 +291,25 @@ public partial class AdvancedCalculator
             cancellationToken.ThrowIfCancellationRequested();
 
             var op = operatorStack.Pop();
-            if ("([".Contains(op)) throw new ArgumentException($"Отсутствует парная закрывающая скобка.");
+            if ("([@".Contains(op)) throw new ArgumentException($"Отсутствует парная закрывающая скобка.");
             outputQueue.Enqueue(op);
         }
         return outputQueue;
+    }
+
+    /// <summary>После чего '[' означает взятие элемента, а не начало списка.</summary>
+    private bool IsIndexTarget(string token, ExecutionContext context) =>
+        token == ")" || token == "]" || (IsValue(token, context) && !TryGetFunction(token, context, out _));
+
+    /// <summary>Что закрывает ']': ближайшая незакрытая '[' или маркер индексации.</summary>
+    private static bool ClosesIndex(Stack<string> operatorStack)
+    {
+        foreach (var op in operatorStack)
+        {
+            if (op == IndexMarker) return true;
+            if (op == "[") return false;
+        }
+
+        return false;
     }
 }

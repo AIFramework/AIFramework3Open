@@ -1,0 +1,70 @@
+# Приёмка этапа M1: табличный конвейер от файла до матрицы признаков.
+# Скрипт самодостаточен — он сам создаёт исходный CSV в рабочей папке прогона.
+# Запускается тестом AI.Script.UnitTests.ExamplesTests.
+
+options {
+    seed: 42
+    workdir: "m1"
+}
+
+# --- подготовка данных ---
+
+let raw = table.of({
+    client:  ["a", "b", "a", "c", "b", "c", "a"],
+    region:  ["север", "юг", "север", "юг", "юг", "север", "север"],
+    date:    ["2026-01-05", "2026-01-06", "2026-02-11", "2026-02-12", "2026-03-01", "2026-03-02", "2026-03-03"],
+    amount:  <120, 340, 55, 0, 780, 210, 95>,
+    returned: [0, 1, 0, 0, 1, 0, 0]
+})
+
+let path = raw |> io.write_csv("sales.csv")
+
+# --- чтение и очистка ---
+
+let sales =
+    io.read_csv(path)
+    |> table.filter(row => row.amount > 0)
+    |> table.derive(cols: {
+           month: row => str.sub(row.date, from: 0, to: 7),
+           net: row => if row.returned == 1 { 0 } else { row.amount }
+       })
+
+assert len(sales) == 6, "строка с нулевой суммой должна была отсеяться"
+
+# --- агрегация по клиенту ---
+
+let clients =
+    sales
+    |> table.group_by("client", agg: {
+           revenue: rows => vec.sum(rows["net"]),
+           orders:  rows => len(rows),
+           biggest: rows => stat.max(rows["amount"])
+       })
+    |> table.derive(cols: { avg_check: row => row.revenue / row.orders })
+    |> table.sort(by: "revenue", desc: true)
+
+# --- признаки для модели ---
+
+let features =
+    sales
+    |> table.select(["region", "amount", "net"])
+    |> table.one_hot(["region"])
+    |> table.to_matrix()
+    |> mat.zscore()
+
+assert mat.rows(features) == 6, "число объектов должно совпасть с числом строк"
+assert math.approx(mat.mean(features)[0], 0, eps: 1e-9), "признаки должны быть отнормированы"
+
+# --- разбиение и итоги ---
+
+let split = table.split(sales, test: 0.34)
+
+show table.describe(clients)
+
+emit клиентов = len(clients)
+emit лидер = clients[0].client
+emit выручка = vec.sum(clients["revenue"])
+emit признаков = mat.cols(features)
+emit обучающая = len(split.train)
+emit тестовая = len(split.test)
+emit месяцы = sales["month"] |> core.unique() |> len()

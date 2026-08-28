@@ -41,20 +41,14 @@ public partial class AdvancedCalculator
     /// </summary>
     public AdvancedCalculator()
     {
-        var baseMathLib = new BaseMathLib();
-        var eq = new EquationLib();
-
         var baseOperators = new LibOperatorsBase();
 
         Operators = baseOperators.GetOperators();
         OperationsFunctions = baseOperators.GetOperationsFunctions();
+        Functions = new Dictionary<string, FunctionDefinition>(StringComparer.OrdinalIgnoreCase);
 
-        Functions = baseMathLib.GetFunctions();
-
-        foreach (var func in eq.GetFunctions())
-        {
-            Functions.Add(func.Key, func.Value);
-        }
+        Use(new BaseMathLib());
+        Use(new EquationLib());
     }
 
     #endregion
@@ -65,6 +59,7 @@ public object Evaluate(string expression, ExecutionContext context, Cancellation
     try
     {
         cancellationToken.ThrowIfCancellationRequested();
+        context.CountStep();
 
         expression = expression.Trim();
         if (string.IsNullOrEmpty(expression)) return null;
@@ -106,12 +101,39 @@ public object Evaluate(string expression, ExecutionContext context, Cancellation
             expression = $"{varName} = {varName} {op} ({rightExpr})";
         }
 
+        // Присваивание элементу списка: a[i] = v. Отдельной веткой, потому что цель здесь не
+        // имя, а место в списке, и общий разбор присваивания такую цель отвергает.
+        var elementMatch = Regex.Match(expression, @"^(\w+)\s*\[(.+)\]\s*=(?!=)\s*(.+)$");
+        if (elementMatch.Success)
+        {
+            var listName = elementMatch.Groups[1].Value;
+
+            if (!context.Memory.TryGetValue(listName, out var list))
+                throw new InvalidOperationException($"Список '{listName}' не определён — присваивать элемент нечему.");
+
+            var position = CastsVar.CastToInt32(
+                EvaluateExpression(elementMatch.Groups[2].Value, context, cancellationToken), listName);
+            var element = EvaluateExpression(elementMatch.Groups[3].Value, context, cancellationToken);
+
+            context.Memory[listName] = ListOps.SetAt(list, position, element, listName);
+            return element;
+        }
+
         // Ищем оператор присваивания '=' ВНЕ строковых литералов
         // (пропускаем ==, !=, <=, >=, +=, -=, *=, /=, %=, ^= — они обработаны выше)
         var assignIdx = FindAssignmentEqualsIndex(expression);
         if (assignIdx > 0)
         {
             var varName = expression.Substring(0, assignIdx).Trim();
+
+            // Присваивание имени, занятому функцией. Без этой ветки разбор доходил до места, где
+            // '=' уже не при чём, и отвечал «неизвестный токен: =» — по такому сообщению не
+            // догадаться, что дело в имени. Функций в наборе теперь под сотню, и обычные слова
+            // (limit, rows, check, solve) среди них.
+            if (IsNameShape(varName) && TryGetFunction(varName, context, out _))
+                throw new InvalidOperationException(
+                    $"Имя '{varName}' занято функцией вычислителя — назовите переменную иначе.");
+
             if (IsValidVarName(varName) && IsSimpleAssignmentTarget(expression.Substring(0, assignIdx)))
             {
                 var exprToEvaluate = expression.Substring(assignIdx + 1);
@@ -127,6 +149,45 @@ public object Evaluate(string expression, ExecutionContext context, Cancellation
         throw new InvalidOperationException(ex.Message, ex);
     }
 }
+
+    /// <summary>
+    /// Подключает библиотеку функций к калькулятору.
+    /// </summary>
+    /// <remarks>
+    /// Состав функций — решение ВЫЗЫВАЮЩЕГО, а не калькулятора: тяжёлая математика (символьные
+    /// преобразования, матричные разложения) живёт в проектах, которые сами ссылаются на этот,
+    /// и попасть внутрь конструктора не может — получилась бы циклическая ссылка.
+    /// <para>
+    /// Совпадающие имена перекрываются поздней библиотекой: хост, дающий свою реализацию
+    /// функции, должен иметь возможность заменить базовую.
+    /// </para>
+    /// </remarks>
+    public AdvancedCalculator Use(IMathLib library)
+    {
+        if (library == null) throw new ArgumentNullException(nameof(library));
+
+        foreach (var function in library.GetFunctions())
+            Functions[function.Key] = function.Value;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Функция набора либо объявленная скриптом.
+    /// </summary>
+    /// <remarks>
+    /// Один поиск на всех: разбор выражения решает по нему, что идентификатор — вызов, а не
+    /// переменная, и вычисление берёт по нему тело. Разъехавшись, эти двое дали бы «неизвестный
+    /// токен» на функцию, которая объявлена.
+    /// </remarks>
+    private bool TryGetFunction(string name, ExecutionContext context, out FunctionDefinition definition)
+    {
+        if (Functions.TryGetValue(name, out definition)) return true;
+        if (context != null && context.UserFunctions.TryGetValue(name, out definition)) return true;
+
+        definition = null;
+        return false;
+    }
 
     #region Вспомогательные методы
 
@@ -173,8 +234,13 @@ public object Evaluate(string expression, ExecutionContext context, Cancellation
         (token.StartsWith("\"") && token.EndsWith("\"")) ||  // Строковый литерал
         double.TryParse(token, NumberStyles.Any, CultureInfo.InvariantCulture, out _) || 
         context.Memory.ContainsKey(token);
-    private bool IsValidVarName(string name) =>
-        !string.IsNullOrWhiteSpace(name) && (char.IsLetter(name[0]) || name[0] == '_') && name.All(c => char.IsLetterOrDigit(c) || c == '_') && !Functions.ContainsKey(name);
+    private bool IsValidVarName(string name) => IsNameShape(name) && !Functions.ContainsKey(name);
+
+    /// <summary>Похоже ли на имя переменной — без учёта того, занято оно или нет.</summary>
+    private static bool IsNameShape(string name) =>
+        !string.IsNullOrWhiteSpace(name)
+        && (char.IsLetter(name[0]) || name[0] == '_')
+        && name.All(c => char.IsLetterOrDigit(c) || c == '_');
     /// <summary>
     /// Находит индекс оператора присваивания '=' вне строковых литералов,
     /// пропуская ==, !=, <=, >=. Возвращает -1 если не найден.

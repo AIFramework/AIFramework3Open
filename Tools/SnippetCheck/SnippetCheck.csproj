@@ -39,6 +39,7 @@
     <ProjectReference Include="..\..\src\AI.ML\AI.ML.csproj" />
     <ProjectReference Include="..\..\src\AI.NeuralNetworks\AI.NeuralNetworks.csproj" />
     <ProjectReference Include="..\..\src\AI.DSP\AI.DSP.csproj" />
+    <ProjectReference Include="..\..\src\AI.Economics\AI.Economics.csproj" />
     <ProjectReference Include="..\..\src\AI.DataPrepaire\AI.DataPrepaire.csproj" />
     <ProjectReference Include="..\..\src\AI.ComputerVision\AI.ComputerVision.csproj" />
     <ProjectReference Include="..\..\src\AI.ControlSystems\AI.ControlSystems.csproj" />

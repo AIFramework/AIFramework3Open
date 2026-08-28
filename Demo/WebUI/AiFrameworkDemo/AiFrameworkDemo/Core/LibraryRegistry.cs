@@ -37,10 +37,12 @@ public static class LibraryRegistry
         Register(new AiFrameworkDemo.Modules.ControlSystems.ControlSystemsModule()); // AI.ControlSystems
         Register(new AiFrameworkDemo.Modules.DataPrepaire.DataPrepModule()); // AI.DataPrepaire
         Register(new AiFrameworkDemo.Modules.DSP.DspModule());               // AI.DSP
+        Register(new AiFrameworkDemo.Modules.Economics.EconomicsModule());    // AI.Economics
         Register(new AiFrameworkDemo.Modules.Faiss.FaissModule());           // AI.Faiss
         Register(new AiFrameworkDemo.Modules.Fuzzy.FuzzyModule());           // AI.Fuzzy
         Register(new AiFrameworkDemo.Modules.Geometry.GeometryModule());     // AI.Geometry
         Register(new AiFrameworkDemo.Modules.LLM.LlmModule());              // AI.LLM
+        Register(new AiFrameworkDemo.Modules.Microwave.MicrowaveModule()); // AI.Microwave
         Register(new AiFrameworkDemo.Modules.ML.MlModule());                 // AI.ML
         Register(new AiFrameworkDemo.Modules.NeuralNetworks.NeuralNetworksModule()); // AI.NeuralNetworks
         Register(new AiFrameworkDemo.Modules.NLP.NlpModule());               // AI.NLP

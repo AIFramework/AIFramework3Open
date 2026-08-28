@@ -1,0 +1,36 @@
+# Табличный ML-конвейер: загрузка -> признаки -> обучение -> метрики.
+# Эталонный пример: после M3 должен исполняться без правок.
+
+options { seed: 7, cache: "disk" }
+
+@cache
+stage load(path: str) -> table {
+    io.read_csv(path)
+    |> table.filter(row => row.target != none)
+}
+
+@cache
+stage features(t: table) -> record {
+    let x = t
+        |> table.drop(["id", "target"])
+        |> table.one_hot(["region", "channel"])
+        |> table.to_matrix()
+        |> mat.zscore()
+
+    { x: x, y: t["target"] }
+}
+
+let data  = load("clients.csv")
+let f     = features(data)
+let split = ml.split(f.x, f.y, test: 0.25)
+
+let model = ml.svm(split.x_train, split.y_train, c: 1.0, kernel: "rbf")
+let pred  = model.predict(split.x_test)
+
+emit accuracy  = stat.accuracy(split.y_test, pred)
+emit f1        = stat.f1(split.y_test, pred)
+emit confusion = stat.confusion(split.y_test, pred)
+
+assert stat.accuracy(split.y_test, pred) > 0.6, "модель хуже разумного минимума"
+
+show plot.heatmap(stat.confusion(split.y_test, pred), title: "Матрица ошибок")

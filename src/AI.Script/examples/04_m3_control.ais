@@ -1,0 +1,82 @@
+# Приёмка этапа M3: идентификация объекта по логу и синтез регулятора.
+# Скрипт самодостаточен: лог объекта генерируется здесь же.
+# Запускается тестом AI.Script.UnitTests.ExamplesTests.
+
+options {
+    seed: 17
+}
+
+# --- «настоящий» объект, которого мы якобы не знаем ---
+
+let n = 400
+let u = vec.zeros(n)
+let y = vec.zeros(n)
+
+for k in 2..n {
+    set u[k] = math.random(low: -1, high: 1)
+    set y[k] = 1.2 * y[k - 1] - 0.35 * y[k - 2] + 0.05 * u[k - 1]
+}
+
+# --- идентификация по записи входа и выхода ---
+
+let plant = ctrl.identify(u, y, order: 2)
+let model = plant.describe()
+
+emit порядок = model.order
+emit коэффициент_передачи = core.round(model.gain, digits: 3)
+
+let fit = stat.rmse(y, plant.response(u))
+
+emit ошибка_модели = core.round(fit, digits: 6)
+
+assert fit < 0.01, "модель должна воспроизводить лог, по которому построена"
+
+# --- переходная характеристика опознанного объекта ---
+
+let openLoop = plant.step_response(300)
+
+emit без_регулятора = core.round(openLoop[299], digits: 3)
+
+# Сам по себе объект на задание не выходит — ради этого и нужен контур.
+assert openLoop[299] < 0.5, "разомкнутый объект не должен достигать задания"
+
+# --- синтез регулятора и замкнутая симуляция ---
+
+let controller = ctrl.pid_tune(plant, softness: 6)
+let gains = controller.gains()
+
+emit kp = core.round(gains.kp, digits: 3)
+emit ki = core.round(gains.ki, digits: 3)
+
+let sim = ctrl.simulate(plant, controller: controller, setpoint: 1, steps: 600)
+
+# --- качество переходного процесса числами, а не на глаз ---
+
+fn overshoot(response: vec, target: num) -> num {
+    (stat.max(response) - target) / target
+}
+
+fn settlingStep(response: vec, target: num, band: num) -> num {
+    let last = len(response)
+
+    for i in 0..len(response) {
+        let k = len(response) - 1 - i
+
+        if math.abs(response[k] - target) > band { return k + 1 }
+    }
+
+    0
+}
+
+emit перерегулирование = core.round(overshoot(sim.y, 1), digits: 3)
+emit шагов_до_установления = settlingStep(sim.y, 1, 0.02)
+emit установившееся = core.round(sim.y[599], digits: 3)
+
+assert math.abs(sim.y[599] - 1) < 0.05, "замкнутая система должна выходить на задание"
+assert overshoot(sim.y, 1) < 0.5, "перерегулирование выше допустимого"
+
+show plot.grid([
+    plot.line(sim.y, x: sim.t, title: "Переходный процесс"),
+    plot.line(sim.u, x: sim.t, title: "Управляющее воздействие"),
+    plot.line(openLoop, title: "Разомкнутый контур: отклик на скачок")
+], title: "Идентификация и управление")

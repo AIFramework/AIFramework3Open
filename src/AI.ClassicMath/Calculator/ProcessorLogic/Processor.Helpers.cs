@@ -44,11 +44,31 @@ public partial class Processor
             Complex c => FormatComplex(c),
             ComplexVector v => $"[{string.Join(", ", v.Select(c => FormatResult(c)))}]",
             Vector dv => $"[{string.Join(", ", dv.Select(c => FormatDouble(c)))}]",
+            // Список строк: без своей ветки печатался как System.String[] — ровно там, где
+            // копят нарушения проверки, то есть в самом читаемом месте вывода.
+            string[] strings => $"[{string.Join(", ", strings)}]",
             DateTime dt => dt.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            string text => Shorten(text),
             _ => result?.ToString() ?? "null"
         };
     }
     
+    /// <summary>
+    /// Потолок печати строки.
+    /// </summary>
+    /// <remarks>
+    /// Значение может быть текстом документа целиком: напечатанный, он уедет в наблюдение хода и
+    /// вытеснит из окна модели всё остальное. Скрипту полный текст по-прежнему доступен — режется
+    /// только показ.
+    /// </remarks>
+    private const int MaxPrintedChars = 2000;
+
+    /// <summary>Строка для печати: длинная обрезается с указанием полного размера.</summary>
+    private static string Shorten(string text) =>
+        text.Length <= MaxPrintedChars
+            ? text
+            : text[..MaxPrintedChars] + $"… (всего {text.Length} знаков)";
+
     /// <summary>
     /// Форматирование вещественного числа с попыткой преобразования в дробь или символьную форму
     /// </summary>

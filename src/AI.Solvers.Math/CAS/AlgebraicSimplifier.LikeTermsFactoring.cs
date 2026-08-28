@@ -19,7 +19,14 @@ public static partial class AlgebraicSimplifier
         foreach (var (_, (coeff, term)) in terms.OrderByDescending(kv => GetTermPriority(kv.Value.term)))
         {
             if (System.Math.Abs(coeff) < 1e-10) continue;
-            Expression newTerm = System.Math.Abs(coeff - 1) < 1e-10 ? term
+
+            // Свободный член собран как (коэффициент, единица) — вернуть его произведением
+            // значит напечатать «3*1». Мало того что это мусор в ответе: следующий проход
+            // свернёт произведение обратно в тройку, этот развернёт снова, и упрощение будет
+            // ходить по кругу до предела итераций, отдавая наружу худший из двух видов.
+            Expression newTerm = term is Constant unit && System.Math.Abs(unit.Value - 1) < 1e-10
+                                   ? new Constant(coeff)
+                               : System.Math.Abs(coeff - 1) < 1e-10 ? term
                                : System.Math.Abs(coeff + 1) < 1e-10 ? new Multiply(new Constant(-1), term)
                                : new Multiply(new Constant(coeff), term);
             result = result is null ? newTerm : new Add(result, newTerm);

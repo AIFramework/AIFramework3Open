@@ -10,7 +10,7 @@ namespace AI.Solvers.Math.Core.Numerics;
 /// нашлись только частные вычисления в AI.DSP и AI.Fuzzy.
 /// </para>
 /// </summary>
-internal static class Quadrature
+public static class Quadrature
 {
     /// <summary>Доля отрезка, на которую отступают от неинтегрируемого конца.</summary>
     private const double EndpointNudge = 1e-9;
@@ -72,18 +72,40 @@ internal static class Quadrature
     /// Значение функции в точке; если оно не определено или бесконечно,
     /// берётся значение в запасной точке, а при неудаче — ноль.
     /// </summary>
+    /// <remarks>
+    /// Ноль здесь — про ОСОБЕННОСТЬ подынтегральной функции в отдельной точке (1/√x в нуле):
+    /// вклад одной точки в интеграл нулевой, и считать дальше правильно.
+    /// <para>
+    /// Но исключение и в основной, и в запасной точке означает другое: выражение не считается
+    /// НИГДЕ — неизвестная переменная, нереализованный узел. Раньше такой интеграл молча
+    /// возвращал ноль, то есть выдавал за ответ то, что ответом не является. Теперь причина
+    /// уходит вызывающему.
+    /// </para>
+    /// </remarks>
     private static double Safe(Func<double, double> f, double x, double fallbackPoint)
     {
         double value;
+        Exception failure = null;
+
         try { value = f(x); }
-        catch { value = double.NaN; }
+        catch (Exception error) { value = double.NaN; failure = error; }
 
         if (!double.IsNaN(value) && !double.IsInfinity(value)) return value;
-        if (fallbackPoint == x) return 0.0;
 
-        try { value = f(fallbackPoint); }
-        catch { return 0.0; }
+        if (fallbackPoint != x)
+        {
+            try
+            {
+                value = f(fallbackPoint);
 
-        return double.IsNaN(value) || double.IsInfinity(value) ? 0.0 : value;
+                // В запасной точке функция посчиталась — дело было в самой точке x.
+                if (!double.IsNaN(value) && !double.IsInfinity(value)) return value;
+            }
+            catch (Exception error) { failure ??= error; }
+        }
+
+        if (failure != null) throw failure;
+
+        return 0.0;
     }
 }

@@ -1,0 +1,76 @@
+# Приёмка этапа M3: сквозной ML-конвейер от таблицы до метрик и графиков.
+# Данные синтетические — скрипт самодостаточен и не требует внешних файлов.
+# Запускается тестом AI.Script.UnitTests.ExamplesTests.
+
+options {
+    seed: 42
+}
+
+#| Облако точек вокруг центра: n объектов, два признака, заданный разброс.
+fn cloud(n: num, cx: num, cy: num, spread: num) -> mat {
+    let xs = vec.zeros(n)
+    let ys = vec.zeros(n)
+
+    for i in 0..n {
+        set xs[i] = cx + math.gauss(std: spread)
+        set ys[i] = cy + math.gauss(std: spread)
+    }
+
+    mat.from_cols([xs, ys])
+}
+
+# --- данные: два класса, различимых, но с перекрытием ---
+
+let a = cloud(60, 0, 0, 1)
+let b = cloud(60, 4, 3, 1.2)
+
+let features = mat.concat_rows(a, b)
+let labels = vec.concat(vec.zeros(60), vec.ones(60))
+
+let raw =
+    table.from_matrix(features, cols: ["x", "y"])
+    |> table.with(name: "class", values: labels)
+
+assert len(raw) == 120, "выборка должна содержать 120 объектов"
+
+# --- разведка ---
+
+show table.describe(raw)
+
+# --- обучение с честным разбиением ---
+
+let x = raw |> table.select(["x", "y"]) |> table.to_matrix() |> mat.zscore()
+let y = raw["class"]
+
+let split = ml.split(x, y, test: 0.25)
+let model = ml.knn(split.x_train, split.y_train, k: 5)
+let predicted = model.predict(split.x_test)
+
+emit точность = core.round(stat.accuracy(split.y_test, predicted), digits: 3)
+emit f1 = core.round(stat.f1(split.y_test, predicted), digits: 3)
+
+assert stat.accuracy(split.y_test, predicted) > 0.8, "классификатор хуже разумного минимума"
+
+show plot.heatmap(stat.confusion(split.y_test, predicted), title: "Матрица ошибок")
+
+# --- кластеризация без учителя: находит ли она те же группы ---
+
+let clusters = ml.kmeans(x, k: 2)
+let assignment = clusters.predict(x)
+
+emit силуэт = core.round(stat.silhouette(x, assignment), digits: 3)
+emit размеры = stat.counts(core.list(assignment))
+
+assert stat.silhouette(x, assignment) > 0.4, "кластеры должны быть различимы"
+
+show plot.scatter_by(x: x[:, 0], y: x[:, 1], labels: assignment, title: "Кластеры")
+
+# --- снижение размерности и регрессия ---
+
+let projected = ml.pca(x, k: 1).transform(x)
+
+emit компонент = mat.cols(projected)
+
+let line = ml.linreg(x[:, 0], x[:, 1])
+
+emit r2 = core.round(line.score(x[:, 0], x[:, 1]), digits: 3)

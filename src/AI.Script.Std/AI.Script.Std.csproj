@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Script.Std</RootNamespace>
+    <AssemblyName>AI.Script.Std</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+    <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
+    <ProjectReference Include="..\AI.KNN\AI.KNN.csproj" />
+    <ProjectReference Include="..\AI.DSP\AI.DSP.csproj" />
+    <ProjectReference Include="..\AI.NLP\AI.NLP.csproj" />
+    <ProjectReference Include="..\AI.ControlSystems\AI.ControlSystems.csproj" />
+    <ProjectReference Include="..\AI.Solvers.Math\AI.Solvers.Math.csproj" />
+    <ProjectReference Include="..\AI.Algorithms\AI.Algorithms.csproj" />
+    <ProjectReference Include="..\AI.Geometry\AI.Geometry.csproj" />
+    <ProjectReference Include="..\AI.Fuzzy\AI.Fuzzy.csproj" />
+    <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
+  </ItemGroup>
+
+</Project>
