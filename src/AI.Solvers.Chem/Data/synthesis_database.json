@@ -1,0 +1,879 @@
+{
+  "Version": "1.0",
+  "LastUpdated": "2025-11-21",
+  "Compounds": [
+    {
+      "Name": "aspirin",
+      "Aliases": ["acetylsalicylic acid", "ASA", "ацетилсалициловая кислота", "аспирин"],
+      "Formula": "C9H8O4",
+      "SMILES": "CC(=O)Oc1ccccc1C(=O)O",
+      "IUPAC": "2-acetoxybenzoic acid",
+      "Description": "Aspirin is a widely used analgesic and anti-inflammatory drug",
+      "Routes": [
+        {
+          "StartingMaterial": "benzene",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "40-50%",
+          "StepCount": 4,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "sulfonation",
+              "Description": "Sulfonation of benzene",
+              "Equation": "C6H6 + H2SO4 → C6H5SO3H + H2O",
+              "Reagents": ["conc. H2SO4"],
+              "Conditions": ["heat", "excess H2SO4"],
+              "Temperature": "40-60°C",
+              "Time": "2-3 hours",
+              "Yield": "~95%",
+              "Mechanism": "Electrophilic aromatic substitution",
+              "Warnings": []
+            },
+            {
+              "StepNumber": 2,
+              "ReactionType": "alkali fusion",
+              "Description": "Dow process - alkali fusion",
+              "Equation": "C6H5SO3Na + 2NaOH → C6H5ONa + Na2SO3 + H2O",
+              "Reagents": ["NaOH (fused)", "high temperature"],
+              "Conditions": ["molten NaOH"],
+              "Temperature": "300-350°C",
+              "Pressure": "atmospheric",
+              "Time": "1-2 hours",
+              "Yield": "~85%",
+              "Mechanism": "Nucleophilic aromatic substitution",
+              "Warnings": ["Extremely high temperature", "Corrosive conditions"]
+            },
+            {
+              "StepNumber": 3,
+              "ReactionType": "Kolbe-Schmitt reaction",
+              "Description": "Carboxylation of sodium phenoxide",
+              "Equation": "C6H5ONa + CO2 → HOC6H4COONa → HOC6H4COOH",
+              "Reagents": ["CO2", "H3O+ (acidification)"],
+              "Conditions": ["high pressure", "specific temperature"],
+              "Temperature": "125°C",
+              "Pressure": "5-7 atm",
+              "Time": "4-6 hours",
+              "Yield": "~80%",
+              "Mechanism": "Electrophilic addition at ortho position",
+              "Warnings": ["High pressure required"]
+            },
+            {
+              "StepNumber": 4,
+              "ReactionType": "acetylation",
+              "Description": "Acetylation of salicylic acid",
+              "Equation": "C7H6O3 + (CH3CO)2O → C9H8O4 + CH3COOH",
+              "Reagents": ["acetic anhydride", "H2SO4 or H3PO4 (catalyst)"],
+              "Conditions": ["acidic catalyst", "gentle heating"],
+              "Catalyst": "H2SO4",
+              "Temperature": "50-60°C",
+              "Time": "30-60 minutes",
+              "Yield": "~90%",
+              "Mechanism": "Nucleophilic acyl substitution",
+              "Warnings": ["Acetic anhydride is corrosive"]
+            }
+          ],
+          "Notes": "This is the classic industrial synthesis starting from benzene. Overall yield ~40-50%."
+        },
+        {
+          "StartingMaterial": "phenol",
+          "RouteType": "laboratory",
+          "Difficulty": "easy",
+          "Yield": "75-80%",
+          "StepCount": 2,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "Kolbe-Schmitt reaction",
+              "Description": "Carboxylation of phenol",
+              "Equation": "C6H5OH + NaOH + CO2 → C7H6O3 (salicylic acid)",
+              "Reagents": ["NaOH", "CO2", "H3O+"],
+              "Conditions": ["high pressure", "elevated temperature"],
+              "Temperature": "125°C",
+              "Pressure": "5-7 atm",
+              "Yield": "~85%",
+              "Mechanism": "Electrophilic addition",
+              "Warnings": []
+            },
+            {
+              "StepNumber": 2,
+              "ReactionType": "acetylation",
+              "Description": "Acetylation of salicylic acid",
+              "Equation": "C7H6O3 + (CH3CO)2O → C9H8O4 + CH3COOH",
+              "Reagents": ["acetic anhydride", "H2SO4"],
+              "Conditions": ["acidic catalyst"],
+              "Catalyst": "H2SO4",
+              "Temperature": "50-60°C",
+              "Yield": "~90%",
+              "Mechanism": "Nucleophilic acyl substitution",
+              "Warnings": []
+            }
+          ],
+          "Notes": "Simpler and more efficient route starting from phenol"
+        }
+      ]
+    },
+    {
+      "Name": "aniline",
+      "Aliases": ["phenylamine", "aminobenzene", "анилин"],
+      "Formula": "C6H7N",
+      "SMILES": "c1ccccc1N",
+      "IUPAC": "benzenamine",
+      "Description": "Aniline is an important industrial chemical and precursor to many dyes",
+      "Routes": [
+        {
+          "StartingMaterial": "benzene",
+          "RouteType": "industrial",
+          "Difficulty": "easy",
+          "Yield": "85-90%",
+          "StepCount": 2,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "nitration",
+              "Description": "Nitration of benzene",
+              "Equation": "C6H6 + HNO3 → C6H5NO2 + H2O",
+              "Reagents": ["conc. HNO3", "conc. H2SO4"],
+              "Conditions": ["mixed acid", "controlled temperature"],
+              "Temperature": "50-60°C",
+              "Time": "1-2 hours",
+              "Yield": "~95%",
+              "Mechanism": "Electrophilic aromatic substitution",
+              "Warnings": ["Exothermic reaction", "Must control temperature"]
+            },
+            {
+              "StepNumber": 2,
+              "ReactionType": "reduction",
+              "Description": "Reduction of nitrobenzene to aniline",
+              "Equation": "C6H5NO2 + 3H2 → C6H5NH2 + 2H2O",
+              "Reagents": ["H2 with Pt/Pd catalyst", "or Sn/HCl", "or Fe/HCl"],
+              "Conditions": ["catalytic hydrogenation or chemical reduction"],
+              "Catalyst": "Pt or Pd",
+              "Temperature": "100-150°C (catalytic)",
+              "Pressure": "5-20 atm",
+              "Yield": "~90-95%",
+              "Mechanism": "Stepwise reduction via nitroso and hydroxylamine intermediates",
+              "Warnings": ["H2 is flammable", "Use proper catalyst"]
+            }
+          ],
+          "Notes": "Classic two-step synthesis. Very reliable and high-yielding."
+        }
+      ]
+    },
+    {
+      "Name": "ethanol",
+      "Aliases": ["ethyl alcohol", "grain alcohol", "этанол", "спирт"],
+      "Formula": "C2H6O",
+      "SMILES": "CCO",
+      "IUPAC": "ethanol",
+      "Description": "Ethanol is widely used as a solvent, fuel, and beverage alcohol",
+      "Routes": [
+        {
+          "StartingMaterial": "glucose",
+          "RouteType": "biological",
+          "Difficulty": "easy",
+          "Yield": "90-95%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "fermentation",
+              "Description": "Alcoholic fermentation of glucose",
+              "Equation": "C6H12O6 → 2C2H5OH + 2CO2",
+              "Reagents": ["yeast (Saccharomyces cerevisiae)", "water"],
+              "Conditions": ["anaerobic", "pH 4-6"],
+              "Temperature": "25-35°C",
+              "Time": "2-7 days",
+              "Yield": "~90-95%",
+              "Mechanism": "Enzymatic conversion via glycolysis",
+              "Warnings": ["Keep anaerobic to prevent acetification"]
+            }
+          ],
+          "Notes": "Traditional biological method. Used for beverage production."
+        },
+        {
+          "StartingMaterial": "ethylene",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "95%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "hydration",
+              "Description": "Catalytic hydration of ethylene",
+              "Equation": "CH2=CH2 + H2O → C2H5OH",
+              "Reagents": ["H2O", "H3PO4 on silica gel"],
+              "Conditions": ["high temperature", "high pressure", "acidic catalyst"],
+              "Catalyst": "H3PO4/SiO2",
+              "Temperature": "300°C",
+              "Pressure": "60-70 atm",
+              "Yield": "~95%",
+              "Mechanism": "Electrophilic addition of water to alkene",
+              "Warnings": ["High pressure system", "Requires industrial setup"]
+            }
+          ],
+          "Notes": "Modern industrial method. Very efficient and scalable."
+        }
+      ]
+    },
+    {
+      "Name": "benzoic acid",
+      "Aliases": ["benzenecarboxylic acid", "бензойная кислота"],
+      "Formula": "C7H6O2",
+      "SMILES": "c1ccccc1C(=O)O",
+      "IUPAC": "benzoic acid",
+      "Description": "Benzoic acid is used as a food preservative and in chemical synthesis",
+      "Routes": [
+        {
+          "StartingMaterial": "toluene",
+          "RouteType": "industrial",
+          "Difficulty": "easy",
+          "Yield": "85-90%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "oxidation",
+              "Description": "Oxidation of toluene to benzoic acid",
+              "Equation": "C6H5CH3 + 3[O] → C6H5COOH + H2O",
+              "Reagents": ["KMnO4 or K2Cr2O7", "H2SO4"],
+              "Conditions": ["strong oxidizing conditions", "heat"],
+              "Temperature": "100-110°C",
+              "Time": "4-6 hours",
+              "Yield": "~85-90%",
+              "Mechanism": "Radical oxidation of methyl group",
+              "Warnings": ["Strong oxidizing agents", "Wear protective equipment"]
+            }
+          ],
+          "Notes": "Simplest and most common industrial method"
+        },
+        {
+          "StartingMaterial": "benzene",
+          "RouteType": "laboratory",
+          "Difficulty": "medium",
+          "Yield": "75-80%",
+          "StepCount": 3,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "halogenation",
+              "Description": "Bromination of benzene",
+              "Equation": "C6H6 + Br2 → C6H5Br + HBr",
+              "Reagents": ["Br2", "FeBr3 catalyst"],
+              "Conditions": ["Lewis acid catalyst"],
+              "Catalyst": "FeBr3",
+              "Temperature": "room temperature",
+              "Yield": "~90%",
+              "Mechanism": "Electrophilic aromatic substitution",
+              "Warnings": ["Br2 is toxic and corrosive"]
+            },
+            {
+              "StepNumber": 2,
+              "ReactionType": "Grignard formation",
+              "Description": "Formation of phenylmagnesium bromide",
+              "Equation": "C6H5Br + Mg → C6H5MgBr",
+              "Reagents": ["Mg turnings", "dry ether"],
+              "Conditions": ["anhydrous", "inert atmosphere"],
+              "Temperature": "gentle reflux",
+              "Yield": "~95%",
+              "Mechanism": "Single electron transfer",
+              "Warnings": ["Must be completely dry", "Highly reactive"]
+            },
+            {
+              "StepNumber": 3,
+              "ReactionType": "carbonation",
+              "Description": "Carbonation of Grignard reagent",
+              "Equation": "C6H5MgBr + CO2 → C6H5COOMgBr → C6H5COOH",
+              "Reagents": ["CO2 (dry ice)", "H3O+ workup"],
+              "Conditions": ["low temperature", "anhydrous"],
+              "Temperature": "-78°C to 0°C",
+              "Yield": "~85%",
+              "Mechanism": "Nucleophilic addition to CO2",
+              "Warnings": ["Exothermic workup step"]
+            }
+          ],
+          "Notes": "Classic Grignard synthesis. Good for laboratory scale."
+        }
+      ]
+    },
+    {
+      "Name": "phenol",
+      "Aliases": ["hydroxybenzene", "carbolic acid", "фенол"],
+      "Formula": "C6H6O",
+      "SMILES": "c1ccccc1O",
+      "IUPAC": "phenol",
+      "Description": "Phenol is used in plastics production and as a disinfectant",
+      "Routes": [
+        {
+          "StartingMaterial": "benzene",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "90-95%",
+          "StepCount": 2,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "Friedel-Crafts alkylation",
+              "Description": "Alkylation to form cumene",
+              "Equation": "C6H6 + CH3CH=CH2 → C6H5CH(CH3)2",
+              "Reagents": ["propene", "H3PO4 or AlCl3"],
+              "Conditions": ["acidic catalyst", "pressure"],
+              "Catalyst": "H3PO4 or AlCl3",
+              "Temperature": "200-250°C",
+              "Pressure": "25-30 atm",
+              "Yield": "~95%",
+              "Mechanism": "Electrophilic aromatic substitution",
+              "Warnings": []
+            },
+            {
+              "StepNumber": 2,
+              "ReactionType": "cumene process",
+              "Description": "Oxidation and acid-catalyzed rearrangement",
+              "Equation": "C6H5CH(CH3)2 + O2 → C6H5OH + CH3COCH3",
+              "Reagents": ["O2", "H2SO4"],
+              "Conditions": ["air oxidation then acid treatment"],
+              "Temperature": "80-130°C",
+              "Yield": "~95%",
+              "Mechanism": "Peroxide formation then rearrangement",
+              "Warnings": ["Also produces acetone as byproduct"]
+            }
+          ],
+          "Notes": "Cumene process - major industrial route. Also produces acetone."
+        }
+      ]
+    },
+    {
+      "Name": "toluene",
+      "Aliases": ["methylbenzene", "толуол"],
+      "Formula": "C7H8",
+      "SMILES": "Cc1ccccc1",
+      "IUPAC": "methylbenzene",
+      "Description": "Toluene is a common solvent and chemical intermediate",
+      "Routes": [
+        {
+          "StartingMaterial": "benzene",
+          "RouteType": "industrial",
+          "Difficulty": "easy",
+          "Yield": "90-95%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "Friedel-Crafts alkylation",
+              "Description": "Methylation of benzene",
+              "Equation": "C6H6 + CH3Cl → C6H5CH3 + HCl",
+              "Reagents": ["CH3Cl (methyl chloride)", "AlCl3"],
+              "Conditions": ["anhydrous", "Lewis acid catalyst"],
+              "Catalyst": "AlCl3",
+              "Temperature": "40-50°C",
+              "Yield": "~90-95%",
+              "Mechanism": "Electrophilic aromatic substitution",
+              "Warnings": ["CH3Cl is toxic", "AlCl3 reacts with water"]
+            }
+          ],
+          "Notes": "Industrial method. Can also be obtained from petroleum refining."
+        }
+      ]
+    },
+    {
+      "Name": "acetone",
+      "Aliases": ["propanone", "ацетон", "dimethyl ketone"],
+      "Formula": "C3H6O",
+      "SMILES": "CC(=O)C",
+      "IUPAC": "propan-2-one",
+      "Description": "Acetone is a common solvent and chemical intermediate",
+      "Routes": [
+        {
+          "StartingMaterial": "cumene",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "95%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "cumene process",
+              "Description": "Oxidation of cumene (byproduct of phenol synthesis)",
+              "Equation": "C6H5CH(CH3)2 + O2 → C6H5OH + (CH3)2CO",
+              "Reagents": ["O2", "H2SO4"],
+              "Conditions": ["air oxidation", "acidic workup"],
+              "Temperature": "80-130°C",
+              "Yield": "~95%",
+              "Mechanism": "Peroxide rearrangement",
+              "Warnings": []
+            }
+          ],
+          "Notes": "Major industrial route. Coproduct with phenol."
+        }
+      ]
+    },
+    {
+      "Name": "acetic acid",
+      "Aliases": ["ethanoic acid", "уксусная кислота", "vinegar acid"],
+      "Formula": "C2H4O2",
+      "SMILES": "CC(=O)O",
+      "IUPAC": "ethanoic acid",
+      "Description": "Acetic acid is used in vinegar and chemical synthesis",
+      "Routes": [
+        {
+          "StartingMaterial": "methanol",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "95%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "carbonylation",
+              "Description": "Monsanto process - carbonylation of methanol",
+              "Equation": "CH3OH + CO → CH3COOH",
+              "Reagents": ["CO", "HI", "Rh catalyst"],
+              "Conditions": ["high pressure", "rhodium catalyst"],
+              "Catalyst": "[Rh(CO)2I2]-",
+              "Temperature": "150-200°C",
+              "Pressure": "30-60 atm",
+              "Yield": "~99%",
+              "Mechanism": "Catalytic carbonylation",
+              "Warnings": ["CO is toxic", "High pressure"]
+            }
+          ],
+          "Notes": "Monsanto/Cativa process. Most efficient industrial method."
+        }
+      ]
+    },
+    {
+      "Name": "methanol",
+      "Aliases": ["methyl alcohol", "метанол", "wood alcohol"],
+      "Formula": "CH4O",
+      "SMILES": "CO",
+      "IUPAC": "methanol",
+      "Description": "Methanol is a basic chemical feedstock and fuel",
+      "Routes": [
+        {
+          "StartingMaterial": "synthesis gas",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "99%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "synthesis gas conversion",
+              "Description": "Catalytic synthesis from CO and H2",
+              "Equation": "CO + 2H2 → CH3OH",
+              "Reagents": ["CO", "H2", "Cu/ZnO/Al2O3 catalyst"],
+              "Conditions": ["high pressure", "copper catalyst"],
+              "Catalyst": "Cu/ZnO/Al2O3",
+              "Temperature": "250-300°C",
+              "Pressure": "50-100 atm",
+              "Yield": "~99%",
+              "Mechanism": "Catalytic hydrogenation",
+              "Warnings": ["Methanol is toxic"]
+            }
+          ],
+          "Notes": "Major industrial process from synthesis gas."
+        }
+      ]
+    },
+    {
+      "Name": "styrene",
+      "Aliases": ["vinylbenzene", "стирол", "phenylethylene"],
+      "Formula": "C8H8",
+      "SMILES": "C=Cc1ccccc1",
+      "IUPAC": "ethenylbenzene",
+      "Description": "Styrene is used to make polystyrene plastics",
+      "Routes": [
+        {
+          "StartingMaterial": "ethylbenzene",
+          "RouteType": "industrial",
+          "Difficulty": "easy",
+          "Yield": "90%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "dehydrogenation",
+              "Description": "Catalytic dehydrogenation of ethylbenzene",
+              "Equation": "C6H5CH2CH3 → C6H5CH=CH2 + H2",
+              "Reagents": ["steam", "Fe2O3/K2O catalyst"],
+              "Conditions": ["high temperature", "steam"],
+              "Catalyst": "Fe2O3/K2O",
+              "Temperature": "600-650°C",
+              "Yield": "~90%",
+              "Mechanism": "Catalytic elimination",
+              "Warnings": ["High temperature"]
+            }
+          ],
+          "Notes": "Major industrial route for polystyrene production."
+        }
+      ]
+    },
+    {
+      "Name": "benzaldehyde",
+      "Aliases": ["benzoic aldehyde", "бензальдегид", "benzenecarboxaldehyde"],
+      "Formula": "C7H6O",
+      "SMILES": "O=Cc1ccccc1",
+      "IUPAC": "benzaldehyde",
+      "Description": "Benzaldehyde has almond-like smell, used in flavoring",
+      "Routes": [
+        {
+          "StartingMaterial": "toluene",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "85%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "oxidation",
+              "Description": "Partial oxidation of toluene",
+              "Equation": "C6H5CH3 + O2 → C6H5CHO + H2O",
+              "Reagents": ["O2", "V2O5 catalyst"],
+              "Conditions": ["controlled oxidation"],
+              "Catalyst": "V2O5",
+              "Temperature": "350-450°C",
+              "Yield": "~85%",
+              "Mechanism": "Catalytic oxidation",
+              "Warnings": ["Must control to avoid over-oxidation to benzoic acid"]
+            }
+          ],
+          "Notes": "Industrial method. Care needed to stop at aldehyde stage."
+        }
+      ]
+    },
+    {
+      "Name": "nitrobenzene",
+      "Aliases": ["нитробензол"],
+      "Formula": "C6H5NO2",
+      "SMILES": "O=N(=O)c1ccccc1",
+      "IUPAC": "nitrobenzene",
+      "Description": "Nitrobenzene is a precursor to aniline",
+      "Routes": [
+        {
+          "StartingMaterial": "benzene",
+          "RouteType": "industrial",
+          "Difficulty": "easy",
+          "Yield": "95%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "nitration",
+              "Description": "Nitration of benzene",
+              "Equation": "C6H6 + HNO3 → C6H5NO2 + H2O",
+              "Reagents": ["conc. HNO3", "conc. H2SO4"],
+              "Conditions": ["mixed acid"],
+              "Temperature": "50-60°C",
+              "Yield": "~95%",
+              "Mechanism": "Electrophilic aromatic substitution",
+              "Warnings": ["Exothermic", "Toxic product"]
+            }
+          ],
+          "Notes": "Simple and high-yielding nitration."
+        }
+      ]
+    },
+    {
+      "Name": "chlorobenzene",
+      "Aliases": ["хлорбензол", "phenyl chloride"],
+      "Formula": "C6H5Cl",
+      "SMILES": "Clc1ccccc1",
+      "IUPAC": "chlorobenzene",
+      "Description": "Chlorobenzene is used as solvent and intermediate",
+      "Routes": [
+        {
+          "StartingMaterial": "benzene",
+          "RouteType": "industrial",
+          "Difficulty": "easy",
+          "Yield": "90%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "halogenation",
+              "Description": "Chlorination of benzene",
+              "Equation": "C6H6 + Cl2 → C6H5Cl + HCl",
+              "Reagents": ["Cl2", "FeCl3 or Fe"],
+              "Conditions": ["Lewis acid catalyst"],
+              "Catalyst": "FeCl3",
+              "Temperature": "room temperature",
+              "Yield": "~90%",
+              "Mechanism": "Electrophilic aromatic substitution",
+              "Warnings": ["Cl2 is toxic"]
+            }
+          ],
+          "Notes": "Classic halogenation reaction."
+        }
+      ]
+    },
+    {
+      "Name": "salicylic acid",
+      "Aliases": ["2-hydroxybenzoic acid", "салициловая кислота"],
+      "Formula": "C7H6O3",
+      "SMILES": "OC(=O)c1ccccc1O",
+      "IUPAC": "2-hydroxybenzoic acid",
+      "Description": "Salicylic acid is used to make aspirin",
+      "Routes": [
+        {
+          "StartingMaterial": "phenol",
+          "RouteType": "laboratory",
+          "Difficulty": "medium",
+          "Yield": "80%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "Kolbe-Schmitt reaction",
+              "Description": "Carboxylation of sodium phenoxide",
+              "Equation": "C6H5OH + CO2 → C6H4(OH)COOH",
+              "Reagents": ["NaOH", "CO2", "H+"],
+              "Conditions": ["high pressure", "high temperature"],
+              "Temperature": "125°C",
+              "Pressure": "5-7 atm",
+              "Yield": "~80%",
+              "Mechanism": "Electrophilic addition",
+              "Warnings": []
+            }
+          ],
+          "Notes": "Key intermediate for aspirin synthesis."
+        }
+      ]
+    },
+    {
+      "Name": "propanol",
+      "Aliases": ["1-propanol", "пропанол", "propyl alcohol"],
+      "Formula": "C3H8O",
+      "SMILES": "CCCO",
+      "IUPAC": "propan-1-ol",
+      "Description": "Propanol is used as solvent",
+      "Routes": [
+        {
+          "StartingMaterial": "propene",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "90%",
+          "StepCount": 2,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "hydroboration",
+              "Description": "Hydroboration of propene",
+              "Equation": "CH3CH=CH2 + BH3 → (CH3CH2CH2)3B",
+              "Reagents": ["BH3-THF"],
+              "Conditions": ["anhydrous"],
+              "Temperature": "0-25°C",
+              "Yield": "~95%",
+              "Mechanism": "Syn addition",
+              "Warnings": ["BH3 is pyrophoric"]
+            },
+            {
+              "StepNumber": 2,
+              "ReactionType": "oxidation",
+              "Description": "Oxidative workup",
+              "Equation": "(CH3CH2CH2)3B + H2O2/OH- → 3 CH3CH2CH2OH",
+              "Reagents": ["H2O2", "NaOH"],
+              "Conditions": ["alkaline"],
+              "Temperature": "25°C",
+              "Yield": "~95%",
+              "Mechanism": "Retention of configuration",
+              "Warnings": []
+            }
+          ],
+          "Notes": "Anti-Markovnikov hydration of alkene."
+        }
+      ]
+    },
+    {
+      "Name": "cyclohexane",
+      "Aliases": ["циклогексан"],
+      "Formula": "C6H12",
+      "SMILES": "C1CCCCC1",
+      "IUPAC": "cyclohexane",
+      "Description": "Cyclohexane is used as non-polar solvent",
+      "Routes": [
+        {
+          "StartingMaterial": "benzene",
+          "RouteType": "industrial",
+          "Difficulty": "easy",
+          "Yield": "99%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "hydrogenation",
+              "Description": "Complete hydrogenation of benzene",
+              "Equation": "C6H6 + 3H2 → C6H12",
+              "Reagents": ["H2", "Ni or Pt catalyst"],
+              "Conditions": ["high pressure", "metal catalyst"],
+              "Catalyst": "Ni or Pt",
+              "Temperature": "150-200°C",
+              "Pressure": "25-30 atm",
+              "Yield": "~99%",
+              "Mechanism": "Catalytic hydrogenation",
+              "Warnings": []
+            }
+          ],
+          "Notes": "Simple complete reduction of aromatic ring."
+        }
+      ]
+    },
+    {
+      "Name": "formaldehyde",
+      "Aliases": ["methanal", "формальдегид", "formalin"],
+      "Formula": "CH2O",
+      "SMILES": "C=O",
+      "IUPAC": "methanal",
+      "Description": "Formaldehyde is used in resins and preservatives",
+      "Routes": [
+        {
+          "StartingMaterial": "methanol",
+          "RouteType": "industrial",
+          "Difficulty": "easy",
+          "Yield": "95%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "oxidation",
+              "Description": "Catalytic oxidation of methanol",
+              "Equation": "CH3OH + 1/2 O2 → CH2O + H2O",
+              "Reagents": ["O2", "Ag or Fe-Mo catalyst"],
+              "Conditions": ["silver or iron-molybdenum catalyst"],
+              "Catalyst": "Ag or Fe-Mo oxide",
+              "Temperature": "600-650°C (Ag) or 250-400°C (Fe-Mo)",
+              "Yield": "~95%",
+              "Mechanism": "Catalytic dehydrogenation/oxidation",
+              "Warnings": ["Formaldehyde is toxic and carcinogenic"]
+            }
+          ],
+          "Notes": "Two industrial processes: silver and FORMOX."
+        }
+      ]
+    },
+    {
+      "Name": "acetaldehyde",
+      "Aliases": ["ethanal", "ацетальдегид"],
+      "Formula": "C2H4O",
+      "SMILES": "CC=O",
+      "IUPAC": "ethanal",
+      "Description": "Acetaldehyde is used to make acetic acid",
+      "Routes": [
+        {
+          "StartingMaterial": "ethylene",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "95%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "Wacker process",
+              "Description": "Oxidation of ethylene to acetaldehyde",
+              "Equation": "CH2=CH2 + 1/2 O2 → CH3CHO",
+              "Reagents": ["O2", "PdCl2", "CuCl2"],
+              "Conditions": ["aqueous solution", "Pd/Cu catalysis"],
+              "Catalyst": "PdCl2/CuCl2",
+              "Temperature": "100-130°C",
+              "Pressure": "3 atm",
+              "Yield": "~95%",
+              "Mechanism": "Palladium-catalyzed oxidation",
+              "Warnings": []
+            }
+          ],
+          "Notes": "Wacker process - major industrial method."
+        }
+      ]
+    },
+    {
+      "Name": "glycerol",
+      "Aliases": ["glycerin", "1,2,3-propanetriol", "глицерин"],
+      "Formula": "C3H8O3",
+      "SMILES": "OCC(O)CO",
+      "IUPAC": "propane-1,2,3-triol",
+      "Description": "Glycerol is used in food, cosmetics and explosives",
+      "Routes": [
+        {
+          "StartingMaterial": "propene",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "80%",
+          "StepCount": 3,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "chlorination",
+              "Description": "High-temperature chlorination",
+              "Equation": "CH3CH=CH2 + Cl2 → CH2ClCH=CH2 + HCl",
+              "Reagents": ["Cl2"],
+              "Conditions": ["high temperature"],
+              "Temperature": "500°C",
+              "Yield": "~90%",
+              "Mechanism": "Free radical substitution",
+              "Warnings": []
+            },
+            {
+              "StepNumber": 2,
+              "ReactionType": "hypochlorination",
+              "Description": "Addition of hypochlorous acid",
+              "Equation": "CH2ClCH=CH2 + HOCl → CH2ClCHOHCH2Cl",
+              "Reagents": ["Cl2", "H2O"],
+              "Conditions": ["aqueous"],
+              "Temperature": "50°C",
+              "Yield": "~95%",
+              "Mechanism": "Electrophilic addition",
+              "Warnings": []
+            },
+            {
+              "StepNumber": 3,
+              "ReactionType": "hydrolysis",
+              "Description": "Basic hydrolysis",
+              "Equation": "CH2ClCHOHCH2Cl + 2NaOH → CH2OHCHOHCH2OH + 2NaCl",
+              "Reagents": ["NaOH"],
+              "Conditions": ["hot", "concentrated alkali"],
+              "Temperature": "160°C",
+              "Yield": "~95%",
+              "Mechanism": "Nucleophilic substitution",
+              "Warnings": []
+            }
+          ],
+          "Notes": "Synthetic route. Also obtained from fats/oils hydrolysis."
+        }
+      ]
+    },
+    {
+      "Name": "urea",
+      "Aliases": ["carbamide", "мочевина"],
+      "Formula": "CH4N2O",
+      "SMILES": "NC(=O)N",
+      "IUPAC": "carbonyl diamide",
+      "Description": "Urea is used as fertilizer",
+      "Routes": [
+        {
+          "StartingMaterial": "ammonia",
+          "RouteType": "industrial",
+          "Difficulty": "medium",
+          "Yield": "99%",
+          "StepCount": 1,
+          "Steps": [
+            {
+              "StepNumber": 1,
+              "ReactionType": "Bosch-Meiser process",
+              "Description": "Reaction of ammonia with CO2",
+              "Equation": "2NH3 + CO2 → NH2COONH4 → NH2CONH2 + H2O",
+              "Reagents": ["NH3", "CO2"],
+              "Conditions": ["high pressure", "high temperature"],
+              "Temperature": "180-210°C",
+              "Pressure": "140-250 atm",
+              "Yield": "~99%",
+              "Mechanism": "Ammonium carbamate intermediate",
+              "Warnings": []
+            }
+          ],
+          "Notes": "Major industrial process. First organic compound synthesized from inorganics (Wöhler, 1828)."
+        }
+      ]
+    }
+  ]
+}
+
