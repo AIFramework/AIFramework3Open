@@ -18,6 +18,9 @@
     <ProjectReference Include="..\..\src\AI.Script.Std\AI.Script.Std.csproj" />
     <ProjectReference Include="..\..\src\AI.Script.Charts\AI.Script.Charts.csproj" />
     <ProjectReference Include="..\..\src\AI.Script.Llm\AI.Script.Llm.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Chem\AI.Script.Chem.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Nn\AI.Script.Nn.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Vision\AI.Script.Vision.csproj" />
   </ItemGroup>
 
 </Project>

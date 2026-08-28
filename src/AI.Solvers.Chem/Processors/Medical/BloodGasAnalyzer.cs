@@ -1,4 +1,4 @@
-using AI.Solvers.Chem.Core;
+﻿using AI.Solvers.Chem.Core;
 using System.Globalization;
 using AI.Solvers.Chem.Models;
 using AI.Solvers.Chem.Parsing;
@@ -72,14 +72,14 @@ public class BloodGasAnalyzer
             {
                 result.Steps.Add("Blood Gas Analysis (Arterial)");
                 result.Steps.Add("\n═══ Measured Values ═══");
-                result.Steps.Add($"pH = {pH:F2} {(pHNormal ? "✓" : "⚠")} (normal: 7.35-7.45)");
-                result.Steps.Add($"pCO₂ = {pCO2:F1} mmHg {(pCO2Normal ? "✓" : "⚠")} (normal: 35-45)");
-                result.Steps.Add($"HCO₃⁻ = {HCO3:F1} mEq/L {(HCO3Normal ? "✓" : "⚠")} (normal: 22-26)");
+                result.Steps.Add($"pH = {pH:F2} {(pHNormal ? "" : "")} (normal: 7.35-7.45)");
+                result.Steps.Add($"pCO₂ = {pCO2:F1} mmHg {(pCO2Normal ? "" : "")} (normal: 35-45)");
+                result.Steps.Add($"HCO₃⁻ = {HCO3:F1} mEq/L {(HCO3Normal ? "" : "")} (normal: 22-26)");
 
                 if (anionGap.HasValue)
                 {
                     bool agNormal = anionGap >= 8 && anionGap <= 16;
-                    result.Steps.Add($"\nAnion Gap = {anionGap:F1} {(agNormal ? "✓" : "⚠")} (normal: 8-16)");
+                    result.Steps.Add($"\nAnion Gap = {anionGap:F1} {(agNormal ? "" : "")} (normal: 8-16)");
                     result.Steps.Add($"AG = Na⁺ - (Cl⁻ + HCO₃⁻)");
                 }
 
@@ -103,9 +103,9 @@ public class BloodGasAnalyzer
                 // Клинические рекомендации
                 result.Steps.Add("\n═══ Clinical Notes ═══");
                 if (diagnosis.Contains("Acidosis"))
-                    result.Steps.Add("⚠ Acidosis present - check for causes");
+                    result.Steps.Add("Acidosis present - check for causes");
                 else if (diagnosis.Contains("Alkalosis"))
-                    result.Steps.Add("⚠ Alkalosis present - check for causes");
+                    result.Steps.Add("Alkalosis present - check for causes");
             }
 
             return result;

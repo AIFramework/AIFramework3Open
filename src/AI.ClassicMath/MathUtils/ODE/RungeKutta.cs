@@ -1,5 +1,6 @@
 using AI.DataStructs.Algebraic;
 using System;
+using System.Collections.Generic;
 
 namespace AI.MathUtils.ODE;
 
@@ -62,6 +63,68 @@ public class RungeKutta
         return new RungeKutta() { X = xGrid, Y = yGrid };
     }
 
+
+    /// <summary>
+    /// Решает систему обыкновенных дифференциальных уравнений dy/dx = f(x, y)
+    /// методом Рунге-Кутты 4-го порядка и возвращает решение в заданных точках.
+    /// </summary>
+    /// <param name="function">Правая часть системы: (x, y) -> dy/dx</param>
+    /// <param name="initialX">Начальное значение независимой переменной</param>
+    /// <param name="initialY">Начальный вектор состояния</param>
+    /// <param name="outputPoints">Точки, в которых нужно решение (возрастающие, начиная не раньше initialX)</param>
+    /// <param name="stepsPerInterval">Число шагов интегрирования между соседними точками вывода</param>
+    /// <remarks>
+    /// В отличие от скалярной версии решение выдаётся ровно в запрошенных точках:
+    /// шаг подбирается под каждый интервал, поэтому сетка вывода не обязана быть равномерной.
+    /// </remarks>
+    public static Vector[] SolveSystem(
+        Func<double, Vector, Vector> function,
+        double initialX,
+        Vector initialY,
+        IReadOnlyList<double> outputPoints,
+        int stepsPerInterval = 20)
+    {
+        if (function == null) throw new ArgumentNullException(nameof(function));
+        if (initialY == null) throw new ArgumentNullException(nameof(initialY));
+        if (outputPoints == null) throw new ArgumentNullException(nameof(outputPoints));
+        if (stepsPerInterval < 1) throw new ArgumentException("Steps per interval must be positive.", nameof(stepsPerInterval));
+
+        var result = new Vector[outputPoints.Count];
+        Vector y = initialY.Clone();
+        double x = initialX;
+
+        for (int point = 0; point < outputPoints.Count; point++)
+        {
+            double target = outputPoints[point];
+
+            if (target < x)
+                throw new ArgumentException("Output points must be sorted and not precede the initial value.", nameof(outputPoints));
+
+            double span = target - x;
+
+            if (span > 0)
+            {
+                double step = span / stepsPerInterval;
+
+                for (int i = 0; i < stepsPerInterval; i++)
+                {
+                    Vector k1 = function(x, y) * step;
+                    Vector k2 = function(x + (0.5 * step), y + (k1 * 0.5)) * step;
+                    Vector k3 = function(x + (0.5 * step), y + (k2 * 0.5)) * step;
+                    Vector k4 = function(x + step, y + k3) * step;
+
+                    y += (k1 + (2 * k2) + (2 * k3) + k4) / 6.0;
+                    x += step;
+                }
+
+                x = target; // накопленная ошибка шага не должна уводить сетку
+            }
+
+            result[point] = y.Clone();
+        }
+
+        return result;
+    }
 
     /// <summary>
     /// Estimates the error of the Runge-Kutta 4 method using the Runge-Romberg rule.

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>annotations</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Script.Chem</RootNamespace>
+    <AssemblyName>AI.Script.Chem</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
+    <ProjectReference Include="..\AI.Solvers.Chem\AI.Solvers.Chem.csproj" />
+    <ProjectReference Include="..\AI.LLM\AI.LLM.csproj" />
+  </ItemGroup>
+
+</Project>

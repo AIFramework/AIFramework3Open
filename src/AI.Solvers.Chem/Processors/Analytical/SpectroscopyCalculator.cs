@@ -1,7 +1,8 @@
-using AI.Solvers.Chem.Core;
+﻿using AI.Solvers.Chem.Core;
 using System.Globalization;
 using AI.Solvers.Chem.Models;
 using AI.Solvers.Chem.Parsing;
+using AI.Solvers.Chem.Metrology;
 
 namespace AI.Solvers.Chem.Processors.Analytical;
 
@@ -291,7 +292,8 @@ public class SpectroscopyCalculator
                 return ChemResult.Error("Need at least 3 data points");
 
             // Линейная регрессия: A = m·c + b
-            var (slope, intercept, r2) = LeastSquares.Fit(concentrations, absorbances);
+            var fit = LinearFit.Fit(concentrations, absorbances);
+            double slope = fit.Slope, intercept = fit.Intercept, r2 = fit.R2;
 
             // slope = ε·l (если концентрация в M и длина в см)
             double epsilon = slope; // если pathlength = 1 cm
@@ -317,14 +319,14 @@ public class SpectroscopyCalculator
                 result.Steps.Add($"R² = {r2:F4}");
 
                 if (r2 >= 0.99)
-                    result.Steps.Add("✓ Excellent linearity (R² ≥ 0.99)");
+                    result.Steps.Add("Excellent linearity (R² ≥ 0.99)");
                 else if (r2 >= 0.95)
-                    result.Steps.Add("✓ Good linearity (R² ≥ 0.95)");
+                    result.Steps.Add("Good linearity (R² ≥ 0.95)");
                 else
-                    result.Steps.Add("⚠ Poor linearity (R² < 0.95) - check data");
+                    result.Steps.Add("Poor linearity (R² < 0.95) - check data");
 
                 if (Math.Abs(intercept) > 0.05)
-                    result.Steps.Add($"⚠ Non-zero intercept ({intercept:F4}) - possible systematic error");
+                    result.Steps.Add($"Non-zero intercept ({intercept:F4}) - possible systematic error");
             }
 
             return result;

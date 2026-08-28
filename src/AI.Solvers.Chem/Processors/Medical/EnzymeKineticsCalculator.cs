@@ -1,7 +1,8 @@
-using AI.Solvers.Chem.Core;
+﻿using AI.Solvers.Chem.Core;
 using System.Globalization;
 using AI.Solvers.Chem.Models;
 using AI.Solvers.Chem.Parsing;
+using AI.Solvers.Chem.Metrology;
 
 namespace AI.Solvers.Chem.Processors.Medical;
 
@@ -87,7 +88,8 @@ public class EnzymeKineticsCalculator
             var y = velocityData.Select(v => 1.0 / v).ToArray();
 
             // Линейная регрессия
-            var (slope, intercept, r2) = LeastSquares.Fit(x, y);
+            var fit = LinearFit.Fit(x, y);
+            double slope = fit.Slope, intercept = fit.Intercept, r2 = fit.R2;
 
             double Vmax = 1.0 / intercept;
             double Km = slope * Vmax;
@@ -117,7 +119,7 @@ public class EnzymeKineticsCalculator
                 result.Steps.Add($"Km = slope × Vmax = {Km:F3} M");
 
                 if (r2 < 0.95)
-                    result.Steps.Add($"\n⚠ Warning: Low R² ({r2:F3}) - data may not fit Michaelis-Menten model");
+                    result.Steps.Add($"\nWarning: Low R² ({r2:F3}) - data may not fit Michaelis-Menten model");
             }
 
             return result;
@@ -172,7 +174,7 @@ public class EnzymeKineticsCalculator
                 result.Steps.Add($"\nWithout inhibitor: v = {v_uninhibited:F3}");
                 result.Steps.Add($"Inhibition: {inhibitionPercent:F1}%");
                 
-                result.Steps.Add($"\n✓ Competitive inhibition increases Km but does not affect Vmax");
+                result.Steps.Add($"\nCompetitive inhibition increases Km but does not affect Vmax");
             }
 
             return result;
@@ -220,7 +222,7 @@ public class EnzymeKineticsCalculator
                 result.Steps.Add($"\nv = {v:F3}");
                 result.Steps.Add($"Inhibition: {inhibitionPercent:F1}%");
                 
-                result.Steps.Add($"\n✓ Non-competitive inhibition decreases Vmax but does not affect Km");
+                result.Steps.Add($"\nNon-competitive inhibition decreases Vmax but does not affect Km");
             }
 
             return result;
@@ -251,7 +253,7 @@ public class EnzymeKineticsCalculator
                 result.Steps.Add($"Enzyme activity = {enzymeActivity} units");
                 result.Steps.Add($"Protein concentration = {proteinConc} mg");
                 result.Steps.Add($"Specific activity = {enzymeActivity}/{proteinConc} = {specificActivity:F2} units/mg");
-                result.Steps.Add($"\n✓ Higher specific activity indicates purer enzyme");
+                result.Steps.Add($"\nHigher specific activity indicates purer enzyme");
             }
 
             return result;

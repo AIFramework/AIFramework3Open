@@ -21,6 +21,14 @@
     <ProjectReference Include="..\AI.Algorithms\AI.Algorithms.csproj" />
     <ProjectReference Include="..\AI.Geometry\AI.Geometry.csproj" />
     <ProjectReference Include="..\AI.Fuzzy\AI.Fuzzy.csproj" />
+
+    <!-- Экономика и СВЧ живут здесь, а не отдельными сборками: их собственные зависимости —
+         AI, AI.ML и AI.Solvers.Math — уже подключены выше, поэтому веса они не добавляют. -->
+    <ProjectReference Include="..\AI.Economics\AI.Economics.csproj" />
+    <ProjectReference Include="..\AI.Microwave\AI.Microwave.csproj" />
+    <ProjectReference Include="..\AI.Logic\AI.Logic.csproj" />
+    <ProjectReference Include="..\AI.SignalLabs\AI.SignalLabs.csproj" />
+    <ProjectReference Include="..\AI.ExplainitALL\AI.ExplainitALL.csproj" />
     <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
   </ItemGroup>
 

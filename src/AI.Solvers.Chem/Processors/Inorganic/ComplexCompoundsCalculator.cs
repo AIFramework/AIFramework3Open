@@ -1,4 +1,4 @@
-using AI.Solvers.Chem.Core;
+﻿using AI.Solvers.Chem.Core;
 using AI.Solvers.Chem.Database;
 using System.Globalization;
 using AI.Solvers.Chem.Models;
@@ -156,13 +156,13 @@ public class ComplexCompoundsCalculator
                 result.Steps.Add($"Complexation: {percentComplexed:F1}%");
 
                 if (percentComplexed > 99)
-                    result.Steps.Add("✓ Nearly complete complexation");
+                    result.Steps.Add("Nearly complete complexation");
                 else if (percentComplexed > 90)
-                    result.Steps.Add("✓ Good complexation");
+                    result.Steps.Add("Good complexation");
                 else if (percentComplexed > 50)
-                    result.Steps.Add("⚠ Partial complexation");
+                    result.Steps.Add("Partial complexation");
                 else
-                    result.Steps.Add("⚠ Weak complexation - consider increasing ligand concentration");
+                    result.Steps.Add("Weak complexation - consider increasing ligand concentration");
             }
 
             return result;
@@ -297,11 +297,11 @@ public class ComplexCompoundsCalculator
                     result.Steps.Add($"lgK' = {lgK_prime:F2}");
 
                     if (lgK_prime > 8)
-                        result.Steps.Add("\n✓ Strong complexation possible at this pH");
+                        result.Steps.Add("\nStrong complexation possible at this pH");
                     else if (lgK_prime > 6)
-                        result.Steps.Add("\n⚠ Moderate complexation at this pH");
+                        result.Steps.Add("\nModerate complexation at this pH");
                     else
-                        result.Steps.Add("\n⚠ Weak complexation at this pH - consider increasing pH");
+                        result.Steps.Add("\nWeak complexation at this pH - consider increasing pH");
                 }
 
                 return result;

@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Script.Vision</RootNamespace>
+    <AssemblyName>AI.Script.Vision</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Отдельная сборка от AI.Script.Std по весу зависимостей: AI.ComputerVision тянет
+       SkiaSharp с нативными библиотеками под каждую платформу и ONNX Runtime. Скрипт,
+       которому нужны только таблицы и статистика, не должен платить за это ни размером
+       поставки, ни временем запуска. -->
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.ComputerVision\AI.ComputerVision.csproj" />
+    <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
+  </ItemGroup>
+
+</Project>

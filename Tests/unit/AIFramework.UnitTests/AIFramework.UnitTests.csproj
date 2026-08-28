@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\shared\AIFramework.TestHelpers\AIFramework.TestHelpers.csproj" />
     <ProjectReference Include="..\..\..\src\AI\AI.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.ClassicMath\AI.ClassicMath.csproj" />
     <ProjectReference Include="..\..\..\src\AI.NLP\AI.NLP.csproj" />
   </ItemGroup>
 

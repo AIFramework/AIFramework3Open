@@ -185,6 +185,65 @@ public sealed class ExamplesTests
     }
 
     /// <summary>
+    /// Изображения и сеть в одном конвейере: картинка → признаки → обучение → качество.
+    /// </summary>
+    /// <remarks>
+    /// Задача выбрана разрешимой заведомо — направление полос по гистограмме градиентов
+    /// различается однозначно. Пример показывает стык пространств, а не силу сети, и на
+    /// нерешаемой задаче он проверял бы удачу.
+    /// </remarks>
+    [Fact]
+    public void Example_VisionNn_Runs()
+    {
+        string source = File.ReadAllText(ExamplePath("08_vision_nn.ais"));
+
+        RunResult result = Script.RunWith(ExampleHost, source, new RunOptions { FileName = "08_vision_nn.ais" });
+
+        Assert.True(result.Success, Script.Report(result));
+
+        Assert.Equal(40.0, result.Emitted["образцов"]);
+        Assert.Equal(8.0, result.Emitted["признаков"]);
+        Assert.Equal(28.0, result.Emitted["обучающих"]);
+        Assert.True((double)result.Emitted["точность_теста"]! > 0.8);
+        Assert.True((double)result.Emitted["параметров"]! > 0);
+
+        // Три показа: кривая потерь, образец и его границы.
+        Assert.Single(result.Artifacts);
+        Assert.Equal("plot", result.Artifacts[0].Kind);
+    }
+
+    /// <summary>
+    /// Прикладные пространства в одном конвейере: физика задаёт производительность,
+    /// производительность — экономику, химия — расход реагента.
+    /// </summary>
+    /// <remarks>
+    /// Числа сверяются с тем, что считается на бумаге: длина волны на 2.45 ГГц, критическая
+    /// частота WR-340 и молярная масса буры. Если привязка перепутает единицы или аргументы,
+    /// разойдётся именно это, а не «какое-то число».
+    /// </remarks>
+    [Fact]
+    public void Example_Domains_Runs()
+    {
+        string source = File.ReadAllText(ExamplePath("07_domains.ais"));
+
+        RunResult result = Script.RunWith(ExampleHost, source, new RunOptions { FileName = "07_domains.ais" });
+
+        Assert.True(result.Success, Script.Report(result));
+
+        Assert.Equal(122.4, result.Emitted["длина_волны_мм"]);
+        Assert.Equal("WR-340", result.Emitted["волновод"]);
+        Assert.Equal(1.736, result.Emitted["критическая_ггц"]);
+        Assert.Equal(381.36, result.Emitted["антисептик_масса"]);
+
+        // Проект принимается при ставке 15 %, но без запаса: внутренняя норма чуть выше неё.
+        Assert.Equal(1.0, result.Emitted["принимается"]);
+        Assert.InRange((double)result.Emitted["irr"]!, 0.15, 0.30);
+
+        Assert.Single(result.Artifacts);
+        Assert.Equal("table", result.Artifacts[0].Kind);
+    }
+
+    /// <summary>
     /// Приёмка этапа M5: поиск по корпусу работает без сети и без ключей, а обращение к
     /// модели остаётся необязательным.
     /// </summary>

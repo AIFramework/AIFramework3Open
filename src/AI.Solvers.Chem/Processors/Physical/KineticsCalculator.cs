@@ -144,11 +144,11 @@ public class KineticsCalculator
                 result.Steps.Add($"t₁/₂ = {t_half:E3}");
 
                 if (order == 1)
-                    result.Steps.Add("\n✓ First-order: half-life is independent of concentration");
+                    result.Steps.Add("\nFirst-order: half-life is independent of concentration");
                 else if (order == 0)
-                    result.Steps.Add("\n✓ Zero-order: half-life decreases as concentration decreases");
+                    result.Steps.Add("\nZero-order: half-life decreases as concentration decreases");
                 else if (order == 2)
-                    result.Steps.Add("\n✓ Second-order: half-life increases as concentration decreases");
+                    result.Steps.Add("\nSecond-order: half-life increases as concentration decreases");
             }
 
             return result;
@@ -274,11 +274,11 @@ public class KineticsCalculator
                     result.Steps.Add($"n = {order:F2}");
 
                     if (Math.Abs(order - 0) < 0.2)
-                        result.Steps.Add("\n✓ Likely zero-order reaction");
+                        result.Steps.Add("\nLikely zero-order reaction");
                     else if (Math.Abs(order - 1) < 0.2)
-                        result.Steps.Add("\n✓ Likely first-order reaction");
+                        result.Steps.Add("\nLikely first-order reaction");
                     else if (Math.Abs(order - 2) < 0.2)
-                        result.Steps.Add("\n✓ Likely second-order reaction");
+                        result.Steps.Add("\nLikely second-order reaction");
                 }
 
                 return result;

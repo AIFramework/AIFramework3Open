@@ -1,4 +1,4 @@
-using AI.Solvers.Chem.Core;
+﻿using AI.Solvers.Chem.Core;
 using AI.Solvers.Chem.Database;
 using AI.Solvers.Chem.Models;
 using AI.Solvers.Chem.Processors.Organic.Graph;
@@ -553,7 +553,7 @@ public class OrganicChemProcessor
             
             if (step.Warnings.Any())
             {
-                result.AppendLine($"  ⚠ Warnings: {string.Join("; ", step.Warnings)}");
+                result.AppendLine($"  Warnings: {string.Join("; ", step.Warnings)}");
             }
         }
 
@@ -598,7 +598,7 @@ public class OrganicChemProcessor
             }
             else
             {
-                result.AppendLine("⚠ IUPAC naming for complex structures requires");
+                result.AppendLine("IUPAC naming for complex structures requires");
                 result.AppendLine("  advanced algorithm. Current implementation supports:");
                 result.AppendLine("  - Simple alkanes (C1-C10)");
                 result.AppendLine("  - Simple alcohols");

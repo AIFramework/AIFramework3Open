@@ -1,4 +1,4 @@
-using AI.Solvers.Chem.Core;
+﻿using AI.Solvers.Chem.Core;
 using AI.Solvers.Chem.Database;
 using System.Globalization;
 using AI.Solvers.Chem.Models;
@@ -206,7 +206,7 @@ public class SolubilityCalculator
                 result.Steps.Add($"\nWithout common ion: s = {normalSolubility:E3} mol/L");
                 result.Steps.Add($"With common ion: s = {solubility:E3} mol/L");
                 result.Steps.Add($"Suppression factor: {normalSolubility / solubility:F1}×");
-                result.Steps.Add("\n✓ Common ion effect decreases solubility");
+                result.Steps.Add("\nCommon ion effect decreases solubility");
             }
 
             return result;
@@ -335,7 +335,7 @@ public class SolubilityCalculator
                 result.Steps.Add($"\nWith [Anion] = {anionConc:E3} M:");
                 result.Steps.Add($"{compound1} precipitates when [cation] > {cationConc1:E3} M");
                 result.Steps.Add($"{compound2} precipitates when [cation] > {cationConc2:E3} M");
-                result.Steps.Add($"\n✓ {first} precipitates first (lower Ksp)");
+                result.Steps.Add($"\n{first} precipitates first (lower Ksp)");
             }
 
             return result;

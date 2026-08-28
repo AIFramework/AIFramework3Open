@@ -1,5 +1,8 @@
 using AI.Script.Charts;
+using AI.Script.Chem;
 using AI.Script.Llm;
+using AI.Script.Nn;
+using AI.Script.Vision;
 using AI.Script.Docs;
 using AI.Script.Hosting;
 using AI.Script.Runtime;
@@ -197,7 +200,7 @@ internal static class Program
     private static ScriptHost CreateHost(CommandLine line)
     {
         _ = line;
-        return StandardLibrary.CreateHost().UseCharts().UseLlm();
+        return StandardLibrary.CreateHost().UseCharts().UseLlm().UseChem().UseNeuralNetworks().UseVision();
     }
 
     /// <summary>

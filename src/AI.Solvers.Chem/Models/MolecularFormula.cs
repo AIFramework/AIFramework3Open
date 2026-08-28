@@ -195,6 +195,30 @@ public sealed class MolecularFormula
     }
 
     /// <summary>
+    /// Делит уравнение на левую и правую части по стрелке ("=", "->", "→", "⇌")
+    /// </summary>
+    /// <param name="equation">Уравнение реакции</param>
+    /// <param name="reactants">Левая часть</param>
+    /// <param name="products">Правая часть</param>
+    public static bool TrySplitEquation(string equation, out string reactants, out string products)
+    {
+        reactants = products = null;
+
+        if (string.IsNullOrWhiteSpace(equation))
+            return false;
+
+        var arrow = Regex.Match(equation, @"(?:=>|->|→|⟶|⇌|=)");
+
+        if (!arrow.Success)
+            return false;
+
+        reactants = equation.Substring(0, arrow.Index).Trim();
+        products = equation.Substring(arrow.Index + arrow.Length).Trim();
+
+        return reactants.Length > 0 && products.Length > 0;
+    }
+
+    /// <summary>
     /// Разбирает сторону уравнения в список формул
     /// </summary>
     public static List<MolecularFormula> ParseSide(string side)

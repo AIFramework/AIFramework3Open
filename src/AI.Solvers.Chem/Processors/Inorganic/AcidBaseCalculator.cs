@@ -178,9 +178,9 @@ public class AcidBaseCalculator
                 // Оценка эффективности буфера
                 double ratio = baseConc / acidConc;
                 if (ratio >= 0.1 && ratio <= 10)
-                    result.Steps.Add("✓ Buffer is effective (ratio within 0.1-10)");
+                    result.Steps.Add("Buffer is effective (ratio within 0.1-10)");
                 else
-                    result.Steps.Add("⚠ Buffer may be less effective (ratio outside 0.1-10)");
+                    result.Steps.Add("Buffer may be less effective (ratio outside 0.1-10)");
             }
 
             return result;

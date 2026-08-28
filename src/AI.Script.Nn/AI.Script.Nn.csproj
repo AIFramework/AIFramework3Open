@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Script.Nn</RootNamespace>
+    <AssemblyName>AI.Script.Nn</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Отдельная сборка от AI.Script.Std по весу зависимостей: AI.NeuralNetworks тянет
+       OpenBlasSharp с нативной библиотекой под каждую платформу. Ускорители подключаются
+       поверх: ILGPU и ONNX Runtime сюда намеренно не входят — см. §18 проекта языка. -->
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.NeuralNetworks\AI.NeuralNetworks.csproj" />
+    <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
+  </ItemGroup>
+
+</Project>

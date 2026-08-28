@@ -37,49 +37,25 @@ public class EquationBalancer
     {
         try
         {
-            var reactants = MolecularFormula.ParseSide(cmd.GetString("reactants"));
-            var products = MolecularFormula.ParseSide(cmd.GetString("products"));
+            if (!TryBalance(cmd.GetString("reactants"), cmd.GetString("products"), out var reaction, out string error))
+                return ChemResult.Error(error);
 
-            var elements = GetAllElements(reactants, products);
+            var result = ChemResult.Ok(reaction.Equation);
+            result.Data["coefficients"] = reaction.Coefficients;
+            result.Data["elements"] = reaction.Elements;
+            result.Data["reaction"] = reaction;
 
-            var unknown = elements.Where(e => _database.GetElement(e) == null).ToList();
-
-            if (unknown.Count > 0)
-                return ChemResult.Error($"Unknown element(s) in the equation: {string.Join(", ", unknown)}");
-
-            bool hasCharge = reactants.Concat(products).Any(f => f.Charge != 0);
-
-            var matrix = BuildMatrix(reactants, products, elements, hasCharge);
-            var solution = FindNullSpaceVector(matrix, out int nullity);
-
-            if (solution == null)
-                return ChemResult.Error(nullity > 1
-                    ? $"Equation is underdetermined: the species admit {nullity} independent balances, remove or add species"
-                    : "Equation cannot be balanced: no solution with positive coefficients");
-
-            if (!TryRationalize(solution, out int[] coefficients))
-                return ChemResult.Error("Equation cannot be balanced with reasonable integer coefficients");
-
-            string mismatch = Verify(reactants, products, coefficients, elements, hasCharge);
-
-            if (mismatch != null)
-                return ChemResult.Error($"Equation cannot be balanced: {mismatch}");
-
-            var result = ChemResult.Ok(FormatBalancedEquation(reactants, products, coefficients));
-            result.Data["coefficients"] = coefficients;
-            result.Data["elements"] = elements;
-
-            if (nullity > 1)
-                result.Steps.Add($"Warning: the system is underdetermined ({nullity} independent solutions), one of them is shown");
+            if (reaction.Nullity > 1)
+                result.Steps.Add($"Warning: the system is underdetermined ({reaction.Nullity} independent solutions), one of them is shown");
 
             if (_verbosity >= VerbosityLevel.Detailed)
             {
-                result.Steps.Add($"1. Species: {reactants.Count} reactant(s), {products.Count} product(s)");
-                result.Steps.Add($"2. Elements involved: {string.Join(", ", elements)}" + (hasCharge ? " (+ charge balance)" : ""));
-                result.Steps.Add($"3. Stoichiometric matrix: {matrix.Height}×{matrix.Width}");
-                result.Steps.Add("4. Solved as the null space of the matrix (SVD)");
-                result.Steps.Add($"5. Integer coefficients: {string.Join(", ", coefficients)}");
-                result.Steps.Add("6. Atom (and charge) conservation verified");
+                result.Steps.Add($"1. Species: {reaction.Reactants.Count} reactant(s), {reaction.Products.Count} product(s)");
+                result.Steps.Add($"2. Elements involved: {string.Join(", ", reaction.Elements)}"
+                    + (reaction.HasCharge ? " (+ charge balance)" : ""));
+                result.Steps.Add("3. Solved as the null space of the stoichiometric matrix (SVD)");
+                result.Steps.Add($"4. Integer coefficients: {string.Join(", ", reaction.Coefficients)}");
+                result.Steps.Add("5. Atom (and charge) conservation verified");
             }
 
             return result;
@@ -88,6 +64,81 @@ public class EquationBalancer
         {
             return ChemResult.Error($"Balancing failed: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Балансирует уравнение и возвращает разобранную реакцию
+    /// </summary>
+    /// <param name="reactants">Левая часть уравнения</param>
+    /// <param name="products">Правая часть уравнения</param>
+    /// <param name="reaction">Сбалансированная реакция</param>
+    /// <param name="error">Причина отказа, если сбалансировать не удалось</param>
+    public bool TryBalance(string reactants, string products, out BalancedReaction reaction, out string error)
+    {
+        reaction = null;
+
+        var left = MolecularFormula.ParseSide(reactants);
+        var right = MolecularFormula.ParseSide(products);
+
+        var elements = GetAllElements(left, right);
+        var unknown = elements.Where(e => _database.GetElement(e) == null).ToList();
+
+        if (unknown.Count > 0)
+        {
+            error = $"Unknown element(s) in the equation: {string.Join(", ", unknown)}";
+            return false;
+        }
+
+        bool hasCharge = left.Concat(right).Any(f => f.Charge != 0);
+        var matrix = BuildMatrix(left, right, elements, hasCharge);
+        var solution = FindNullSpaceVector(matrix, out int nullity);
+
+        if (solution == null)
+        {
+            error = nullity > 1
+                ? $"Equation is underdetermined: the species admit {nullity} independent balances, remove or add species"
+                : "Equation cannot be balanced: no solution with positive coefficients";
+            return false;
+        }
+
+        if (!TryRationalize(solution, out int[] coefficients))
+        {
+            error = "Equation cannot be balanced with reasonable integer coefficients";
+            return false;
+        }
+
+        string mismatch = Verify(left, right, coefficients, elements, hasCharge);
+
+        if (mismatch != null)
+        {
+            error = $"Equation cannot be balanced: {mismatch}";
+            return false;
+        }
+
+        error = null;
+        reaction = new BalancedReaction(left, right, coefficients, elements, hasCharge, nullity,
+            FormatBalancedEquation(left, right, coefficients));
+
+        return true;
+    }
+
+    /// <summary>
+    /// Балансирует уравнение, записанное целиком ("Fe + O2 = Fe2O3")
+    /// </summary>
+    /// <param name="equation">Уравнение реакции</param>
+    /// <param name="reaction">Сбалансированная реакция</param>
+    /// <param name="error">Причина отказа</param>
+    public bool TryBalance(string equation, out BalancedReaction reaction, out string error)
+    {
+        reaction = null;
+
+        if (!MolecularFormula.TrySplitEquation(equation, out string reactants, out string products))
+        {
+            error = "Reaction equation must contain an arrow: 'A + B = C'";
+            return false;
+        }
+
+        return TryBalance(reactants, products, out reaction, out error);
     }
 
     private static List<string> GetAllElements(List<MolecularFormula> reactants, List<MolecularFormula> products)

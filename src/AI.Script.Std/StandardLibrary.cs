@@ -12,7 +12,14 @@ namespace AI.Script.Std;
 /// </remarks>
 public static class StandardLibrary
 {
-    /// <summary>Модули этапов M0 и M1.</summary>
+    /// <summary>
+    /// Модули стандартной библиотеки.
+    /// </summary>
+    /// <remarks>
+    /// Здесь только то, что не добавляет сборке зависимостей: графики, LLM-контур и химия
+    /// подключаются отдельными вызовами, потому что тянут за собой чужой код. Экономика и СВЧ
+    /// живут здесь — их собственные зависимости и так уже подключены.
+    /// </remarks>
     public static IReadOnlyList<IScriptModule> Modules { get; } =
     [
         ScriptModule.FromType(typeof(CoreModule)),
@@ -35,6 +42,11 @@ public static class StandardLibrary
         ScriptModule.FromType(typeof(GeomModule)),
         ScriptModule.FromType(typeof(FuzzyModule)),
         ScriptModule.FromType(typeof(CtrlModule)),
+        ScriptModule.FromType(typeof(EconModule)),
+        ScriptModule.FromType(typeof(MwModule)),
+        ScriptModule.FromType(typeof(LogicModule)),
+        ScriptModule.FromType(typeof(SiglabModule)),
+        ScriptModule.FromType(typeof(ExplainModule)),
     ];
 
     /// <summary>Регистрирует стандартную библиотеку в хосте.</summary>

@@ -19,13 +19,14 @@ public static class Pseudoinverse
     {
         var (U, sigma, V) = Svd.Decompose(A);
 
-        int m = A.Height;
         int n = A.Width;
 
-        Matrix sigmaPlus = new Matrix(n, m);
-        int k = Math.Min(m, n);
+        // Разложение усечённое: U имеет размер m×n, V - n×n, сингулярных чисел n.
+        // Поэтому Σ⁺ здесь квадратная n×n, а размер m×n даёт уже произведение с Uᵀ:
+        // A⁺ = V·Σ⁺·Uᵀ = (n×n)·(n×n)·(n×m).
+        Matrix sigmaPlus = new Matrix(n, n);
 
-        for (int i = 0; i < k; i++)
+        for (int i = 0; i < n; i++)
         {
             if (sigma[i] > tolerance)
                 sigmaPlus[i, i] = 1.0 / sigma[i];

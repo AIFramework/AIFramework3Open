@@ -7,6 +7,10 @@ using Google.Protobuf;
 using OnnxAttrType = global::Onnx.AttributeProto.Types.AttributeType;
 using OnnxDType = global::Onnx.TensorProto.Types.DataType;
 
+// В файле нужен System.Buffer (BlockCopy), но пространство V2.Nn приносит свой тип Buffer -
+// необучаемый тензор модуля. Псевдоним снимает неоднозначность имени.
+using Buffer = System.Buffer;
+
 namespace AI.ML.NeuralNetworks.Onnx.V2;
 
 /// <summary>
