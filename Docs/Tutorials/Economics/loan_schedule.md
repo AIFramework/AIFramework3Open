@@ -91,7 +91,7 @@ LoanScheduleResult annuity = LoanSchedule.Build(
     annualRate: 0.18,
     periods: 60,
     type: RepaymentType.Annuity,
-    upfrontFee: 50_000);
+    upfrontFee: 0.01);
 
 Console.WriteLine($"Платёж {annuity.Payments[0].Payment:N0}");
 Console.WriteLine($"Переплата {annuity.TotalInterest:N0} ({annuity.Overpayment:P1} тела)");
@@ -109,7 +109,7 @@ foreach (LoanPayment payment in annuity.Payments.Take(3))
 
 ```csharp
 LoanScheduleResult differentiated = LoanSchedule.Build(
-    5_000_000, 0.18, 60, RepaymentType.Differentiated, upfrontFee: 50_000);
+    5_000_000, 0.18, 60, RepaymentType.Differentiated, upfrontFee: 0.01);
 
 Console.WriteLine($"Первый платёж: аннуитет {annuity.Payments[0].Payment:N0}, " +
                   $"дифференцированный {differentiated.Payments[0].Payment:N0}");
@@ -127,7 +127,8 @@ var prepayments = new List<Prepayment>
 };
 
 LoanScheduleResult early = LoanSchedule.Build(
-    5_000_000, 0.18, 60, RepaymentType.Annuity, 50_000, prepayments);
+    5_000_000, 0.18, 60, RepaymentType.Annuity,
+    upfrontFee: 0.01, prepayments: prepayments);
 
 Console.WriteLine($"Срок сократился с {early.OriginalTerm} до {early.ActualTerm} месяцев");
 Console.WriteLine($"Экономия на процентах {early.PrepaymentSaving:N0}");

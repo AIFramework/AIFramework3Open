@@ -88,16 +88,16 @@ var peers = new List<Peer>
 {
     new() { Name = "Аналог A", EnterpriseValue = 8_000_000_000, Revenue = 5_000_000_000,
             Ebitda = 1_000_000_000, NetIncome = 520_000_000,
-            MarketCapitalization = 6_500_000_000, Growth = 0.10, Margin = 0.20 },
+            MarketCapitalization = 6_500_000_000, Growth = 0.10 },
     new() { Name = "Аналог B", EnterpriseValue = 12_600_000_000, Revenue = 7_000_000_000,
             Ebitda = 1_400_000_000, NetIncome = 700_000_000,
-            MarketCapitalization = 10_000_000_000, Growth = 0.14, Margin = 0.20 },
+            MarketCapitalization = 10_000_000_000, Growth = 0.14 },
     new() { Name = "Аналог C", EnterpriseValue = 5_100_000_000, Revenue = 4_000_000_000,
             Ebitda = 600_000_000, NetIncome = 250_000_000,
-            MarketCapitalization = 4_000_000_000, Growth = 0.05, Margin = 0.15 },
+            MarketCapitalization = 4_000_000_000, Growth = 0.05 },
     new() { Name = "Аналог D", EnterpriseValue = 15_000_000_000, Revenue = 6_000_000_000,
             Ebitda = 1_500_000_000, NetIncome = 810_000_000,
-            MarketCapitalization = 12_500_000_000, Growth = 0.18, Margin = 0.25 },
+            MarketCapitalization = 12_500_000_000, Growth = 0.18 },
 };
 
 var target = new Peer
@@ -107,7 +107,6 @@ var target = new Peer
     Ebitda = 1_100_000_000,
     NetIncome = 560_000_000,
     Growth = 0.12,
-    Margin = 0.20,
 };
 
 ComparablesResult valuation = Comparables.Value(target, peers);

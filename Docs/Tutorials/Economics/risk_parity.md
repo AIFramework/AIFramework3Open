@@ -134,7 +134,7 @@ foreach (RiskParityMethod method in Enum.GetValues<RiskParityMethod>())
 Кластеры, найденные HRP, объясняют структуру портфеля лучше самих весов:
 
 ```csharp
-RiskParityResult hierarchical = RiskParity.Build(cov, names, RiskParityMethod.Hierarchical);
+RiskParityResult hierarchical = RiskParity.Build(cov, names, RiskParityMethod.HierarchicalRiskParity);
 
 foreach (RiskCluster cluster in hierarchical.Clusters)
 {

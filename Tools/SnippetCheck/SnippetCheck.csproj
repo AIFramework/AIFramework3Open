@@ -44,6 +44,7 @@
     <ProjectReference Include="..\..\src\AI.ComputerVision\AI.ComputerVision.csproj" />
     <ProjectReference Include="..\..\src\AI.ControlSystems\AI.ControlSystems.csproj" />
     <ProjectReference Include="..\..\src\AI.SignalLabs\AI.SignalLabs.csproj" />
+    <ProjectReference Include="..\..\src\AI.Microwave\AI.Microwave.csproj" />
     <ProjectReference Include="..\..\src\AI.Charts\AI.Charts.csproj" />
     <ProjectReference Include="..\..\src\AI.Faiss\AI.Faiss.csproj" />
     <ProjectReference Include="..\..\src\AI.ONNX\AI.ONNX.csproj" />
