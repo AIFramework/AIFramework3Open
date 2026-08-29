@@ -23,7 +23,7 @@ namespace AI.Script.Llm;
 /// после, потому что до запроса никто не знает, сколько токенов вернёт модель.
 /// </para>
 /// </remarks>
-[ScriptModule("llm", "Языковые модели: запросы, эмбеддинги, переранжирование")]
+[ScriptModule("llm", "Языковые модели: запросы, эмбеддинги; сеть может быть запрещена прогону")]
 public sealed class LlmModule
 {
     private readonly ILLMClient? _client;
@@ -50,7 +50,7 @@ public sealed class LlmModule
     // --- запросы ---
 
     [ScriptFn("ask", "Задаёт модели вопрос и возвращает ответ текстом",
-        Example = "let ответ = llm.ask(\"Перечисли три причины\", system: \"Отвечай списком\")")]
+        Example = "let answer = llm.ask(\"Перечисли три причины\", system: \"Отвечай списком\")")]
     public async Task<string> Ask(
         IScriptContext context,
         [ScriptParam("текст запроса")] string prompt,
@@ -118,7 +118,6 @@ public sealed class LlmModule
     /// надеяться — значит получать отказ на каждом десятом вызове.
     /// </remarks>
     [ScriptFn("json", "Запрос со структурированным ответом: разбирает JSON из ответа модели",
-        Returns = "record",
         Example = "llm.json(\"Разбери отзыв\", shape: { тон: \"строка\", оценка: \"число\" })")]
     public async Task<ScriptValue> Json(
         IScriptContext context,
@@ -231,7 +230,7 @@ public sealed class LlmModule
     }
 
     [ScriptFn("rerank", "Оценивает близость запроса к каждому документу",
-        Example = "let баллы = llm.rerank(вопрос, документы)")]
+        Example = "let scores = llm.rerank(question, docs)")]
     public async Task<Vector> Rerank(
         IScriptContext context,
         [ScriptParam("запрос")] string query,
@@ -270,17 +269,16 @@ public sealed class LlmModule
     /// один проход по модели, должен видеть остаток, иначе решение принимает потолок — отказом
     /// посреди работы.
     /// </remarks>
-    [ScriptFn("usage", "Расход прогона: вызовы, токены, стоимость", Returns = "record",
-        Example = "emit расход = llm.usage()")]
+    [ScriptFn("usage", "Расход прогона: вызовы, токены, стоимость", Example = "emit spent = llm.usage()")]
     public static ScriptRecord Usage(IScriptContext context)
     {
         ExternalUsage usage = context.Usage;
 
         return ScriptRecord.From(
         [
-            new("вызовов", ScriptValue.Num(usage.Calls)),
-            new("токенов", ScriptValue.Num(usage.Tokens)),
-            new("стоимость", ScriptValue.Num((double)usage.Cost)),
+            new("calls", ScriptValue.Num(usage.Calls)),
+            new("tokens", ScriptValue.Num(usage.Tokens)),
+            new("cost", ScriptValue.Num((double)usage.Cost)),
         ]);
     }
 
@@ -292,7 +290,7 @@ public sealed class LlmModule
     /// ловить отказ в <c>try</c> и разбирать по тексту, чего именно не хватило.
     /// </remarks>
     [ScriptFn("available", "Подключена ли модель и разрешена ли сеть",
-        Example = "if llm.available() { ... } else { ... }")]
+        Example = "let answer = if llm.available() { llm.ask(question) } else { \"модель недоступна\" }")]
     public bool Available(IScriptContext context) => _client != null && context.Network.Enabled;
 
     // --- внутреннее ---

@@ -26,7 +26,7 @@ namespace AI.Script.Vision;
 /// самовольно значило бы рассогласовать язык с той библиотекой, которую он показывает.
 /// </para>
 /// </remarks>
-[ScriptModule("cv", "Изображения: загрузка, фильтрация, контуры, спектр, признаки", Version = "0.1")]
+[ScriptModule("cv", "Изображения матрицей яркостей 0..255: фильтры, контуры, спектр, признаки", Version = "0.1")]
 public static class CvModule
 {
     // --- ввод и вывод ---
@@ -104,13 +104,13 @@ public static class CvModule
     /// Нужна после спектра и после фильтров, растягивающих диапазон: сохранённая без
     /// приведения картинка выйдет чёрной или белой целиком, а разбираться в этом будут долго.
     /// </remarks>
-    [ScriptFn("normalize", "Растягивает яркости на отрезок 0..255", Example = "cv.normalize(спектр)")]
+    [ScriptFn("normalize", "Растягивает яркости на отрезок 0..255", Example = "cv.normalize(spectrum)")]
     public static Matrix Normalize(
         [ScriptParam("матрица яркостей")] Matrix image) => FFT2D.NormalizeTo255(image);
 
     // --- фильтрация ---
 
-    [ScriptFn("filter", "Свёртка изображения с заданным ядром", Example = "cv.filter(img, kernel: ядро)")]
+    [ScriptFn("filter", "Свёртка изображения с заданным ядром", Example = "cv.filter(img, kernel: k)")]
     public static Matrix Filter(
         IScriptContext context,
         [ScriptParam("матрица яркостей")] Matrix image,
@@ -197,8 +197,7 @@ public static class CvModule
     /// вертикальную границу от горизонтальной, а именно это и нужно тому, кто ищет разметку,
     /// царапину или шов.
     /// </remarks>
-    [ScriptFn("sobel", "Контуры: модуль и направление градиента", Returns = "record",
-        Example = "let края = cv.sobel(img)")]
+    [ScriptFn("sobel", "Контуры: модуль и направление градиента", Example = "let edges = cv.sobel(img)")]
     public static ScriptRecord Sobel(
         IScriptContext context,
         [ScriptParam("матрица яркостей")] Matrix image)
@@ -209,15 +208,15 @@ public static class CvModule
 
         return ScriptRecord.From(
         [
-            new("контуры", ScriptValue.Mat(data.GradImg)),
-            new("направление", ScriptValue.Mat(data.PhGrad)),
-            new("по_x", ScriptValue.Mat(data.GradX)),
-            new("по_y", ScriptValue.Mat(data.GradY)),
+            new("edges", ScriptValue.Mat(data.GradImg)),
+            new("direction", ScriptValue.Mat(data.PhGrad)),
+            new("gx", ScriptValue.Mat(data.GradX)),
+            new("gy", ScriptValue.Mat(data.GradY)),
         ]);
     }
 
     [ScriptFn("hog", "Гистограмма направленных градиентов: вектор признаков",
-        Example = "let признаки = cv.hog(img, bins: 9)")]
+        Example = "let features = cv.hog(img, bins: 9)")]
     public static Vector Hog(
         IScriptContext context,
         [ScriptParam("матрица яркостей")] Matrix image,

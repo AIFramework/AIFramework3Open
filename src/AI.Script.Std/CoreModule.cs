@@ -265,7 +265,7 @@ public static class CoreModule
     /// элемента, — поэтому <c>parallel: true</c> не делает результат невоспроизводимым. Что при
     /// этом действительно меняется — порядок строк, напечатанных из лямбды.
     /// </remarks>
-    [ScriptFn("map", "Применяет функцию к каждому элементу", Example = "xs |> core.map(x => x * 2)")]
+    [ScriptFn("map", "Применяет функцию к каждому элементу списка", Example = "xs |> core.map(x => x * 2)")]
     public static async Task<ScriptList> Map(
         IScriptContext context,
         [ScriptParam("последовательность")] ScriptList items,

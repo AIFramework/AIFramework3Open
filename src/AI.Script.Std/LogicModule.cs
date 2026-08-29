@@ -32,7 +32,6 @@ public static class LogicModule
     /// молча осталась бы с прежней вероятностью и увела бы весь вывод.
     /// </remarks>
     [ScriptFn("bayes", "Апостериорные вероятности гипотез по правдоподобиям наблюдения",
-        Returns = "record",
         Example = "logic.bayes(priors: { болен: 0.01, здоров: 0.99 }, " +
             "likelihoods: { болен: 0.99, здоров: 0.05 })")]
     public static ScriptRecord Bayes(

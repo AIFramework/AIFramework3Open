@@ -39,8 +39,7 @@ public static class EconModule
     /// считаются друг через друга, и разнесённые по вызовам они разошлись бы между собой при
     /// первой же правке одного из них.
     /// </remarks>
-    [ScriptFn("unit", "Юнит-экономика: CAC, ARPU, LTV, окупаемость привлечения", Returns = "record",
-        Example = "econ.unit(marketing: 300000, customers: 150, revenue: 4000, margin: 0.7, churn: 0.08)")]
+    [ScriptFn("unit", "Юнит-экономика: CAC, ARPU, LTV, окупаемость привлечения", Example = "econ.unit(marketing: 300000, customers: 150, revenue: 4000, margin: 0.7, churn: 0.08)")]
     public static ScriptRecord Unit(
         IScriptContext context,
         [ScriptParam("расходы на маркетинг за период")] double marketing,
@@ -75,15 +74,15 @@ public static class EconModule
         return Record(
             ("cac", result.Cac),
             ("arpu", result.Arpu),
-            ("вклад_за_период", result.ContributionPerPeriod),
-            ("маржа_вклада", result.ContributionMarginRate),
+            ("contribution", result.ContributionPerPeriod),
+            ("contribution_margin", result.ContributionMarginRate),
             ("ltv", result.Ltv),
-            ("ltv_без_дисконта", result.UndiscountedLtv),
-            ("ltv_к_cac", result.LtvToCac),
-            ("чистый_вклад", result.NetContribution),
-            ("окупаемость_периодов", result.CacPaybackPeriods),
-            ("срок_жизни_периодов", result.ExpectedLifetimePeriods),
-            ("горизонт", result.HorizonUsed));
+            ("ltv_undiscounted", result.UndiscountedLtv),
+            ("ltv_to_cac", result.LtvToCac),
+            ("net_contribution", result.NetContribution),
+            ("payback_periods", result.CacPaybackPeriods),
+            ("lifetime_periods", result.ExpectedLifetimePeriods),
+            ("horizon", result.HorizonUsed));
     }
 
     [ScriptFn("ltv", "Пожизненная ценность клиента по оттоку",
@@ -136,7 +135,6 @@ public static class EconModule
     /// с разбросом в месяц, а среднее у них одинаковое.
     /// </remarks>
     [ScriptFn("runway", "На сколько месяцев хватит денег: детерминированный срок и имитации",
-        Returns = "record",
         Example = "econ.runway(cash: 30000000, revenue: 4000000, costs: 7000000, growth: 0.08)")]
     public static ScriptRecord Runway(
         IScriptContext context,
@@ -175,14 +173,14 @@ public static class EconModule
         });
 
         return Record(
-            ("месяцев", result.DeterministicRunwayMonths),
-            ("месяцев_p10", result.CashOutP10),
-            ("месяцев_p50", result.CashOutP50),
-            ("месяцев_p90", result.CashOutP90),
-            ("вероятность_выжить", result.SurvivalProbability),
-            ("риск_6_месяцев", result.ProbabilityCashOutIn6),
-            ("риск_12_месяцев", result.ProbabilityCashOutIn12),
-            ("вероятность_выхода_в_ноль", result.ProbabilityBreakEven));
+            ("months", result.DeterministicRunwayMonths),
+            ("months_p10", result.CashOutP10),
+            ("months_p50", result.CashOutP50),
+            ("months_p90", result.CashOutP90),
+            ("survival_probability", result.SurvivalProbability),
+            ("risk_6m", result.ProbabilityCashOutIn6),
+            ("risk_12m", result.ProbabilityCashOutIn12),
+            ("break_even_probability", result.ProbabilityBreakEven));
     }
 
     // --- проекты и инвестиции ---
@@ -216,7 +214,6 @@ public static class EconModule
     /// значить. Скрипт, который об этом не знает, хотя бы увидит признак в результате.
     /// </remarks>
     [ScriptFn("appraise", "Оценка проекта: NPV, IRR, MIRR, индекс прибыльности, окупаемость",
-        Returns = "record",
         Example = "econ.appraise(<-5000, 1500, 2000, 2500, 1200>, rate: 0.12)")]
     public static ScriptRecord Appraise(
         [ScriptParam("платежи по периодам")] Vector flows,
@@ -231,16 +228,15 @@ public static class EconModule
             ("npv", result.NetPresentValue),
             ("irr", result.InternalRateOfReturn),
             ("mirr", result.ModifiedIrr),
-            ("индекс_прибыльности", result.ProfitabilityIndex),
-            ("окупаемость", result.PaybackPeriod),
-            ("окупаемость_дисконт", result.DiscountedPayback),
-            ("вложения", result.InitialInvestment),
-            ("смен_знака", result.SignChanges),
-            ("принимается", result.IsAccepted ? 1 : 0));
+            ("profitability_index", result.ProfitabilityIndex),
+            ("payback", result.PaybackPeriod),
+            ("discounted_payback", result.DiscountedPayback),
+            ("investment", result.InitialInvestment),
+            ("sign_changes", result.SignChanges),
+            ("accepted", result.IsAccepted ? 1 : 0));
     }
 
-    [ScriptFn("break_even", "Точка безубыточности и запас прочности", Returns = "record",
-        Example = "econ.break_even(price: 1200, variable_cost: 700, fixed_costs: 2000000, volume: 5000)")]
+    [ScriptFn("break_even", "Точка безубыточности и запас прочности", Example = "econ.break_even(price: 1200, variable_cost: 700, fixed_costs: 2000000, volume: 5000)")]
     public static ScriptRecord BreakEvenPoint(
         [ScriptParam("цена единицы")] double price,
         [ScriptParam("переменные затраты на единицу")] double variable_cost,
@@ -256,20 +252,19 @@ public static class EconModule
             price, variable_cost, fixed_costs, volume, interest, target_profit, tax);
 
         return Record(
-            ("точка_единиц", result.BreakEvenUnits),
-            ("точка_выручки", result.BreakEvenRevenue),
-            ("целевой_объём", result.TargetUnits),
-            ("вклад_на_единицу", result.ContributionPerUnit),
-            ("маржа_вклада", result.ContributionMargin),
-            ("запас_прочности", result.MarginOfSafety),
-            ("операционный_рычаг", result.OperatingLeverage),
-            ("финансовый_рычаг", result.FinancialLeverage),
-            ("операционная_прибыль", result.OperatingProfit),
-            ("чистая_прибыль", result.NetProfit));
+            ("break_even_units", result.BreakEvenUnits),
+            ("break_even_revenue", result.BreakEvenRevenue),
+            ("target_units", result.TargetUnits),
+            ("contribution_per_unit", result.ContributionPerUnit),
+            ("contribution_margin", result.ContributionMargin),
+            ("margin_of_safety", result.MarginOfSafety),
+            ("operating_leverage", result.OperatingLeverage),
+            ("financial_leverage", result.FinancialLeverage),
+            ("operating_profit", result.OperatingProfit),
+            ("net_profit", result.NetProfit));
     }
 
     [ScriptFn("loan", "График погашения кредита: переплата, эффективная ставка, платежи",
-        Returns = "record",
         Example = "econ.loan(principal: 3000000, rate: 0.18, periods: 60)")]
     public static ScriptRecord Loan(
         IScriptContext context,
@@ -311,14 +306,14 @@ public static class EconModule
         }
 
         return Record(
-            ("платёж", ScriptValue.Vec(payments)),
-            ("проценты", ScriptValue.Vec(interest)),
-            ("остаток", ScriptValue.Vec(balance)),
-            ("всего_процентов", ScriptValue.Num(result.TotalInterest)),
-            ("всего_выплат", ScriptValue.Num(result.TotalPaid)),
-            ("переплата", ScriptValue.Num(result.Overpayment)),
-            ("эффективная_ставка", ScriptValue.Num(result.EffectiveAnnualRate)),
-            ("полная_стоимость", ScriptValue.Num(result.AnnualPercentageRate)));
+            ("payment", ScriptValue.Vec(payments)),
+            ("interest", ScriptValue.Vec(interest)),
+            ("balance", ScriptValue.Vec(balance)),
+            ("total_interest", ScriptValue.Num(result.TotalInterest)),
+            ("total_paid", ScriptValue.Num(result.TotalPaid)),
+            ("overpayment", ScriptValue.Num(result.Overpayment)),
+            ("effective_rate", ScriptValue.Num(result.EffectiveAnnualRate)),
+            ("apr", ScriptValue.Num(result.AnnualPercentageRate)));
     }
 
     [ScriptFn("annuity", "Аннуитетный платёж по кредиту",
@@ -369,7 +364,7 @@ public static class EconModule
     }
 
     [ScriptFn("drawdown", "Просадки по доходностям: величина, длительность, восстановление",
-        Returns = "record", Example = "econ.drawdown(returns)")]
+        Example = "econ.drawdown(returns)")]
     public static ScriptRecord Drawdown(
         IScriptContext context,
         [ScriptParam("доходности за период")] Vector returns)
@@ -379,14 +374,13 @@ public static class EconModule
         context.CountAllocation(drawdowns.Count);
 
         return Record(
-            ("просадки", ScriptValue.Vec(drawdowns)),
-            ("максимальная", ScriptValue.Num(max)),
-            ("длительность", ScriptValue.Num(length)),
-            ("восстановление", ScriptValue.Num(recovery)));
+            ("drawdowns", ScriptValue.Vec(drawdowns)),
+            ("max", ScriptValue.Num(max)),
+            ("length", ScriptValue.Num(length)),
+            ("recovery", ScriptValue.Num(recovery)));
     }
 
     [ScriptFn("performance", "Качество портфеля: доходность, риск, Шарп, Сортино, просадка",
-        Returns = "record",
         Example = "econ.performance(returns, periods_per_year: 12)")]
     public static ScriptRecord Performance(
         [ScriptParam("доходности за период")] Vector returns,
@@ -403,16 +397,16 @@ public static class EconModule
             periods_per_year);
 
         return Record(
-            ("доходность", result.AnnualReturn),
-            ("волатильность", result.Volatility),
-            ("шарп", result.Sharpe),
-            ("сортино", result.Sortino),
-            ("калмар", result.Calmar),
-            ("омега", result.Omega),
-            ("максимальная_просадка", result.MaxDrawdown),
-            ("бета", result.Beta),
-            ("альфа", result.Alpha),
-            ("ошибка_слежения", result.TrackingError));
+            ("annual_return", result.AnnualReturn),
+            ("volatility", result.Volatility),
+            ("sharpe", result.Sharpe),
+            ("sortino", result.Sortino),
+            ("calmar", result.Calmar),
+            ("omega", result.Omega),
+            ("max_drawdown", result.MaxDrawdown),
+            ("beta", result.Beta),
+            ("alpha", result.Alpha),
+            ("tracking_error", result.TrackingError));
     }
 
     [ScriptFn("portfolio_returns", "Доходности портфеля по весам и доходностям активов",
@@ -439,8 +433,7 @@ public static class EconModule
     /// Модель подбирается автоматически, и её имя возвращается вместе с прогнозом: без него
     /// нельзя понять, учтена ли сезонность, а по одному ряду чисел это не видно.
     /// </remarks>
-    [ScriptFn("forecast", "Прогноз ряда экспоненциальным сглаживанием с интервалом", Returns = "record",
-        Example = "econ.forecast(выручка, horizon: 6, season: 12)")]
+    [ScriptFn("forecast", "Прогноз ряда экспоненциальным сглаживанием с интервалом", Example = "econ.forecast(выручка, horizon: 6, season: 12)")]
     public static ScriptRecord Forecast(
         IScriptContext context,
         [ScriptParam("исторический ряд")] Vector series,
@@ -458,8 +451,7 @@ public static class EconModule
         return ForecastRecord(result);
     }
 
-    [ScriptFn("theta", "Прогноз ряда методом тета: устойчив на коротких рядах", Returns = "record",
-        Example = "econ.theta(выручка, horizon: 4)")]
+    [ScriptFn("theta", "Прогноз ряда методом тета: устойчив на коротких рядах", Example = "econ.theta(выручка, horizon: 4)")]
     public static ScriptRecord Theta(
         IScriptContext context,
         [ScriptParam("исторический ряд")] Vector series,
@@ -486,8 +478,7 @@ public static class EconModule
     /// оценка «−1.4» по семи наблюдениям и по семи сотням — это разные утверждения, и решение
     /// о цене по ним принимается разное.
     /// </remarks>
-    [ScriptFn("elasticity", "Эластичность спроса по цене с доверительным интервалом", Returns = "record",
-        Example = "econ.elasticity(prices, quantities)")]
+    [ScriptFn("elasticity", "Эластичность спроса по цене с доверительным интервалом", Example = "econ.elasticity(prices, quantities)")]
     public static ScriptRecord Elasticity(
         [ScriptParam("цены наблюдений")] Vector prices,
         [ScriptParam("объёмы продаж наблюдений")] Vector quantities)
@@ -504,14 +495,14 @@ public static class EconModule
         ElasticityResult result = DemandElasticity.Estimate(observations);
 
         return Record(
-            ("эластичность", result.Elasticity),
-            ("ошибка", result.StandardError),
+            ("elasticity", result.Elasticity),
+            ("std_error", result.StandardError),
             ("t", result.TStatistic),
             ("p", result.PValue),
-            ("интервал_низ", result.ConfidenceLow),
-            ("интервал_верх", result.ConfidenceHigh),
+            ("ci_low", result.ConfidenceLow),
+            ("ci_high", result.ConfidenceHigh),
             ("r2", result.RSquared),
-            ("наблюдений", result.Observations));
+            ("observations", result.Observations));
     }
 
     [ScriptFn("demand_at", "Спрос при новой цене по известной эластичности",
@@ -526,11 +517,11 @@ public static class EconModule
     // --- внутреннее ---
 
     private static ScriptRecord ForecastRecord(ForecastResult result) => Record(
-        ("модель", ScriptValue.Str(result.Model)),
-        ("прогноз", ScriptValue.Vec(result.PointForecast)),
-        ("низ", ScriptValue.Vec(result.Lower)),
-        ("верх", ScriptValue.Vec(result.Upper)),
-        ("сигма", ScriptValue.Num(result.Sigma)),
+        ("model", ScriptValue.Str(result.Model)),
+        ("forecast", ScriptValue.Vec(result.PointForecast)),
+        ("lower", ScriptValue.Vec(result.Lower)),
+        ("upper", ScriptValue.Vec(result.Upper)),
+        ("sigma", ScriptValue.Num(result.Sigma)),
         ("aic", ScriptValue.Num(result.Aic)),
         ("mase", ScriptValue.Num(result.InSampleMase)));
 

@@ -15,8 +15,8 @@ emit длина_волны_мм = core.round(mw.wavelength(частота) * 100
 
 let глубина = mw.penetration(
     frequency: частота,
-    permittivity: древесина.проницаемость,
-    loss_factor: древесина.фактор_потерь)
+    permittivity: древесина.permittivity,
+    loss_factor: древесина.loss_factor)
 
 emit глубина_проникновения_мм = core.round(глубина * 1000, digits: 1)
 
@@ -34,10 +34,10 @@ assert mw.uniformity(thickness: толщина, penetration: глубина) <= 
 
 let волновод = mw.waveguide(частота)
 
-emit волновод = волновод.стандарт
-emit критическая_ггц = core.round(волновод.критическая_частота / 1e9, digits: 3)
+emit волновод = волновод.standard
+emit критическая_ггц = core.round(волновод.cutoff / 1e9, digits: 3)
 
-assert волновод.одномодовый, "работать вне одномодового режима нельзя"
+assert волновод.single_mode, "работать вне одномодового режима нельзя"
 
 # --- 2. Производительность линии ---
 
@@ -45,7 +45,7 @@ let мощность = 60000
 let производительность = mw.throughput(
     power: мощность,
     delta: 60,
-    heat_capacity: древесина.теплоёмкость,
+    heat_capacity: древесина.heat_capacity,
     coupling: 0.7)
 
 emit кг_в_час = core.round(производительность, digits: 0)
@@ -74,15 +74,15 @@ let оценка = econ.appraise(поток, rate: 0.15)
 emit тонн_в_год = core.round(тонн_в_год, digits: 1)
 emit npv = core.round(оценка.npv, digits: 0)
 emit irr = core.round(оценка.irr, digits: 3)
-emit окупаемость_лет = core.round(оценка.окупаемость, digits: 2)
-emit принимается = оценка.принимается
+emit окупаемость_лет = core.round(оценка.payback, digits: 2)
+emit принимается = оценка.accepted
 
 # Кредит на оборудование: переплата — часть той же картины, а не отдельный разговор.
 
 let кредит = econ.loan(principal: вложения, rate: 0.19, periods: 36)
 
-emit платёж_в_месяц = core.round(кредит.платёж[0], digits: 0)
-emit переплата = core.round(кредит.переплата, digits: 3)
+emit платёж_в_месяц = core.round(кредит.payment[0], digits: 0)
+emit переплата = core.round(кредит.overpayment, digits: 3)
 
 # --- 4. Химия: расход антисептика на партию ---
 #

@@ -50,7 +50,7 @@ public sealed class NnVisionTests
             let сеть = nn.fit(x, y, hidden: [8], epochs: 60, lr: 0.05)
 
             emit точность = сеть.score(x, y)
-            emit классов = сеть.describe().классов
+            emit классов = сеть.describe().classes
             emit предсказаний = len(сеть.predict(x))
             emit эпох = len(сеть.history())
             """);
@@ -121,7 +121,7 @@ public sealed class NnVisionTests
             let сеть = nn.fit(x, y, task: "regression", hidden: [16], epochs: 200, lr: 0.05)
 
             emit r2 = сеть.score(x, y)
-            emit задача = сеть.describe().задача
+            emit задача = сеть.describe().task
             """);
 
         Assert.Equal("regression", result.Emitted["задача"]);
@@ -224,9 +224,9 @@ public sealed class NnVisionTests
 
             let края = cv.sobel(img)
 
-            emit по_x = stat.max(vec.of(края.по_x[16, :]))
-            emit граница = stat.max(vec.of(края.контуры[16, :]))
-            emit размер = mat.rows(края.контуры)
+            emit по_x = stat.max(vec.of(края.gx[16, :]))
+            emit граница = stat.max(vec.of(края.edges[16, :]))
+            emit размер = mat.rows(края.edges)
             """);
 
         Assert.True((double)result.Emitted["граница"]! > 100);

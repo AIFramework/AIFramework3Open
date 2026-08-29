@@ -51,7 +51,7 @@ public static class MathModule
     [ScriptFn("tan", "Тангенс (радианы)", Example = "math.tan(0.5)")]
     public static double Tan([ScriptParam("угол в радианах")] double x) => Math.Tan(x);
 
-    [ScriptFn("asin", "Арксинус", Example = "math.asin(0.5)")]
+    [ScriptFn("asin", "Арксинус числа, радианы", Example = "math.asin(0.5)")]
     public static double Asin([ScriptParam("число")] double x) => Math.Asin(x);
 
     [ScriptFn("acos", "Арккосинус", Example = "math.acos(0.5)")]

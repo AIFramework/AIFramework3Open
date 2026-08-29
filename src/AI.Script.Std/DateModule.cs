@@ -59,19 +59,19 @@ public static class DateModule
         [ScriptParam("формат .NET")] string format = "yyyy-MM-dd")
         => d.ToString(format, CultureInfo.InvariantCulture);
 
-    [ScriptFn("year", "Год", Example = "date.year(d)")]
+    [ScriptFn("year", "Год из даты", Example = "date.year(d)")]
     public static double Year([ScriptParam("дата")] DateTime d) => d.Year;
 
-    [ScriptFn("month", "Месяц", Example = "date.month(d)")]
+    [ScriptFn("month", "Номер месяца из даты, 1..12", Example = "date.month(d)")]
     public static double Month([ScriptParam("дата")] DateTime d) => d.Month;
 
     [ScriptFn("day", "День месяца", Example = "date.day(d)")]
     public static double Day([ScriptParam("дата")] DateTime d) => d.Day;
 
-    [ScriptFn("hour", "Час", Example = "date.hour(d)")]
+    [ScriptFn("hour", "Час из даты, 0..23", Example = "date.hour(d)")]
     public static double Hour([ScriptParam("дата")] DateTime d) => d.Hour;
 
-    [ScriptFn("minute", "Минута", Example = "date.minute(d)")]
+    [ScriptFn("minute", "Минуты из даты, 0..59", Example = "date.minute(d)")]
     public static double Minute([ScriptParam("дата")] DateTime d) => d.Minute;
 
     [ScriptFn("weekday", "День недели: 1 — понедельник, 7 — воскресенье", Example = "date.weekday(d)")]

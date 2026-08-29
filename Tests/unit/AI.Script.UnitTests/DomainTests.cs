@@ -32,8 +32,8 @@ public sealed class DomainTests
 
             emit cac = u.cac
             emit ltv = u.ltv
-            emit отношение = u.ltv_к_cac
-            emit жизнь = u.срок_жизни_периодов
+            emit отношение = u.ltv_to_cac
+            emit жизнь = u.lifetime_periods
             """);
 
         Assert.Equal(500.0, (double)result.Emitted["cac"]!, 6);
@@ -78,8 +78,8 @@ public sealed class DomainTests
             let a = econ.appraise(<-5000, 1500, 2000, 2500, 1200>, rate: 0.1)
 
             emit npv = a.npv
-            emit смен = a.смен_знака
-            emit принят = a.принимается
+            emit смен = a.sign_changes
+            emit принят = a.accepted
             """);
 
         Assert.True((double)result.Emitted["npv"]! > 0);
@@ -94,9 +94,9 @@ public sealed class DomainTests
         RunResult result = Run("""
             let b = econ.break_even(price: 1000, variable_cost: 500, fixed_costs: 2000, volume: 10)
 
-            emit точка = b.точка_единиц
-            emit вклад = b.вклад_на_единицу
-            emit прибыль = b.операционная_прибыль
+            emit точка = b.break_even_units
+            emit вклад = b.contribution_per_unit
+            emit прибыль = b.operating_profit
             """);
 
         Assert.Equal(4.0, (double)result.Emitted["точка"]!, 9);
@@ -110,10 +110,10 @@ public sealed class DomainTests
         RunResult result = Run("""
             let l = econ.loan(principal: 1200000, rate: 0.12, periods: 12)
 
-            emit платежей = len(l.платёж)
-            emit сумма = core.round(vec.sum(l.платёж), digits: 2)
-            emit всего = core.round(l.всего_выплат, digits: 2)
-            emit остаток = core.round(l.остаток[11], digits: 6)
+            emit платежей = len(l.payment)
+            emit сумма = core.round(vec.sum(l.payment), digits: 2)
+            emit всего = core.round(l.total_paid, digits: 2)
+            emit остаток = core.round(l.balance[11], digits: 6)
             """);
 
         Assert.Equal(12.0, result.Emitted["платежей"]);
@@ -152,7 +152,7 @@ public sealed class DomainTests
             let q = vec.of(range(len(p)) |> core.map(i => 1000 * math.pow(p[i], -1.5)))
             let оценка = econ.elasticity(p, q)
 
-            emit эластичность = core.round(оценка.эластичность, digits: 3)
+            emit эластичность = core.round(оценка.elasticity, digits: 3)
             emit r2 = core.round(оценка.r2, digits: 3)
             """);
 
@@ -167,11 +167,11 @@ public sealed class DomainTests
             let ряд = vec.of(range(24) |> core.map(i => 100 + (5 * i)))
             let f = econ.forecast(ряд, horizon: 3)
 
-            emit точек = len(f.прогноз)
-            emit первый = f.прогноз[0]
-            emit низ = f.низ[0]
-            emit верх = f.верх[0]
-            emit модель = f.модель
+            emit точек = len(f.forecast)
+            emit первый = f.forecast[0]
+            emit низ = f.lower[0]
+            emit верх = f.upper[0]
+            emit модель = f.model
             """);
 
         Assert.Equal(3.0, result.Emitted["точек"]);
@@ -188,8 +188,8 @@ public sealed class DomainTests
         RunResult result = Run("""
             let r = econ.runway(cash: 1000, revenue: 0, costs: 100, horizon: 24, simulations: 200)
 
-            emit месяцев = r.месяцев
-            emit выжить = r.вероятность_выжить
+            emit месяцев = r.months
+            emit выжить = r.survival_probability
             """);
 
         Assert.Equal(10.0, (double)result.Emitted["месяцев"]!, 6);
@@ -206,7 +206,7 @@ public sealed class DomainTests
             let r = econ.runway(cash: 5000, revenue: 300, costs: 800,
                                 growth: 0.05, growth_sigma: 0.2, horizon: 24, simulations: 300)
 
-            emit p50 = r.месяцев_p50
+            emit p50 = r.months_p50
             """;
 
         Assert.Equal(Script.RunOk(source).Emitted["p50"], Script.RunOk(source).Emitted["p50"]);
@@ -222,8 +222,8 @@ public sealed class DomainTests
 
             emit var = econ.var(доходности, confidence: 0.95)
             emit cvar = econ.cvar(доходности, confidence: 0.95)
-            emit просадка = econ.drawdown(доходности).максимальная
-            emit шарп = econ.performance(доходности).шарп
+            emit просадка = econ.drawdown(доходности).max
+            emit шарп = econ.performance(доходности).sharpe
             """);
 
         // Ожидаемые потери в хвосте не меньше порога: это определение, а не свойство данных.
@@ -267,11 +267,11 @@ public sealed class DomainTests
         RunResult result = Run("""
             let w = mw.waveguide(2.45e9)
 
-            emit стандарт = w.стандарт
-            emit критическая = w.критическая_частота
-            emit распространяется = w.распространяется
-            emit одномодовый = w.одномодовый
-            emit длина_волны = w.длина_волны
+            emit стандарт = w.standard
+            emit критическая = w.cutoff
+            emit распространяется = w.propagating
+            emit одномодовый = w.single_mode
+            emit длина_волны = w.guide_wavelength
             """);
 
         Assert.Equal(true, result.Emitted["распространяется"]);
@@ -300,8 +300,8 @@ public sealed class DomainTests
             let вода = mw.material("вода")
 
             emit время = mw.heating_time(mass: 2, delta: 60, power: 1000,
-                                         heat_capacity: вода.теплоёмкость)
-            emit теплоёмкость = вода.теплоёмкость
+                                         heat_capacity: вода.heat_capacity)
+            emit теплоёмкость = вода.heat_capacity
             """);
 
         Assert.Equal(4186.0, result.Emitted["теплоёмкость"]);
@@ -366,11 +366,11 @@ public sealed class DomainTests
             let широкая = mw.antenna("horn", frequency: 2.45e9, beamwidth: 20)
             let узкая = mw.antenna("horn", frequency: 2.45e9, beamwidth: 6)
 
-            emit усиление_широкой = широкая.усиление_дби
-            emit усиление_узкой = узкая.усиление_дби
-            emit апертура_широкой = широкая.апертура_ширина
-            emit апертура_узкой = узкая.апертура_ширина
-            emit тип = узкая.тип
+            emit усиление_широкой = широкая.gain_dbi
+            emit усиление_узкой = узкая.gain_dbi
+            emit апертура_широкой = широкая.aperture_width
+            emit апертура_узкой = узкая.aperture_width
+            emit тип = узкая.kind
             """);
 
         Assert.True((double)result.Emitted["усиление_узкой"]! > (double)result.Emitted["усиление_широкой"]!);

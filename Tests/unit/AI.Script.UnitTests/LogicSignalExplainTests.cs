@@ -163,7 +163,7 @@ public sealed class LogicSignalExplainTests
             let принято = siglab.iq_bits(символы.i, символы.q, kind: "qpsk", bits: len(биты))
 
             emit символов = len(символы.i)
-            emit на_символ = символы.бит_на_символ
+            emit на_символ = символы.bits_per_symbol
             emit ошибок = siglab.ber(биты, принято)
             """);
 
@@ -216,7 +216,7 @@ public sealed class LogicSignalExplainTests
 
             emit i = len(iq.i)
             emit q = len(iq.q)
-            emit задержка = iq.задержка >= 0
+            emit задержка = iq.delay >= 0
             """);
 
         Assert.Equal(result.Emitted["i"], result.Emitted["q"]);

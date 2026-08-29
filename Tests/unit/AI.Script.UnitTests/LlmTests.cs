@@ -87,8 +87,8 @@ public sealed class LlmTests
             let расход = llm.usage()
 
             emit ответ = ответ
-            emit вызовов = расход.вызовов
-            emit токенов = расход.токенов
+            emit вызовов = расход.calls
+            emit токенов = расход.tokens
             """, Online());
 
         Assert.True(result.Success, Script.Report(result));

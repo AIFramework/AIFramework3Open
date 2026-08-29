@@ -22,7 +22,7 @@ namespace AI.Script.Std;
 /// здесь ошибок, и единственная защита от неё — не давать выбора.
 /// </para>
 /// </remarks>
-[ScriptModule("mw", "СВЧ: волноводы, антенны, диэлектрический нагрев, предельные уровни", Version = "0.1")]
+[ScriptModule("mw", "СВЧ в единицах СИ: волноводы, антенны, нагрев, предельные уровни", Version = "0.1")]
 public static class MwModule
 {
     // --- физика ---
@@ -135,7 +135,6 @@ public static class MwModule
     /// рассчитывали, и признак <c>одномодовый</c> в результате об этом говорит прямо.
     /// </remarks>
     [ScriptFn("waveguide", "Прямоугольный волновод: критические частоты, длина волны, затухание",
-        Returns = "record",
         Example = "mw.waveguide(2.45e9)")]
     public static ScriptRecord Waveguide(
         [ScriptParam("частота, Гц")] double frequency,
@@ -161,17 +160,17 @@ public static class MwModule
         bool propagating = guide.IsPropagating(frequency);
 
         return Record(
-            ("стандарт", ScriptValue.Str(guide.Standard)),
-            ("ширина_мм", ScriptValue.Num(guide.WidthMm)),
-            ("высота_мм", ScriptValue.Num(guide.HeightMm)),
-            ("критическая_частота", ScriptValue.Num(guide.CutoffTE10Hz)),
-            ("полоса_низ", ScriptValue.Num(guide.BandLowHz)),
-            ("полоса_верх", ScriptValue.Num(guide.BandHighHz)),
-            ("распространяется", ScriptValue.Bool(propagating)),
-            ("одномодовый", ScriptValue.Bool(guide.IsSingleMode(frequency))),
-            ("длина_волны", ScriptValue.Num(propagating ? guide.GuideWavelength(frequency) : double.NaN)),
-            ("импеданс", ScriptValue.Num(propagating ? guide.WaveImpedanceTE10(frequency) : double.NaN)),
-            ("затухание_дб_м", ScriptValue.Num(
+            ("standard", ScriptValue.Str(guide.Standard)),
+            ("width_mm", ScriptValue.Num(guide.WidthMm)),
+            ("height_mm", ScriptValue.Num(guide.HeightMm)),
+            ("cutoff", ScriptValue.Num(guide.CutoffTE10Hz)),
+            ("band_low", ScriptValue.Num(guide.BandLowHz)),
+            ("band_high", ScriptValue.Num(guide.BandHighHz)),
+            ("propagating", ScriptValue.Bool(propagating)),
+            ("single_mode", ScriptValue.Bool(guide.IsSingleMode(frequency))),
+            ("guide_wavelength", ScriptValue.Num(propagating ? guide.GuideWavelength(frequency) : double.NaN)),
+            ("impedance", ScriptValue.Num(propagating ? guide.WaveImpedanceTE10(frequency) : double.NaN)),
+            ("attenuation_db_m", ScriptValue.Num(
                 propagating ? guide.AttenuationDbPerM(frequency, conductivity) : double.NaN)));
     }
 
@@ -202,8 +201,7 @@ public static class MwModule
     /// измерения, и они переживают запись в файл. Справочник — отправная точка, а не истина:
     /// диэлектрические свойства пищевых продуктов разнятся в разы от партии к партии.
     /// </remarks>
-    [ScriptFn("material", "Свойства типового материала для СВЧ-нагрева", Returns = "record",
-        Example = "let вода = mw.material(\"вода\")")]
+    [ScriptFn("material", "Свойства типового материала для СВЧ-нагрева", Example = "let water = mw.material(\"вода\")")]
     public static ScriptRecord Material(
         [ScriptParam("часть названия: \"вода\", \"тесто\", \"мясо\", \"древесина\", \"керамика\"")] string name)
     {
@@ -221,14 +219,14 @@ public static class MwModule
         }
 
         return Record(
-            ("название", ScriptValue.Str(found.Name)),
-            ("проницаемость", ScriptValue.Num(found.RelativePermittivity)),
-            ("фактор_потерь", ScriptValue.Num(found.LossFactor)),
-            ("тангенс_потерь", ScriptValue.Num(found.LossTangent)),
-            ("плотность", ScriptValue.Num(found.DensityKgPerM3)),
-            ("теплоёмкость", ScriptValue.Num(found.SpecificHeatJPerKgK)),
-            ("теплопроводность", ScriptValue.Num(found.ThermalConductivity)),
-            ("максимальная_температура", ScriptValue.Num(found.MaxTemperatureC)));
+            ("name", ScriptValue.Str(found.Name)),
+            ("permittivity", ScriptValue.Num(found.RelativePermittivity)),
+            ("loss_factor", ScriptValue.Num(found.LossFactor)),
+            ("loss_tangent", ScriptValue.Num(found.LossTangent)),
+            ("density", ScriptValue.Num(found.DensityKgPerM3)),
+            ("heat_capacity", ScriptValue.Num(found.SpecificHeatJPerKgK)),
+            ("thermal_conductivity", ScriptValue.Num(found.ThermalConductivity)),
+            ("max_temperature", ScriptValue.Num(found.MaxTemperatureC)));
     }
 
     [ScriptFn("heating_power", "Удельная мощность тепловыделения, Вт/м³",
@@ -371,8 +369,7 @@ public static class MwModule
     /// Возвращаются и электрические, и габаритные величины сразу: антенна, дающая нужный луч,
     /// но не помещающаяся в цех, — не решение, и узнавать об этом лучше в той же строке.
     /// </remarks>
-    [ScriptFn("antenna", "Расчёт антенны: усиление, луч, габариты, запас по пробою", Returns = "record",
-        Example = "mw.antenna(\"horn\", frequency: 2.45e9, power: 900, beamwidth: 12)")]
+    [ScriptFn("antenna", "Расчёт антенны: усиление, луч, габариты, запас по пробою", Example = "mw.antenna(\"horn\", frequency: 2.45e9, power: 900, beamwidth: 12)")]
     public static ScriptRecord Antenna(
         [ScriptParam("вид: \"horn\" — рупор, \"lens\" — рупор с линзой, \"parabolic\" — зеркало")] string kind,
         [ScriptParam("частота, Гц")] double frequency,
@@ -402,18 +399,18 @@ public static class MwModule
         });
 
         return Record(
-            ("тип", ScriptValue.Str(calculator.AntennaType)),
-            ("усиление_дби", ScriptValue.Num(result.GainDbi)),
-            ("кпд", ScriptValue.Num(result.Efficiency)),
-            ("луч_e", ScriptValue.Num(result.BeamwidthEPlane)),
-            ("луч_h", ScriptValue.Num(result.BeamwidthHPlane)),
-            ("боковые_лепестки", ScriptValue.Num(result.SideLobeLevel)),
-            ("ксв", ScriptValue.Num(result.VSWR)),
-            ("апертура_ширина", ScriptValue.Num(result.ApertureWidthM)),
-            ("апертура_высота", ScriptValue.Num(result.ApertureHeightM)),
-            ("длина", ScriptValue.Num(result.TotalLengthM)),
-            ("поле_максимум", ScriptValue.Num(result.MaxElectricField)),
-            ("запас_по_пробою", ScriptValue.Num(result.SafetyMargin)));
+            ("kind", ScriptValue.Str(calculator.AntennaType)),
+            ("gain_dbi", ScriptValue.Num(result.GainDbi)),
+            ("efficiency", ScriptValue.Num(result.Efficiency)),
+            ("beamwidth_e", ScriptValue.Num(result.BeamwidthEPlane)),
+            ("beamwidth_h", ScriptValue.Num(result.BeamwidthHPlane)),
+            ("sidelobe_db", ScriptValue.Num(result.SideLobeLevel)),
+            ("vswr", ScriptValue.Num(result.VSWR)),
+            ("aperture_width", ScriptValue.Num(result.ApertureWidthM)),
+            ("aperture_height", ScriptValue.Num(result.ApertureHeightM)),
+            ("length", ScriptValue.Num(result.TotalLengthM)),
+            ("peak_field", ScriptValue.Num(result.MaxElectricField)),
+            ("breakdown_margin", ScriptValue.Num(result.SafetyMargin)));
     }
 
     // --- внутреннее ---

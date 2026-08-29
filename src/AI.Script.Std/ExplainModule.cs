@@ -21,7 +21,7 @@ namespace AI.Script.Std;
 /// второй моделью значит удваивать и стоимость, и сомнение.
 /// </para>
 /// </remarks>
-[ScriptModule("explain", "Проверка ответа на опору в источнике: сходство, подтверждения, галлюцинации",
+[ScriptModule("explain", "Проверка ответа на опору в источнике — без сети: сходство, подтверждения",
     Version = "0.1")]
 public static class ExplainModule
 {

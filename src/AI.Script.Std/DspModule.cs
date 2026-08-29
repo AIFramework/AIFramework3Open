@@ -154,7 +154,7 @@ public static class DspModule
         return Filters.FilterLowButterworthAFH(signal, cutoff, fs, order);
     }
 
-    [ScriptFn("moving_average", "Скользящее среднее", Example = "signal |> dsp.moving_average(window: 20)")]
+    [ScriptFn("moving_average", "Скользящее среднее сигнала по окну", Example = "signal |> dsp.moving_average(window: 20)")]
     public static Vector MovingAverage(
         [ScriptParam("сигнал")] Vector signal,
         [ScriptParam("длина окна")] int window = 10)

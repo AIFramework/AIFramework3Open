@@ -12,16 +12,16 @@ namespace AI.Script.Std;
 [ScriptModule("stat", "Описательные статистики, корреляции и метрики качества", Version = "0.1")]
 public static class StatModule
 {
-    [ScriptFn("mean", "Среднее", Example = "stat.mean(v)")]
+    [ScriptFn("mean", "Среднее арифметическое выборки", Example = "stat.mean(v)")]
     public static double Mean([ScriptParam("выборка")] Vector v) => Require(v, "mean").Mean();
 
-    [ScriptFn("sum", "Сумма", Example = "stat.sum(v)")]
+    [ScriptFn("sum", "Сумма значений выборки", Example = "stat.sum(v)")]
     public static double Sum([ScriptParam("выборка")] Vector v) => v.Sum();
 
-    [ScriptFn("min", "Минимум", Example = "stat.min(v)")]
+    [ScriptFn("min", "Наименьшее значение выборки", Example = "stat.min(v)")]
     public static double Min([ScriptParam("выборка")] Vector v) => Require(v, "min").Min();
 
-    [ScriptFn("max", "Максимум", Example = "stat.max(v)")]
+    [ScriptFn("max", "Наибольшее значение выборки", Example = "stat.max(v)")]
     public static double Max([ScriptParam("выборка")] Vector v) => Require(v, "max").Max();
 
     [ScriptFn("std", "Среднеквадратичное отклонение", Example = "stat.std(v)")]
@@ -30,7 +30,7 @@ public static class StatModule
     [ScriptFn("var", "Дисперсия", Example = "stat.var(v)")]
     public static double Variance([ScriptParam("выборка")] Vector v) => Require(v, "var").Dispersion();
 
-    [ScriptFn("median", "Медиана", Example = "stat.median(v)")]
+    [ScriptFn("median", "Медиана: значение посередине упорядоченного ряда", Example = "stat.median(v)")]
     public static double Median([ScriptParam("выборка")] Vector v) => Quantile(v, 0.5);
 
     [ScriptFn("quantile", "Квантиль уровня q (линейная интерполяция)", Example = "stat.quantile(v, q: 0.9)")]
@@ -217,7 +217,7 @@ public static class StatModule
             Datasets.Labels(pred, "stat.recall"));
     }
 
-    [ScriptFn("f1", "F-мера", Example = "stat.f1(y, pred, beta: 1)")]
+    [ScriptFn("f1", "F-мера: среднее гармоническое точности и полноты", Example = "stat.f1(y, pred, beta: 1)")]
     public static double F1(
         [ScriptParam("истинные метки")] Vector y,
         [ScriptParam("предсказанные метки")] Vector pred,

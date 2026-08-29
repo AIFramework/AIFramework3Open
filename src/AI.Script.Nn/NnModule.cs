@@ -19,7 +19,7 @@ namespace AI.Script.Nn;
 /// дальше работает та же сеть.
 /// </para>
 /// </remarks>
-[ScriptModule("nn", "Нейронные сети: обучение сети прямого распространения", Version = "0.1")]
+[ScriptModule("nn", "Сеть прямого распространения над матрицей признаков; вход нормируйте prep", Version = "0.1")]
 public static class NnModule
 {
     /// <summary>Тип-тег дескриптора обученной сети.</summary>
@@ -35,7 +35,7 @@ public static class NnModule
     /// а спрятанные они туда не попадут.
     /// </remarks>
     [ScriptFn("fit", "Обучает сеть прямого распространения", Returns = ModelHandle,
-        Example = "let сеть = nn.fit(x_train, y_train, hidden: [64, 32], epochs: 100)")]
+        Example = "let net = nn.fit(x_train, y_train, hidden: [64, 32], epochs: 100)")]
     public static ScriptHandle Fit(
         IScriptContext context,
         [ScriptParam("матрица объект × признак")] Matrix x,
@@ -95,7 +95,7 @@ public static class NnModule
     }
 
     [ScriptFn("predict", "Предсказание сети: метка класса либо значение отклика",
-        Example = "сеть.predict(x_test)")]
+        Example = "net.predict(x_test)")]
     [ScriptMethod(ModelHandle)]
     public static Vector Predict(
         IScriptContext context,
@@ -108,7 +108,7 @@ public static class NnModule
     }
 
     [ScriptFn("proba", "Вероятности классов: строка на объект, столбец на класс",
-        Example = "сеть.proba(x_test)")]
+        Example = "net.proba(x_test)")]
     [ScriptMethod(ModelHandle)]
     public static Matrix Probabilities(
         IScriptContext context,
@@ -123,7 +123,7 @@ public static class NnModule
     }
 
     [ScriptFn("score", "Качество: доля верных либо коэффициент детерминации",
-        Example = "сеть.score(x_test, y_test)")]
+        Example = "net.score(x_test, y_test)")]
     [ScriptMethod(ModelHandle)]
     public static double Score(
         [ScriptParam("обученная сеть")] ScriptHandle model,
@@ -138,12 +138,11 @@ public static class NnModule
     /// первых эпох, означает слишком малую скорость обучения либо ненормированный вход, и
     /// точность на тесте об этом не скажет.
     /// </remarks>
-    [ScriptFn("history", "Функция потерь по эпохам", Example = "show plot.line(сеть.history())")]
+    [ScriptFn("history", "Функция потерь по эпохам", Example = "show plot.line(net.history())")]
     [ScriptMethod(ModelHandle)]
     public static Vector History([ScriptParam("обученная сеть")] ScriptHandle model) => Unwrap(model).History;
 
-    [ScriptFn("describe", "Устройство сети: слои, классы, число параметров", Returns = "record",
-        Example = "emit модель = сеть.describe()")]
+    [ScriptFn("describe", "Устройство сети: слои, классы, число параметров", Example = "emit model = net.describe()")]
     [ScriptMethod(ModelHandle)]
     public static ScriptRecord Describe([ScriptParam("обученная сеть")] ScriptHandle model)
     {
@@ -154,14 +153,14 @@ public static class NnModule
 
         return ScriptRecord.From(
         [
-            new("задача", ScriptValue.Str(network.Task == NetworkTask.Regression ? "regression" : "classification")),
-            new("признаков", ScriptValue.Num(network.Inputs)),
-            new("классов", ScriptValue.Num(network.Classes)),
-            new("скрытые", ScriptValue.List(ScriptList.Own(hidden))),
-            new("активация", ScriptValue.Str(network.Activation)),
-            new("параметров", ScriptValue.Num(network.ParameterCount)),
-            new("эпох", ScriptValue.Num(network.History.Count)),
-            new("потери", ScriptValue.Num(network.History.Count > 0 ? network.History[^1] : double.NaN)),
+            new("task", ScriptValue.Str(network.Task == NetworkTask.Regression ? "regression" : "classification")),
+            new("inputs", ScriptValue.Num(network.Inputs)),
+            new("classes", ScriptValue.Num(network.Classes)),
+            new("hidden", ScriptValue.List(ScriptList.Own(hidden))),
+            new("activation", ScriptValue.Str(network.Activation)),
+            new("parameters", ScriptValue.Num(network.ParameterCount)),
+            new("epochs", ScriptValue.Num(network.History.Count)),
+            new("loss", ScriptValue.Num(network.History.Count > 0 ? network.History[^1] : double.NaN)),
         ]);
     }
 

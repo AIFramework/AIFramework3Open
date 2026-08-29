@@ -347,7 +347,7 @@ public static class MatModule
         return result;
     }
 
-    [ScriptFn("map", "Применяет функцию к каждому элементу", Example = "m |> mat.map(x => x * 2)")]
+    [ScriptFn("map", "Применяет функцию к каждой ячейке матрицы", Example = "m |> mat.map(x => x * 2)")]
     public static async Task<ScriptValue> Map(
         IScriptContext context,
         [ScriptParam("матрица")] Matrix m,

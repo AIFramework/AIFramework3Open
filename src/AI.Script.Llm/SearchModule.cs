@@ -34,7 +34,7 @@ public sealed class SearchModule
     public ScriptModule ToScriptModule() => ScriptModule.FromObject(this);
 
     [ScriptFn("of", "Строит индекс по списку документов", Returns = IndexHandle,
-        Example = "let индекс = search.of(документы)")]
+        Example = "let index = search.of(docs)")]
     public async Task<ScriptHandle> Of(
         IScriptContext context,
         [ScriptParam("список текстов")] ScriptList documents,
@@ -52,11 +52,11 @@ public sealed class SearchModule
         return new ScriptHandle(IndexHandle, index, $"{index.Kind}, документов: {index.Count}");
     }
 
-    [ScriptFn("size", "Сколько документов в индексе", Example = "индекс.size()")]
+    [ScriptFn("size", "Сколько документов в индексе", Example = "index.size()")]
     [ScriptMethod(IndexHandle)]
     public static double Size([ScriptParam("индекс")] ScriptHandle index) => Unwrap(index).Count;
 
-    [ScriptFn("kind", "Вид индекса", Example = "индекс.kind()")]
+    [ScriptFn("kind", "Вид индекса", Example = "index.kind()")]
     [ScriptMethod(IndexHandle)]
     public static string Kind([ScriptParam("индекс")] ScriptHandle index) => Unwrap(index).Kind;
 
@@ -68,7 +68,7 @@ public sealed class SearchModule
     /// <c>table.filter</c> либо в отчёт, и превращать его туда-обратно незачем.
     /// </remarks>
     [ScriptFn("query", "Ищет по запросу; возвращает таблицу с полями doc, text, score",
-        Example = "let найдено = индекс.query(\"как настроить прокси\", top: 3)")]
+        Example = "let found = index.query(\"как настроить прокси\", top: 3)")]
     [ScriptMethod(IndexHandle)]
     public async Task<ScriptTable> Query(
         IScriptContext context,
@@ -116,7 +116,7 @@ public sealed class SearchModule
     /// фрагменты; здесь решено один раз и одинаково.
     /// </remarks>
     [ScriptFn("context", "Склеивает найденное в текст для промпта",
-        Example = "let фон = индекс.context(вопрос, top: 4)")]
+        Example = "let ctx = index.context(question, top: 4)")]
     [ScriptMethod(IndexHandle)]
     public async Task<string> Context(
         IScriptContext context,

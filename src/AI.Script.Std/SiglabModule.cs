@@ -29,7 +29,7 @@ namespace AI.Script.Std;
 /// бы обслуживать во всём языке ради одного пространства.
 /// </para>
 /// </remarks>
-[ScriptModule("siglab", "Радиоканал: модуляция, демодуляция, АРУ, формирующий фильтр", Version = "0.1")]
+[ScriptModule("siglab", "Радиоканал: модуляция и демодуляция; биты — вектор нулей и единиц", Version = "0.1")]
 public static class SiglabModule
 {
     // --- биты ---
@@ -156,8 +156,7 @@ public static class SiglabModule
     /// в языке нет, и дескриптор с ними был бы вещью, которую нельзя ни напечатать, ни
     /// нарисовать. Две колонки рисует <c>plot.scatter</c> как есть.
     /// </remarks>
-    [ScriptFn("iq", "Биты в IQ-символы выбранной модуляции", Returns = "record",
-        Example = "let s = siglab.iq(биты, kind: \"qpsk\")")]
+    [ScriptFn("iq", "Биты в IQ-символы выбранной модуляции", Example = "let s = siglab.iq(биты, kind: \"qpsk\")")]
     public static ScriptRecord Iq(
         IScriptContext context,
         [ScriptParam("вектор бит")] Vector bits,
@@ -168,7 +167,7 @@ public static class SiglabModule
 
         context.CountAllocation(symbols.Length * 2L);
 
-        return Pair(symbols, ("бит_на_символ", ScriptValue.Num(modulation.BitsPerSymbol)));
+        return Pair(symbols, ("bits_per_symbol", ScriptValue.Num(modulation.BitsPerSymbol)));
     }
 
     [ScriptFn("iq_bits", "IQ-символы обратно в биты по ближайшей точке созвездия",
@@ -201,14 +200,13 @@ public static class SiglabModule
         return Bits(decoded);
     }
 
-    [ScriptFn("constellation", "Точки созвездия модуляции", Returns = "record",
-        Example = "show plot.scatter(x: siglab.constellation(\"qam16\").i, y: siglab.constellation(\"qam16\").q)")]
+    [ScriptFn("constellation", "Точки созвездия модуляции", Example = "show plot.scatter(x: siglab.constellation(\"qam16\").i, y: siglab.constellation(\"qam16\").q)")]
     public static ScriptRecord Constellation(
         [ScriptParam("модуляция")] string kind)
     {
         BaseIQModulation modulation = Modulation(kind, "siglab.constellation");
 
-        return Pair(modulation.Constellation, ("бит_на_символ", ScriptValue.Num(modulation.BitsPerSymbol)));
+        return Pair(modulation.Constellation, ("bits_per_symbol", ScriptValue.Num(modulation.BitsPerSymbol)));
     }
 
     /// <summary>
@@ -219,8 +217,7 @@ public static class SiglabModule
     /// Задержка фильтра возвращается вместе с составляющими — без неё символы окажутся
     /// сдвинуты, и созвездие рассыплется по кругу без видимой причины.
     /// </remarks>
-    [ScriptFn("quadrature", "Квадратурное разложение сигнала: составляющие I и Q", Returns = "record",
-        Example = "let iq = siglab.quadrature(сигнал, carrier: 2000, fs: 48000)")]
+    [ScriptFn("quadrature", "Квадратурное разложение сигнала: составляющие I и Q", Example = "let iq = siglab.quadrature(сигнал, carrier: 2000, fs: 48000)")]
     public static ScriptRecord Quadrature(
         IScriptContext context,
         [ScriptParam("принятый сигнал")] Vector signal,
@@ -249,7 +246,7 @@ public static class SiglabModule
         [
             new("i", ScriptValue.Vec(i)),
             new("q", ScriptValue.Vec(q)),
-            new("задержка", ScriptValue.Num(demodulator.FilterDelay)),
+            new("delay", ScriptValue.Num(demodulator.FilterDelay)),
         ]);
     }
 

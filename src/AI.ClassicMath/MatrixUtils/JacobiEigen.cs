@@ -41,62 +41,65 @@ public static class JacobiEigen
         Matrix V = new Matrix(n, n);
         for (int i = 0; i < n; i++) V[i, i] = 1.0;
 
-        for (int iter = 0; iter < maxIter; iter++)
+        // Один проход обнуляет все внедиагональные элементы по очереди.
+        // Раньше за итерацию делалось одно вращение, и для матрицы n x n
+        // лимита в maxIter не хватало уже при n = 12: нужно порядка n^2 вращений на проход.
+        for (int sweep = 0; sweep < maxIter; sweep++)
         {
-            int p = 0, q = 1;
-            double maxOff = Math.Abs(D[0, 1]);
+            double offNorm = 0;
 
             for (int i = 0; i < n; i++)
             {
                 for (int j = i + 1; j < n; j++)
+                    offNorm += D[i, j] * D[i, j];
+            }
+
+            if (Math.Sqrt(offNorm) < eps) break;
+
+            for (int p = 0; p < n - 1; p++)
+            {
+                for (int q = p + 1; q < n; q++)
                 {
-                    double val = Math.Abs(D[i, j]);
-                    if (val > maxOff)
+                    double apq = D[p, q];
+
+                    if (Math.Abs(apq) < eps * 1e-3) continue;
+
+                    double app = D[p, p];
+                    double aqq = D[q, q];
+
+                    double theta;
+                    if (Math.Abs(app - aqq) < 1e-15)
+                        theta = Math.PI / 4.0;
+                    else
+                        theta = 0.5 * Math.Atan2(2.0 * apq, app - aqq);
+
+                    double c = Math.Cos(theta);
+                    double s = Math.Sin(theta);
+
+                    for (int i = 0; i < n; i++)
                     {
-                        maxOff = val;
-                        p = i;
-                        q = j;
+                        double dip = D[i, p];
+                        double diq = D[i, q];
+                        D[i, p] = c * dip + s * diq;
+                        D[i, q] = -s * dip + c * diq;
+                    }
+
+                    for (int j = 0; j < n; j++)
+                    {
+                        double dpj = D[p, j];
+                        double dqj = D[q, j];
+                        D[p, j] = c * dpj + s * dqj;
+                        D[q, j] = -s * dpj + c * dqj;
+                    }
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        double vip = V[i, p];
+                        double viq = V[i, q];
+                        V[i, p] = c * vip + s * viq;
+                        V[i, q] = -s * vip + c * viq;
                     }
                 }
-            }
-
-            if (maxOff < eps) break;
-
-            double app = D[p, p];
-            double aqq = D[q, q];
-            double apq = D[p, q];
-
-            double theta;
-            if (Math.Abs(app - aqq) < 1e-15)
-                theta = Math.PI / 4.0;
-            else
-                theta = 0.5 * Math.Atan2(2.0 * apq, app - aqq);
-
-            double c = Math.Cos(theta);
-            double s = Math.Sin(theta);
-
-            for (int i = 0; i < n; i++)
-            {
-                double dip = D[i, p];
-                double diq = D[i, q];
-                D[i, p] = c * dip + s * diq;
-                D[i, q] = -s * dip + c * diq;
-            }
-
-            for (int j = 0; j < n; j++)
-            {
-                double dpj = D[p, j];
-                double dqj = D[q, j];
-                D[p, j] = c * dpj + s * dqj;
-                D[q, j] = -s * dpj + c * dqj;
-            }
-
-            for (int i = 0; i < n; i++)
-            {
-                double vip = V[i, p];
-                double viq = V[i, q];
-                V[i, p] = c * vip + s * viq;
-                V[i, q] = -s * vip + c * viq;
             }
         }
 

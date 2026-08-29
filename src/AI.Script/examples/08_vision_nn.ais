@@ -62,7 +62,7 @@ let сеть = nn.fit(
     lr: 0.05,
     batch: 0)
 
-emit параметров = сеть.describe().параметров
+emit параметров = сеть.describe().parameters
 emit обучающих = mat.rows(разбиение.x_train)
 
 # --- 4. Качество ---
@@ -88,5 +88,5 @@ assert потери[len(потери) - 1] < потери[0], "функция п
 show plot.grid([
     plot.line(потери, title: "Функция потерь по эпохам", xlabel: "эпоха"),
     plot.heatmap(картинки[0], title: "Образец: вертикальные полосы"),
-    plot.heatmap(cv.sobel(картинки[0]).контуры, title: "Границы оператором Собеля")
+    plot.heatmap(cv.sobel(картинки[0]).edges, title: "Границы оператором Собеля")
 ], title: "Распознавание направления полос")
