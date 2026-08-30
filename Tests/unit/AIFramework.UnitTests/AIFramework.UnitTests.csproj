@@ -22,6 +22,14 @@
     <ProjectReference Include="..\..\..\src\AI\AI.csproj" />
     <ProjectReference Include="..\..\..\src\AI.ClassicMath\AI.ClassicMath.csproj" />
     <ProjectReference Include="..\..\..\src\AI.NLP\AI.NLP.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.ML\AI.ML.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Solvers.Optimization\AI.Solvers.Optimization.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Solvers.Constraints\AI.Solvers.Constraints.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Solvers.Pde\AI.Solvers.Pde.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Physics\AI.Physics.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Biology\AI.Biology.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Earth\AI.Earth.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Algorithms\AI.Algorithms.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Solvers.Chem\AI.Solvers.Chem.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Microwave\AI.Microwave.csproj" />
   </ItemGroup>

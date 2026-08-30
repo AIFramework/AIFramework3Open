@@ -11,7 +11,7 @@
 | **`AI.DataStructs.Algebraic`** | **`Vector`**, **`Matrix`**, **`NDTensor`**, интерфейсы алгебраических структур. Основа для данных во всех модулях. |
 | **`AI.DataStructs.WithComplexElements`** | **`ComplexVector`** и связанные типы для комплексных рядов. |
 | **`AI.DataStructs.Shapes`** | Описание размерностей **`Shape`**, `Shape1D`–`Shape4D` для тензоров. |
-| **`AI.Statistics`** | Описательная статистика, **`Statistic`**, гистограммы, распределения (`AI.Statistics.Distributions`), смеси (`MixtureModeling`), MCMC-заготовки, квантили. |
+| **`AI.Statistics`** | Описательная статистика, **`Statistic`**, гистограммы, распределения (`AI.Statistics.Distributions`), смеси (`MixtureModeling`), MCMC-заготовки, квантили. `StatInference` — единственная в репозитории реализация нормального, стьюдентова и хи-квадрат распределений, функции ошибок и логарифма гамма-функции. |
 | **`AI.Distances`** | Метрики и расстояния между векторами и распределениями. |
 | **`AI.Extensions`** | Расширения для массивов, строк, алгебраических типов, потоков данных. |
 | **`AI.HighLevelFunctions`** | Вспомогательные функции (аналитическая геометрия, поэлементные операции). |
@@ -111,6 +111,30 @@ public sealed partial class HuckelSolution : IInterpretable
         .Build();
 }
 ```
+
+## Задача на собственные значения
+
+Решатель живёт в `AI.ClassicMath.MatrixUtils` и один на весь репозиторий: им пользуются
+метод Хюккеля в квантовой химии, тест Йохансена в эконометрике, факторные модели и метод
+главных компонент.
+
+| Тип | Назначение |
+|-----|------------|
+| **`Eigen.Symmetric`** | Спектр и векторы симметричной матрицы, порядок задаётся `EigenOrder`. |
+| **`Eigen.GeneralizedSymmetric`** | Обобщённая задача `A·x = λ·B·x` через ортогонализацию по Лёвдину. |
+| **`Eigen.SymmetricFunction`** | Функция от матрицы `f(A) = U·diag(f(λ))·Uᵀ`. |
+| **`Eigen.SquareRoot`**, **`Eigen.InverseSquareRoot`** | Корень и обратный корень: `A^(1/2)`, `A^(-1/2)`. |
+| **`JacobiEigen`** | Метод вращений, на котором всё это построено. Прямой вызов нужен редко. |
+| **`EigenValuesVectors`** | QR-итерация для матриц **общего вида**. Для симметричных используйте `Eigen`: он точнее и быстрее. |
+
+```csharp
+using AI.ClassicMath.MatrixUtils;
+
+(Vector energies, Matrix orbitals) = Eigen.GeneralizedSymmetric(hamiltonian, overlap);
+Matrix whitening = Eigen.InverseSquareRoot(covariance);   // M^(-1/2)·M·M^(-1/2) = I
+```
+
+Симметричность аргумента не проверяется — это ответственность вызывающего кода.
 
 ---
 

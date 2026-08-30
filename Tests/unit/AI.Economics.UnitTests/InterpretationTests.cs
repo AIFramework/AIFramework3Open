@@ -3,7 +3,7 @@ using AI.DataStructs.Algebraic;
 using AI.Economics.Cohorts;
 using AI.Economics.Corporate;
 using AI.Economics.Credit;
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Economics.Experiments;
 using AI.Insights;
 using AI.Economics.Equity;

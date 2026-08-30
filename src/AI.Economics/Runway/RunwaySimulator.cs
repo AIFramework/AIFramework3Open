@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AI.DataStructs.Algebraic;
-using AI.Economics.Numerics;
+using AI.Econometrics.Numerics;
 using AI.Statistics;
 
 using AI.Insights;

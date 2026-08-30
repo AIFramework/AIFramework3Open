@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using AI.Economics.Numerics;
+using AI.Econometrics.Numerics;
 
 using AI.Insights;
 

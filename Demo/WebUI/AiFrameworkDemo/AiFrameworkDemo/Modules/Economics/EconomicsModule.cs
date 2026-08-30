@@ -2031,7 +2031,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "regression_robust",
                     Title: "Регрессия с устойчивыми ошибками",
                     Subtitle: "HC0-HC3, Ньюи — Уэст и кластерные ошибки: оценки те же, выводы разные",
-                    ApiClass: "AI.Economics.Econometrics.LinearRegression",
+                    ApiClass: "AI.Econometrics.LinearRegression",
                     TheoryFile: "regression_robust.md",
                     Params:
                     [
@@ -2054,7 +2054,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "regression_diagnostics",
                     Title: "Диагностика регрессии",
                     Subtitle: "Бройш — Паган, Уайт, Дарбин — Уотсон, RESET, Чоу и факторы раздувания дисперсии",
-                    ApiClass: "AI.Economics.Econometrics.Diagnostics",
+                    ApiClass: "AI.Econometrics.Diagnostics",
                     TheoryFile: "regression_diagnostics.md",
                     Params:
                     [
@@ -2074,7 +2074,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "iv_2sls",
                     Title: "Инструментальные переменные",
                     Subtitle: "Двухшаговый МНК и обобщённый метод моментов против эндогенности цены",
-                    ApiClass: "AI.Economics.Econometrics.InstrumentalVariables",
+                    ApiClass: "AI.Econometrics.InstrumentalVariables",
                     TheoryFile: "iv_2sls.md",
                     Params:
                     [
@@ -2096,7 +2096,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "panel_data",
                     Title: "Панельные данные",
                     Subtitle: "Фиксированные и случайные эффекты, первые разности и тест Хаусмана",
-                    ApiClass: "AI.Economics.Econometrics.PanelData",
+                    ApiClass: "AI.Econometrics.PanelData",
                     TheoryFile: "panel_data.md",
                     Params:
                     [
@@ -2116,7 +2116,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "dynamic_panel",
                     Title: "Динамические панели",
                     Subtitle: "Ареллано — Бонд: оценка инерции между двумя смещёнными границами",
-                    ApiClass: "AI.Economics.Econometrics.DynamicPanel",
+                    ApiClass: "AI.Econometrics.DynamicPanel",
                     TheoryFile: "dynamic_panel.md",
                     Params:
                     [
@@ -2137,7 +2137,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "limited_dependent",
                     Title: "Ограниченные зависимые переменные",
                     Subtitle: "Логит, пробит, тобит, Пуассон и отрицательная биномиальная",
-                    ApiClass: "AI.Economics.Econometrics.LimitedDependent",
+                    ApiClass: "AI.Econometrics.LimitedDependent",
                     TheoryFile: "limited_dependent.md",
                     Params:
                     [
@@ -2157,7 +2157,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "quantile_regression",
                     Title: "Квантильная регрессия",
                     Subtitle: "Влияние фактора на разные части распределения, а не только на среднее",
-                    ApiClass: "AI.Economics.Econometrics.QuantileRegression",
+                    ApiClass: "AI.Econometrics.QuantileRegression",
                     TheoryFile: "quantile_regression.md",
                     Params:
                     [
@@ -2177,7 +2177,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "causal_did",
                     Title: "Разность разностей",
                     Subtitle: "Динамика эффекта, проверка параллельных трендов и поправка на разновременное внедрение",
-                    ApiClass: "AI.Economics.Econometrics.DifferenceInDifferences",
+                    ApiClass: "AI.Econometrics.DifferenceInDifferences",
                     TheoryFile: "causal_did.md",
                     Params:
                     [
@@ -2200,7 +2200,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "causal_rdd",
                     Title: "Разрывный дизайн",
                     Subtitle: "Скачок на пороге, проверка плотности и эффекты на ложных порогах",
-                    ApiClass: "AI.Economics.Econometrics.RegressionDiscontinuity",
+                    ApiClass: "AI.Econometrics.RegressionDiscontinuity",
                     TheoryFile: "causal_rdd.md",
                     Params:
                     [
@@ -2223,7 +2223,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "causal_matching",
                     Title: "Сопоставление по склонности",
                     Subtitle: "Устранение смещения отбора и проверка баланса ковариат",
-                    ApiClass: "AI.Economics.Econometrics.PropensityScoreMatching",
+                    ApiClass: "AI.Econometrics.PropensityScoreMatching",
                     TheoryFile: "causal_matching.md",
                     Params:
                     [
@@ -2245,7 +2245,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "synthetic_control",
                     Title: "Синтетический контроль",
                     Subtitle: "Взвешенная комбинация доноров вместо контрольной группы и плацебо-тест",
-                    ApiClass: "AI.Economics.Econometrics.SyntheticControl",
+                    ApiClass: "AI.Econometrics.SyntheticControl",
                     TheoryFile: "synthetic_control.md",
                     Params:
                     [
@@ -2265,7 +2265,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "causal_forest",
                     Title: "Причинный лес",
                     Subtitle: "Индивидуальные эффекты, важность признаков и выигрыш от таргетирования",
-                    ApiClass: "AI.Economics.Econometrics.CausalForest",
+                    ApiClass: "AI.Econometrics.CausalForest",
                     TheoryFile: "causal_forest.md",
                     Params:
                     [
@@ -2286,7 +2286,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "stationarity",
                     Title: "Стационарность ряда",
                     Subtitle: "Дики — Фуллер и KPSS вместе: две противоположные гипотезы",
-                    ApiClass: "AI.Economics.Econometrics.StationarityTests",
+                    ApiClass: "AI.Econometrics.StationarityTests",
                     TheoryFile: "stationarity.md",
                     Params:
                     [
@@ -2306,7 +2306,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "var_model",
                     Title: "Векторная авторегрессия",
                     Subtitle: "Причинность по Гренджеру, импульсные отклики и разложение дисперсии",
-                    ApiClass: "AI.Economics.Econometrics.VectorAutoregression",
+                    ApiClass: "AI.Econometrics.VectorAutoregression",
                     TheoryFile: "var_model.md",
                     Params:
                     [
@@ -2328,7 +2328,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "cointegration",
                     Title: "Коинтеграция и коррекция ошибками",
                     Subtitle: "Тест Йохансена на ранг и скорость возврата к долгосрочному равновесию",
-                    ApiClass: "AI.Economics.Econometrics.Cointegration",
+                    ApiClass: "AI.Econometrics.Cointegration",
                     TheoryFile: "cointegration.md",
                     Params:
                     [
@@ -2346,7 +2346,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "garch",
                     Title: "Условная волатильность",
                     Subtitle: "GARCH, GJR и EGARCH: кластеризация волатильности и эффект рычага",
-                    ApiClass: "AI.Economics.Econometrics.Garch",
+                    ApiClass: "AI.Econometrics.Garch",
                     TheoryFile: "garch.md",
                     Params:
                     [
@@ -2369,7 +2369,7 @@ public sealed class EconomicsModule : LibraryModuleBase
                     Key: "state_space",
                     Title: "Фильтр Калмана",
                     Subtitle: "Разделение ряда на ненаблюдаемый уровень и шум измерения",
-                    ApiClass: "AI.Economics.Econometrics.StateSpace",
+                    ApiClass: "AI.Econometrics.StateSpace",
                     TheoryFile: "state_space.md",
                     Params:
                     [

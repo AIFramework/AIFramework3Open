@@ -12,8 +12,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />
+    <!-- Эконометрика выделена в отдельную сборку: она нужна и вне экономики -->
+    <ProjectReference Include="..\AI.Econometrics\AI.Econometrics.csproj" />
     <!-- Предсказание банкротства строится на классификаторах фреймворка -->
     <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
+    <!-- Оптимизация портфеля по хвостовым потерям решается как задача линейного программирования -->
+    <ProjectReference Include="..\AI.Solvers.Optimization\AI.Solvers.Optimization.csproj" />
   </ItemGroup>
 
 </Project>

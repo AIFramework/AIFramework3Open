@@ -118,6 +118,27 @@ public class UnitsTests
         _ = Assert.Throws<FormatException>(() => UnitRegistry.Parse("wat"));
     }
 
+    [Theory]
+    [InlineData("g//mol")]   // повторный разделитель
+    [InlineData("kg·")]      // разделитель без второго операнда
+    [InlineData("/s")]       // разделитель без первого операнда: правильная запись — «1/s»
+    [InlineData("m^")]       // показатель без числа
+    [InlineData("kg**m")]
+    public void UnitRegistry_Parse_MalformedSeparators_Rejected(string text)
+    {
+        Assert.False(UnitRegistry.TryParse(text, out _), $"Запись «{text}» не должна разбираться");
+    }
+
+    [Theory]
+    [InlineData("1/s")]
+    [InlineData("1/mol")]
+    [InlineData("kg·m/s^2")]
+    [InlineData("kg m")]     // пробел как разделитель произведения
+    public void UnitRegistry_Parse_WellFormedSeparators_Accepted(string text)
+    {
+        Assert.True(UnitRegistry.TryParse(text, out _), $"Запись «{text}» должна разбираться");
+    }
+
     #endregion
 
     #region Величины

@@ -50,13 +50,22 @@ public class ReActEngineExecutionTests
         int current = 0;
         int peak = 0;
 
+        // Первая пара вызовов не завершается, пока оба не работают одновременно: пик
+        // параллелизма достигает предела гарантированно, без задержек и гонок со временем.
+        // Таймаут ниже — только страховка от зависания при регрессе до последовательного
+        // исполнения; на исход теста при исправном движке он не влияет.
+        var pairRunning = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
         var tool = new FakeReActTool(
             "work",
             async (invocation, ct) =>
             {
                 int now = Interlocked.Increment(ref current);
                 InterlockedMax(ref peak, now);
-                await Task.Delay(40, ct);
+                if (now == 2)
+                    pairRunning.TrySetResult();
+
+                await pairRunning.Task.WaitAsync(TimeSpan.FromSeconds(10), ct);
                 Interlocked.Decrement(ref current);
                 return ReActToolOutcome.Success("готово " + invocation.Arguments);
             });
@@ -79,7 +88,10 @@ public class ReActEngineExecutionTests
         ReActResult result = await engine.RunAsync("вопрос");
 
         Assert.Equal(4, tool.Invocations.Count);
-        Assert.True(peak <= 2, $"одновременно работало {peak} инструментов при пределе 2");
+
+        // Ровно 2: больше — предел не соблюдён, меньше — вызовы шли последовательно
+        // и рандеву первой пары так и не состоялось.
+        Assert.True(peak == 2, $"одновременно работало {peak} инструментов при пределе 2");
         Assert.Equal(4, result.Steps[0].Observations.Count);
     }
 

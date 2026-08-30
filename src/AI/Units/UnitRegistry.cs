@@ -176,20 +176,38 @@ public static class UnitRegistry
         int i = 0;
         bool any = false;
 
+        // Знак операции требует единицы с обеих сторон: «g//mol», «kg·» и «/s» — опечатки,
+        // а не запись величины. Без этой проверки повторный разделитель молча игнорировался.
+        bool operandExpected = true;
+
         while (i < source.Length)
         {
             char c = source[i];
 
-            if (c is '*' or '·' or '⋅' or ' ')
+            if (c == ' ')
             {
+                i++;
+                continue;
+            }
+
+            if (c is '*' or '·' or '⋅')
+            {
+                if (operandExpected)
+                    return false;
+
                 sign = 1;
+                operandExpected = true;
                 i++;
                 continue;
             }
 
             if (c == '/')
             {
+                if (operandExpected)
+                    return false;
+
                 sign = -1;
+                operandExpected = true;
                 i++;
                 continue;
             }
@@ -221,9 +239,10 @@ public static class UnitRegistry
             factor *= Math.Pow(resolved.Factor, signedExponent);
             dimension *= resolved.Dimension.Pow(signedExponent);
             any = true;
+            operandExpected = false;
         }
 
-        if (!any)
+        if (!any || operandExpected)
             return false;
 
         unit = new Unit(Normalize(source), dimension, factor, 0.0, false);

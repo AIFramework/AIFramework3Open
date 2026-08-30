@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Biology</RootNamespace>
+    <AssemblyName>AI.Biology</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Величины, статистические критерии и контракт объяснимости -->
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <!-- Интегрирование систем ОДУ: модели популяций и эпидемий -->
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+  </ItemGroup>
+
+</Project>

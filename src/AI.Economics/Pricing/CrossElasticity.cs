@@ -1,6 +1,6 @@
 using System;
 using AI.DataStructs.Algebraic;
-using AI.Economics.Numerics;
+using AI.Econometrics.Numerics;
 
 namespace AI.Economics.Pricing;
 

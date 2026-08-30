@@ -305,44 +305,22 @@ public static class Huckel
         if (hamiltonian.Width != n || overlap.Height != n || overlap.Width != n)
             throw new ArgumentException("Матрицы должны быть квадратными и одного размера");
 
-        // S^(-1/2) считается через собственное разложение самой S
-        var (values, vectors) = JacobiEigen.Compute(overlap, 500, 1e-13);
-        var root = new Matrix(n, n);
-
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < n; j++)
-            {
-                double sum = 0;
-
-                for (int k = 0; k < n; k++)
-                {
-                    if (values[k] <= 1e-12)
-                        throw new ArgumentException("Матрица перекрывания вырождена", nameof(overlap));
-
-                    sum += vectors[i, k] * vectors[j, k] / Math.Sqrt(values[k]);
-                }
-
-                root[i, j] = sum;
-            }
-        }
-
-        Matrix transformed = root * hamiltonian * root;
-        var (energies, transformedVectors) = JacobiEigen.Compute(transformed, 500, 1e-13);
-
-        Matrix coefficients = root * transformedVectors;
-        var order = Enumerable.Range(0, n).OrderBy(i => energies[i]).ToArray();
+        // Обобщённая задача H·c = E·S·c решается общим решателем ядра:
+        // ортогонализация по Лёвдину живёт там же, ею пользуется и эконометрика
+        (Vector energyVector, Matrix coefficients) =
+            Eigen.GeneralizedSymmetric(hamiltonian, overlap, EigenOrder.Ascending);
 
         var sortedEnergies = new double[n];
         var sortedCoefficients = new Matrix(n, n);
 
         for (int mo = 0; mo < n; mo++)
         {
-            sortedEnergies[mo] = energies[order[mo]];
+            sortedEnergies[mo] = energyVector[mo];
 
             for (int atom = 0; atom < n; atom++)
-                sortedCoefficients[atom, mo] = coefficients[atom, order[mo]];
+                sortedCoefficients[atom, mo] = coefficients[atom, mo];
         }
+
 
         return (sortedEnergies, sortedCoefficients);
     }

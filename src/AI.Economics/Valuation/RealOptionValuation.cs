@@ -1,5 +1,5 @@
 using System;
-using AI.Economics.Numerics;
+using AI.Econometrics.Numerics;
 
 using AI.Insights;
 

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AI.DataStructs.Algebraic;
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Insights;
-using AI.Economics.Numerics;
+using AI.Econometrics.Numerics;
 
 namespace AI.Economics.Corporate;
 

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>AI.Econometrics</RootNamespace>
+    <AssemblyName>AI.Econometrics</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <!-- Общий решатель задачи на собственные значения -->
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Numerics - внутренняя вычислительная подложка на double[,]: публиковать её нельзя,
+      публичный API фреймворка работает с Vector и Matrix (CODING_STANDARD, раздел 4).
+      Экономика пользовалась ею до выделения этой сборки и продолжает пользоваться,
+      чтобы в репозитории осталась одна реализация МНК, симплекса и распределений.
+    -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>AI.Economics</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

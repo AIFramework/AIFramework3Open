@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using AI.DataStructs.Algebraic;
 using AI.Insights;
-using AI.Economics.Numerics;
+using AI.Econometrics.Numerics;
+using AI.Solvers.Optimization;
 
 namespace AI.Economics.Portfolio;
 
@@ -99,7 +100,8 @@ public sealed record CvarOptimizationResult : IInterpretable
                 "близко к симметричному, и минимизация дисперсии даёт почти тот же портфель.")
             .Finding("Задача сводится к линейному программированию по представлению " +
                      "Рокафеллара и Урясева: минимизируется порог плюс средний избыток " +
-                     "над ним. Здесь она решается субградиентным спуском.")
+                     "над ним. Здесь она собрана в явном виде и решена симплекс-методом, " +
+                     "поэтому веса — точный оптимум по сценариям, а не приближение.")
             .WarningIf(TailScenarios < 30,
                 $"В хвост попало всего {TailScenarios} сценариев. Оценка ожидаемых потерь " +
                 "по такой выборке неустойчива: понизьте уровень доверия или увеличьте " +
@@ -138,8 +140,10 @@ public sealed record CvarOptimizationResult : IInterpretable
 /// <para>
 /// Оптимальное значение вспомогательной переменной совпадает со стоимостью под
 /// риском, а значение целевой функции — с ожидаемыми потерями в хвосте.
-/// Функция выпукла и кусочно-линейна, поэтому решается субградиентным спуском
-/// с проекцией на симплекс весов.
+/// Максимум под суммой размыкается неотрицательной переменной избытка потерь
+/// на каждый сценарий, после чего задача становится линейной. Она собирается
+/// в явном виде и решается симплекс-методом <see cref="LpSolver"/>, так что
+/// найденные веса — точный оптимум по сценариям, а не приближение.
 /// </para>
 /// </remarks>
 public static class CvarOptimization
@@ -225,52 +229,77 @@ public static class CvarOptimization
         return Evaluate(returns, [.. weights], confidence, out _);
     }
 
-    /// <summary>Субградиентный спуск по представлению Рокафеллара — Урясева.</summary>
+    /// <summary>Строит задачу линейного программирования Рокафеллара — Урясева и решает её точно.</summary>
     private static double[] Solve(
         double[,] returns, double[] means, double confidence, double minimumReturn, double maximumWeight)
     {
         int t = returns.GetLength(0), n = returns.GetLength(1);
-        var weights = new double[n];
-        for (int i = 0; i < n; i++) weights[i] = 1.0 / n;
-
-        double threshold = 0;
         double alpha = 1 - confidence;
-        double step = 0.05;
 
-        for (int iteration = 0; iteration < 6000; iteration++)
+        var lp = new LinearProgram(name: "Оптимизация портфеля по ожидаемым потерям в хвосте");
+
+        // Веса: без коротких позиций, с верхней границей на актив. При границе не ниже
+        // единицы она следует из суммы весов и неотрицательности — объявлять её незачем.
+        var weightVars = new Variable[n];
+        for (int i = 0; i < n; i++)
+            weightVars[i] = lp.AddVariable($"вес {i + 1}", 0,
+                maximumWeight < 1 ? maximumWeight : double.PositiveInfinity);
+
+        // Порог потерь: в оптимуме совпадает со стоимостью под риском
+        Variable threshold = lp.AddFreeVariable("порог");
+
+        // Избыток потерь над порогом в каждом сценарии
+        var excessVars = new Variable[t];
+        for (int s = 0; s < t; s++)
+            excessVars[s] = lp.AddVariable($"избыток {s + 1}");
+
+        lp.SetObjective(threshold, 1);
+        for (int s = 0; s < t; s++)
+            lp.SetObjective(excessVars[s], 1.0 / (alpha * t));
+
+        int total = n + 1 + t;
+
+        // Избыток не меньше потерь сверх порога: u_s >= -w·r_s - v
+        for (int s = 0; s < t; s++)
         {
-            var gradient = new double[n];
-            double thresholdGradient = 1;
-            int exceed = 0;
-
-            for (int s = 0; s < t; s++)
-            {
-                double loss = 0;
-                for (int i = 0; i < n; i++) loss -= weights[i] * returns[s, i];
-
-                if (loss - threshold <= 0) continue;
-
-                exceed++;
-                for (int i = 0; i < n; i++) gradient[i] -= returns[s, i] / (alpha * t);
-            }
-
-            thresholdGradient -= exceed / (alpha * t);
-
-            // Мягкое ограничение на минимальную доходность
-            if (double.IsFinite(minimumReturn))
-            {
-                double portfolioReturn = LinearAlgebra.Dot(weights, means);
-                if (portfolioReturn < minimumReturn)
-                    for (int i = 0; i < n; i++) gradient[i] -= 10 * means[i];
-            }
-
-            double rate = step / (1 + (iteration / 500.0));
-            threshold -= rate * thresholdGradient;
-
-            for (int i = 0; i < n; i++) weights[i] -= rate * gradient[i];
-
-            ProjectToSimplex(weights, maximumWeight);
+            var row = new Vector(total);
+            for (int i = 0; i < n; i++) row[i] = returns[s, i];
+            row[threshold.Index] = 1;
+            row[excessVars[s].Index] = 1;
+            _ = lp.AddConstraint(row, ConstraintSign.GreaterOrEqual, 0, $"сценарий {s + 1}");
         }
+
+        // Полное инвестирование
+        var budget = new Vector(total);
+        for (int i = 0; i < n; i++) budget[i] = 1;
+        _ = lp.AddConstraint(budget, ConstraintSign.Equal, 1, "сумма весов");
+
+        if (double.IsFinite(minimumReturn))
+        {
+            var required = new Vector(total);
+            for (int i = 0; i < n; i++) required[i] = means[i];
+            _ = lp.AddConstraint(required, ConstraintSign.GreaterOrEqual, minimumReturn, "минимальная доходность");
+        }
+
+        LpSolution solution = LpSolver.Solve(lp);
+
+        if (solution.Status == SolverStatus.Infeasible)
+            throw new ArgumentException(
+                "Ограничения несовместны: требуемая доходность недостижима " +
+                "или верхняя граница веса не позволяет вложить весь капитал.");
+
+        if (!solution.IsOptimal)
+            throw new InvalidOperationException(
+                $"Решатель не нашёл оптимум: {solution.Status}.");
+
+        var weights = new double[n];
+        for (int i = 0; i < n; i++)
+            weights[i] = Math.Clamp(solution[weightVars[i]], 0, maximumWeight);
+
+        // Симплекс работает с допуском, и сумма может отличаться от единицы в последних знаках
+        double sum = weights.Sum();
+        if (sum > 0)
+            for (int i = 0; i < n; i++) weights[i] /= sum;
 
         return weights;
     }

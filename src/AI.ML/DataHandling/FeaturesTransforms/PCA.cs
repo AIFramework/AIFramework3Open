@@ -32,6 +32,11 @@ public class PCA
     /// </summary>
     public double Eps { get; set; } = 0.5;
 
+    /// <summary>
+    /// Матрица преобразования: столбцы — главные компоненты в исходных координатах
+    /// </summary>
+    public Matrix Components => _pca;
+
     // Число компонент
     private readonly int? _k;
     // Матрица преобразования
@@ -61,16 +66,21 @@ public class PCA
     {
 
         Matrix var_matrix = Matrix.GetCovMatrixFromColumns(matrix); // Получение кор. матрицы
-        EigenValuesVectors eigen = new EigenValuesVectors(var_matrix, Iterations, Eps); // Вычисление собственных значений и векторов
+
+        // Ковариационная матрица симметрична, поэтому используется симметричный решатель
+        // ядра (метод вращений). Прежний путь - неявная QR-итерация с восстановлением
+        // векторов через систему с регуляризацией - давал неортогональные компоненты:
+        // скалярное произведение соседних доходило до 3e-4 вместо нуля.
+        (Vector spectrum, Matrix components) =
+            Eigen.Symmetric(var_matrix, EigenOrder.Descending, Iterations * 4);
+
         Info = new PCAInfo();
 
         // Определение числа компонент
         int k = _k == null ? var_matrix.Height : _k.Value;
         k = k > var_matrix.Height ? var_matrix.Height : k;
 
-        var eigenvalues = eigen.Eigenvalues;
-
-        eigenvalues.Sort((x, y) => y.CompareTo(x)); // Поиск главных компонент
+        var eigenvalues = spectrum;
 
         // Оценка качества
         if (k == var_matrix.Height)
@@ -87,18 +97,44 @@ public class PCA
             for (; i < eigenvalues.Count; i++) Info.LastVar += eigenvalues[i]; // Остаточная дисперсия
         }
 
-        Info.EpsEigenvalues = eigen.Eps;
-        Info.IsConvergence = eigen.IsConvergence;
+        // Мера сходимости: наибольшая невязка ||A·v - λ·v|| по всем найденным парам
+        Info.EpsEigenvalues = Residual(var_matrix, spectrum, components);
+        Info.IsConvergence = Info.EpsEigenvalues <= Eps;
 
         Eigenvalues = eigenvalues.CutAndZero(k); // Топ k собственных чисел
         _sqrtEigenvalues = Eigenvalues.Transform(Math.Sqrt); // Корнм из собственных чисел (для нормализации)
 
-        var vectors = EigenValuesVectors.GetEigenvectorsStatic(var_matrix, Eigenvalues); // Получение первых k векторов
-        _pca = Matrix.FromVectorsAsColumns(vectors); // Создание матрицы преобразования
+        _pca = new Matrix(var_matrix.Height, k); // Матрица преобразования: столбцы - компоненты
+
+        for (int component = 0; component < k; component++)
+            for (int row = 0; row < var_matrix.Height; row++)
+                _pca[row, component] = components[row, component];
 
         return Info;
     }
 
+
+    // Наибольшая невязка собственной пары: max_k ||A·v_k - λ_k·v_k||_inf
+    private static double Residual(Matrix a, Vector values, Matrix vectors)
+    {
+        int n = a.Height;
+        double worst = 0;
+
+        for (int k = 0; k < n; k++)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                double sum = 0;
+
+                for (int j = 0; j < n; j++)
+                    sum += a[i, j] * vectors[j, k];
+
+                worst = Math.Max(worst, Math.Abs(sum - (values[k] * vectors[i, k])));
+            }
+        }
+
+        return worst;
+    }
 
     /// <summary>
     /// Обучение PCA

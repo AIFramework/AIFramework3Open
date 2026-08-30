@@ -25,14 +25,27 @@ internal sealed class FakeReActTool : IReActTool
 
     public IReadOnlyCollection<string> Tags { get; }
 
+    private readonly object _sync = new();
+    private readonly List<string> _invocations = [];
+
     /// <summary>Аргументы всех состоявшихся вызовов.</summary>
-    public List<string> Invocations { get; } = [];
+    public IReadOnlyList<string> Invocations
+    {
+        get
+        {
+            // Движок исполняет инструменты параллельно, так что запись и чтение
+            // списка могут идти из разных потоков одновременно.
+            lock (_sync)
+                return _invocations.ToArray();
+        }
+    }
 
     public async IAsyncEnumerable<ReActToolEvent> ExecuteAsync(
         ReActToolInvocation invocation,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        Invocations.Add(invocation.Arguments);
+        lock (_sync)
+            _invocations.Add(invocation.Arguments);
         yield return new ReActToolEvent.Progress("работаю", null);
 
         ReActToolOutcome outcome = await _run(invocation, cancellationToken);

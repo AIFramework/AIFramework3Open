@@ -250,14 +250,38 @@ public static partial class StatInference
         if (p >= 1) return double.PositiveInfinity;
         if (Math.Abs(p - 0.5) < 1e-15) return 0;
 
-        // Rational approximation (Abramowitz & Stegun 26.2.23 refined)
-        double t = p < 0.5 ? Math.Sqrt(-2.0 * Math.Log(p))
-                           : Math.Sqrt(-2.0 * Math.Log(1.0 - p));
+        // Алгоритм Acklam: относительная погрешность порядка 1e-9 против 4.5e-4
+        // у рациональной аппроксимации Абрамовица - Стиган 26.2.23, стоявшей здесь раньше.
+        double[] a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+                       1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+        double[] b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+                       6.680131188771972e+01, -1.328068155288572e+01];
+        double[] c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+                      -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+        double[] d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00,
+                      3.754408661907416e+00];
 
-        double c0 = 2.515517, c1 = 0.802853, c2 = 0.010328;
-        double d1 = 1.432788, d2 = 0.189269, d3 = 0.001308;
-        double z = t - (c0 + c1 * t + c2 * t * t) / (1.0 + d1 * t + d2 * t * t + d3 * t * t * t);
-        return p < 0.5 ? -z : z;
+        const double PLow = 0.02425;
+        double q, r;
+
+        if (p < PLow)
+        {
+            q = Math.Sqrt(-2 * Math.Log(p));
+            return ((((((c[0] * q) + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+                   (((((d[0] * q) + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+        }
+
+        if (p <= 1 - PLow)
+        {
+            q = p - 0.5;
+            r = q * q;
+            return ((((((a[0] * r) + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
+                   ((((((b[0] * r) + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+        }
+
+        q = Math.Sqrt(-2 * Math.Log(1 - p));
+        return -((((((c[0] * q) + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+                (((((d[0] * q) + d[1]) * q + d[2]) * q + d[3]) * q + 1);
     }
 
     /// <summary>CDF стандартного нормального.</summary>
@@ -379,17 +403,34 @@ public static partial class StatInference
         return x >= 0 ? result : -result;
     }
 
-    /// <summary>Логарифм гамма-функции (Lanczos, точность ~1e-10 для x > 0.5).</summary>
+    /// <summary>
+    /// Логарифм гамма-функции, аппроксимация Ланцоша (g = 7, n = 9).
+    /// </summary>
+    /// <remarks>
+    /// Для аргументов меньше 1/2 применяется формула отражения, поэтому функция
+    /// определена на всей положительной полуоси, а не только при x больше 1/2.
+    /// </remarks>
+    /// <param name="x">Аргумент, x &gt; 0.</param>
     public static double LogGamma(double x)
     {
-        double[] c = { 76.18009172947146, -86.50532032941677,
-                       24.01409824083091, -1.231739572450155,
-                       0.1208650973866179e-2, -0.5395239384953e-5 };
-        double y = x, tmp = x + 5.5;
-        tmp -= (x + 0.5) * Math.Log(tmp);
-        double ser = 1.000000000190015;
-        for (int j = 0; j < 6; j++) ser += c[j] / ++y;
-        return -tmp + Math.Log(2.5066282746310005 * ser / x);
+        if (x <= 0 || double.IsNaN(x)) return double.NaN;
+
+        if (x < 0.5)
+        {
+            // Формула отражения: Г(x)Г(1-x) = pi / sin(pi x)
+            return Math.Log(Math.PI / Math.Abs(Math.Sin(Math.PI * x))) - LogGamma(1.0 - x);
+        }
+
+        double[] lanczos = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+                            771.32342877765313, -176.61502916214059, 12.507343278686905,
+                            -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+
+        double z = x - 1.0;
+        double a = lanczos[0];
+        for (int i = 1; i < lanczos.Length; i++) a += lanczos[i] / (z + i);
+
+        double t = z + 7.5;
+        return (0.5 * Math.Log(2 * Math.PI)) + ((z + 0.5) * Math.Log(t)) - t + Math.Log(a);
     }
 
     #endregion

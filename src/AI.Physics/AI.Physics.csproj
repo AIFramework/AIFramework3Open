@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Physics</RootNamespace>
+    <AssemblyName>AI.Physics</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Величины, константы CODATA и контракт объяснимости -->
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <!-- Трёхмерная геометрия: общий Vector3 вместо собственного -->
+    <ProjectReference Include="..\AI.Geometry\AI.Geometry.csproj" />
+  </ItemGroup>
+
+</Project>

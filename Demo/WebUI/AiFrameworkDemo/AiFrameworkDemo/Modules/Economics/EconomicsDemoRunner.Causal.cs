@@ -1,6 +1,6 @@
 using AI.Charts;
 using AI.DataStructs.Algebraic;
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Statistics;
 using AiFrameworkDemo.Core;
 
