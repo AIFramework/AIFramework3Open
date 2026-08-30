@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using AI.Economics.Insights;
+using AI.Insights;
 
 namespace AI.Economics.Valuation;
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AI.DataStructs.Algebraic;
-using AI.Economics.Insights;
+using AI.Insights;
 
 namespace AI.Economics.Econometrics;
 

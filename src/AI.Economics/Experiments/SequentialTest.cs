@@ -1,6 +1,6 @@
 using System;
 using AI.DataStructs.Algebraic;
-using AI.Economics.Insights;
+using AI.Insights;
 using AI.Economics.Numerics;
 using AI.Statistics;
 

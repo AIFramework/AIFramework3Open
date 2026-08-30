@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace AI.Economics.Insights;
+namespace AI.Insights;
 
 /// <summary>
 /// Построитель <see cref="Interpretation"/> с цепочкой вызовов.

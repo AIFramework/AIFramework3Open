@@ -1,6 +1,8 @@
 using AI.Statistics;
+using AI.Units;
 using System.Globalization;
 using System.Text;
+using QuantityUnit = AI.Units.Unit;
 
 namespace AI.Solvers.Chem.Metrology;
 
@@ -123,7 +125,7 @@ public sealed class UncertaintyComponent
 /// Стьюдента с эффективным числом степеней свободы (формула Уэлча-Саттертуэйта),
 /// а не фиксируется равным двум.
 /// </remarks>
-public sealed class UncertaintyBudget
+public sealed partial class UncertaintyBudget
 {
     private readonly List<UncertaintyComponent> _components = new();
 
@@ -149,6 +151,29 @@ public sealed class UncertaintyBudget
         Value = value;
         Unit = unit;
     }
+
+    /// <summary>
+    /// Создаёт бюджет неопределённости с типизированной единицей измерения.
+    /// Такой бюджет умеет отдавать результат как <see cref="Measurement"/>.
+    /// </summary>
+    /// <param name="measurand">Название измеряемой величины</param>
+    /// <param name="value">Оценка результата в единице <paramref name="unit"/></param>
+    /// <param name="unit">Единица измерения результата</param>
+    public UncertaintyBudget(string measurand, double value, QuantityUnit unit)
+    {
+        ArgumentNullException.ThrowIfNull(unit);
+
+        Measurand = measurand;
+        Value = value;
+        Unit = unit.Symbol;
+        MeasurementUnit = unit;
+    }
+
+    /// <summary>
+    /// Типизированная единица измерения результата, если бюджет создан с ней;
+    /// иначе <c>null</c> — единица известна только как строка <see cref="Unit"/>
+    /// </summary>
+    public QuantityUnit? MeasurementUnit { get; }
 
     /// <summary>Добавляет составляющую</summary>
     public UncertaintyBudget Add(UncertaintyComponent component)
@@ -261,6 +286,37 @@ public sealed class UncertaintyBudget
         text.AppendLine($"  Результат: {Value.ToString("G6", culture)} ± {ExpandedUncertainty(confidence).ToString("G3", culture)} {Unit}".TrimEnd());
 
         return text.ToString();
+    }
+
+    /// <summary>
+    /// Результат бюджета как физическая величина
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Бюджет создан без типизированной единицы</exception>
+    public Quantity ToQuantity() => Quantity.Of(Value, RequireUnit());
+
+    /// <summary>
+    /// Результат бюджета как измерение со <b>стандартной</b> (не расширенной) неопределённостью.
+    /// </summary>
+    /// <remarks>
+    /// В <see cref="Measurement"/> хранится стандартная неопределённость <c>u_c</c>: именно она
+    /// переносится через арифметику по линейному закону. Расширенная неопределённость получается
+    /// из неё коэффициентом охвата — либо через <see cref="ExpandedUncertainty"/> здесь, где
+    /// коэффициент берётся из распределения Стьюдента по эффективному числу степеней свободы,
+    /// либо через <c>Measurement.Interval(k)</c> с явно заданным k.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">Бюджет создан без типизированной единицы</exception>
+    public Measurement ToMeasurement()
+    {
+        QuantityUnit unit = RequireUnit();
+        return Measurement.Of(Value, CombinedStandardUncertainty, unit);
+    }
+
+    private QuantityUnit RequireUnit()
+    {
+        return MeasurementUnit
+            ?? throw new InvalidOperationException(
+                $"Бюджет «{Measurand}» создан без типизированной единицы измерения: "
+                + "используйте конструктор, принимающий AI.Units.Unit");
     }
 
     private static string Truncate(string value, int length)

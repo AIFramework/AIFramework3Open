@@ -1,6 +1,7 @@
 using AI.Solvers.Chem.Kinetics;
 using AI.Solvers.Chem.Metrology;
 using AI.Solvers.Chem.Structures;
+using AI.Units;
 using System.Globalization;
 using System.Text;
 
@@ -57,7 +58,7 @@ public readonly record struct IndexedLine(
 /// <summary>
 /// Результат индицирования порошковой дифрактограммы
 /// </summary>
-public sealed class IndexingResult
+public sealed partial class IndexingResult
 {
     /// <summary>Найденная ячейка</summary>
     public UnitCell Cell { get; init; }
@@ -138,6 +139,20 @@ public static class PowderAnalysis
         return wavelength / (2 * Math.Sin(twoTheta * Math.PI / 360));
     }
 
+    /// <summary>
+    /// Межплоскостное расстояние по углу отражения — вариант с явными единицами
+    /// </summary>
+    /// <param name="twoTheta">Угол 2-тета (безразмерная величина: градусы или радианы)</param>
+    /// <param name="wavelength">Длина волны излучения</param>
+    /// <exception cref="DimensionMismatchException">Аргумент передан не в той размерности</exception>
+    public static Quantity SpacingFromAngle(Quantity twoTheta, Quantity wavelength)
+    {
+        double degrees = twoTheta.In(Si.Degree);
+        double lambda = wavelength.RequireSi(Dimension.LengthDim, nameof(wavelength));
+
+        return new Quantity(SpacingFromAngle(degrees, lambda), Dimension.LengthDim);
+    }
+
     /// <summary>Угол отражения по межплоскостному расстоянию</summary>
     /// <param name="spacing">Межплоскостное расстояние, ангстремы</param>
     /// <param name="wavelength">Длина волны, ангстремы</param>
@@ -146,6 +161,21 @@ public static class PowderAnalysis
         double sine = wavelength / (2 * spacing);
 
         return sine is > 1 or <= 0 ? double.NaN : 2 * Math.Asin(sine) * 180 / Math.PI;
+    }
+
+    /// <summary>
+    /// Угол отражения по межплоскостному расстоянию — вариант с явными единицами
+    /// </summary>
+    /// <param name="spacing">Межплоскостное расстояние</param>
+    /// <param name="wavelength">Длина волны излучения</param>
+    /// <returns>Угол 2-тета; читается в нужной мере через <c>In(Si.Degree)</c></returns>
+    /// <exception cref="DimensionMismatchException">Аргумент передан не в той размерности</exception>
+    public static Quantity AngleFromSpacing(Quantity spacing, Quantity wavelength)
+    {
+        double d = spacing.RequireSi(Dimension.LengthDim, nameof(spacing));
+        double lambda = wavelength.RequireSi(Dimension.LengthDim, nameof(wavelength));
+
+        return Quantity.Of(AngleFromSpacing(d, lambda), Si.Degree);
     }
 
     /// <summary>
@@ -294,6 +324,34 @@ public static class PowderAnalysis
         double beta = physical * Math.PI / 180;
 
         return shapeFactor * wavelength / (beta * Math.Cos(theta));
+    }
+
+    /// <summary>
+    /// Размер областей когерентного рассеяния по Шерреру — вариант с явными единицами
+    /// </summary>
+    /// <param name="twoTheta">Положение линии (безразмерная величина: градусы или радианы)</param>
+    /// <param name="fullWidth">Ширина линии на половине высоты (то же)</param>
+    /// <param name="wavelength">Длина волны излучения</param>
+    /// <param name="shapeFactor">Форм-фактор K</param>
+    /// <param name="instrumentalWidth">Инструментальная ширина линии; по умолчанию нулевая</param>
+    /// <exception cref="DimensionMismatchException">Аргумент передан не в той размерности</exception>
+    public static Quantity ScherrerSize(
+        Quantity twoTheta,
+        Quantity fullWidth,
+        Quantity wavelength,
+        double shapeFactor = 0.9,
+        Quantity instrumentalWidth = default)
+    {
+        double lambda = wavelength.RequireSi(Dimension.LengthDim, nameof(wavelength));
+
+        double size = ScherrerSize(
+            twoTheta.In(Si.Degree),
+            fullWidth.In(Si.Degree),
+            lambda,
+            shapeFactor,
+            instrumentalWidth.In(Si.Degree));
+
+        return new Quantity(size, Dimension.LengthDim);
     }
 
     /// <summary>

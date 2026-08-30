@@ -1,7 +1,7 @@
 using System.Text;
 using AI.Charts;
 using AI.DataStructs.Algebraic;
-using AI.Economics.Insights;
+using AI.Insights;
 using AI.Economics.Survival;
 using AiFrameworkDemo.Core;
 using static AiFrameworkDemo.Core.DemoRunnerBase;

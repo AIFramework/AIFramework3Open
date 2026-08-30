@@ -22,7 +22,9 @@
 | **`Transforms`** | Аффинные 2D/3D (`Affine2D`, `Affine3D`), гомография DLT (`Homography`), кватернионы и SLERP (`Quaternion`), углы Эйлера (`EulerAngles`), однородные координаты (`HomogeneousCoords`). |
 | **`Intersections`** | Пересечения: луч–треугольник (Möller–Trumbore), луч–плоскость, луч–сфера, луч–AABB (Slab), луч–OBB, прямая–прямая, прямая–плоскость, отрезок–отрезок, плоскость–плоскость, три плоскости, сфера–сфера, AABB–AABB, OBB–OBB (SAT). |
 | **`Distances`** | Расстояния: точка–прямая, точка–плоскость, точка–отрезок, точка–треугольник, точка–тетраэдр, прямая–прямая. |
-| **`Primitives`** | Геометрические типы: `Ray`, `Segment`, `Line2D`, `Line3D`, `Plane`, `Sphere`, `Circle`, `Ellipse`, `Triangle`, `Aabb`, `Obb`, `Tetrahedron`. |
+| **`Primitives`** | Геометрические типы: `Vector3`, `Ray`, `Segment`, `Line2D`, `Line3D`, `Plane`, `Sphere`, `Circle`, `Ellipse`, `Triangle`, `Aabb`, `Obb`, `Tetrahedron`. |
+
+**`Vector3`** — значимый тип трёхмерной точки. В отличие от `Vector`, он не размещается в куче, поэтому пригоден для координат атомов и кадров траекторий, где точек десятки тысяч; переход к `Vector` и обратно — через `ToVector()` и `FromVector()`. Тип общий для репозитория: им пользуются кристаллография и молекулярная динамика в `AI.Solvers.Chem`.
 | **`Polygons`** | Площадь по формуле шнурков (`ShoelaceArea`), принадлежность точки полигону — ray casting и winding number (`PointInPolygon`), центроид (`PolygonCentroid`), ближайшая точка в треугольнике по барицентрическим зонам (`ClosestInTriangle`), ориентация (`Orientation2D`). |
 | **`Fitting`** | Подгонка прямой: OLS, TLS (ковариационная 2×2), RANSAC (`LineFit`). Подгонка окружности: алгебраический метод Kåsa, RANSAC (`CircleFit`). |
 | **`Curves`** | Кривая Безье произвольной степени — алгоритм де Кастельжо (`BezierCurve`), кусочно-кубический сплайн Эрмита (`HermiteCurve`), центрипетальный Catmull–Rom (`CatmullRomCurve`). |

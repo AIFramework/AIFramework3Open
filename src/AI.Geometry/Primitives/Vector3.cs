@@ -1,7 +1,8 @@
-using AI.DataStructs.Algebraic;
+using System;
 using System.Globalization;
+using Vector = AI.DataStructs.Algebraic.Vector;
 
-namespace AI.Solvers.Chem.Structures;
+namespace AI.Geometry.Primitives;
 
 /// <summary>
 /// Точка или вектор в трёхмерном пространстве
@@ -10,9 +11,10 @@ namespace AI.Solvers.Chem.Structures;
 /// <param name="Y">Координата Y</param>
 /// <param name="Z">Координата Z</param>
 /// <remarks>
-/// Значимый тип, а не <see cref="Vector"/> фреймворка: координат атомов бывают
-/// десятки тысяч на кадр траектории, и размещать под каждую точку список в куче
-/// слишком дорого. Для алгоритмов <c>AI.Geometry</c> есть <see cref="ToVector"/>.
+/// Значимый тип, а не <see cref="Vector"/>: точек бывают десятки тысяч на кадр
+/// траектории или на элементарную ячейку, и размещать под каждую список в куче
+/// слишком дорого. Для алгоритмов, принимающих <see cref="Vector"/>, есть
+/// <see cref="ToVector"/> и <see cref="FromVector"/>.
 /// </remarks>
 public readonly record struct Vector3(double X, double Y, double Z)
 {
@@ -88,7 +90,7 @@ public readonly record struct Vector3(double X, double Y, double Z)
         _ => throw new ArgumentOutOfRangeException(nameof(index), "У точки три координаты")
     };
 
-    /// <summary>Представление вектором фреймворка (для алгоритмов AI.Geometry)</summary>
+    /// <summary>Представление вектором фреймворка</summary>
     public Vector ToVector() => new(X, Y, Z);
 
     /// <summary>Создаёт точку из вектора фреймворка</summary>

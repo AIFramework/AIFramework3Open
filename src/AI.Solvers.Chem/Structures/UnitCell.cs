@@ -1,3 +1,5 @@
+using AI.Geometry.Primitives;
+using AI.Units;
 using System.Globalization;
 
 namespace AI.Solvers.Chem.Structures;
@@ -40,7 +42,19 @@ public enum CrystalSystem
 /// </remarks>
 public sealed class UnitCell
 {
-    /// <summary>Параметр a, ангстремы</summary>
+    /// <summary>Параметр a как физическая величина</summary>
+    public Quantity LengthA => Quantity.Of(A, Si.Angstrom);
+
+    /// <summary>Параметр b как физическая величина</summary>
+    public Quantity LengthB => Quantity.Of(B, Si.Angstrom);
+
+    /// <summary>Параметр c как физическая величина</summary>
+    public Quantity LengthC => Quantity.Of(C, Si.Angstrom);
+
+    /// <summary>Объём ячейки как физическая величина</summary>
+    public Quantity CellVolume => Quantity.Of(Volume, Si.Angstrom.Pow(3));
+
+        /// <summary>Параметр a, ангстремы</summary>
     public double A { get; }
 
     /// <summary>Параметр b, ангстремы</summary>

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AI.Economics.Insights;
+namespace AI.Insights;
 
 /// <summary>Оценка метрики относительно предметных порогов.</summary>
 public enum MetricQuality
@@ -133,7 +133,7 @@ public sealed record Interpretation
 /// Результат расчёта, умеющий объяснить себя словами.
 /// </summary>
 /// <remarks>
-/// Интерфейс реализуют все результирующие типы <c>AI.Economics</c>: вызов
+/// Интерфейс реализуют результирующие типы доменных библиотек: вызов
 /// <see cref="Interpret"/> не требует знать, какая именно модель отработала,
 /// поэтому пайплайн «посчитать и объяснить» пишется один раз на все методы.
 /// </remarks>

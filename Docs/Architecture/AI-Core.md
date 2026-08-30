@@ -16,6 +16,7 @@
 | **`AI.Extensions`** | Расширения для массивов, строк, алгебраических типов, потоков данных. |
 | **`AI.HighLevelFunctions`** | Вспомогательные функции (аналитическая геометрия, поэлементные операции). |
 | **`AI.Units`** | Физические величины: размерности, единицы измерения, перенос неопределённости, константы CODATA. См. раздел ниже. |
+| **`AI.Insights`** | Контракт объяснимости: `IInterpretable`, `Interpretation`, `InterpretationBuilder`. См. раздел ниже. |
 
 Отдельные файлы: **`Convolution`**, **`Correlation`**, **`Sound`**, **`IntervalData`**, **`InMemoryDataStream`**, настройки **`AISettings`**.
 
@@ -56,6 +57,8 @@ _ = Quantity.Of(1, Si.Metre) + Quantity.Of(1, Si.Second); // DimensionMismatchEx
 Проверка на границе публичного API — метод `RequireSi`: он сверяет размерность и возвращает
 значение в СИ, поэтому внутренняя реализация продолжает работать с обычным `double`.
 
+Потребители слоя: типизированные перегрузки `PowderAnalysis` и параметры `UnitCell` в `AI.Solvers.Chem`, класс `MicrowaveQuantities` в `AI.Microwave`, а также мост `UncertaintyBudget.ToMeasurement()`, переводящий бюджет неопределённости по GUM в `Measurement`.
+
 ```csharp
 public double PowerDensity(Quantity power, Quantity area)
 {
@@ -73,6 +76,40 @@ public double PowerDensity(Quantity power, Quantity area)
 var length = Measurement.Of(2.00, 0.01, Si.Metre);
 Console.WriteLine(length.Pow(3));                         // 8 ± 0.12 m³
 Console.WriteLine(PhysicalConstants.WithUncertainty.GravitationalConstant.RelativeUncertainty); // 2.2e-5
+```
+
+## Объяснимость результатов (`AI.Insights`)
+
+Контракт, по которому результат расчёта объясняет себя словами: итог, метрики с оценкой
+относительно предметных порогов, выводы, нарушенные допущения и рекомендации. Текст
+предназначен и человеку, и языковой модели — `Interpretation.ToLlmText()` отдаёт готовый
+структурированный блок.
+
+| Тип | Назначение |
+|-----|------------|
+| **`IInterpretable`** | Единственный метод `Interpret()`; пайплайн «посчитать и объяснить» пишется один раз на все методы. |
+| **`Interpretation`** | Разбор результата: `Title`, `Summary`, `Metrics`, `Findings`, `Warnings`, `Recommendations`. |
+| **`InterpretationBuilder`** | Построитель с условными добавлениями `FindingIf`, `WarningIf`, `RecommendationIf`. |
+| **`Fmt`** | Форматирование чисел в инвариантной культуре. |
+
+Контракт жил в `AI.Economics.Insights` и переехал в ядро, когда его потребовала химия:
+доменной библиотеке незачем зависеть от другой доменной библиотеки. Предметные разборы
+остаются в своих модулях — `AI.Economics/Insights/*.cs` и `AI.Solvers.Chem/Insights/*.cs`.
+
+> **Аргументы `FindingIf` и `WarningIf` вычисляются всегда**, независимо от условия:
+> это обычные параметры, а не лямбды. Интерполяцию, разыменовывающую возможный `null`,
+> нужно готовить заранее.
+
+```csharp
+public sealed partial class HuckelSolution : IInterpretable
+{
+    public Interpretation Interpret() => new InterpretationBuilder("Расчёт π-системы по методу Хюккеля")
+        .Summary(...)
+        .Metric("Щель", Fmt.Num(Gap, 4), "|β|", "чем меньше, тем реакционноспособнее система")
+        .FindingIf(ObeysHuckelRule, "Число π-электронов отвечает правилу 4n+2 ...")
+        .Warning("Метод учитывает только π-подсистему: σ-остов и корреляция в расчёт не входят.")
+        .Build();
+}
 ```
 
 ---

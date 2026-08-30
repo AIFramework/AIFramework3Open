@@ -1,5 +1,6 @@
 using AI.ClassicMath.MatrixUtils;
 using AI.DataStructs.Algebraic;
+using AI.Geometry.Primitives;
 using AI.Solvers.Chem.Structures;
 
 namespace AI.Solvers.Chem.Dynamics;

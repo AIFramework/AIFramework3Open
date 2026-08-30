@@ -1,7 +1,7 @@
 using System.Globalization;
 using AI.Charts;
 using AI.DataStructs.Algebraic;
-using AI.Economics.Insights;
+using AI.Insights;
 using AiFrameworkDemo.Core;
 using SkiaSharp;
 using static AiFrameworkDemo.Core.DemoRunnerBase;

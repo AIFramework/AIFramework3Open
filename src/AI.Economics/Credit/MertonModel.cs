@@ -1,5 +1,5 @@
 using System;
-using AI.Economics.Insights;
+using AI.Insights;
 using AI.Economics.Numerics;
 
 namespace AI.Economics.Credit;

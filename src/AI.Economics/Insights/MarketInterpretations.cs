@@ -1,5 +1,5 @@
 using System;
-using AI.Economics.Insights;
+using AI.Insights;
 
 namespace AI.Economics.Market;
 

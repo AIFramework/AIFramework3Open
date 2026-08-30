@@ -12,7 +12,7 @@ namespace AI.Solvers.Chem.Polymers;
 /// виде его даёт гель-проникающая хроматография, где каждой точке хроматограммы
 /// отвечает своя масса по градуировке.
 /// </remarks>
-public sealed class MolarMassDistribution
+public sealed partial class MolarMassDistribution
 {
     private readonly double[] _masses;
     private readonly double[] _weights;

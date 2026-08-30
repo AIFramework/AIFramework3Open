@@ -22,6 +22,8 @@
     <ProjectReference Include="..\..\..\src\AI\AI.csproj" />
     <ProjectReference Include="..\..\..\src\AI.ClassicMath\AI.ClassicMath.csproj" />
     <ProjectReference Include="..\..\..\src\AI.NLP\AI.NLP.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Solvers.Chem\AI.Solvers.Chem.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Microwave\AI.Microwave.csproj" />
   </ItemGroup>
 
 </Project>

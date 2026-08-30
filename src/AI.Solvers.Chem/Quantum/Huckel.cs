@@ -14,7 +14,7 @@ namespace AI.Solvers.Chem.Quantum;
 /// энергии отвечает наибольшее x: орбитали упорядочены по убыванию x, то есть
 /// по возрастанию энергии.
 /// </remarks>
-public sealed class HuckelSolution
+public sealed partial class HuckelSolution
 {
     private readonly PiSystem _system;
 

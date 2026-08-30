@@ -1,3 +1,4 @@
+using AI.Geometry.Primitives;
 using AI.Solvers.Chem.Metrology;
 using AI.Solvers.Chem.Structures;
 using System.Globalization;

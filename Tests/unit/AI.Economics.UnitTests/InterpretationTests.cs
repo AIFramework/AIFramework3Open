@@ -5,7 +5,7 @@ using AI.Economics.Corporate;
 using AI.Economics.Credit;
 using AI.Economics.Econometrics;
 using AI.Economics.Experiments;
-using AI.Economics.Insights;
+using AI.Insights;
 using AI.Economics.Equity;
 using AI.Economics.Forecasting;
 using AI.Economics.Market;

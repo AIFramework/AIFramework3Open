@@ -53,7 +53,7 @@ public readonly record struct QsarQuality(double R2, double Rmse, double Mae, do
 /// применимости по рычагу: структура, далеко выходящая за облако обучающих точек,
 /// получает предупреждение, а не молча посчитанное число.
 /// </remarks>
-public sealed class QsarModel
+public sealed partial class QsarModel
 {
     private readonly MultipleRegression _regression;
     private readonly int[] _columns;

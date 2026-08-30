@@ -2,7 +2,7 @@ using System.Text;
 using AI.Charts;
 using AI.DataStructs.Algebraic;
 using AI.Economics.Runway;
-using AI.Economics.Insights;
+using AI.Insights;
 using AI.Economics.Saas;
 using AiFrameworkDemo.Core;
 using static AiFrameworkDemo.Core.DemoRunnerBase;

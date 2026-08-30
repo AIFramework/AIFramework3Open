@@ -1,3 +1,4 @@
+using AI.Geometry.Primitives;
 using AI.Solvers.Chem.Database;
 using System.Globalization;
 using System.Text;

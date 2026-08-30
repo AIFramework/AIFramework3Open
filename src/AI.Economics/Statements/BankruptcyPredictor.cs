@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AI.DataStructs.Algebraic;
 using AI.Economics.Credit;
-using AI.Economics.Insights;
+using AI.Insights;
 using AI.Economics.Numerics;
 using AI.ML.Classification;
 using AI.Statistics;

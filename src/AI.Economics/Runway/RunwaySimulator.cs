@@ -4,7 +4,7 @@ using AI.DataStructs.Algebraic;
 using AI.Economics.Numerics;
 using AI.Statistics;
 
-using AI.Economics.Insights;
+using AI.Insights;
 
 namespace AI.Economics.Runway;
 
