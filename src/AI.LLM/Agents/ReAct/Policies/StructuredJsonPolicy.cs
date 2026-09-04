@@ -24,6 +24,17 @@ public sealed class StructuredJsonPolicy : IReActPolicy
         + "либо, когда данных достаточно:\n"
         + "{\"thought\":\"кратко\",\"final\":\"краткий ответ\"}";
 
+    /// <summary>
+    /// «Отдавать историю как есть» для <c>historyMessages</c> и <c>historyMessageChars</c>.
+    /// </summary>
+    /// <remarks>
+    /// Умолчания (шесть сообщений по 300 знаков) рассчитаны на вызывающего, который передаёт
+    /// сырую историю. Вызывающий, который её УЖЕ отобрал по своим правилам, обязан сказать об
+    /// этом явно: иначе окно и обрезка применяются второй раз и молча отменяют его отбор —
+    /// врезки хода вытесняются хвостом диалога, а поднятые потолки реплик срезаются до 300.
+    /// </remarks>
+    public const int AsGiven = int.MaxValue;
+
     private static readonly string[] ActionInputNames = ["action_input", "input", "arg", "arguments", "query", "text"];
     private static readonly string[] FinalNames = ["final", "final_answer", "answer", "output"];
     private static readonly string[] FinalActions = ["final", "finish", "done", "answer", "stop"];
@@ -36,8 +47,15 @@ public sealed class StructuredJsonPolicy : IReActPolicy
     /// <summary>Создаёт реализацию поверх произвольного обращения к модели.</summary>
     /// <param name="complete">Обращение к модели.</param>
     /// <param name="contract">Описание формата ответа; при <c>null</c> берётся стандартное.</param>
-    /// <param name="historyMessages">Сколько последних сообщений истории показывать модели.</param>
-    /// <param name="historyMessageChars">Предел длины одного сообщения истории.</param>
+    /// <param name="historyMessages">
+    /// Сколько последних сообщений истории показывать модели. <see cref="AsGiven"/> — все:
+    /// историю отобрал вызывающий, и второе окно поверх его отбора выбрасывает то, что он
+    /// поставил в начало списка.
+    /// </param>
+    /// <param name="historyMessageChars">
+    /// Предел длины одного сообщения истории. <see cref="AsGiven"/> — не резать: у вызывающего
+    /// свои потолки на роль, и общий предел здесь их отменяет.
+    /// </param>
     public StructuredJsonPolicy(
         ReActCompletionDelegate complete,
         string contract = null,

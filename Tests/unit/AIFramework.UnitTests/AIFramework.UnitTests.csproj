@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\..\src\AI.Physics\AI.Physics.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Biology\AI.Biology.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Earth\AI.Earth.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Simulation\AI.Simulation.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Algorithms\AI.Algorithms.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Solvers.Chem\AI.Solvers.Chem.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Microwave\AI.Microwave.csproj" />

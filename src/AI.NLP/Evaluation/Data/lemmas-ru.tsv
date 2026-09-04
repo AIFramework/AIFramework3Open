@@ -1,0 +1,270 @@
+# Эталонный корпус лемматизации русского языка
+#
+# Формат: словоформа <TAB> лемма <TAB> часть речи <TAB> раздел
+#
+# Соглашения о лемме:
+#   существительное — именительный падеж единственного числа;
+#   прилагательное  — мужской род, единственное число, именительный падеж;
+#   глагол          — инфинитив; причастия и деепричастия отнесены к глаголу,
+#                     от которого образованы (соглашение Universal Dependencies);
+#   местоимение     — именительный падеж;
+#   неизменяемые    — сами себе.
+#
+# Разделы:
+#   base        — регулярные формы, разбираемые по суффиксу;
+#   suppletive  — супплетивные и нерегулярные формы: правилами не берутся, нужен словарь;
+#   ambiguous   — омонимичные формы, у которых без контекста нет единственного ответа;
+#                 в общей точности не учитываются и приведены как известное ограничение.
+
+# --- регулярные формы ---
+столы	стол	NOUN	base
+стола	стол	NOUN	base
+столу	стол	NOUN	base
+столом	стол	NOUN	base
+столе	стол	NOUN	base
+столов	стол	NOUN	base
+столам	стол	NOUN	base
+столами	стол	NOUN	base
+дома	дом	NOUN	base
+дому	дом	NOUN	base
+домом	дом	NOUN	base
+доме	дом	NOUN	base
+домов	дом	NOUN	base
+домам	дом	NOUN	base
+домами	дом	NOUN	base
+домах	дом	NOUN	base
+города	город	NOUN	base
+городу	город	NOUN	base
+городом	город	NOUN	base
+городе	город	NOUN	base
+городов	город	NOUN	base
+городам	город	NOUN	base
+человека	человек	NOUN	base
+человеку	человек	NOUN	base
+человеком	человек	NOUN	base
+дня	день	NOUN	base
+дню	день	NOUN	base
+днём	день	NOUN	base
+дни	день	NOUN	base
+дней	день	NOUN	base
+коня	конь	NOUN	base
+коню	конь	NOUN	base
+конём	конь	NOUN	base
+кони	конь	NOUN	base
+коней	конь	NOUN	base
+вопроса	вопрос	NOUN	base
+вопросу	вопрос	NOUN	base
+вопросы	вопрос	NOUN	base
+вопросов	вопрос	NOUN	base
+книги	книга	NOUN	base
+книге	книга	NOUN	base
+книгу	книга	NOUN	base
+книгой	книга	NOUN	base
+книгам	книга	NOUN	base
+книгами	книга	NOUN	base
+книгах	книга	NOUN	base
+машины	машина	NOUN	base
+машине	машина	NOUN	base
+машину	машина	NOUN	base
+машиной	машина	NOUN	base
+работы	работа	NOUN	base
+работе	работа	NOUN	base
+работу	работа	NOUN	base
+работой	работа	NOUN	base
+двери	дверь	NOUN	base
+дверью	дверь	NOUN	base
+дверей	дверь	NOUN	base
+дверям	дверь	NOUN	base
+ночи	ночь	NOUN	base
+ночью	ночь	NOUN	base
+ночей	ночь	NOUN	base
+земли	земля	NOUN	base
+земле	земля	NOUN	base
+землю	земля	NOUN	base
+землёй	земля	NOUN	base
+системы	система	NOUN	base
+системе	система	NOUN	base
+систему	система	NOUN	base
+системой	система	NOUN	base
+окна	окно	NOUN	base
+окну	окно	NOUN	base
+окном	окно	NOUN	base
+окне	окно	NOUN	base
+окон	окно	NOUN	base
+дела	дело	NOUN	base
+делу	дело	NOUN	base
+делом	дело	NOUN	base
+деле	дело	NOUN	base
+дел	дело	NOUN	base
+слова	слово	NOUN	base
+слову	слово	NOUN	base
+словом	слово	NOUN	base
+слове	слово	NOUN	base
+решения	решение	NOUN	base
+решению	решение	NOUN	base
+решением	решение	NOUN	base
+решений	решение	NOUN	base
+красивая	красивый	ADJ	base
+красивое	красивый	ADJ	base
+красивые	красивый	ADJ	base
+красивого	красивый	ADJ	base
+красивому	красивый	ADJ	base
+красивым	красивый	ADJ	base
+красивых	красивый	ADJ	base
+красивыми	красивый	ADJ	base
+красивой	красивый	ADJ	base
+большая	большой	ADJ	base
+большое	большой	ADJ	base
+большие	большой	ADJ	base
+большого	большой	ADJ	base
+большому	большой	ADJ	base
+больших	большой	ADJ	base
+синяя	синий	ADJ	base
+синее	синий	ADJ	base
+синие	синий	ADJ	base
+синего	синий	ADJ	base
+синему	синий	ADJ	base
+синих	синий	ADJ	base
+хорошая	хороший	ADJ	base
+хорошее	хороший	ADJ	base
+хорошие	хороший	ADJ	base
+хорошего	хороший	ADJ	base
+хороших	хороший	ADJ	base
+русская	русский	ADJ	base
+русское	русский	ADJ	base
+русские	русский	ADJ	base
+русского	русский	ADJ	base
+русских	русский	ADJ	base
+новая	новый	ADJ	base
+новое	новый	ADJ	base
+новые	новый	ADJ	base
+нового	новый	ADJ	base
+точная	точный	ADJ	base
+точные	точный	ADJ	base
+точного	точный	ADJ	base
+читаю	читать	VERB	base
+читаешь	читать	VERB	base
+читает	читать	VERB	base
+читаем	читать	VERB	base
+читаете	читать	VERB	base
+читают	читать	VERB	base
+читал	читать	VERB	base
+читала	читать	VERB	base
+читало	читать	VERB	base
+читали	читать	VERB	base
+писал	писать	VERB	base
+писала	писать	VERB	base
+писали	писать	VERB	base
+делаю	делать	VERB	base
+делает	делать	VERB	base
+делают	делать	VERB	base
+делал	делать	VERB	base
+делала	делать	VERB	base
+делали	делать	VERB	base
+говорю	говорить	VERB	base
+говорит	говорить	VERB	base
+говорят	говорить	VERB	base
+говорил	говорить	VERB	base
+говорила	говорить	VERB	base
+говорили	говорить	VERB	base
+смотрел	смотреть	VERB	base
+смотрела	смотреть	VERB	base
+смотрели	смотреть	VERB	base
+работаю	работать	VERB	base
+работает	работать	VERB	base
+работают	работать	VERB	base
+работал	работать	VERB	base
+работали	работать	VERB	base
+решал	решать	VERB	base
+решала	решать	VERB	base
+решали	решать	VERB	base
+строил	строить	VERB	base
+строила	строить	VERB	base
+строили	строить	VERB	base
+умывался	умываться	VERB	base
+умывалась	умываться	VERB	base
+умывались	умываться	VERB	base
+учился	учиться	VERB	base
+училась	учиться	VERB	base
+учились	учиться	VERB	base
+встретились	встретиться	VERB	base
+занимались	заниматься	VERB	base
+читающий	читать	VERB	base
+читавший	читать	VERB	base
+читая	читать	VERB	base
+говорящий	говорить	VERB	base
+говоря	говорить	VERB	base
+работающий	работать	VERB	base
+работавший	работать	VERB	base
+решённый	решить	VERB	base
+построенный	построить	VERB	base
+быстро	быстро	ADV	base
+хорошо	хорошо	ADV	base
+плохо	плохо	ADV	base
+тихо	тихо	ADV	base
+всегда	всегда	ADV	base
+здесь	здесь	ADV	base
+очень	очень	ADV	base
+поэтому	поэтому	ADV	base
+в	в	PREP	base
+на	на	PREP	base
+под	под	PREP	base
+из	из	PREP	base
+к	к	PREP	base
+о	о	PREP	base
+при	при	PREP	base
+через	через	PREP	base
+и	и	CONJ	base
+а	а	CONJ	base
+но	но	CONJ	base
+или	или	CONJ	base
+если	если	CONJ	base
+чтобы	чтобы	CONJ	base
+не	не	PRCL	base
+же	же	PRCL	base
+ли	ли	PRCL	base
+бы	бы	PRCL	base
+лишь	лишь	PRCL	base
+
+# --- супплетивные и нерегулярные формы ---
+людей	человек	NOUN	suppletive
+людям	человек	NOUN	suppletive
+детей	ребёнок	NOUN	suppletive
+детям	ребёнок	NOUN	suppletive
+шёл	идти	VERB	suppletive
+шла	идти	VERB	suppletive
+шли	идти	VERB	suppletive
+идут	идти	VERB	suppletive
+был	быть	VERB	suppletive
+была	быть	VERB	suppletive
+были	быть	VERB	suppletive
+меня	я	PRON	suppletive
+мне	я	PRON	suppletive
+мной	я	PRON	suppletive
+тебя	ты	PRON	suppletive
+тебе	ты	PRON	suppletive
+ему	он	PRON	suppletive
+него	он	PRON	suppletive
+ей	она	PRON	suppletive
+неё	она	PRON	suppletive
+нас	мы	PRON	suppletive
+нам	мы	PRON	suppletive
+вас	вы	PRON	suppletive
+вам	вы	PRON	suppletive
+них	они	PRON	suppletive
+двух	два	NUM	suppletive
+двум	два	NUM	suppletive
+трёх	три	NUM	suppletive
+трём	три	NUM	suppletive
+пяти	пять	NUM	suppletive
+пятью	пять	NUM	suppletive
+
+# --- омонимия: без контекста ответ не единственный ---
+стали	стать	VERB	ambiguous	# форма глагола «стать» либо родительный падеж от «сталь»
+три	три	NUM	ambiguous	# числительное либо повелительное наклонение от «тереть»
+мой	мой	PRON	ambiguous	# притяжательное местоимение либо повеление от «мыть»
+простой	простой	ADJ	ambiguous	# прилагательное либо существительное «простой» (бездействие)
+печь	печь	NOUN	ambiguous	# существительное либо глагол
+пила	пила	NOUN	ambiguous	# существительное либо форма глагола «пить»
+стекло	стекло	NOUN	ambiguous	# существительное либо форма глагола «стечь»
+дорогой	дорогой	ADJ	ambiguous	# прилагательное либо творительный падеж от «дорога»

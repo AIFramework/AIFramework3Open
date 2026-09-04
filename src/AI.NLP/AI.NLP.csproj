@@ -13,6 +13,19 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />
+    <!-- Метрики классификации (точность, полнота, матрица ошибок) для проверки разметки -->
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Эталонный корпус вшивается в сборку: проверка не должна зависеть от путей.
+      WithCulture="false" обязателен: точка перед языковым кодом в имени файла
+      («lemmas.ru.tsv») понимается MSBuild как культура, и ресурс уезжает
+      в сателлитную сборку ru/AI.NLP.resources.dll вместо основной.
+      Имя файла на всякий случай тоже без такой точки.
+    -->
+    <EmbeddedResource Include="Evaluation\Data\lemmas-ru.tsv" WithCulture="false" />
   </ItemGroup>
 
 </Project>
