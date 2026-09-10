@@ -1,4 +1,5 @@
 using AI.DataStructs.Algebraic;
+using AI.Insights;
 using AI.Solvers.Pde.Numerics;
 
 namespace AI.Solvers.Pde.FiniteElement;
@@ -93,7 +94,7 @@ public sealed class TriangularMesh
 }
 
 /// <summary>Решение двумерной задачи методом конечных элементов</summary>
-public sealed class Fem2DSolution
+public sealed class Fem2DSolution : IInterpretable
 {
     internal Fem2DSolution(TriangularMesh mesh, Vector values, int iterations, bool converged)
     {
@@ -128,6 +129,39 @@ public sealed class Fem2DSolution
                 values[j, i] = Values[grid.Index(i, j)];
 
         return values;
+    }
+
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        (double min, double max) = PdeFacts.Range(Values);
+        int boundary = 0;
+
+        for (int node = 0; node < Mesh.NodeCount; node++)
+            if (Mesh.IsBoundary(node))
+                boundary++;
+
+        return new InterpretationBuilder("Метод конечных элементов на плоской области")
+            .Summary($"Решение на линейных треугольниках: треугольников {Mesh.TriangleCount}, узлов {Mesh.NodeCount}, "
+                + $"из них на границе {boundary}; значения от {Fmt.Num(min, 4)} до {Fmt.Num(max, 4)}. "
+                + (Converged
+                    ? $"Система решена, итераций {Iterations}."
+                    : $"Система не решена: итераций {Iterations}, порог не достигнут."))
+            .Metric("Треугольников", Mesh.TriangleCount, null, "линейных элементов", MetricQuality.Unknown, 0)
+            .Metric("Узлов", Mesh.NodeCount, null, null, MetricQuality.Unknown, 0)
+            .Metric("Граничных узлов", boundary, null, "значения заданы условием Дирихле", MetricQuality.Unknown, 0)
+            .Metric("Итераций", Iterations, null, "шагов метода сопряжённых градиентов", MetricQuality.Unknown, 0)
+            .Metric("Сходимость", Converged ? "достигнута" : "не достигнута", null, "решатель системы достиг порога",
+                Converged ? MetricQuality.Good : MetricQuality.Critical)
+            .Metric("Минимум", min, null, null, MetricQuality.Unknown, 4)
+            .Metric("Максимум", max, null, null, MetricQuality.Unknown, 4)
+            .Warning("Линейные треугольники: решение непрерывно и линейно на каждом треугольнике, а его градиент "
+                + "постоянен на треугольнике и скачет на рёбрах. Точность градиента — первого порядка по размеру элемента.")
+            .Warning("Нагрузка берётся по значению правой части в центре тяжести треугольника: там, где источник "
+                + "резко меняется, сетку нужно мельчить именно в этом месте.")
+            .WarningIf(!Converged, PdeFacts.NotConverged)
+            .Recommendation(PdeFacts.RefineGrid)
+            .Build();
     }
 
     /// <summary>Краткая запись результата</summary>

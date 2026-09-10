@@ -111,7 +111,7 @@ public sealed partial class IndexingResult
 /// <param name="Intensity">Интенсивность опорной линии</param>
 /// <param name="ReferenceIntensityRatio">Корундовое число I/Ic</param>
 /// <param name="MassFraction">Массовая доля, %</param>
-public readonly record struct PhaseQuantity(
+public readonly partial record struct PhaseQuantity(
     string Phase,
     double Intensity,
     double ReferenceIntensityRatio,

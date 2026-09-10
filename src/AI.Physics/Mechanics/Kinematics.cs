@@ -1,3 +1,4 @@
+using AI.Insights;
 using AI.Units;
 
 namespace AI.Physics.Mechanics;
@@ -73,7 +74,43 @@ public static class Kinematics
 /// <param name="FlightTime">Полное время полёта</param>
 /// <param name="ImpactSpeed">Скорость в момент падения</param>
 public readonly record struct TrajectoryResult(
-    Quantity Range, Quantity MaxHeight, Quantity FlightTime, Quantity ImpactSpeed);
+    Quantity Range, Quantity MaxHeight, Quantity FlightTime, Quantity ImpactSpeed) : IInterpretable
+{
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        double range = Range.SiValue;
+        double height = MaxHeight.SiValue;
+        double time = FlightTime.SiValue;
+        double speed = ImpactSpeed.SiValue;
+
+        // Угол восстанавливается по форме траектории: H/R = tg θ / 4, а доля
+        // от наибольшей дальности при той же скорости равна sin 2θ
+        double angle = range > 0 ? Math.Atan(4 * height / range) * 180.0 / Math.PI : 90.0;
+        double share = Math.Sin(2 * angle * Math.PI / 180.0);
+        bool optimal = Math.Abs(angle - 45.0) < 0.5;
+
+        return new InterpretationBuilder("Бросок в однородном поле тяжести")
+            .Summary($"Дальность {Fmt.Num(range)} м, наибольшая высота {Fmt.Num(height)} м, "
+                + $"время полёта {Fmt.Num(time)} с.")
+            .Metric("Дальность", range, "м", "по горизонтали до возвращения на уровень старта")
+            .Metric("Наибольшая высота", height, "м")
+            .Metric("Время полёта", time, "с")
+            .Metric("Скорость падения", speed, "м/с",
+                "равна начальной: без сопротивления механическая энергия сохраняется")
+            .Metric("Угол броска", angle, "°", "восстановлен по форме траектории: tg θ = 4·H/R",
+                MetricQuality.Unknown, 1)
+            .FindingIf(optimal, "Угол близок к 45°: при заданной скорости это наибольшая возможная дальность.")
+            .FindingIf(!optimal && range > 0,
+                $"Дальность составляет {Fmt.Pct(share)} от наибольшей возможной при той же скорости — "
+                + "она достигается при 45°.")
+            .Warning("Сопротивление воздуха не учтено. Для тяжёлого тела на малой скорости это честно, "
+                + "для пули или мяча дальность завышена в разы, а угол наибольшей дальности на деле меньше 45°.")
+            .Warning("Бросок с уровня земли на ту же высоту. При старте с возвышения дальность больше, "
+                + "а угол наибольшей дальности меньше 45°.")
+            .Build();
+    }
+}
 
 /// <summary>
 /// Баллистика в однородном поле тяжести без сопротивления среды.

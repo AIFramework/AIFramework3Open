@@ -275,6 +275,27 @@ public class CrystallographyTests
         Assert.Equal(2.0, phases[0].MassFraction / phases[1].MassFraction, 9);
     }
 
+    /// <summary>
+    /// Доли фазового анализа — нормировка приведённых интенсивностей: в сумме ровно 100 %
+    /// и не меняются, если все интенсивности умножить на общий множитель (другое время съёмки)
+    /// </summary>
+    [Fact]
+    public void PowderAnalysis_PhaseFractionsSumToHundredAndIgnoreScale()
+    {
+        string[] names = { "кварц", "кальцит", "доломит", "гематит" };
+        double[] intensities = { 100.0, 37.5, 12.0, 58.3 };
+        double[] ratios = { 3.41, 2.0, 2.51, 3.2 };
+
+        IReadOnlyList<PhaseQuantity> phases = PowderAnalysis.QuantifyByRir(names, intensities, ratios);
+        IReadOnlyList<PhaseQuantity> scaled = PowderAnalysis.QuantifyByRir(
+            names, intensities.Select(i => i * 7.3).ToArray(), ratios);
+
+        Assert.Equal(100.0, phases.Sum(p => p.MassFraction), 9);
+
+        for (int i = 0; i < phases.Count; i++)
+            Assert.Equal(phases[i].MassFraction, scaled[i].MassFraction, 9);
+    }
+
     /// <summary>Несогласованные данные фазового анализа отвергаются.</summary>
     [Fact]
     public void PowderAnalysis_RejectsInconsistentInput()

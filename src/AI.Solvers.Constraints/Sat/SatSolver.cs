@@ -1,3 +1,5 @@
+using AI.Insights;
+
 namespace AI.Solvers.Constraints.Sat;
 
 /// <summary>Исход решения задачи выполнимости</summary>
@@ -29,7 +31,7 @@ public sealed class SatOptions
 /// <summary>
 /// Результат решения задачи выполнимости
 /// </summary>
-public sealed class SatSolution
+public sealed class SatSolution : IInterpretable
 {
     private readonly bool[] _model;
 
@@ -116,6 +118,56 @@ public sealed class SatSolution
 
         return true;
     }
+
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        double perDecision = Decisions == 0 ? 0 : (double)Propagations / Decisions;
+
+        return new InterpretationBuilder("Задача выполнимости")
+            .Summary(Status switch
+            {
+                SatStatus.Satisfiable =>
+                    $"Формула выполнима, подстановка найдена: переменных {_model.Length}, "
+                    + $"ветвлений {Decisions}, конфликтов {Conflicts}.",
+                SatStatus.Unsatisfiable =>
+                    $"Формула невыполнима, и это доказано: конфликтов {Conflicts}, выученных дизъюнктов {LearnedClauses}.",
+                _ =>
+                    $"Предел конфликтов исчерпан, ответ неизвестен: конфликтов {Conflicts}."
+            })
+            .Metric("Исход", StatusName(Status), null, "результат работы решателя",
+                Status == SatStatus.Unknown ? MetricQuality.Warning : MetricQuality.Good)
+            .Metric("Ветвлений", Decisions, null, "назначений, сделанных выбором, а не выводом", MetricQuality.Unknown, 0)
+            .Metric("Выводов", Propagations, null, "значений, выведенных распространением", MetricQuality.Unknown, 0)
+            .Metric("Конфликтов", Conflicts, null, "тупиков, разобранных в новые дизъюнкты", MetricQuality.Unknown, 0)
+            .Metric("Выученных дизъюнктов", LearnedClauses, null, "следствий формулы, добытых из конфликтов",
+                MetricQuality.Unknown, 0)
+            .FindingIf(Status == SatStatus.Unsatisfiable,
+                "Невыполнимость — это ответ, а не отказ: каждый выученный дизъюнкт логически следует из исходной "
+                + "формулы, и из них выведено противоречие. Если ответ неожидан, ошибка в постановке, а не в поиске.")
+            .FindingIf(Status == SatStatus.Satisfiable && Conflicts == 0,
+                "Подстановка найдена без единого конфликта: формула слабо ограничена либо распространение "
+                + "решило её почти целиком.")
+            .FindingIf(Decisions > 0 && perDecision >= 10,
+                $"На одно ветвление приходится {Fmt.Num(perDecision, 1)} выведенных значений: основную работу "
+                + "делает распространение, а не перебор.")
+            .WarningIf(Status == SatStatus.Unknown,
+                "Исчерпанный предел не означает «скорее всего невыполнима»: у трудных выполнимых формул поиск "
+                + "бывает не короче. Ответа просто нет.")
+            .RecommendationIf(Status == SatStatus.Satisfiable,
+                "Проверить подстановку независимо от решателя: Verify(формула) проходит по всем дизъюнктам за линейное время.")
+            .RecommendationIf(Status == SatStatus.Unknown,
+                "Увеличить MaxConflicts либо упростить формулу; двухлитеральные задачи за линейное время решает "
+                + "TwoSAT из AI.Algorithms.")
+            .Build();
+    }
+
+    private static string StatusName(SatStatus status) => status switch
+    {
+        SatStatus.Satisfiable => "выполнима",
+        SatStatus.Unsatisfiable => "невыполнима",
+        _ => "неизвестно"
+    };
 
     /// <summary>Краткая запись результата</summary>
     public override string ToString() => Status switch

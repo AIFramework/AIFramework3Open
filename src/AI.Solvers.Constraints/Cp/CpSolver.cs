@@ -1,3 +1,5 @@
+using AI.Insights;
+
 namespace AI.Solvers.Constraints.Cp;
 
 /// <summary>
@@ -204,7 +206,7 @@ public sealed class CpOptions
 }
 
 /// <summary>Решение задачи с ограничениями</summary>
-public sealed class CpSolution
+public sealed class CpSolution : IInterpretable
 {
     private readonly List<int[]> _solutions;
     private readonly CpModel _model;
@@ -263,6 +265,65 @@ public sealed class CpSolution
             return this[variable];
         }
     }
+
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        int variables = _model.Variables.Count;
+        int constraints = _model.Constraints.Count;
+        double perNode = Nodes == 0 ? 0 : (double)Propagations / Nodes;
+
+        InterpretationBuilder builder = new InterpretationBuilder(_model.Name)
+            .Summary(Status switch
+            {
+                CpStatus.Satisfiable =>
+                    $"Решение найдено: переменных {variables}, ограничений {constraints}, решений {Count}, "
+                    + $"узлов перебора {Nodes}.",
+                CpStatus.Infeasible =>
+                    $"Решений нет, и это доказано: поиск прошёл всё дерево, отсекая ветви распространением "
+                    + $"ограничений; узлов перебора {Nodes}.",
+                _ =>
+                    $"Предел узлов исчерпан: узлов {Nodes}, найдено решений {Count}. Полнота перебора не доказана."
+            })
+            .Metric("Исход", StatusName(Status), null, "результат работы решателя",
+                Status == CpStatus.LimitReached ? MetricQuality.Warning : MetricQuality.Good)
+            .Metric("Решений найдено", Count, null, null, MetricQuality.Unknown, 0)
+            .Metric("Переменных", variables, null, null, MetricQuality.Unknown, 0)
+            .Metric("Ограничений", constraints, null, null, MetricQuality.Unknown, 0)
+            .Metric("Узлов перебора", Nodes, null, "вершин дерева поиска", MetricQuality.Unknown, 0)
+            .Metric("Распространений", Propagations, null,
+                Nodes > 0 ? $"в среднем {Fmt.Num(perNode, 1)} на узел" : null, MetricQuality.Unknown, 0);
+
+        if (_solutions.Count > 0)
+        {
+            foreach (IntVariable variable in _model.Variables.Take(12))
+                builder = builder.Metric(variable.Name, _solutions[0][variable.Index], null, "в первом решении",
+                    MetricQuality.Unknown, 0);
+        }
+
+        return builder
+            .FindingIf(Status == CpStatus.Satisfiable && Nodes <= variables + 1,
+                "Решение найдено почти без возвратов: узлов перебора не больше, чем переменных. "
+                + "Основную работу сделало распространение ограничений.")
+            .FindingIf(Status == CpStatus.Infeasible,
+                "Отсутствие решений доказано полным перебором — это свойство модели, а не нехватка времени. "
+                + "Противоречие удобно искать, снимая ограничения по одному.")
+            .WarningIf(Status == CpStatus.LimitReached && Count == 0,
+                "Решение не найдено, но и не доказано, что его нет: исчерпан предел узлов.")
+            .WarningIf(Status == CpStatus.LimitReached && Count > 0,
+                "Перечисление прервано пределом узлов: найдены не все решения, и их число — только нижняя оценка.")
+            .RecommendationIf(Status == CpStatus.LimitReached,
+                "Увеличить MaxNodes либо усилить модель: ограничение, отсекающее симметричные решения, "
+                + "часто сокращает перебор на порядки.")
+            .Build();
+    }
+
+    private static string StatusName(CpStatus status) => status switch
+    {
+        CpStatus.Satisfiable => "решение найдено",
+        CpStatus.Infeasible => "решений нет",
+        _ => "предел узлов"
+    };
 
     /// <summary>Краткая запись результата</summary>
     public override string ToString() => Status switch

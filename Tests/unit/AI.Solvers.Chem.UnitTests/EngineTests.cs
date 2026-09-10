@@ -1,4 +1,6 @@
 using AI.Solvers.Chem.Core;
+using AI.Solvers.Chem.Models;
+using AI.Solvers.Chem.Processors.Inorganic;
 
 namespace AI.Solvers.Chem.UnitTests;
 
@@ -35,6 +37,60 @@ public class EngineTests
     [InlineData("balance H2O = H2 + Xx2", "Unknown element")]
     public void Balance_RefusesInsteadOfGuessing(string command, string reason)
         => Assert.Contains(reason, ChemTestContext.Fail(command).ErrorMessage, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Уравнивание проверяется не сверкой с готовым ответом, а законами сохранения:
+    /// атомов каждого элемента и заряда слева ровно столько же, сколько справа,
+    /// а коэффициенты положительны и взаимно просты. Подогнать ответ под эту проверку нельзя.
+    /// </summary>
+    [Theory]
+    [InlineData("Cu + HNO3 = Cu(NO3)2 + NO + H2O")]
+    [InlineData("KMnO4 + HCl = KCl + MnCl2 + Cl2 + H2O")]
+    [InlineData("C8H18 + O2 = CO2 + H2O")]
+    [InlineData("Al + H2SO4 = Al2(SO4)3 + H2")]
+    [InlineData("NH3 + O2 = NO + H2O")]
+    [InlineData("Ca(OH)2 + H3PO4 = Ca3(PO4)2 + H2O")]
+    [InlineData("MnO4- + Fe2+ + H+ = Mn2+ + Fe3+ + H2O")]
+    [InlineData("Ag+ + Cl- = AgCl")]
+    public void Balance_ConservesAtomsAndCharge(string equation)
+    {
+        var balancer = new EquationBalancer(ChemTestContext.Database, VerbosityLevel.Detailed);
+
+        Assert.True(balancer.TryBalance(equation, out BalancedReaction reaction, out string error), error);
+
+        var left = new Dictionary<string, long>(StringComparer.Ordinal);
+        var right = new Dictionary<string, long>(StringComparer.Ordinal);
+        long leftCharge = 0;
+        long rightCharge = 0;
+
+        for (int i = 0; i < reaction.Reactants.Count; i++)
+        {
+            int coefficient = reaction.ReactantCoefficient(i);
+            Assert.True(coefficient > 0, $"коэффициент {coefficient} у {reaction.Reactants[i]}");
+            Accumulate(left, reaction.Reactants[i], coefficient);
+            leftCharge += (long)coefficient * reaction.Reactants[i].Charge;
+        }
+
+        for (int i = 0; i < reaction.Products.Count; i++)
+        {
+            int coefficient = reaction.ProductCoefficient(i);
+            Assert.True(coefficient > 0, $"коэффициент {coefficient} у {reaction.Products[i]}");
+            Accumulate(right, reaction.Products[i], coefficient);
+            rightCharge += (long)coefficient * reaction.Products[i].Charge;
+        }
+
+        Assert.Equal(left.OrderBy(e => e.Key, StringComparer.Ordinal), right.OrderBy(e => e.Key, StringComparer.Ordinal));
+        Assert.Equal(leftCharge, rightCharge);
+        Assert.Equal(1, reaction.Coefficients.Aggregate(0, GreatestCommonDivisor));
+    }
+
+    private static void Accumulate(Dictionary<string, long> totals, MolecularFormula species, int coefficient)
+    {
+        foreach (KeyValuePair<string, int> element in species.Elements)
+            totals[element.Key] = totals.GetValueOrDefault(element.Key) + ((long)coefficient * element.Value);
+    }
+
+    private static int GreatestCommonDivisor(int a, int b) => b == 0 ? Math.Abs(a) : GreatestCommonDivisor(b, a % b);
 
     [Theory]
     [InlineData("molar mass of H2SO4", "98.0")]

@@ -1,4 +1,5 @@
 using AI.DataStructs.Algebraic;
+using AI.Insights;
 
 namespace AI.Solvers.Pde.Numerics;
 
@@ -7,7 +8,31 @@ namespace AI.Solvers.Pde.Numerics;
 /// <param name="Iterations">Число итераций</param>
 /// <param name="Residual">Норма невязки на выходе</param>
 /// <param name="Converged">Достигнут ли заданный порог</param>
-public readonly record struct IterativeResult(Vector Solution, int Iterations, double Residual, bool Converged);
+public readonly record struct IterativeResult(Vector Solution, int Iterations, double Residual, bool Converged)
+    : IInterpretable
+{
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        int size = Solution?.Count ?? 0;
+
+        return new InterpretationBuilder("Итерационное решение разреженной системы")
+            .Summary(Converged
+                ? $"Система решена: неизвестных {size}, итераций {Iterations}, норма невязки {PdeFacts.Sci(Residual)}."
+                : $"Порог по невязке не достигнут: итераций {Iterations}, норма невязки {PdeFacts.Sci(Residual)}.")
+            .Metric("Сходимость", Converged ? "достигнута" : "не достигнута", null,
+                "невязка ниже заданного порога", Converged ? MetricQuality.Good : MetricQuality.Critical)
+            .Metric("Неизвестных", size, null, "размер системы", MetricQuality.Unknown, 0)
+            .Metric("Итераций", Iterations, null, "шагов метода", MetricQuality.Unknown, 0)
+            .Metric("Невязка", PdeFacts.Sci(Residual), null, "норма b − A·x на выходе")
+            .FindingIf(size > 0 && Iterations > size,
+                "Итераций больше, чем неизвестных. В точной арифметике метод сопряжённых градиентов сходится "
+                + "не более чем за столько шагов, сколько неизвестных, — значит матрица плохо обусловлена "
+                + "либо не является симметричной положительно определённой.")
+            .WarningIf(!Converged, PdeFacts.NotConverged)
+            .Build();
+    }
+}
 
 /// <summary>
 /// Итерационные решатели разреженных систем.

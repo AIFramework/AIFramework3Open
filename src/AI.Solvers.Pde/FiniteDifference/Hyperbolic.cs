@@ -1,9 +1,11 @@
 using AI.DataStructs.Algebraic;
+using AI.Insights;
+using AI.Solvers.Pde.Numerics;
 
 namespace AI.Solvers.Pde.FiniteDifference;
 
 /// <summary>Решение одномерного волнового уравнения</summary>
-public sealed class WaveSolution
+public sealed class WaveSolution : IInterpretable
 {
     internal WaveSolution(Grid1D grid, Vector values, Vector previous, int steps, double courant)
     {
@@ -31,6 +33,33 @@ public sealed class WaveSolution
 
     /// <summary>Устойчива ли схема: число Куранта не больше единицы</summary>
     public bool IsStable => Courant <= 1.0 + 1e-12;
+
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        double amplitude = PdeFacts.MaxAbs(Values);
+        bool exact = Math.Abs(Courant - 1.0) <= 1e-9;
+        bool dispersive = Courant < 0.5;
+
+        return new InterpretationBuilder("Волновое уравнение на отрезке")
+            .Summary($"Явная трёхслойная схема: шагов по времени {Steps}, число Куранта {Fmt.Num(Courant, 4)}. "
+                + $"Наибольшее отклонение на конечный момент {Fmt.Num(amplitude, 4)}.")
+            .Metric("Число Куранта", Courant, null, "c·Δt/h; схема устойчива при значении не больше 1",
+                dispersive ? MetricQuality.Neutral : MetricQuality.Good, 4)
+            .Metric("Узлов", Grid.Count, null, "по пространству", MetricQuality.Unknown, 0)
+            .Metric("Шагов по времени", Steps, null, null, MetricQuality.Unknown, 0)
+            .Metric("Наибольшее отклонение", amplitude, null, "максимум |u| на конечный момент", MetricQuality.Unknown, 4)
+            .FindingIf(exact,
+                "Число Куранта равно единице. На таком шаге схема для однородного волнового уравнения точна: "
+                + "волна переносится ровно на один узел за шаг, без численной дисперсии. Погрешность может "
+                + "внести лишь первый шаг, построенный по разложению Тейлора.")
+            .FindingIf(dispersive,
+                "Число Куранта мало: схема устойчива, но с заметной численной дисперсией — короткие волны "
+                + "бегут медленнее длинных, и крутые фронты обрастают рябью. Чем ближе число Куранта к единице, тем точнее.")
+            .Warning("Концы отрезка закреплены (u = 0): волна отражается от них с переменой знака. "
+                + "Для открытой границы нужны поглощающие условия, которых здесь нет.")
+            .Build();
+    }
 
     /// <summary>Краткая запись результата</summary>
     public override string ToString() => $"волновое уравнение: узлов {Grid.Count}, шагов {Steps}, CFL = {Courant:F4}";

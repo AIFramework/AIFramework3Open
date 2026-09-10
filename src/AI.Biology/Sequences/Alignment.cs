@@ -1,3 +1,5 @@
+using AI.Insights;
+
 namespace AI.Biology.Sequences;
 
 /// <summary>Результат выравнивания двух последовательностей</summary>
@@ -6,6 +8,7 @@ namespace AI.Biology.Sequences;
 /// <param name="Second">Вторая последовательность с пропусками</param>
 /// <param name="Identity">Доля совпавших позиций</param>
 public readonly record struct AlignmentResult(double Score, string First, string Second, double Identity)
+    : IInterpretable
 {
     /// <summary>Число совпавших позиций</summary>
     public int Matches
@@ -24,6 +27,60 @@ public readonly record struct AlignmentResult(double Score, string First, string
 
     /// <summary>Число пропусков в обеих строках</summary>
     public int Gaps => First.Count(c => c == '-') + Second.Count(c => c == '-');
+
+    /// <summary>Число сплошных участков пропусков в обеих строках</summary>
+    public int GapRuns => CountRuns(First) + CountRuns(Second);
+
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        int length = First?.Length ?? 0;
+        int matches = length == 0 ? 0 : Matches;
+        int gaps = length == 0 ? 0 : Gaps;
+        int runs = length == 0 ? 0 : GapRuns;
+
+        // Пропуск не выравнивается с пропуском, поэтому каждая позиция — ровно одно из трёх
+        int mismatches = length - matches - gaps;
+
+        return new InterpretationBuilder("Выравнивание последовательностей")
+            .Summary(length == 0
+                ? "Общего участка не найдено: выравнивание пустое."
+                : $"Выравнено позиций {length}: совпадений {matches}, несовпадений {mismatches}, пропусков {gaps}. "
+                  + $"Идентичность {Fmt.Pct(Identity)}, счёт {Fmt.Num(Score, 1)}.")
+            .Metric("Длина выравнивания", length, null, "позиций, включая пропуски", MetricQuality.Unknown, 0)
+            .Metric("Идентичность", Fmt.Pct(Identity), null, "доля совпавших позиций от длины выравнивания",
+                Identity >= 0.5 ? MetricQuality.Neutral : MetricQuality.Warning)
+            .Metric("Совпадений", matches, null, null, MetricQuality.Unknown, 0)
+            .Metric("Несовпадений", mismatches, null, null, MetricQuality.Unknown, 0)
+            .Metric("Пропусков", gaps, null, $"сплошных участков: {runs}", MetricQuality.Unknown, 0)
+            .Metric("Счёт", Score, null, "сумма наград и штрафов по схеме счёта", MetricQuality.Unknown, 1)
+            .FindingIf(runs > 0,
+                $"Пропуски собраны в сплошные участки: их {runs}, в среднем по {Fmt.Num((double)gaps / Math.Max(runs, 1), 1)} "
+                + "позиции. При аффинном штрафе, где открытие пропуска дороже продления, так и выглядит одна вставка "
+                + "или делеция, а не россыпь одиночных.")
+            .WarningIf(length > 0 && Identity < 0.5,
+                "Идентичность ниже половины. У нуклеотидов четверть позиций совпадает случайно даже без пропусков, "
+                + "а оптимальное выравнивание случайных последовательностей с пропусками даёт ещё больше. "
+                + "Без оценки значимости такое сходство ничего не доказывает.")
+            .Warning("Счёт сам по себе не говорит о значимости: у любых двух последовательностей есть лучшее "
+                + "выравнивание. Значимость оценивают сравнением со счётами перемешанных последовательностей "
+                + "(E-значение); здесь она не вычислена.")
+            .Build();
+    }
+
+    private static int CountRuns(string sequence)
+    {
+        if (string.IsNullOrEmpty(sequence))
+            return 0;
+
+        int runs = 0;
+
+        for (int i = 0; i < sequence.Length; i++)
+            if (sequence[i] == '-' && (i == 0 || sequence[i - 1] != '-'))
+                runs++;
+
+        return runs;
+    }
 
     /// <summary>Наглядная запись выравнивания в три строки</summary>
     public override string ToString()

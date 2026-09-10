@@ -72,3 +72,41 @@ public sealed partial class IndexingResult : IInterpretable
         _ => centering.ToString(),
     };
 }
+
+/// <summary>Разбор доли фазы, найденной по корундовым числам.</summary>
+public readonly partial record struct PhaseQuantity : IInterpretable
+{
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        bool observed = Intensity > 0;
+        double reduced = ReferenceIntensityRatio > 0
+            ? System.Math.Max(0, Intensity) / ReferenceIntensityRatio
+            : double.NaN;
+        bool minor = observed && MassFraction < 5;
+
+        return new InterpretationBuilder($"Количественный фазовый анализ: {Phase}")
+            .Summary(observed
+                ? $"Массовая доля фазы «{Phase}» — {Fmt.Num(MassFraction, 1)} % по методу корундовых чисел: "
+                  + $"интенсивность опорной линии {Fmt.Num(Intensity, 1)}, корундовое число {Fmt.Num(ReferenceIntensityRatio, 2)}."
+                : $"Опорная линия фазы «{Phase}» не наблюдалась, и доля принята нулевой.")
+            .Metric("Массовая доля", Fmt.Num(MassFraction, 2), "%", "доля среди найденных кристаллических фаз",
+                minor ? MetricQuality.Warning : MetricQuality.Neutral)
+            .Metric("Интенсивность опорной линии", Fmt.Num(Intensity, 1), null, "в тех же единицах, что у остальных фаз")
+            .Metric("Корундовое число", Fmt.Num(ReferenceIntensityRatio, 2), null, "I/Ic — отношение к корунду в смеси 1:1")
+            .Metric("Приведённая интенсивность", Fmt.Num(reduced, 2), null, "I / (I/Ic): доли пропорциональны именно ей")
+            .FindingIf(!observed,
+                "Нулевая доля означает, что линия не видна, а не что фазы нет: малое содержание теряется "
+                + "в фоне раньше, чем обращается в нуль.")
+            .FindingIf(minor,
+                "Доля в единицы процентов опирается на слабую линию, сравнимую с фоном: её погрешность "
+                + "растёт по мере уменьшения доли, и последняя цифра здесь не значима.")
+            .Warning("Доли нормированы на сумму найденных кристаллических фаз и в сумме всегда дают 100 %. "
+                + "Аморфная составляющая и неопознанные фазы в расчёт не входят — если они есть, все доли завышены.")
+            .Warning("Интенсивность опорной линии искажают преимущественная ориентация кристаллитов и различие "
+                + "в поглощении фаз. Корундовое число должно относиться к той же линии, по которой измерена интенсивность.")
+            .Recommendation("Для абсолютных долей и оценки аморфной части добавить в образец известное количество "
+                + "внутреннего стандарта и пересчитать доли относительно него.")
+            .Build();
+    }
+}

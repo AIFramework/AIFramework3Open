@@ -1,4 +1,5 @@
 using AI.Solvers.Chem.Metrology;
+using AI.Units;
 
 namespace AI.Solvers.Chem.UnitTests;
 
@@ -270,5 +271,54 @@ public class MetrologyTests
 
         Assert.True(check.Linear);
         Assert.True(check.R2 > 0.999, $"R² = {check.R2:F5}");
+    }
+
+    /// <summary>
+    /// Бюджет и арифметика измерений ядра — две независимые реализации GUM. Для суммы
+    /// и произведения некоррелированных величин они обязаны дать одну неопределённость.
+    /// </summary>
+    [Fact]
+    public void Budget_FromMeasurements_AgreesWithMeasurementArithmetic()
+    {
+        Measurement a = Measurement.Of(12.40, 0.03, Si.Gram);
+        Measurement b = Measurement.Of(3.15, 0.02, Si.Gram);
+
+        // y = a + b: коэффициенты чувствительности единичные
+        UncertaintyBudget sum = new UncertaintyBudget("сумма масс", 15.55, Si.Gram)
+            .Add(UncertaintyComponent.FromMeasurement("a", a, Si.Gram))
+            .Add(UncertaintyComponent.FromMeasurement("b", b, Si.Gram));
+
+        Assert.Equal((a + b).UncertaintyIn(Si.Gram), sum.CombinedStandardUncertainty, 12);
+
+        // y = a·b: ∂y/∂a = b, ∂y/∂b = a; результат в г², а 1 г² = 1e-6 кг²
+        var product = new UncertaintyBudget("произведение масс", 12.40 * 3.15, "g²")
+            .Add(UncertaintyComponent.FromMeasurement("a", a, Si.Gram, sensitivity: 3.15))
+            .Add(UncertaintyComponent.FromMeasurement("b", b, Si.Gram, sensitivity: 12.40));
+
+        Assert.Equal((a * b).SiUncertainty / 1e-6, product.CombinedStandardUncertainty, 9);
+    }
+
+    /// <summary>Измерение другой размерности в бюджет не попадает молча.</summary>
+    [Fact]
+    public void Budget_FromMeasurement_RejectsWrongDimension()
+    {
+        Measurement mass = Measurement.Of(12.40, 0.03, Si.Gram);
+
+        Assert.Throws<DimensionMismatchException>(
+            () => UncertaintyComponent.FromMeasurement("масса", mass, UnitRegistry.Parse("m")));
+    }
+
+    /// <summary>Бюджет, собранный из измерений, возвращается в слой величин без потерь.</summary>
+    [Fact]
+    public void Budget_FromMeasurement_RoundTripsThroughMeasurement()
+    {
+        Measurement mass = Measurement.Of(12.40, 0.03, Si.Gram);
+
+        Measurement back = new UncertaintyBudget("масса", 12.40, Si.Gram)
+            .Add(UncertaintyComponent.FromMeasurement("весы", mass, Si.Gram))
+            .ToMeasurement();
+
+        Assert.Equal(0.03, back.UncertaintyIn(Si.Gram), 12);
+        Assert.True(back.IsConsistentWith(mass));
     }
 }

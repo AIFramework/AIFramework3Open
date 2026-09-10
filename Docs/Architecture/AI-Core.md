@@ -57,7 +57,7 @@ _ = Quantity.Of(1, Si.Metre) + Quantity.Of(1, Si.Second); // DimensionMismatchEx
 Проверка на границе публичного API — метод `RequireSi`: он сверяет размерность и возвращает
 значение в СИ, поэтому внутренняя реализация продолжает работать с обычным `double`.
 
-Потребители слоя: типизированные перегрузки `PowderAnalysis` и параметры `UnitCell` в `AI.Solvers.Chem`, класс `MicrowaveQuantities` в `AI.Microwave`, а также мост `UncertaintyBudget.ToMeasurement()`, переводящий бюджет неопределённости по GUM в `Measurement`.
+Потребители слоя: типизированные перегрузки `PowderAnalysis` и параметры `UnitCell` в `AI.Solvers.Chem`, класс `MicrowaveQuantities` в `AI.Microwave`, а также мосты химической метрологии в обе стороны: `UncertaintyBudget.ToMeasurement()` переводит бюджет неопределённости по GUM в `Measurement`, а `UncertaintyComponent.FromMeasurement()` вносит измерение с неопределённостью в бюджет составляющей, переводя неопределённость в заданную единицу и отвергая несовпадение размерностей. Бюджет и арифметика `Measurement` — две независимые реализации GUM; тест `Budget_FromMeasurements_AgreesWithMeasurementArithmetic` сверяет их на сумме и произведении.
 
 ```csharp
 public double PowerDensity(Quantity power, Quantity area)

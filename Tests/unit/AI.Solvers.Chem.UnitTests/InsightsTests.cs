@@ -225,4 +225,35 @@ public class InsightsTests
     }
 
     #endregion
+
+    #region Фазовый анализ
+
+    [Fact]
+    public void PhaseQuantity_Interpretation_SaysFractionsAreRelative()
+    {
+        IReadOnlyList<PhaseQuantity> phases = PowderAnalysis.QuantifyByRir(
+            new[] { "кварц", "кальцит" }, new[] { 100.0, 4.0 }, new[] { 3.41, 3.41 });
+
+        Interpretation major = phases[0].Interpret();
+        Interpretation minor = phases[1].Interpret();
+
+        // Нормировка на найденные фазы — главное, что нужно знать о любой доле
+        Assert.Contains(major.Warnings, w => w.Contains("100 %", StringComparison.Ordinal));
+
+        // 4 против 100 при равных корундовых числах — около 3.8 %: доля держится на слабой линии
+        Assert.Contains(minor.Findings, f => f.Contains("слабую линию", StringComparison.Ordinal));
+        Assert.DoesNotContain(major.Findings, f => f.Contains("слабую линию", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PhaseQuantity_UnobservedLine_IsNotProofOfAbsence()
+    {
+        IReadOnlyList<PhaseQuantity> phases = PowderAnalysis.QuantifyByRir(
+            new[] { "кварц", "гематит" }, new[] { 100.0, 0.0 }, new[] { 3.41, 3.2 });
+
+        Assert.Equal(0.0, phases[1].MassFraction);
+        Assert.Contains(phases[1].Interpret().Findings, f => f.Contains("а не что фазы нет", StringComparison.Ordinal));
+    }
+
+    #endregion
 }

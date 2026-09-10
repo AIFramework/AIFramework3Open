@@ -1,4 +1,5 @@
 using AI.DataStructs.Algebraic;
+using AI.Insights;
 using AI.Solvers.Pde.Numerics;
 
 namespace AI.Solvers.Pde.FiniteElement;
@@ -28,7 +29,7 @@ public readonly record struct BoundaryCondition(BoundaryKind Kind, double Value)
 }
 
 /// <summary>Решение одномерной краевой задачи методом конечных элементов</summary>
-public sealed class Fem1DSolution
+public sealed class Fem1DSolution : IInterpretable
 {
     internal Fem1DSolution(Grid1D mesh, Vector values, int iterations, bool converged)
     {
@@ -70,6 +71,33 @@ public sealed class Fem1DSolution
         double local = (x - Mesh.Node(element)) / step;
 
         return ((1 - local) * Values[element]) + (local * Values[element + 1]);
+    }
+
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        (double min, double max) = PdeFacts.Range(Values);
+        int elements = Math.Max(0, Mesh.Count - 1);
+
+        return new InterpretationBuilder("Метод конечных элементов на отрезке")
+            .Summary($"Решение на линейных элементах: элементов {elements}, узлов {Mesh.Count}, "
+                + $"значения от {Fmt.Num(min, 4)} до {Fmt.Num(max, 4)}. "
+                + (Converged
+                    ? $"Система решена, итераций {Iterations}."
+                    : $"Система не решена: итераций {Iterations}, порог не достигнут."))
+            .Metric("Элементов", elements, null, "линейных, по два узла", MetricQuality.Unknown, 0)
+            .Metric("Шаг", Mesh.Step, null, "длина элемента", MetricQuality.Unknown, 4)
+            .Metric("Итераций", Iterations, null, "шагов метода сопряжённых градиентов", MetricQuality.Unknown, 0)
+            .Metric("Сходимость", Converged ? "достигнута" : "не достигнута", null, "решатель системы достиг порога",
+                Converged ? MetricQuality.Good : MetricQuality.Critical)
+            .Metric("Минимум", min, null, null, MetricQuality.Unknown, 4)
+            .Metric("Максимум", max, null, null, MetricQuality.Unknown, 4)
+            .Warning("Решение — ломаная, непрерывная в узлах. Его погрешность второго порядка по шагу, "
+                + "а производной — только первого: поток постоянен на элементе и скачет в узлах. "
+                + "Если нужен именно поток, сетку мельчат сильнее, чем ради самого решения.")
+            .WarningIf(!Converged, PdeFacts.NotConverged)
+            .Recommendation(PdeFacts.RefineGrid)
+            .Build();
     }
 
     /// <summary>Краткая запись результата</summary>

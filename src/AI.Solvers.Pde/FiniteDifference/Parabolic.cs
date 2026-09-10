@@ -1,4 +1,5 @@
 using AI.DataStructs.Algebraic;
+using AI.Insights;
 using AI.Solvers.Pde.Numerics;
 
 namespace AI.Solvers.Pde.FiniteDifference;
@@ -21,15 +22,16 @@ public enum TimeScheme
 }
 
 /// <summary>Решение одномерного уравнения теплопроводности</summary>
-public sealed class HeatSolution
+public sealed class HeatSolution : IInterpretable
 {
-    internal HeatSolution(Grid1D grid, Vector values, int steps, double courant, bool stable)
+    internal HeatSolution(Grid1D grid, Vector values, int steps, double courant, bool stable, TimeScheme scheme)
     {
         Grid = grid;
         Values = values;
         Steps = steps;
         Courant = courant;
         IsStable = stable;
+        Scheme = scheme;
     }
 
     /// <summary>Сетка по пространству</summary>
@@ -46,6 +48,63 @@ public sealed class HeatSolution
 
     /// <summary>Устойчива ли использованная схема при этих параметрах</summary>
     public bool IsStable { get; }
+
+    /// <summary>
+    /// Использованная схема интегрирования по времени
+    /// </summary>
+    /// <remarks>
+    /// Без неё интерпретация не могла бы отличить устойчивую явную схему от схемы
+    /// Кранка — Николсон при том же сеточном числе, а их слабости разные.
+    /// </remarks>
+    public TimeScheme Scheme { get; }
+
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        (double min, double max) = PdeFacts.Range(Values);
+        bool finite = PdeFacts.AllFinite(Values);
+        bool isExplicit = Scheme == TimeScheme.Explicit;
+
+        // У Кранка — Николсон множитель перехода для самых коротких волн (1 − 2r)/(1 + 2r)
+        // отрицателен при r > 1/2: они меняют знак на каждом шаге
+        bool oscillating = !isExplicit && Courant > 0.5;
+        string scheme = isExplicit ? "явная" : "Кранка — Николсон";
+
+        MetricQuality stability = !IsStable ? MetricQuality.Critical
+            : oscillating ? MetricQuality.Neutral
+            : MetricQuality.Good;
+
+        return new InterpretationBuilder("Уравнение теплопроводности на отрезке")
+            .Summary(!IsStable
+                ? $"Явная схема при α·Δt/h² = {Fmt.Num(Courant, 4)} неустойчива: полученные значения — "
+                  + "накопленная ошибка, а не решение."
+                : $"Схема {scheme}: шагов по времени {Steps}, α·Δt/h² = {Fmt.Num(Courant, 4)}. "
+                  + $"На конечный момент значения от {Fmt.Num(min, 4)} до {Fmt.Num(max, 4)}.")
+            .Metric("Схема", scheme, null, isExplicit
+                ? "первый порядок по времени, второй по пространству"
+                : "второй порядок по времени и по пространству")
+            .Metric("α·Δt/h²", Courant, null, isExplicit
+                ? "явная схема устойчива при значении не больше 1/2"
+                : "схема устойчива при любом значении", stability, 4)
+            .Metric("Узлов", Grid.Count, null, "по пространству", MetricQuality.Unknown, 0)
+            .Metric("Шагов по времени", Steps, null, null, MetricQuality.Unknown, 0)
+            .Metric("Минимум", min, null, "на конечный момент", MetricQuality.Unknown, 4)
+            .Metric("Максимум", max, null, "на конечный момент", MetricQuality.Unknown, 4)
+            .FindingIf(IsStable && isExplicit,
+                "Явная схема устойчива при этом шаге, но точна лишь в первом порядке по времени, а сам шаг "
+                + "привязан к квадрату пространственного: измельчив сетку вдвое, шаг по времени придётся "
+                + "уменьшить вчетверо.")
+            .WarningIf(!IsStable,
+                "Явная схема устойчива только при α·Δt/h² ≤ 1/2. Выше порога самые короткие волны на каждом "
+                + "шаге умножаются на |1 − 4·α·Δt/h²| > 1, и через несколько десятков шагов решение теряет смысл. "
+                + "Нужна схема Кранка — Николсон либо более мелкий шаг по времени.")
+            .WarningIf(oscillating,
+                "Схема Кранка — Николсон устойчива при любом шаге, но при α·Δt/h² > 1/2 самые короткие волны "
+                + "меняют знак на каждом шаге, а при значениях много больше единицы почти не затухают. "
+                + "Для гладких начальных данных это незаметно, для скачков нужен шаг по времени помельче.")
+            .WarningIf(!finite, "В решении есть бесконечности либо нечисла: вычисление разрушилось.")
+            .Build();
+    }
 
     /// <summary>Краткая запись результата</summary>
     public override string ToString()
@@ -118,7 +177,7 @@ public static class HeatEquation1D
             current[count - 1] = rightBoundary(nextTime);
         }
 
-        return new HeatSolution(grid, current, steps, r, stable);
+        return new HeatSolution(grid, current, steps, r, stable, scheme);
     }
 
     private static Vector ExplicitStep(

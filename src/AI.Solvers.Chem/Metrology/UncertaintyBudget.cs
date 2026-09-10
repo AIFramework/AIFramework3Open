@@ -113,6 +113,36 @@ public sealed class UncertaintyComponent
             Distribution = DistributionKind.Rectangular,
             Sensitivity = sensitivity
         };
+
+    /// <summary>
+    /// Составляющая из уже измеренной величины с известной стандартной неопределённостью
+    /// </summary>
+    /// <remarks>
+    /// Мост от общего слоя величин к бюджету: входная величина, выраженная как
+    /// <see cref="Measurement"/>, становится составляющей без ручного пересчёта единиц.
+    /// Неопределённость переводится в <paramref name="unit"/>, поэтому коэффициент
+    /// чувствительности задаётся в единицах результата на эту единицу. Несовпадение
+    /// размерности измерения и единицы — исключение, а не молча неверный вклад.
+    /// Число степеней свободы измерение не несёт, и оно принимается бесконечным.
+    /// </remarks>
+    /// <param name="name">Название источника</param>
+    /// <param name="measurement">Измеренная входная величина</param>
+    /// <param name="unit">Единица, в которой выражается неопределённость составляющей</param>
+    /// <param name="sensitivity">Коэффициент чувствительности ∂y/∂x в единицах результата на <paramref name="unit"/></param>
+    public static UncertaintyComponent FromMeasurement(
+        string name, Measurement measurement, QuantityUnit unit, double sensitivity = 1.0)
+    {
+        ArgumentNullException.ThrowIfNull(unit);
+
+        return new UncertaintyComponent
+        {
+            Name = name,
+            Unit = unit.Symbol,
+            Value = measurement.UncertaintyIn(unit),
+            Distribution = DistributionKind.Normal,
+            Sensitivity = sensitivity
+        };
+    }
 }
 
 /// <summary>

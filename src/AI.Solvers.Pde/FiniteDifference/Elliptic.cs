@@ -1,10 +1,11 @@
 using AI.DataStructs.Algebraic;
+using AI.Insights;
 using AI.Solvers.Pde.Numerics;
 
 namespace AI.Solvers.Pde.FiniteDifference;
 
 /// <summary>Решение краевой задачи для уравнения Пуассона</summary>
-public sealed class PoissonSolution
+public sealed class PoissonSolution : IInterpretable
 {
     internal PoissonSolution(Grid2D grid, Matrix values, int iterations, double residual, bool converged)
     {
@@ -34,6 +35,76 @@ public sealed class PoissonSolution
     /// <param name="i">Номер по x</param>
     /// <param name="j">Номер по y</param>
     public double this[int i, int j] => Values[j, i];
+
+    /// <inheritdoc />
+    public Interpretation Interpret()
+    {
+        (double min, int minI, int minJ, double max, int maxI, int maxJ) = Extremes();
+        bool minOnBoundary = Grid.IsBoundary(minI, minJ);
+        bool maxOnBoundary = Grid.IsBoundary(maxI, maxJ);
+        int interior = Math.Max(0, (Grid.CountX - 2) * (Grid.CountY - 2));
+
+        return new InterpretationBuilder("Уравнение Пуассона на прямоугольнике")
+            .Summary($"Поле на сетке {Grid.CountX}×{Grid.CountY}: неизвестных внутри {interior}, "
+                + $"значения от {Fmt.Num(min, 4)} до {Fmt.Num(max, 4)}. "
+                + (Converged
+                    ? $"Сеточная система решена, итераций {Iterations}."
+                    : $"Сеточная система не решена: итераций {Iterations}, порог не достигнут."))
+            .Metric("Сетка", $"{Grid.CountX}×{Grid.CountY}", null, "узлов по x и по y")
+            .Metric("Шаг", $"{Fmt.Num(Grid.StepX, 4)} × {Fmt.Num(Grid.StepY, 4)}", null, "hx × hy")
+            .Metric("Итераций", Iterations, null, "шагов метода сопряжённых градиентов", MetricQuality.Unknown, 0)
+            .Metric("Невязка", PdeFacts.Sci(Residual), null, "точность решения сеточной системы",
+                Converged ? MetricQuality.Good : MetricQuality.Critical)
+            .Metric("Минимум", min, null, minOnBoundary ? "достигается на границе" : "достигается внутри области",
+                MetricQuality.Unknown, 4)
+            .Metric("Максимум", max, null, maxOnBoundary ? "достигается на границе" : "достигается внутри области",
+                MetricQuality.Unknown, 4)
+            .FindingIf(minOnBoundary && maxOnBoundary,
+                "Оба экстремума лежат на границе. Для задачи Лапласа так и должно быть: по принципу максимума "
+                + "гармоническая функция не может иметь экстремум внутри области.")
+            .FindingIf(!minOnBoundary || !maxOnBoundary,
+                "Экстремум лежит внутри области. Для задачи Лапласа это невозможно по принципу максимума, "
+                + "значит в уравнении есть источник: при f ≥ 0 внутри может оказаться только максимум, "
+                + "при f ≤ 0 — только минимум. Если источника не задавали, ошибка в граничных данных "
+                + "либо решение не сошлось.")
+            .Warning(PdeFacts.ResidualIsNotError)
+            .WarningIf(!Converged, PdeFacts.NotConverged)
+            .Recommendation(PdeFacts.RefineGrid)
+            .Build();
+    }
+
+    private (double Min, int MinI, int MinJ, double Max, int MaxI, int MaxJ) Extremes()
+    {
+        double min = double.PositiveInfinity;
+        double max = double.NegativeInfinity;
+        int minI = 0, minJ = 0, maxI = 0, maxJ = 0;
+
+        // Обход начинается с нижней границы, а сравнение строгое: при равных значениях
+        // экстремум приписывается граничному узлу, и постоянное поле не выглядит аномалией
+        for (int j = 0; j < Grid.CountY; j++)
+        {
+            for (int i = 0; i < Grid.CountX; i++)
+            {
+                double value = Values[j, i];
+
+                if (value < min)
+                {
+                    min = value;
+                    minI = i;
+                    minJ = j;
+                }
+
+                if (value > max)
+                {
+                    max = value;
+                    maxI = i;
+                    maxJ = j;
+                }
+            }
+        }
+
+        return (min, minI, minJ, max, maxI, maxJ);
+    }
 
     /// <summary>Краткая запись результата</summary>
     public override string ToString()
