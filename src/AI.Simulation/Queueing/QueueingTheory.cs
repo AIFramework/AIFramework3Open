@@ -196,4 +196,147 @@ public static class QueueingTheory
     /// <param name="arrivalRate">Интенсивность потока</param>
     /// <param name="averageTime">Среднее время пребывания</param>
     public static double LittleLaw(double arrivalRate, double averageTime) => arrivalRate * averageTime;
+
+    /// <summary>
+    /// Одноканальная система с приоритетами без прерывания (M/G/1, формула Кобэма)
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Класс 0 — старший. Ожидание класса k: <c>W_k = W₀ / ((1 − σ_{k−1})(1 − σ_k))</c>, где
+    /// <c>W₀ = Σ λ_i·E[S_i²] / 2</c> — средний остаток начатого обслуживания, который застаёт
+    /// пришедшая заявка, а <c>σ_k</c> — суммарная загрузка классов не младше k.
+    /// </para>
+    /// <para>
+    /// Остаток W₀ общий для всех классов: без прерывания даже старшая заявка ждёт, пока прибор
+    /// закончит начатое. Поэтому младший класс с долгим обслуживанием замедляет и старший.
+    /// </para>
+    /// </remarks>
+    /// <param name="arrivalRates">Интенсивности потоков по классам, от старшего к младшему</param>
+    /// <param name="serviceRates">Интенсивности обслуживания по классам</param>
+    /// <param name="serviceSecondMoments">
+    /// Вторые моменты времени обслуживания по классам; по умолчанию показательное, <c>2/μ²</c>
+    /// </param>
+    /// <returns>
+    /// Показатели каждого класса; загрузка и вероятность простоя в них — по прибору в целом
+    /// </returns>
+    public static IReadOnlyList<QueueMetrics> NonPreemptivePriority(
+        double[] arrivalRates, double[] serviceRates, double[]? serviceSecondMoments = null)
+    {
+        double[] moments = PriorityMoments(arrivalRates, serviceRates, serviceSecondMoments, out double rho);
+        double residual = 0;
+
+        for (int i = 0; i < arrivalRates.Length; i++)
+            residual += arrivalRates[i] * moments[i] / 2;
+
+        var result = new QueueMetrics[arrivalRates.Length];
+        double above = 0;
+
+        for (int k = 0; k < arrivalRates.Length; k++)
+        {
+            double withClass = above + (arrivalRates[k] / serviceRates[k]);
+            double wait = residual / ((1 - above) * (1 - withClass));
+
+            result[k] = ClassMetrics(arrivalRates[k], serviceRates[k], wait, rho);
+            above = withClass;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Одноканальная система с приоритетами с прерыванием и дообслуживанием (M/G/1)
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Время пребывания класса k:
+    /// <c>T_k = E[S_k] / (1 − σ_{k−1}) + R_k / ((1 − σ_{k−1})(1 − σ_k))</c>,
+    /// где <c>R_k = Σ_{i≤k} λ_i·E[S_i²] / 2</c>. Младшие классы в формулу не входят вовсе:
+    /// старшая заявка их просто вытесняет, и для неё системы как будто нет.
+    /// </para>
+    /// <para>
+    /// Следствие — старший класс ведёт себя как отдельная система M/G/1 со своим потоком,
+    /// а ожидание здесь включает и время, проведённое прерванной на приборе очереди.
+    /// </para>
+    /// </remarks>
+    /// <param name="arrivalRates">Интенсивности потоков по классам, от старшего к младшему</param>
+    /// <param name="serviceRates">Интенсивности обслуживания по классам</param>
+    /// <param name="serviceSecondMoments">
+    /// Вторые моменты времени обслуживания по классам; по умолчанию показательное, <c>2/μ²</c>
+    /// </param>
+    /// <returns>
+    /// Показатели каждого класса; ожидание — время в системе сверх собственного обслуживания
+    /// </returns>
+    public static IReadOnlyList<QueueMetrics> PreemptiveResumePriority(
+        double[] arrivalRates, double[] serviceRates, double[]? serviceSecondMoments = null)
+    {
+        double[] moments = PriorityMoments(arrivalRates, serviceRates, serviceSecondMoments, out double rho);
+
+        var result = new QueueMetrics[arrivalRates.Length];
+        double above = 0;
+        double residual = 0;
+
+        for (int k = 0; k < arrivalRates.Length; k++)
+        {
+            double withClass = above + (arrivalRates[k] / serviceRates[k]);
+            residual += arrivalRates[k] * moments[k] / 2;
+
+            double service = 1 / serviceRates[k];
+            double inSystem = (service / (1 - above)) + (residual / ((1 - above) * (1 - withClass)));
+
+            result[k] = ClassMetrics(arrivalRates[k], serviceRates[k], inSystem - service, rho);
+            above = withClass;
+        }
+
+        return result;
+    }
+
+    private static double[] PriorityMoments(
+        double[] arrivalRates, double[] serviceRates, double[]? secondMoments, out double rho)
+    {
+        ArgumentNullException.ThrowIfNull(arrivalRates);
+        ArgumentNullException.ThrowIfNull(serviceRates);
+
+        if (arrivalRates.Length == 0 || arrivalRates.Length != serviceRates.Length
+            || (secondMoments is not null && secondMoments.Length != arrivalRates.Length))
+            throw new ArgumentException("Число классов в интенсивностях и моментах должно совпадать и быть больше нуля",
+                nameof(serviceRates));
+
+        rho = 0;
+        var moments = new double[arrivalRates.Length];
+
+        for (int k = 0; k < arrivalRates.Length; k++)
+        {
+            if (arrivalRates[k] < 0 || serviceRates[k] <= 0)
+                throw new ArgumentOutOfRangeException(nameof(arrivalRates),
+                    $"Класс {k}: интенсивность потока неотрицательна, обслуживания — положительна");
+
+            double mean = 1 / serviceRates[k];
+            moments[k] = secondMoments?[k] ?? 2 * mean * mean;
+
+            if (moments[k] < mean * mean)
+                throw new ArgumentOutOfRangeException(nameof(secondMoments),
+                    $"Класс {k}: второй момент меньше квадрата среднего — дисперсия была бы отрицательной");
+
+            rho += arrivalRates[k] * mean;
+        }
+
+        if (rho >= 1)
+            throw new ArgumentException(
+                $"Суммарная загрузка ρ = {rho:F3} не меньше единицы: установившегося режима нет", nameof(arrivalRates));
+
+        return moments;
+    }
+
+    private static QueueMetrics ClassMetrics(double arrivalRate, double serviceRate, double wait, double rho)
+    {
+        double inSystem = wait + (1 / serviceRate);
+
+        return new QueueMetrics(
+            rho,
+            LittleLaw(arrivalRate, wait),
+            LittleLaw(arrivalRate, inSystem),
+            wait,
+            inSystem,
+            1 - rho);
+    }
 }

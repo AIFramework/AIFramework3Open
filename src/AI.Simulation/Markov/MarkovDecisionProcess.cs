@@ -233,6 +233,50 @@ public sealed class MarkovDecisionProcess
         return _rewards[state][action] + (Discount * expected);
     }
 
+    /// <summary>
+    /// Разыгрывает один шаг процесса: следующее состояние по вероятностям переходов и награду
+    /// </summary>
+    /// <remarks>
+    /// Так процесс служит средой для обучения с подкреплением: обучающийся видит только
+    /// исходы, но результат обучения можно сверить с точным решением того же процесса.
+    /// </remarks>
+    /// <param name="state">Текущее состояние</param>
+    /// <param name="action">Действие</param>
+    /// <param name="random">Генератор случайных чисел</param>
+    public (int Next, double Reward) Sample(int state, int action, Random random)
+    {
+        ArgumentNullException.ThrowIfNull(random);
+
+        if (state < 0 || state >= StateCount)
+            throw new ArgumentOutOfRangeException(nameof(state), $"Состояния {state} в процессе нет");
+
+        if (action < 0 || action >= ActionCount(state))
+            throw new ArgumentOutOfRangeException(nameof(action), $"Действия {action} в состоянии {state} нет");
+
+        double[] row = _transitions[state][action];
+        double u = random.NextDouble();
+        int next = row.Length - 1;
+        double cumulative = 0;
+
+        for (int candidate = 0; candidate < row.Length; candidate++)
+        {
+            cumulative += row[candidate];
+
+            if (u < cumulative)
+            {
+                next = candidate;
+                break;
+            }
+        }
+
+        // Если из-за округления сумма чуть меньше единицы, выпадет последнее состояние
+        // с ненулевой вероятностью, а не случайный хвост строки
+        while (row[next] == 0 && next > 0)
+            next--;
+
+        return (next, _rewards[state][action]);
+    }
+
     private IReadOnlyList<int> GreedyPolicy(IReadOnlyList<double> values)
     {
         var policy = new int[StateCount];

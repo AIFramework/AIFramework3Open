@@ -50,6 +50,16 @@ public sealed class Tally
         _minimum = Math.Min(_minimum, value);
         _maximum = Math.Max(_maximum, value);
     }
+
+    /// <summary>Забывает все наблюдения — например, накопленные за разгонный участок</summary>
+    public void Reset()
+    {
+        Count = 0;
+        _sum = 0;
+        _sumOfSquares = 0;
+        _minimum = double.PositiveInfinity;
+        _maximum = double.NegativeInfinity;
+    }
 }
 
 /// <summary>
@@ -65,6 +75,7 @@ public sealed class TimeWeightedAccumulator
     private double _area;
     private double _lastTime;
     private double _lastValue;
+    private double _start;
 
     /// <summary>Текущее значение</summary>
     public double Current => _lastValue;
@@ -72,13 +83,31 @@ public sealed class TimeWeightedAccumulator
     /// <summary>Наибольшее достигнутое значение</summary>
     public double Maximum { get; private set; }
 
-    /// <summary>Средневзвешенное по времени значение</summary>
+    /// <summary>Средневзвешенное по времени значение с начала наблюдения</summary>
     /// <param name="now">Текущее модельное время</param>
     public double Average(double now)
     {
         double total = _area + (_lastValue * (now - _lastTime));
+        double span = now - _start;
 
-        return now <= 0 ? 0 : total / now;
+        return span <= 0 ? 0 : total / span;
+    }
+
+    /// <summary>
+    /// Начинает наблюдение заново с заданного момента, сохраняя текущее значение
+    /// </summary>
+    /// <remarks>
+    /// Так отбрасывается разгонный участок: система стартует пустой, и первые единицы
+    /// времени тянут среднее к нулю. Текущее значение не сбрасывается — очередь, накопленная
+    /// к концу разгона, реальна и продолжает весить в среднем.
+    /// </remarks>
+    /// <param name="now">Модельное время начала наблюдения</param>
+    public void Reset(double now)
+    {
+        _area = 0;
+        _lastTime = now;
+        _start = now;
+        Maximum = _lastValue;
     }
 
     /// <summary>Обновляет значение в заданный момент</summary>
