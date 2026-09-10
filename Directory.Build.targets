@@ -9,7 +9,7 @@
   </PropertyGroup>
   <Target Name="AI_CopyLibOpenBlasWindows"
           AfterTargets="Build"
-          Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(OS)' == 'Windows_NT' And '$(OutputPath)' != ''">
+          Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(OS)' == 'Windows_NT' And '$(OutputPath)' != '' And '$(AILightBuild)' != 'true'">
     <PropertyGroup>
       <_LibOpenBlasWin64>$(NuGetPackageRoot)openblassharp.windows\$(OpenBlasSharpWindowsVersion)\runtimes\win-x64\native\libopenblas.dll</_LibOpenBlasWin64>
     </PropertyGroup>
@@ -17,5 +17,44 @@
           DestinationFolder="$(OutputPath)"
           SkipUnchangedFiles="true"
           Condition="Exists('$(_LibOpenBlasWin64)')" />
+  </Target>
+
+  <!--
+    Лёгкая сборка (AILightBuild=true).
+
+    Тяжесть выходных каталогов создают не наши сборки, а нативные библиотеки пакетов:
+    ONNX Runtime кладёт в каждый bin библиотеки под iOS, Android, macOS и Linux
+    (321 МБ на копию, из них под win-x64 — 9,6 МБ), а OpenBLAS — ещё 49 МБ. Отсечение
+    идёт после разрешения пакетов и до копирования, поэтому восстановление пакетов
+    у обеих сборок одинаковое и переключение между ними ничего не ломает.
+
+    Что остаётся в выходе:
+    - нативные файлы платформы, на которой идёт сборка (win-x64 и общие win),
+      то есть ровно те, что процесс на этой машине и загрузит;
+    - без нативного OpenBLAS: CpuBlas при старте не находит библиотеку и молча
+      переходит на собственное управляемое умножение — результат тот же, медленнее
+      только крупные матрицы. Копирование libopenblas.dll (цель выше) в лёгкой
+      сборке выключено.
+
+    Файлы чужих платформ исключаются и из deps.json, так что среда выполнения
+    их не ищет. Для запуска на другой платформе нужна полная сборка либо
+    публикация под нужный RuntimeIdentifier.
+  -->
+  <Target Name="AI_LightPruneNativeAssets"
+          AfterTargets="ResolvePackageAssets"
+          Condition="'$(AILightBuild)' == 'true' And '$(NETCoreSdkRuntimeIdentifier)' != ''">
+    <PropertyGroup>
+      <_AIHostRid>$(NETCoreSdkRuntimeIdentifier)</_AIHostRid>
+      <_AIHostFamily>$(_AIHostRid)</_AIHostFamily>
+      <_AIHostFamily Condition="$(_AIHostRid.Contains('-'))">$(_AIHostRid.Substring(0, $(_AIHostRid.IndexOf('-'))))</_AIHostFamily>
+    </PropertyGroup>
+    <ItemGroup>
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)"
+        Condition="'%(RuntimeTargetsCopyLocalItems.RuntimeIdentifier)' != '$(_AIHostRid)' And '%(RuntimeTargetsCopyLocalItems.RuntimeIdentifier)' != '$(_AIHostFamily)'" />
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)"
+        Condition="'%(RuntimeTargetsCopyLocalItems.NuGetPackageId)' == 'OpenBlasSharp.Windows'" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
+        Condition="'%(NativeCopyLocalItems.NuGetPackageId)' == 'OpenBlasSharp.Windows'" />
+    </ItemGroup>
   </Target>
 </Project>

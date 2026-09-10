@@ -1,0 +1,35 @@
+<Project>
+  <!--
+    Настройки лёгкой сборки, общие для корневого Directory.Build.props и Tests/Directory.Build.props.
+
+    Вынесены в отдельный файл, потому что Tests/Directory.Build.props перекрывает корневой:
+    MSBuild подключает ближайший Directory.Build.props и выше не идёт. Подключать в тесты весь
+    корневой файл значило бы поменять им версию языка и анализаторы, а нужны только эти правила.
+
+    Два варианта сборки: полная (AIFramework.Full.sln) и лёгкая (AIFramework.Light.sln).
+    Лёгкая включается свойством AILightBuild=true: его передаёт build.ps1 -Light, а при сборке
+    AIFramework.Light.sln из Visual Studio оно выставляется по имени решения. Что лёгкая сборка
+    отсекает и почему функциональность при этом не страдает — Directory.Build.targets
+    и раздел «Сборка» в CONTRIBUTING.md.
+  -->
+  <PropertyGroup Condition="'$(AILightBuild)' == '' and '$(SolutionName)' == 'AIFramework.Light'">
+    <AILightBuild>true</AILightBuild>
+  </PropertyGroup>
+
+  <!--
+    Выходы лёгкой сборки лежат отдельно (bin-light, obj-light), чтобы варианты не смешивались:
+    иначе после полной сборки в bin остались бы библиотеки чужих платформ и libopenblas.dll,
+    и лёгкая молча продолжила бы ими пользоваться. Пакеты восстанавливаются в общий obj:
+    состав пакетов у обоих вариантов один, и Visual Studio найдёт их при любом из них.
+  -->
+  <PropertyGroup Condition="'$(AILightBuild)' == 'true'">
+    <MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)/obj/</MSBuildProjectExtensionsPath>
+    <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/obj-light/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildProjectDirectory)/bin-light/</BaseOutputPath>
+  </PropertyGroup>
+
+  <!-- Каталоги сборки обоих вариантов не должны попадать в исходники ни одного из них -->
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**;bin-light/**;obj-light/**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

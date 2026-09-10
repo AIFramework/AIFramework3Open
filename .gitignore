@@ -356,3 +356,7 @@ _dv*/
 Tools/SnippetCheck/*.g.cs
 src/AI.Script/DESIGN.md
 src/AI.Script/PROMPT_CARD.md
+
+# Выходы лёгкой сборки (build.ps1 -Light, AIFramework.Light.sln)
+bin-light/
+obj-light/

@@ -1,4 +1,10 @@
 <Project>
+  <!--
+    Этот файл перекрывает корневой Directory.Build.props, поэтому правила лёгкой сборки
+    (раздельные выходы bin-light/obj-light) подключаются явно. Без этого тестовые проекты
+    лёгкой сборки писали бы в общий bin и смешивались с полной.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)../build/Light.props" />
   <!-- Проекты под Tests/ часто ссылаются на AI.Fuzzy (в т.ч. FuzzyClassifier, LingVarGaussian); типы из AI и AI.ML не подтягиваются транзитивно при компиляции. -->
   <PropertyGroup>
     <_SlnPath>$([MSBuild]::GetPathOfFileAbove('AIFramework.sln', '$(MSBuildProjectDirectory)'))</_SlnPath>
