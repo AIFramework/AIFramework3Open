@@ -29,12 +29,100 @@ public sealed class LibraryBindingTests
         RunResult result = Script.RunOk("""
             emit stem = nlp.stem("бегущего")
             emit stems = len(nlp.stem(["кошки", "собаки"]))
-            emit lemma = len(nlp.lemma("столами")) > 0
+            emit lemma = nlp.lemma("столами")
+            emit verb = nlp.lemma("работали")
             """);
 
         Assert.NotEqual("бегущего", result.Emitted["stem"]);
         Assert.Equal(2.0, result.Emitted["stems"]);
-        Assert.Equal(true, result.Emitted["lemma"]);
+
+        // Скрипт обязан получать морфологический разбор, а не одни суффиксальные
+        // правила: те существительных не склоняют вовсе и вернули бы «столами».
+        Assert.Equal("стол", result.Emitted["lemma"]);
+        Assert.Equal("работать", result.Emitted["verb"]);
+    }
+
+    [Fact]
+    public void Nlp_PosAndAnalyze()
+    {
+        RunResult result = Script.RunOk("""
+            emit noun = nlp.pos("столами")
+            emit verb = nlp.pos("читал")
+            emit prep = nlp.pos("через")
+            let a = nlp.analyze("городами")
+            emit lemma = a.lemma
+            emit tag = a.pos
+            emit name = a.pos_name
+            """);
+
+        Assert.Equal("NOUN", result.Emitted["noun"]);
+        Assert.Equal("VERB", result.Emitted["verb"]);
+        Assert.Equal("PREP", result.Emitted["prep"]);
+        Assert.Equal("город", result.Emitted["lemma"]);
+        Assert.Equal("NOUN", result.Emitted["tag"]);
+        Assert.Equal("существительное", result.Emitted["name"]);
+    }
+
+    [Fact]
+    public void Nlp_Morph_ReturnsTableOfWords()
+    {
+        RunResult result = Script.RunOk("""
+            let t = nlp.morph("Я читал книги в городах")
+            emit rows = len(t)
+            emit word = t[2].word
+            emit lemma = t[2].lemma
+            emit pos = t[2].pos
+            emit verb = t[1].lemma
+            emit last = t[4].lemma
+            """);
+
+        Assert.Equal(5.0, result.Emitted["rows"]);
+        Assert.Equal("книги", result.Emitted["word"]);
+        Assert.Equal("книг", result.Emitted["lemma"]);
+        Assert.Equal("NOUN", result.Emitted["pos"]);
+        Assert.Equal("читать", result.Emitted["verb"]);
+        Assert.Equal("город", result.Emitted["last"]);
+    }
+
+    /// <summary>
+    /// Пример из документации: он попадает людям в руки, значит обязан работать.
+    /// </summary>
+    [Fact]
+    public void Nlp_Morph_FeedsTableModule()
+    {
+        RunResult result = Script.RunOk("""
+            let t = nlp.morph("Я читал книги в городах")
+            let существительные = t |> table.filter(row => row.pos == "NOUN")
+
+            emit сколько = len(существительные)
+            emit первое = существительные[0].lemma
+            """);
+
+        Assert.Equal(2.0, result.Emitted["сколько"]);
+        Assert.Equal("книг", result.Emitted["первое"]);
+    }
+
+    /// <summary>
+    /// Разбор ошибается, и скрипт вправе спросить насколько — до того, как построит
+    /// на нём выводы.
+    /// </summary>
+    [Fact]
+    public void Nlp_MorphQuality_ReportsMeasuredNumbers()
+    {
+        RunResult result = Script.RunOk("""
+            let q = nlp.morph_quality()
+            emit corpus = q.corpus
+            emit lemma = q.lemma_accuracy
+            emit pos = q.pos_accuracy
+            emit noun = q.noun_accuracy
+            emit explained = len(q.explain) > 100
+            """);
+
+        Assert.Equal(239.0, result.Emitted["corpus"]);
+        Assert.True((double)result.Emitted["lemma"]! >= 0.82);
+        Assert.True((double)result.Emitted["pos"]! >= 0.96);
+        Assert.True((double)result.Emitted["noun"]! >= 0.60);
+        Assert.Equal(true, result.Emitted["explained"]);
     }
 
     [Fact]

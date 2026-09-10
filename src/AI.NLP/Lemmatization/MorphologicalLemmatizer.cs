@@ -32,6 +32,11 @@ public sealed class MorphologicalLemmatizer : LemmatizerBase
     [NonSerialized]
     private readonly IPosTagger _tagger;
 
+    // После десериализации поле пустое (оно помечено NonSerialized, а определитель
+    // части речи сериализуемым не объявлен). Разбор при этом обязан продолжать
+    // работать, поэтому пустое поле означает «определитель по умолчанию».
+    private IPosTagger Tagger => _tagger ?? RussianPosTagger.Instance;
+
     /// <summary>Создаёт лемматизатор с определителем части речи по умолчанию</summary>
     public MorphologicalLemmatizer() : this(RussianPosTagger.Instance)
     {
@@ -68,7 +73,7 @@ public sealed class MorphologicalLemmatizer : LemmatizerBase
         if (RussianClosedClassLexicon.TryLookupNormalized(w, out MorphAnalysis known))
             return known;
 
-        PartOfSpeech pos = _tagger.Tag(w);
+        PartOfSpeech pos = Tagger.Tag(w);
 
         switch (pos)
         {

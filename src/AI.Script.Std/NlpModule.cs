@@ -1,6 +1,9 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
+using AI.Insights;
 using AI.NLP;
+using AI.NLP.Evaluation;
 using AI.NLP.Lemmatization;
+using AI.NLP.Morphology;
 using AI.NLP.Stemmers;
 using AI.Script.Binding;
 using AI.Script.Runtime;
@@ -15,7 +18,7 @@ namespace AI.Script.Std;
 /// Поисковые модели (TF-IDF, BM25) строятся по корпусу и становятся дескрипторами: индекс
 /// считается один раз, а запросов к нему бывает много. Всё остальное — чистые функции.
 /// </remarks>
-[ScriptModule("nlp", "Обработка текста: нормализация, стемминг, лемматизация, TF-IDF, BM25", Version = "0.1")]
+[ScriptModule("nlp", "Обработка текста: нормализация, стемминг, морфология, TF-IDF, BM25", Version = "0.2")]
 public static class NlpModule
 {
     /// <summary>Тип-тег дескриптора поискового индекса.</summary>
@@ -24,6 +27,11 @@ public static class NlpModule
     private static readonly char[] s_separators = [' ', '\n', '\r', '\t'];
 
     private static readonly Lazy<ILemmatizer> s_lemmatizer = new(() => Lemmatizer.CreateRussian());
+
+    private static readonly Lazy<(LemmatizationReport Lemmas, PosTaggingReport Tags)> s_morphQuality =
+        new(() => (
+            LemmatizerEvaluation.Evaluate(MorphologicalLemmatizer.Instance),
+            PosTaggerEvaluation.Evaluate(RussianPosTagger.Instance)));
 
     private static readonly Lazy<HashSet<string>> s_stopWords =
         new(() => new HashSet<string>(RussianStopWords.Default, StringComparer.OrdinalIgnoreCase));
@@ -123,6 +131,97 @@ public static class NlpModule
     [ScriptFn("lemma", "Лемматизация русского слова либо списка слов", Example = "nlp.lemma(\"бегущего\")")]
     public static ScriptValue Lemma([ScriptParam("слово либо список слов")] ScriptValue words) =>
         Transform(words, s_lemmatizer.Value.Lemmatize, "nlp.lemma");
+
+    // --- морфология ---
+
+    /// <summary>
+    /// Часть речи слова.
+    /// </summary>
+    /// <remarks>
+    /// Кодом, а не русским названием: код устойчив и им удобно сравнивать в условиях
+    /// (<c>if nlp.pos(w) == "NOUN"</c>). Название на русском отдаёт <c>nlp.analyze</c>.
+    /// </remarks>
+    [ScriptFn("pos", "Часть речи слова либо списка слов кодом: NOUN, VERB, ADJ, ADV, PRON, NUM, PREP, CONJ, PRCL",
+        Example = "nlp.pos(\"столами\")")]
+    public static ScriptValue Pos([ScriptParam("слово либо список слов")] ScriptValue words) =>
+        Transform(words, word => RussianPosTagger.Instance.Tag(word).ToCode(), "nlp.pos");
+
+    [ScriptFn("analyze", "Разбор слова: лемма, часть речи и её название",
+        Example = "nlp.analyze(\"городами\")")]
+    public static ScriptRecord Analyze([ScriptParam("слово")] string word)
+    {
+        MorphAnalysis analysis = MorphologicalLemmatizer.Instance.Analyze(word);
+
+        return Record(
+            ("word", ScriptValue.Str(word ?? string.Empty)),
+            ("lemma", ScriptValue.Str(analysis.Lemma)),
+            ("pos", ScriptValue.Str(analysis.PartOfSpeech.ToCode())),
+            ("pos_name", ScriptValue.Str(analysis.PartOfSpeech.ToRussian())));
+    }
+
+    /// <summary>
+    /// Разбор всех слов текста.
+    /// </summary>
+    /// <remarks>
+    /// Таблицей, а не тремя списками: слово, его лемма и часть речи — это одна строка,
+    /// и разнесённые по спискам они разъедутся при первой же фильтрации.
+    /// </remarks>
+    [ScriptFn("morph", "Разбор всех слов текста таблицей «слово · лемма · часть речи»",
+        Example = "nlp.morph(\"Я читал книги в городах\")")]
+    public static ScriptTable Morph(
+        IScriptContext context,
+        [ScriptParam("текст")] string text)
+    {
+        string[] words = SplitWords(text ?? string.Empty);
+
+        var forms = new ScriptValue[words.Length];
+        var lemmas = new ScriptValue[words.Length];
+        var tags = new ScriptValue[words.Length];
+
+        for (int i = 0; i < words.Length; i++)
+        {
+            MorphAnalysis analysis = MorphologicalLemmatizer.Instance.Analyze(words[i]);
+
+            forms[i] = ScriptValue.Str(words[i]);
+            lemmas[i] = ScriptValue.Str(analysis.Lemma);
+            tags[i] = ScriptValue.Str(analysis.PartOfSpeech.ToCode());
+        }
+
+        context.CountAllocation(words.Length * 3);
+
+        return ScriptTable.Create(
+        [
+            ScriptColumn.Own("word", forms),
+            ScriptColumn.Own("lemma", lemmas),
+            ScriptColumn.Own("pos", tags),
+        ]);
+    }
+
+    /// <summary>
+    /// Измеренное качество морфологического разбора.
+    /// </summary>
+    /// <remarks>
+    /// Функция нужна затем, что разбор ошибается, и тот, кто им пользуется, вправе знать
+    /// насколько — до того, как построит на нём выводы. Числа считаются на встроенном
+    /// эталонном корпусе при первом обращении и дальше берутся готовыми: корпус и правила
+    /// в пределах запуска не меняются.
+    /// </remarks>
+    [ScriptFn("morph_quality", "Измеренное на эталонном корпусе качество разбора: точность лемм и частей речи",
+        Example = "nlp.morph_quality()")]
+    public static ScriptRecord MorphQuality(IScriptContext context)
+    {
+        (LemmatizationReport lemmas, PosTaggingReport tags) = s_morphQuality.Value;
+
+        context.CountAllocation(lemmas.Total);
+
+        return Record(
+            ("corpus", ScriptValue.Num(lemmas.Total)),
+            ("lemma_accuracy", ScriptValue.Num(lemmas.Accuracy)),
+            ("noun_accuracy", ScriptValue.Num(lemmas.AccuracyFor("NOUN"))),
+            ("pos_accuracy", ScriptValue.Num(tags.Accuracy)),
+            ("pos_f_measure", ScriptValue.Num(tags.FMeasure)),
+            ("explain", ScriptValue.Str(lemmas.Interpret().ToLlmText())));
+    }
 
     [ScriptFn("is_stop_word", "Является ли слово стоп-словом", Example = "nlp.is_stop_word(\"и\")")]
     public static bool IsStopWord([ScriptParam("слово")] string word) => s_stopWords.Value.Contains(word);
@@ -287,6 +386,16 @@ public static class NlpModule
         TextStandard.OnlyCharsAndDigit(text).Split(s_separators, StringSplitOptions.RemoveEmptyEntries);
 
     private static HashSet<string> WordSet(string text) => new(SplitWords(text), StringComparer.Ordinal);
+
+    private static ScriptRecord Record(params (string Name, ScriptValue Value)[] fields)
+    {
+        var built = new List<KeyValuePair<string, ScriptValue>>(fields.Length);
+
+        foreach ((string name, ScriptValue value) in fields)
+            built.Add(new KeyValuePair<string, ScriptValue>(name, value));
+
+        return ScriptRecord.From(built);
+    }
 
     private static void RequireCorpus(string[] docs, string what)
     {

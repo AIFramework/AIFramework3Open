@@ -334,6 +334,37 @@ public class LemmatizationTests
     }
 
     [Fact]
+    public void Factory_CreateRussian_UsesMorphologicalAnalysis()
+    {
+        // Тест закрепляет не качество, а подключение: фасадом пользуется всё остальное
+        // (скриптовый модуль nlp.lemma в том числе), и если он вернётся к правилам
+        // без разбора части речи, склонение существительных молча исчезнет.
+        Assert.Equal("стол", Lemmatizer.CreateRussian().Lemmatize("столами"));
+        Assert.Equal("столами", Lemmatizer.CreateRussianRules().Lemmatize("столами"));
+    }
+
+    /// <summary>
+    /// Пример из учебника: он попадает в документацию, значит обязан быть проверен.
+    /// </summary>
+    [Fact]
+    public void DocumentedSentenceExample_HoldsTrue()
+    {
+        Assert.Equal(
+            "ученик учиться в школ",
+            Lemmatizer.CreateRussian().LemmatizeSentence("Ученики учатся в школах"));
+    }
+
+    [Fact]
+    public void Factory_Dictionary_FallsBackToMorphologicalAnalysis()
+    {
+        ILemmatizer lemmatizer = Lemmatizer.CreateFromDictionary(
+            new Dictionary<string, string> { ["людям"] = "человек" });
+
+        Assert.Equal("человек", lemmatizer.Lemmatize("людям"));
+        Assert.Equal("город", lemmatizer.Lemmatize("городами"));
+    }
+
+    [Fact]
     public void Identity_ReturnsInput()
     {
         Assert.Equal("КрасИвого", IdentityLemmatizer.Instance.Lemmatize("КрасИвого"));
