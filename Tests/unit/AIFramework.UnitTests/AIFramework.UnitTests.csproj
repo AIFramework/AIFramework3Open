@@ -33,6 +33,7 @@
     <ProjectReference Include="..\..\..\src\AI.Algorithms\AI.Algorithms.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Solvers.Chem\AI.Solvers.Chem.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Microwave\AI.Microwave.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.DataPrepaire\AI.DataPrepaire.csproj" />
   </ItemGroup>
 
 </Project>

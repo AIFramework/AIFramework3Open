@@ -229,8 +229,9 @@ public sealed class ServiceStation
         {
             job.Remaining = ServiceTimeOfClass?.Invoke(job.Class) ?? ServiceTime!();
 
-            if (job.Remaining < 0)
-                throw new InvalidOperationException($"Длительность обслуживания отрицательна: {job.Remaining}");
+            if (!double.IsFinite(job.Remaining) || job.Remaining < 0)
+                throw new InvalidOperationException(
+                    $"Длительность обслуживания должна быть конечным неотрицательным числом, получено {job.Remaining}");
 
             job.TotalService = job.Remaining;
             job.Started = true;

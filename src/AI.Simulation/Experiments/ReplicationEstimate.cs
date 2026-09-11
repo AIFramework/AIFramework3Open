@@ -37,6 +37,8 @@ public sealed record ReplicationEstimate(
     /// <inheritdoc />
     public Interpretation Interpret()
     {
+        // При нулевом среднем относительной точности нет: судить можно только по полуширине
+        bool relative = double.IsFinite(RelativePrecision);
         bool precise = RelativePrecision <= 0.05;
         bool few = Replications < 10;
 
@@ -46,14 +48,19 @@ public sealed record ReplicationEstimate(
                 + $"[{Fmt.Num(Lower, 4)}; {Fmt.Num(Upper, 4)}].")
             .Metric("Среднее", Fmt.Num(Mean, 5), null, "по прогонам")
             .Metric("Полуширина", Fmt.Num(HalfWidth, 5), null, "половина доверительного интервала")
-            .Metric("Относительная точность", Fmt.Pct(RelativePrecision), null, "полуширина к среднему",
-                precise ? MetricQuality.Good : RelativePrecision <= 0.15 ? MetricQuality.Neutral : MetricQuality.Warning)
+            .Metric("Относительная точность",
+                relative ? Fmt.Pct(RelativePrecision) : "не определена",
+                null,
+                relative ? "полуширина к среднему" : "среднее равно нулю — судить по полуширине",
+                !relative ? MetricQuality.Unknown
+                    : precise ? MetricQuality.Good
+                    : RelativePrecision <= 0.15 ? MetricQuality.Neutral : MetricQuality.Warning)
             .Metric("Прогонов", Replications, null, "независимых, с разными зёрнами", MetricQuality.Unknown, 0)
             .Metric("Разброс между прогонами", Fmt.Num(StandardDeviation, 5), null, "выборочное стандартное отклонение")
             .Finding("Интервал построен по средним отдельных прогонов, а не по наблюдениям внутри прогона. "
                 + "Соседние заявки одного прогона зависимы — очередь, выросшая у одной, достаётся и следующей, — "
                 + "и интервал по ним вышел бы в разы уже истинного.")
-            .FindingIf(!precise,
+            .FindingIf(relative && !precise,
                 $"Точность {Fmt.Pct(RelativePrecision)} хуже пяти процентов. Полуширина убывает как 1/√n: "
                 + "чтобы сузить интервал вдвое, прогонов нужно вчетверо больше.")
             .WarningIf(few,

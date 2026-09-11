@@ -192,10 +192,11 @@ public class SimulationDynamicsTests
     #region Приоритеты
 
     private static ServiceStation PriorityRun(
-        int seed, QueueDiscipline discipline, double[] rates, double service, double warmup, double horizon)
+        int seed, QueueDiscipline discipline, double[] rates, double service, double warmup, double horizon,
+        int servers = 1, int capacity = int.MaxValue)
     {
         var engine = new SimulationEngine(seed);
-        var station = new ServiceStation(engine, discipline: discipline, classes: rates.Length)
+        var station = new ServiceStation(engine, servers, capacity, discipline, rates.Length)
         {
             ServiceTime = () => engine.Exponential(service),
         };
@@ -793,6 +794,123 @@ public class SimulationDynamicsTests
         Assert.False(plan.Found);
         Assert.True(plan.LimitReached);
         Assert.Contains(plan.Interpret().Warnings, w => w.Contains("предел", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void AStar_Limit_CountsOnlyRealExpansions()
+    {
+        // Предел в одно раскрытие: начальное состояние раскрывается, и цель в один шаг находится
+        Plan<int> plan = StateSpaceSearch.AStar(0, s => s == 1, s => new[] { ("+1", s + 1, 1.0) }, maxExpansions: 1);
+
+        Assert.True(plan.Found);
+        Assert.Equal(1, plan.Expanded);
+    }
+
+    #endregion
+
+    #region Крайние случаи и воспроизводимость
+
+    [Fact]
+    public void Priority_PreemptiveOnSeveralServers_MatchesMultiServerTheory()
+    {
+        // Формул Кобэма для нескольких приборов нет, но два точных факта остаются. Старший класс
+        // при прерывании не видит младших и ведёт себя как M/M/c со своим потоком; а при равных
+        // показательных длительностях число заявок в системе не зависит от дисциплины
+        double[] rates = [0.6, 0.8];
+
+        IReadOnlyDictionary<string, ReplicationEstimate> simulated = Replications.Run(10, seed =>
+        {
+            ServiceStation station = PriorityRun(seed, QueueDiscipline.PreemptiveResumePriority, rates, 1.0,
+                warmup: 1_000, horizon: 20_000, servers: 2);
+
+            return new Dictionary<string, double>
+            {
+                ["старший"] = station.Statistics(0).AverageWait,
+                ["все"] = station.Statistics().AverageWait,
+            };
+        });
+
+        double topAlone = QueueingTheory.MultiServer(0.6, 1.0, 2).WaitTime;
+        double overall = QueueingTheory.MultiServer(1.4, 1.0, 2).WaitTime;
+
+        Assert.Equal(topAlone, simulated["старший"].Mean, tolerance: (0.05 * topAlone) + 0.01);
+        Assert.Equal(overall, simulated["все"].Mean, tolerance: 0.05 * overall);
+    }
+
+    [Fact]
+    public void Priority_WithoutWaitingRoom_RejectsLikeErlangLoss()
+    {
+        // Без накопителя очереди нет, и приоритету нечего решать: доля отказов обоих классов —
+        // формула Эрланга для одного прибора, a / (1 + a)
+        ServiceStation station = PriorityRun(9, QueueDiscipline.NonPreemptivePriority, [0.3, 0.4], 1.0,
+            warmup: 100, horizon: 100_000, capacity: 0);
+
+        double blocking = 0.7 / 1.7;
+
+        Assert.Equal(blocking, station.Statistics(0).RejectionRate, tolerance: 0.01);
+        Assert.Equal(blocking, station.Statistics(1).RejectionRate, tolerance: 0.01);
+        Assert.Equal(0, station.Statistics().MaxQueueLength);
+    }
+
+    [Fact]
+    public void SameSeed_ReproducesEveryNewPart()
+    {
+        ServiceStatistics first = PriorityRun(5, QueueDiscipline.PreemptiveResumePriority, [0.3, 0.4], 1.0, 100, 5_000)
+            .Statistics(1);
+        ServiceStatistics second = PriorityRun(5, QueueDiscipline.PreemptiveResumePriority, [0.3, 0.4], 1.0, 100, 5_000)
+            .Statistics(1);
+
+        Assert.Equal(first, second);
+
+        var learner = new TemporalDifferenceLearner { Discount = 0.9 };
+        LearningResult a = learner.Train(new MdpEnvironment(TwoStateProcess()), 200, 20, seed: 8);
+        LearningResult b = learner.Train(new MdpEnvironment(TwoStateProcess()), 200, 20, seed: 8);
+
+        Assert.Equal(a.QValues[0], b.QValues[0]);
+        Assert.Equal(a.QValues[1], b.QValues[1]);
+
+        ContactNetwork one = ContactNetwork.BarabasiAlbert(300, 2, new Random(6));
+        ContactNetwork two = ContactNetwork.BarabasiAlbert(300, 2, new Random(6));
+
+        Assert.All(Enumerable.Range(0, 300), node => Assert.Equal(one.Contacts(node).Order(), two.Contacts(node).Order()));
+    }
+
+    [Fact]
+    public void Grid_AgentsAt_IsSnapshotSafeToMoveWhileIterating()
+    {
+        var grid = new GridSpace<int>(5, 5);
+
+        for (int agent = 0; agent < 4; agent++)
+            grid.Place(agent, new Cell(2, 2));
+
+        // Обычный шаг агентной модели: обойти клетку и разогнать её обитателей
+        foreach (int agent in grid.AgentsAt(new Cell(2, 2)))
+            grid.Move(agent, new Cell(agent, 0));
+
+        Assert.True(grid.IsEmpty(new Cell(2, 2)));
+        Assert.Equal(4, Enumerable.Range(0, 5).Count(x => !grid.IsEmpty(new Cell(x, 0))));
+    }
+
+    [Fact]
+    public void EdgeCases_AreRejectedOrExplained()
+    {
+        var engine = new SimulationEngine(seed: 1);
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => engine.Schedule(double.NaN, () => { }));
+
+        var broken = new ServiceStation(engine) { ServiceTime = () => double.NaN };
+        _ = Assert.Throws<InvalidOperationException>(() => broken.Arrive());
+
+        var careless = new TemporalDifferenceLearner { InitialExploration = 1.5 };
+        _ = Assert.Throws<InvalidOperationException>(() => careless.Train(new MdpEnvironment(TwoStateProcess()), 1, 1));
+
+        var undefined = new TemporalDifferenceLearner { Discount = double.NaN };
+        _ = Assert.Throws<InvalidOperationException>(() => undefined.Train(new MdpEnvironment(TwoStateProcess()), 1, 1));
+
+        // Нулевое среднее: относительная точность не определена и не выдаётся за «бесконечность процентов»
+        Interpretation zero = Replications.Estimate("Разность", [-1.0, 1.0]).Interpret();
+
+        Assert.DoesNotContain(zero.Findings, f => f.Contains("бесконечность", StringComparison.Ordinal));
+        Assert.DoesNotContain(zero.Metrics, m => m.Value.Contains("бесконечность", StringComparison.Ordinal));
     }
 
     #endregion

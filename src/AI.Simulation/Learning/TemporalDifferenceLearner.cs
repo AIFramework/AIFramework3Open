@@ -50,12 +50,19 @@ public sealed class TemporalDifferenceLearner
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(episodes);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(stepsPerEpisode);
 
-        if (Discount is < 0 or >= 1)
+        // Шаблоны «not (...)» отвергают и NaN: с ним любое сравнение ложно
+        if (Discount is not (>= 0 and < 1))
             throw new InvalidOperationException("Коэффициент дисконтирования лежит на промежутке [0, 1)");
 
-        if (LearningRateExponent is <= 0.5 or > 1)
+        if (LearningRateExponent is not (> 0.5 and <= 1))
             throw new InvalidOperationException(
                 "Показатель шага обучения должен лежать в (0.5, 1]: иначе условия сходимости не выполнены");
+
+        if (InitialExploration is not (>= 0 and <= 1))
+            throw new InvalidOperationException("Доля случайных действий лежит на отрезке [0, 1]");
+
+        if (ExplorationDecay is not >= 0)
+            throw new InvalidOperationException("Скорость убывания исследования не может быть отрицательной");
 
         var random = seed is null ? new Random() : new Random(seed.Value);
         int states = environment.StateCount;

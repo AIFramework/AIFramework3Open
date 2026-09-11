@@ -73,11 +73,11 @@ public static class StateSpaceSearch
             if (isGoal(state))
                 return Reconstruct(state, initial, cost[state], parent, comparer, expanded, admissibleHeuristic);
 
-            expanded++;
-
+            // Предел проверяется до раскрытия: в счёт идут только действительно раскрытые состояния
             if (expanded >= maxExpansions)
                 return new Plan<TState>(false, [], [], 0, expanded, LimitReached: true, Optimal: false);
 
+            expanded++;
             double reached = cost[state];
 
             foreach ((string action, TState next, double step) in successors(state))

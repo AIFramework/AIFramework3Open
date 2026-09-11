@@ -180,6 +180,10 @@ public sealed class SimulationEngine
     {
         ArgumentNullException.ThrowIfNull(action);
 
+        // NaN не меньше нуля, но сломал бы порядок календаря: сравнения с ним всегда ложны
+        if (double.IsNaN(delay))
+            throw new ArgumentOutOfRangeException(nameof(delay), "Задержка события не определена (NaN)");
+
         if (delay < 0)
             throw new ArgumentOutOfRangeException(nameof(delay), "Событие нельзя запланировать в прошлое");
 

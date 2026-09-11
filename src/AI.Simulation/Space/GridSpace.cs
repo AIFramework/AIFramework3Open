@@ -115,17 +115,26 @@ public sealed class GridSpace<TAgent> where TAgent : notnull
             : throw new KeyNotFoundException("Агент не размещён на решётке");
 
     /// <summary>Агенты в клетке</summary>
+    /// <remarks>
+    /// Возвращается снимок, а не внутренний список: обходя его, агентов можно перемещать
+    /// и убирать — обычный шаг агентной модели.
+    /// </remarks>
     /// <param name="cell">Клетка</param>
     public IReadOnlyList<TAgent> AgentsAt(Cell cell)
     {
         Require(cell);
 
-        return (IReadOnlyList<TAgent>?)_cells[Index(cell)] ?? Array.Empty<TAgent>();
+        return _cells[Index(cell)] is { Count: > 0 } occupants ? occupants.ToArray() : Array.Empty<TAgent>();
     }
 
     /// <summary>Свободна ли клетка</summary>
     /// <param name="cell">Клетка</param>
-    public bool IsEmpty(Cell cell) => AgentsAt(cell).Count == 0;
+    public bool IsEmpty(Cell cell)
+    {
+        Require(cell);
+
+        return _cells[Index(cell)] is not { Count: > 0 };
+    }
 
     /// <summary>Соседние клетки</summary>
     /// <param name="cell">Клетка</param>
