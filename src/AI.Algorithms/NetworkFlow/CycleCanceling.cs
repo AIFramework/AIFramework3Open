@@ -65,9 +65,15 @@ public class CycleCanceling
     /// </summary>
     /// <param name="s">Исток</param>
     /// <param name="t">Сток</param>
-    /// <returns>Кортеж (поток, стоимость)</returns>
+    /// <returns>Кортеж (поток, стоимость); повторный вызов решает задачу заново</returns>
     public (double flow, double cost) Solve(int s, int t)
     {
+        for (int i = 0; i < _flow.Count; i++)
+            _flow[i] = 0;
+
+        if (s == t)
+            return (0, 0);
+
         FindMaxFlow(s, t);
 
         while (true)
@@ -100,10 +106,13 @@ public class CycleCanceling
         double totalFlow = 0;
         double totalCost = 0;
 
+        // Поток — чистый: отмена циклов может провести поток и через дуги, входящие в исток
         for (int i = 0; i < _from.Count; i += 2)
         {
             if (_from[i] == s)
                 totalFlow += _flow[i];
+            if (_to[i] == s)
+                totalFlow -= _flow[i];
             totalCost += _flow[i] * _cost[i];
         }
 
@@ -161,7 +170,8 @@ public class CycleCanceling
             lastUpdated = -1;
             for (int id = 0; id < _from.Count; id++)
             {
-                if (_cap[id] - _flow[id] > 0 && dist[_from[id]] + _cost[id] < dist[_to[id]])
+                // Допуск не даёт принять за отрицательный цикл нулевой, посчитанный с округлением
+                if (_cap[id] - _flow[id] > 0 && dist[_from[id]] + _cost[id] < dist[_to[id]] - 1e-9)
                 {
                     dist[_to[id]] = dist[_from[id]] + _cost[id];
                     parentEdge[_to[id]] = id;

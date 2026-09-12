@@ -36,6 +36,10 @@ public class Dinic
         _iter = new int[network.V];
         MaxFlow = 0.0;
 
+        // Исток, совпадающий со стоком, иначе давал бы бесконечную «доставку» без рёбер
+        if (s == t)
+            return;
+
         while (BuildLevelGraph())
         {
             Array.Clear(_iter, 0, _iter.Length);

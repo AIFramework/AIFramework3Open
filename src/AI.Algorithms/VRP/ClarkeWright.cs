@@ -7,6 +7,12 @@ namespace AI.Algorithms.VRP;
 /// <summary>
 /// Алгоритм Кларка-Райта (метод сбережений) для решения VRP
 /// </summary>
+/// <remarks>
+/// Метод не гарантирует, что маршрутов окажется не больше числа машин: если грузоподъёмность
+/// не даёт слить маршруты, их остаётся больше. Прежде лишние маршруты «разбивались пополам» —
+/// от этого маршрутов становилось только больше, и решение распадалось на поездки к одному
+/// клиенту. Теперь решение возвращается как есть, а превышение парка видно по числу маршрутов.
+/// </remarks>
 [Serializable]
 public class ClarkeWright
 {
@@ -50,7 +56,8 @@ public class ClarkeWright
 
         foreach (var (saving, ci, cj) in savings)
         {
-            if (saving <= 0) break;
+            // Слияние с нулевым сбережением не удорожает решение, но экономит машину
+            if (saving < 0) break;
 
             int ri = routeOf[ci];
             int rj = routeOf[cj];
@@ -111,29 +118,6 @@ public class ClarkeWright
                 sol.Routes.Add(r);
         }
 
-        SplitIfNeeded(sol);
         return sol;
-    }
-
-    private void SplitIfNeeded(VRPSolution sol)
-    {
-        if (_inst.NumVehicles <= 0) return;
-
-        while (sol.Routes.Count > _inst.NumVehicles)
-        {
-            int maxIdx = 0;
-            for (int i = 1; i < sol.Routes.Count; i++)
-                if (sol.Routes[i].Count > sol.Routes[maxIdx].Count)
-                    maxIdx = i;
-
-            var big = sol.Routes[maxIdx];
-            if (big.Count <= 1) break;
-
-            int mid = big.Count / 2;
-            var r1 = big.GetRange(0, mid);
-            var r2 = big.GetRange(mid, big.Count - mid);
-            sol.Routes[maxIdx] = r1;
-            sol.Routes.Add(r2);
-        }
     }
 }

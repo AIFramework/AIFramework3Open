@@ -15,6 +15,12 @@
     <ProjectReference Include="..\AI\AI.csproj" />
     <!-- Интегрирование систем ОДУ: модели популяций и эпидемий -->
     <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+    <!-- Трёхмерные векторы: координаты атомов белка -->
+    <ProjectReference Include="..\AI.Geometry\AI.Geometry.csproj" />
+    <!-- Чтение PDB, торсионные углы, совмещение по Кабшу, стохастическая кинетика -->
+    <ProjectReference Include="..\AI.Solvers.Chem\AI.Solvers.Chem.csproj" />
+    <!-- Симплекс: балансовый анализ метаболических потоков -->
+    <ProjectReference Include="..\AI.Solvers.Optimization\AI.Solvers.Optimization.csproj" />
   </ItemGroup>
 
 </Project>

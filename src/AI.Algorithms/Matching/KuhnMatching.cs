@@ -63,6 +63,10 @@ public class KuhnMatching
     {
         int result = 0;
 
+        // Повторный вызов решает задачу заново, а не достраивает прежнее паросочетание
+        Array.Fill(MatchLeft, -1);
+        Array.Fill(MatchRight, -1);
+
         for (int v = 0; v < _leftSize; v++)
         {
             _used = new bool[_rightSize];

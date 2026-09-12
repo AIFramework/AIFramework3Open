@@ -122,9 +122,18 @@ public readonly record struct ScoringScheme(double Match, double Mismatch, doubl
 /// лучший общий участок и уместно, когда сходство ограничено доменом или мотивом.
 /// </para>
 /// <para>
-/// Штраф за пропуск аффинный: открытие дороже продления. Это не деталь — при равном штрафе
-/// за каждую позицию алгоритм рассыпает пропуски по всей длине вместо одной вставки,
-/// а биологически вставка целого участка вероятнее, чем множество одиночных.
+/// Штраф за пропуск аффинный: пропуск длины L стоит <c>GapOpen + (L − 1)·GapExtend</c>, как в EMBOSS;
+/// соглашение BLAST «открытие 11, продление 1» соответствует GapOpen = −12, GapExtend = −1. Это
+/// не деталь — при равном штрафе за каждую позицию алгоритм рассыпает пропуски по всей длине
+/// вместо одной вставки, а биологически вставка целого участка вероятнее множества одиночных.
+/// </para>
+/// <para>
+/// Счёт ведётся по трём состояниям Гото: столбец — пара букв, пропуск в первой строке или во второй.
+/// Пропуск может открыться после любого состояния, в том числе сразу после пропуска в другой
+/// строке. Обратный ход идёт по состояниям, а не по наибольшему значению в клетке: прежде
+/// выравнивание собиралось из максимумов клеток и при аффинном штрафе могло не совпадать с
+/// найденным счётом, а переход «пропуск в одной строке — пропуск в другой» был запрещён,
+/// и оптимум иногда терялся. То же ядро выравнивает профили в <see cref="ProgressiveAlignment"/>.
 /// </para>
 /// <para>
 /// Память и время — произведение длин. Для последовательностей в миллионы нуклеотидов нужны
@@ -133,21 +142,57 @@ public readonly record struct ScoringScheme(double Match, double Mismatch, doubl
 /// </remarks>
 public static class Alignment
 {
-    private const double NegativeInfinity = -1e18;
-
     /// <summary>Глобальное выравнивание по Нидлману — Вуншу</summary>
     /// <param name="first">Первая последовательность</param>
     /// <param name="second">Вторая последовательность</param>
     /// <param name="scoring">Схема счёта</param>
     public static AlignmentResult Global(string first, string second, ScoringScheme scoring = default)
-        => Align(first, second, Resolve(scoring), local: false);
+    {
+        ScoringScheme scheme = Resolve(scoring);
+
+        return Align(first, second, (a, b) => a == b ? scheme.Match : scheme.Mismatch,
+            scheme.GapOpen, scheme.GapExtend, local: false);
+    }
 
     /// <summary>Локальное выравнивание по Смиту — Уотерману</summary>
     /// <param name="first">Первая последовательность</param>
     /// <param name="second">Вторая последовательность</param>
     /// <param name="scoring">Схема счёта</param>
     public static AlignmentResult Local(string first, string second, ScoringScheme scoring = default)
-        => Align(first, second, Resolve(scoring), local: true);
+    {
+        ScoringScheme scheme = Resolve(scoring);
+
+        return Align(first, second, (a, b) => a == b ? scheme.Match : scheme.Mismatch,
+            scheme.GapOpen, scheme.GapExtend, local: true);
+    }
+
+    /// <summary>Глобальное выравнивание белков по матрице замен</summary>
+    /// <param name="first">Первая последовательность</param>
+    /// <param name="second">Вторая последовательность</param>
+    /// <param name="matrix">Матрица замен, например <see cref="SubstitutionMatrix.Blosum62"/></param>
+    /// <param name="gapOpen">Штраф за открытие пропуска; по умолчанию как в EMBOSS needle</param>
+    /// <param name="gapExtend">Штраф за продление пропуска</param>
+    public static AlignmentResult Global(
+        string first, string second, SubstitutionMatrix matrix, double gapOpen = -10, double gapExtend = -0.5)
+    {
+        ArgumentNullException.ThrowIfNull(matrix);
+
+        return Align(first, second, (a, b) => matrix[a, b], gapOpen, gapExtend, local: false);
+    }
+
+    /// <summary>Локальное выравнивание белков по матрице замен</summary>
+    /// <param name="first">Первая последовательность</param>
+    /// <param name="second">Вторая последовательность</param>
+    /// <param name="matrix">Матрица замен</param>
+    /// <param name="gapOpen">Штраф за открытие пропуска</param>
+    /// <param name="gapExtend">Штраф за продление пропуска</param>
+    public static AlignmentResult Local(
+        string first, string second, SubstitutionMatrix matrix, double gapOpen = -10, double gapExtend = -0.5)
+    {
+        ArgumentNullException.ThrowIfNull(matrix);
+
+        return Align(first, second, (a, b) => matrix[a, b], gapOpen, gapExtend, local: true);
+    }
 
     /// <summary>
     /// Расстояние Хэмминга: число различающихся позиций у последовательностей равной длины
@@ -171,157 +216,37 @@ public static class Alignment
         return distance;
     }
 
-    private static ScoringScheme Resolve(ScoringScheme scoring)
+    /// <summary>Схема по умолчанию вместо пустой</summary>
+    internal static ScoringScheme Resolve(ScoringScheme scoring)
         => scoring.Match == 0 && scoring.Mismatch == 0 && scoring.GapOpen == 0 && scoring.GapExtend == 0
             ? ScoringScheme.Nucleotide
             : scoring;
 
-    private static AlignmentResult Align(string first, string second, ScoringScheme scoring, bool local)
+    /// <summary>Выравнивание двух строк общим ядром Гото</summary>
+    internal static AlignmentResult Align(
+        string first, string second, Func<char, char, double> similarity, double open, double extend, bool local)
     {
         ArgumentNullException.ThrowIfNull(first);
         ArgumentNullException.ThrowIfNull(second);
 
-        int n = first.Length;
-        int m = second.Length;
+        AlignmentPath path = GotohAligner.Solve(
+            first.Length, second.Length, (i, j) => similarity(first[i], second[j]), open, extend, local);
 
-        // Три матрицы: выравнивание кончается совпадением, пропуском в первой либо во второй
-        var match = new double[n + 1, m + 1];
-        var gapFirst = new double[n + 1, m + 1];
-        var gapSecond = new double[n + 1, m + 1];
-
-        for (int i = 0; i <= n; i++)
-        {
-            for (int j = 0; j <= m; j++)
-            {
-                match[i, j] = NegativeInfinity;
-                gapFirst[i, j] = NegativeInfinity;
-                gapSecond[i, j] = NegativeInfinity;
-            }
-        }
-
-        match[0, 0] = 0;
-
-        if (!local)
-        {
-            for (int i = 1; i <= n; i++)
-                gapSecond[i, 0] = scoring.GapOpen + ((i - 1) * scoring.GapExtend);
-
-            for (int j = 1; j <= m; j++)
-                gapFirst[0, j] = scoring.GapOpen + ((j - 1) * scoring.GapExtend);
-        }
-        else
-        {
-            for (int i = 0; i <= n; i++)
-                match[i, 0] = 0;
-
-            for (int j = 0; j <= m; j++)
-                match[0, j] = 0;
-        }
-
-        double best = local ? 0 : NegativeInfinity;
-        int bestI = n, bestJ = m;
-
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= m; j++)
-            {
-                double similarity = first[i - 1] == second[j - 1] ? scoring.Match : scoring.Mismatch;
-                double previous = Max(match[i - 1, j - 1], gapFirst[i - 1, j - 1], gapSecond[i - 1, j - 1]);
-
-                match[i, j] = previous <= NegativeInfinity / 2 ? similarity : previous + similarity;
-
-                if (local && match[i, j] < 0)
-                    match[i, j] = 0;
-
-                gapFirst[i, j] = Math.Max(
-                    match[i, j - 1] + scoring.GapOpen,
-                    gapFirst[i, j - 1] + scoring.GapExtend);
-
-                gapSecond[i, j] = Math.Max(
-                    match[i - 1, j] + scoring.GapOpen,
-                    gapSecond[i - 1, j] + scoring.GapExtend);
-
-                if (!local)
-                    continue;
-
-                if (match[i, j] > best)
-                {
-                    best = match[i, j];
-                    bestI = i;
-                    bestJ = j;
-                }
-            }
-        }
-
-        if (!local)
-            best = Max(match[n, m], gapFirst[n, m], gapSecond[n, m]);
-
-        (string alignedFirst, string alignedSecond) = Traceback(
-            first, second, match, gapFirst, gapSecond, scoring, local, bestI, bestJ);
-
-        int aligned = alignedFirst.Length;
+        int aligned = path.Columns.Count;
+        var top = new char[aligned];
+        var bottom = new char[aligned];
         int identical = 0;
 
-        for (int i = 0; i < aligned; i++)
-            if (alignedFirst[i] == alignedSecond[i] && alignedFirst[i] != '-')
-                identical++;
-
-        return new AlignmentResult(best, alignedFirst, alignedSecond, aligned == 0 ? 0 : (double)identical / aligned);
-    }
-
-    private static (string First, string Second) Traceback(
-        string first, string second,
-        double[,] match, double[,] gapFirst, double[,] gapSecond,
-        ScoringScheme scoring, bool local, int i, int j)
-    {
-        var top = new System.Text.StringBuilder();
-        var bottom = new System.Text.StringBuilder();
-
-        while (i > 0 || j > 0)
+        for (int c = 0; c < aligned; c++)
         {
-            if (local && match[i, j] <= 0)
-                break;
+            (int i, int j) = path.Columns[c];
+            top[c] = i >= 0 ? first[i] : '-';
+            bottom[c] = j >= 0 ? second[j] : '-';
 
-            double current = Max(match[i, j], gapFirst[i, j], gapSecond[i, j]);
-
-            if (i > 0 && j > 0 && Math.Abs(current - match[i, j]) < 1e-9)
-            {
-                _ = top.Append(first[i - 1]);
-                _ = bottom.Append(second[j - 1]);
-                i--;
-                j--;
-                continue;
-            }
-
-            if (j > 0 && Math.Abs(current - gapFirst[i, j]) < 1e-9)
-            {
-                _ = top.Append('-');
-                _ = bottom.Append(second[j - 1]);
-                j--;
-                continue;
-            }
-
-            if (i > 0)
-            {
-                _ = top.Append(first[i - 1]);
-                _ = bottom.Append('-');
-                i--;
-                continue;
-            }
-
-            _ = top.Append('-');
-            _ = bottom.Append(second[j - 1]);
-            j--;
+            if (top[c] == bottom[c] && top[c] != '-')
+                identical++;
         }
 
-        char[] topArray = top.ToString().ToCharArray();
-        char[] bottomArray = bottom.ToString().ToCharArray();
-
-        Array.Reverse(topArray);
-        Array.Reverse(bottomArray);
-
-        return (new string(topArray), new string(bottomArray));
+        return new AlignmentResult(path.Score, new string(top), new string(bottom), aligned == 0 ? 0 : (double)identical / aligned);
     }
-
-    private static double Max(double a, double b, double c) => Math.Max(a, Math.Max(b, c));
 }

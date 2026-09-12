@@ -94,7 +94,7 @@ public static class LotkaVolterra
         double initialPrey, double initialPredator,
         double finalTime, int points = 200)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(points);
+        ArgumentOutOfRangeException.ThrowIfLessThan(points, 2);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(finalTime);
 
         var times = new double[points];
@@ -218,7 +218,7 @@ public static class EpidemicModels
         double finalTime = 180, int points = 361)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(recoveryRate);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(points);
+        ArgumentOutOfRangeException.ThrowIfLessThan(points, 2);
 
         var times = new double[points];
         double step = finalTime / (points - 1);
@@ -270,18 +270,34 @@ public static class EpidemicModels
     /// </summary>
     /// <param name="basicReproductionNumber">Базовое репродуктивное число</param>
     /// <remarks>
-    /// Уравнение неявное и решается простой итерацией. При R₀ не больше единицы вспышка
-    /// затухает и доля переболевших стремится к нулю.
+    /// Уравнение неявное и решается методом Ньютона, начиная с единицы. Функция
+    /// <c>1 − R − exp(−R₀·R)</c> вогнута, поэтому шаги Ньютона справа от корня монотонно к нему
+    /// сходятся. Прежде корень искался простой итерацией с фиксированным числом шагов, и вблизи
+    /// порога R₀ = 1 она не успевала сойтись: при R₀ = 1,01 ошибка превышала сам ответ.
+    /// При R₀ не больше единицы вспышка затухает и доля переболевших стремится к нулю.
     /// </remarks>
     public static double FinalEpidemicSize(double basicReproductionNumber)
     {
+        if (double.IsNaN(basicReproductionNumber))
+            throw new ArgumentException("R₀ не задано", nameof(basicReproductionNumber));
+
         if (basicReproductionNumber <= 1)
             return 0;
 
-        double size = 0.5;
+        double size = 1;
 
         for (int i = 0; i < 200; i++)
-            size = 1 - Math.Exp(-basicReproductionNumber * size);
+        {
+            double decay = Math.Exp(-basicReproductionNumber * size);
+            double value = 1 - size - decay;
+            double slope = -1 + (basicReproductionNumber * decay);
+            double step = value / slope;
+
+            size -= step;
+
+            if (Math.Abs(step) <= 1e-15 * Math.Max(1, size))
+                break;
+        }
 
         return size;
     }

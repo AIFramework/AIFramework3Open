@@ -23,6 +23,11 @@ public class LinKernighan
     /// <summary>
     /// Решает задачу VRP эвристикой Лина-Кернигана
     /// </summary>
+    /// <remarks>
+    /// Ходы здесь — упрощённый Лин — Керниган глубины до пяти с принятием только улучшений;
+    /// сами по себе они не гарантируют даже 2-оптимальности. Поэтому маршруты до трёх клиентов
+    /// перебираются целиком, а результат дорабатывается 2-opt — он не хуже 2-opt по построению.
+    /// </remarks>
     /// <param name="initial">Начальное решение (если null — строится жадно)</param>
     public VRPSolution Solve(VRPSolution initial = null)
     {
@@ -31,11 +36,58 @@ public class LinKernighan
         for (int r = 0; r < sol.Routes.Count; r++)
         {
             var route = sol.Routes[r];
-            if (route.Count < 4) continue;
+
+            // Короткий маршрут перебирается целиком: из трёх клиентов всего шесть порядков
+            if (route.Count < 4)
+            {
+                OptimiseByEnumeration(route);
+                continue;
+            }
+
             LKImprove(route);
         }
 
-        return sol;
+        return new LocalSearch(_inst).TwoOpt(sol);
+    }
+
+    private void OptimiseByEnumeration(List<int> route)
+    {
+        if (route.Count < 2) return;
+
+        var best = new List<int>(route);
+        double bestCost = RouteDist(route);
+
+        foreach (var order in Permutations(route, 0))
+        {
+            double cost = RouteDist(order);
+            if (cost < bestCost - 1e-10)
+            {
+                bestCost = cost;
+                best = new List<int>(order);
+            }
+        }
+
+        route.Clear();
+        route.AddRange(best);
+    }
+
+    private static IEnumerable<List<int>> Permutations(List<int> items, int k)
+    {
+        if (k == items.Count)
+        {
+            yield return items;
+            yield break;
+        }
+
+        for (int i = k; i < items.Count; i++)
+        {
+            (items[k], items[i]) = (items[i], items[k]);
+
+            foreach (var order in Permutations(items, k + 1))
+                yield return order;
+
+            (items[k], items[i]) = (items[i], items[k]);
+        }
     }
 
     private void LKImprove(List<int> route)

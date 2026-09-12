@@ -390,6 +390,25 @@ public static partial class StatInference
             - halfDfPlus1 * Math.Log(1.0 + t * t / df));
     }
 
+    /// <summary>
+    /// Логарифм вероятности Пуассона: ln P(K = k) = k·ln λ − λ − ln k!
+    /// </summary>
+    /// <param name="k">Число событий</param>
+    /// <param name="lambda">Среднее число событий λ ≥ 0</param>
+    public static double PoissonLogPmf(int k, double lambda)
+    {
+        if (!(lambda >= 0) || double.IsInfinity(lambda))
+            throw new ArgumentOutOfRangeException(nameof(lambda), "Среднее — конечное неотрицательное число");
+
+        if (k < 0)
+            return double.NegativeInfinity;
+
+        if (lambda == 0)
+            return k == 0 ? 0.0 : double.NegativeInfinity;
+
+        return (k * Math.Log(lambda)) - lambda - LogGamma(k + 1.0);
+    }
+
     #endregion
 
     #region Математические утилиты

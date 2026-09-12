@@ -61,29 +61,40 @@ public class LocalSearch
     /// <summary>
     /// Улучшение маршрутов методом 3-opt
     /// </summary>
+    /// <remarks>
+    /// Маршрут режется на сегменты A | B | C | D, и B с C пересобираются всеми семью способами:
+    /// каждый по отдельности или оба развёрнуты, переставлены местами, переставлены и развёрнуты.
+    /// Среди этих ходов есть все ходы 2-opt, включая разворот хвоста маршрута, поэтому результат
+    /// не хуже 2-opt. Прежняя версия разворачивала только B и сводилась к урезанному 2-opt.
+    /// </remarks>
     public VRPSolution ThreeOpt(VRPSolution sol)
     {
         var result = sol.Clone();
 
-        for (int r = 0; r < result.Routes.Count; r++)
+        foreach (var route in result.Routes)
         {
-            var route = result.Routes[r];
             bool improved = true;
 
             while (improved)
             {
                 improved = false;
+                double current = RouteDist(route);
                 int len = route.Count;
-                if (len < 4) continue;
 
-                for (int i = 0; i < len - 2 && !improved; i++)
+                for (int i = 0; i < len && !improved; i++)
                 {
-                    for (int j = i + 1; j < len - 1 && !improved; j++)
+                    for (int j = i; j < len && !improved; j++)
                     {
                         for (int k = j + 1; k < len && !improved; k++)
                         {
-                            double bestGain = TryThreeOptMoves(route, i, j, k);
-                            if (bestGain > 1e-10) improved = true;
+                            List<int> candidate = BestReconnection(route, i, j, k, current);
+
+                            if (candidate != null)
+                            {
+                                route.Clear();
+                                route.AddRange(candidate);
+                                improved = true;
+                            }
                         }
                     }
                 }
@@ -111,7 +122,8 @@ public class LocalSearch
                 {
                     for (int i = 0; i < route.Count - segLen + 1 && !improved; i++)
                     {
-                        for (int j = 0; j < route.Count - segLen + 1 && !improved; j++)
+                        // Позиция вставки j = route.Count — в самый конец маршрута
+                        for (int j = 0; j <= route.Count && !improved; j++)
                         {
                             if (j >= i && j <= i + segLen) continue;
 
@@ -165,44 +177,51 @@ public class LocalSearch
         return dist;
     }
 
-    private int Node(List<int> route, int idx)
+    // A = [0, i), B = [i, j], C = [j + 1, k], D = (k, конец]: лучшая из семи пересборок B и C,
+    // если она короче текущего маршрута; иначе null
+    private List<int> BestReconnection(List<int> route, int i, int j, int k, double current)
     {
-        if (idx < 0 || idx >= route.Count) return 0;
-        return route[idx] + 1;
-    }
+        var a = route.GetRange(0, i);
+        var b = route.GetRange(i, j - i + 1);
+        var c = route.GetRange(j + 1, k - j);
+        var d = route.GetRange(k + 1, route.Count - k - 1);
 
-    private double D(List<int> route, int i, int j)
-    {
-        return _inst.Distance(Node(route, i), Node(route, j));
-    }
+        var bReversed = new List<int>(b);
+        bReversed.Reverse();
+        var cReversed = new List<int>(c);
+        cReversed.Reverse();
 
-    private double TryThreeOptMoves(List<int> route, int i, int j, int k)
-    {
-        int pi = (i == 0) ? -1 : i - 1;
-        double d0 = _inst.Distance(Node(route, pi < 0 ? -1 : pi), Node(route, i))
-                   + _inst.Distance(Node(route, j), Node(route, j + 1 < route.Count ? j + 1 : -1))
-                   + _inst.Distance(Node(route, k), Node(route, k + 1 < route.Count ? k + 1 : -1));
-
-        double bestGain = 0;
-
-        var seg1 = route.GetRange(i, j - i + 1);
-        var seg2 = route.GetRange(j + 1, k - j);
-        double oldCost = RouteDist(route);
-
-        seg1.Reverse();
-        var test = new List<int>(route.GetRange(0, i));
-        test.AddRange(seg1);
-        test.AddRange(seg2);
-        if (k + 1 < route.Count) test.AddRange(route.GetRange(k + 1, route.Count - k - 1));
-
-        double newCost = RouteDist(test);
-        if (oldCost - newCost > bestGain)
+        List<int>[][] variants =
         {
-            bestGain = oldCost - newCost;
-            route.Clear();
-            route.AddRange(test);
+            new[] { bReversed, c },
+            new[] { b, cReversed },
+            new[] { bReversed, cReversed },
+            new[] { c, b },
+            new[] { cReversed, b },
+            new[] { c, bReversed },
+            new[] { cReversed, bReversed },
+        };
+
+        List<int> best = null;
+        double bestCost = current - 1e-10;
+
+        foreach (var variant in variants)
+        {
+            var candidate = new List<int>(route.Count);
+            candidate.AddRange(a);
+            candidate.AddRange(variant[0]);
+            candidate.AddRange(variant[1]);
+            candidate.AddRange(d);
+
+            double cost = RouteDist(candidate);
+
+            if (cost < bestCost)
+            {
+                bestCost = cost;
+                best = candidate;
+            }
         }
 
-        return bestGain;
+        return best;
     }
 }

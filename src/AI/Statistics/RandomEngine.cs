@@ -246,4 +246,127 @@ public static class RandomEngine
     }
 
     #endregion
+
+    #region Круговое и усечённое
+
+    /// <summary>
+    /// Распределение фон Мизеса VM(μ, κ) — «нормальное на окружности» для направлений —
+    /// алгоритм Беста — Фишера (1979). Результат в радианах на [0; 2π).
+    /// </summary>
+    /// <remarks>
+    /// κ = 0 — равномерное по окружности. При κ больше 1e5 распределение неотличимо от N(μ, 1/κ),
+    /// а формулы алгоритма теряют точность, поэтому берётся нормальное.
+    /// </remarks>
+    /// <param name="rng">Генератор</param>
+    /// <param name="mu">Среднее направление, радианы</param>
+    /// <param name="kappa">Концентрация κ ≥ 0: чем больше, тем уже разброс</param>
+    public static double NextVonMises(Random rng, double mu, double kappa)
+    {
+        if (!(kappa >= 0) || double.IsInfinity(kappa))
+            throw new ArgumentOutOfRangeException(nameof(kappa), "Концентрация — конечное неотрицательное число");
+
+        if (kappa < 1e-8)
+            return CircularStatistics.WrapRadians(2.0 * Math.PI * rng.NextDouble());
+
+        if (kappa > 1e5)
+            return CircularStatistics.WrapRadians(mu + (NextGaussian(rng) / Math.Sqrt(kappa)));
+
+        double tau = 1.0 + Math.Sqrt(1.0 + (4.0 * kappa * kappa));
+        double rho = (tau - Math.Sqrt(2.0 * tau)) / (2.0 * kappa);
+        double r = (1.0 + (rho * rho)) / (2.0 * rho);
+
+        while (true)
+        {
+            double z = Math.Cos(Math.PI * rng.NextDouble());
+            double f = (1.0 + (r * z)) / (r + z);
+            double c = kappa * (r - f);
+            double u = rng.NextDouble();
+
+            if ((c * (2.0 - c)) - u > 0 || (u > 0 && Math.Log(c / u) + 1.0 - c >= 0))
+            {
+                double angle = Math.Acos(Math.Clamp(f, -1.0, 1.0));
+                return CircularStatistics.WrapRadians(rng.NextDouble() < 0.5 ? mu - angle : mu + angle);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Нормальное N(mean, std²), усечённое до [lower; upper], — точная выборка отбраковкой по Роберту (1995).
+    /// </summary>
+    /// <remarks>
+    /// Отбраковка из обычного нормального для интервала далеко в хвосте почти никогда не попадала бы в него;
+    /// здесь огибающая выбирается по положению интервала — экспоненциальная, равномерная или нормальная, —
+    /// и доля принятых остаётся высокой при любом положении.
+    /// </remarks>
+    /// <param name="rng">Генератор</param>
+    /// <param name="mean">Среднее исходного нормального</param>
+    /// <param name="std">Стандартное отклонение исходного нормального</param>
+    /// <param name="lower">Нижняя граница; допускается −∞</param>
+    /// <param name="upper">Верхняя граница; допускается +∞</param>
+    public static double NextTruncatedGaussian(Random rng, double mean, double std, double lower, double upper)
+    {
+        if (!(std > 0) || double.IsInfinity(std))
+            throw new ArgumentOutOfRangeException(nameof(std), "Отклонение — конечное положительное число");
+
+        if (!(lower < upper))
+            throw new ArgumentException("Нижняя граница должна быть меньше верхней", nameof(lower));
+
+        return mean + (std * StandardTruncated(rng, (lower - mean) / std, (upper - mean) / std));
+    }
+
+    /// <summary>Стандартное нормальное, усечённое до [a; b]</summary>
+    private static double StandardTruncated(Random rng, double a, double b)
+    {
+        if (a >= 0)
+            return OneSidedTruncated(rng, a, b);
+
+        if (b <= 0)
+            return -OneSidedTruncated(rng, -b, -a);
+
+        // Интервал накрывает ноль: узкий — равномерная огибающая, широкий — обычное нормальное
+        if (b - a < Math.Sqrt(2.0 * Math.PI))
+        {
+            while (true)
+            {
+                double z = a + ((b - a) * rng.NextDouble());
+                if (rng.NextDouble() <= Math.Exp(-0.5 * z * z))
+                    return z;
+            }
+        }
+
+        while (true)
+        {
+            double z = NextGaussian(rng);
+            if (z >= a && z <= b)
+                return z;
+        }
+    }
+
+    /// <summary>
+    /// Правый хвост [a; b], a ≥ 0: экспоненциальная огибающая с оптимальным показателем λ,
+    /// а для интервала уже масштаба этой экспоненты — равномерная
+    /// </summary>
+    private static double OneSidedTruncated(Random rng, double a, double b)
+    {
+        double lambda = 0.5 * (a + Math.Sqrt((a * a) + 4.0));
+
+        if (b - a < 1.0 / lambda)
+        {
+            while (true)
+            {
+                double z = a + ((b - a) * rng.NextDouble());
+                if (rng.NextDouble() <= Math.Exp(0.5 * ((a * a) - (z * z))))
+                    return z;
+            }
+        }
+
+        while (true)
+        {
+            double z = a + NextExponential(rng, lambda);
+            if (z <= b && rng.NextDouble() <= Math.Exp(-0.5 * (z - lambda) * (z - lambda)))
+                return z;
+        }
+    }
+
+    #endregion
 }

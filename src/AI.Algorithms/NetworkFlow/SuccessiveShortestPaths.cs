@@ -65,11 +65,21 @@ public class SuccessiveShortestPaths
     /// </summary>
     /// <param name="s">Исток</param>
     /// <param name="t">Сток</param>
-    /// <returns>Кортеж (поток, стоимость)</returns>
+    /// <returns>Кортеж (поток, стоимость); повторный вызов решает задачу заново</returns>
+    /// <exception cref="InvalidOperationException">
+    /// В сети есть цикл отрицательной стоимости: метод кратчайших путей требует его отсутствия,
+    /// такие задачи решают <see cref="CycleCanceling"/> и <see cref="CostScaling"/>
+    /// </exception>
     public (double flow, double cost) Solve(int s, int t)
     {
         double totalFlow = 0;
         double totalCost = 0;
+
+        for (int i = 0; i < _flow.Count; i++)
+            _flow[i] = 0;
+
+        if (s == t)
+            return (0, 0);
 
         while (true)
         {
@@ -86,6 +96,7 @@ public class SuccessiveShortestPaths
             Queue<int> queue = new Queue<int>();
             queue.Enqueue(s);
             inQueue[s] = true;
+            int[] enqueued = new int[_v];
 
             while (queue.Count > 0)
             {
@@ -94,12 +105,18 @@ public class SuccessiveShortestPaths
 
                 foreach (int id in _graph[u])
                 {
-                    if (_cap[id] - _flow[id] > 0 && dist[u] + _cost[id] < dist[_to[id]])
+                    if (_cap[id] - _flow[id] > 0 && dist[u] + _cost[id] < dist[_to[id]] - 1e-9)
                     {
                         dist[_to[id]] = dist[u] + _cost[id];
                         parentEdge[_to[id]] = id;
                         if (!inQueue[_to[id]])
                         {
+                            // Вершина, попавшая в очередь больше n раз, лежит на отрицательном цикле
+                            if (++enqueued[_to[id]] > _v)
+                                throw new InvalidOperationException(
+                                    "Сеть содержит цикл отрицательной стоимости: метод последовательных кратчайших путей "
+                                    + "требует его отсутствия — используйте CycleCanceling или CostScaling");
+
                             queue.Enqueue(_to[id]);
                             inQueue[_to[id]] = true;
                         }

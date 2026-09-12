@@ -45,28 +45,35 @@ public class Prim<T> where T : BaseEdge, new()
 
         IndexPriorityQueueMin<double> pq = new IndexPriorityQueueMin<double>(v);
 
-        KeyTo[0] = 0.0;
-        pq.Insert(0, 0.0);
-
-        while (!pq.IsEmpty())
+        // Каждая ещё не охваченная вершина становится корнем: у несвязного графа строится
+        // остовный лес, как у Крускала и Борувки, а не дерево одной компоненты
+        for (int root = 0; root < v; root++)
         {
-            int u = pq.DelMinGetIndex();
-            _inMST[u] = true;
+            if (_inMST[root]) continue;
 
-            foreach (T edge in graph.AdjEW(u))
+            KeyTo[root] = 0.0;
+            pq.Insert(root, 0.0);
+
+            while (!pq.IsEmpty())
             {
-                int w = edge.Other(u);
-                if (_inMST[w]) continue;
+                int u = pq.DelMinGetIndex();
+                _inMST[u] = true;
 
-                if (edge.W < KeyTo[w])
+                foreach (T edge in graph.AdjEW(u))
                 {
-                    KeyTo[w] = edge.W;
-                    EdgeTo[w] = edge;
+                    int w = edge.Other(u);
+                    if (_inMST[w]) continue;
 
-                    if (pq.IsContain(w))
-                        pq.Update(w, edge.W);
-                    else
-                        pq.Insert(w, edge.W);
+                    if (edge.W < KeyTo[w])
+                    {
+                        KeyTo[w] = edge.W;
+                        EdgeTo[w] = edge;
+
+                        if (pq.IsContain(w))
+                            pq.Update(w, edge.W);
+                        else
+                            pq.Insert(w, edge.W);
+                    }
                 }
             }
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AI.Algorithms.EWG;
 
@@ -47,11 +48,17 @@ public class JohnsonAllPairs<T> where T : BaseEdge, new()
 
         double[] h = bf.Distances;
 
+        // Перевзвешенные дуги помнят исходные: деревья путей отдают рёбра с настоящими весами
         GraphW<T> reweighted = new GraphW<T>(V);
+        var original = new Dictionary<T, T>(ReferenceEqualityComparer.Instance);
         for (int v = 0; v < V; v++)
             foreach (T e in graph.AdjEW(v))
                 if (e.StartV == v)
-                    reweighted.AddArce(e.StartV, e.EndV, e.W + h[e.StartV] - h[e.EndV]);
+                {
+                    T shifted = new T() { StartV = e.StartV, EndV = e.EndV, W = e.W + h[e.StartV] - h[e.EndV] };
+                    reweighted.AddArceW(shifted);
+                    original[shifted] = e;
+                }
 
         Trees = new ShortestPathTree<T>[V];
         for (int s = 0; s < V; s++)
@@ -59,15 +66,19 @@ public class JohnsonAllPairs<T> where T : BaseEdge, new()
             DijkstraSPath<T> dijkstra = new DijkstraSPath<T>(reweighted, s);
 
             double[] adjusted = new double[V];
+            T[] edges = new T[V];
             for (int v = 0; v < V; v++)
             {
                 if (dijkstra.Distances[v] < double.MaxValue)
                     adjusted[v] = dijkstra.Distances[v] - h[s] + h[v];
                 else
                     adjusted[v] = double.MaxValue;
+
+                if (dijkstra.Edges[v] != null)
+                    edges[v] = original[dijkstra.Edges[v]];
             }
 
-            Trees[s] = new ShortestPathTree<T>(dijkstra.Edges, adjusted);
+            Trees[s] = new ShortestPathTree<T>(edges, adjusted);
         }
     }
 

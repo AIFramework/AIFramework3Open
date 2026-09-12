@@ -78,7 +78,9 @@ public class TwoSAT
         Assignment = new bool[_numVars];
         for (int i = 0; i < _numVars; i++)
         {
-            Assignment[i] = comp[2 * i] > comp[2 * i + 1];
+            // Тарьян нумерует компоненты от стоков к истокам: литерал истинен, если его компонента
+            // ближе к стоку, чем компонента отрицания. Прежнее сравнение давало обратную подстановку
+            Assignment[i] = comp[2 * i] < comp[2 * i + 1];
         }
 
         return true;

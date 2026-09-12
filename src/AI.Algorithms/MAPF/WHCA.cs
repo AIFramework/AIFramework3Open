@@ -9,6 +9,18 @@ namespace AI.Algorithms.MAPF;
 /// Планирует пути агентов последовательно в скользящем окне длиной w шагов,
 /// используя таблицу резервирования для избежания конфликтов.
 /// </summary>
+/// <remarks>
+/// <para>
+/// В каждом окне агенты по очереди резервируют клетки и переходы до конца окна; агент, чей путь
+/// короче окна, стоит на последней клетке до конца окна — и эта стоянка тоже резервируется.
+/// Прежде резервировались только клетки самого пути, поэтому агенты обменивались местами,
+/// а на агента, раньше закончившего путь, наезжали.
+/// </para>
+/// <para>
+/// Метод неполон: если в окне пути нет, агент стоит на месте, а за отведённое число окон
+/// не все могут дойти — такое решение не проходит <see cref="MAPFSolution.IsValid"/>.
+/// </para>
+/// </remarks>
 [Serializable]
 public class WHCA
 {
@@ -26,7 +38,7 @@ public class WHCA
     {
         _map = map;
         _agents = agents;
-        _windowSize = windowSize;
+        _windowSize = Math.Max(1, windowSize);
     }
 
     /// <summary>
@@ -35,6 +47,10 @@ public class WHCA
     public MAPFSolution Solve()
     {
         int n = _agents.Count;
+
+        if (n == 0)
+            return new MAPFSolution();
+
         var pos = new (int X, int Y)[n];
         for (int i = 0; i < n; i++)
             pos[i] = (_agents[i].StartX, _agents[i].StartY);
@@ -43,38 +59,30 @@ public class WHCA
         for (int i = 0; i < n; i++)
             fullPaths.Add(new List<(int X, int Y)> { pos[i] });
 
-        int maxIterations = (_map.Width + _map.Height) * 4;
+        int horizon = SpaceTimePlanner.Horizon(_map, n);
+        int maxRounds = (_map.Width + _map.Height) * 4;
 
-        for (int round = 0; round < maxIterations; round++)
+        for (int round = 0; round < maxRounds; round++)
         {
-            bool allDone = true;
-            for (int i = 0; i < n; i++)
-            {
-                if (pos[i] != (_agents[i].GoalX, _agents[i].GoalY))
-                { allDone = false; break; }
-            }
-            if (allDone) break;
+            if (Enumerable.Range(0, n).All(i => pos[i] == (_agents[i].GoalX, _agents[i].GoalY)))
+                break;
 
-            int globalT = round * _windowSize;
-            var reservation = new HashSet<(int X, int Y, int T)>();
-
+            var table = new ReservationTable();
             var windowPaths = new List<(int X, int Y)>[n];
 
             for (int i = 0; i < n; i++)
             {
-                windowPaths[i] = PlanWindow(i, pos[i], reservation, globalT);
+                windowPaths[i] = SpaceTimePlanner.SearchAgainst(_map, _agents[i], pos[i], table, horizon, _windowSize)
+                    ?? new List<(int X, int Y)> { pos[i] };
 
-                foreach (var (wp, idx) in windowPaths[i].Select((p, idx) => (p, idx)))
-                    reservation.Add((wp.X, wp.Y, globalT + idx));
+                table.Reserve(windowPaths[i], 0, _windowSize);
             }
 
-            int windowLen = windowPaths.Max(w => w.Count);
-            for (int t = 1; t < windowLen; t++)
+            for (int t = 1; t <= _windowSize; t++)
             {
                 for (int i = 0; i < n; i++)
                 {
-                    var wp = windowPaths[i];
-                    pos[i] = t < wp.Count ? wp[t] : wp[^1];
+                    pos[i] = SpaceTimePlanner.Position(windowPaths[i], t);
                     fullPaths[i].Add(pos[i]);
                 }
             }
@@ -82,61 +90,4 @@ public class WHCA
 
         return new MAPFSolution { Paths = fullPaths };
     }
-
-    private List<(int X, int Y)> PlanWindow(int agentId, (int X, int Y) start,
-        HashSet<(int X, int Y, int T)> reservation, int globalT)
-    {
-        var agent = _agents[agentId];
-        int gx = agent.GoalX, gy = agent.GoalY;
-
-        var open = new PriorityQueue<(int X, int Y, int T), int>();
-        var closed = new HashSet<(int, int, int)>();
-        var parent = new Dictionary<(int, int, int), (int, int, int)?>();
-
-        var s0 = (start.X, start.Y, 0);
-        open.Enqueue(s0, H(start.X, start.Y, gx, gy));
-        parent[s0] = null;
-
-        while (open.Count > 0)
-        {
-            var (x, y, t) = open.Dequeue();
-            if (closed.Contains((x, y, t))) continue;
-            closed.Add((x, y, t));
-
-            if ((x == gx && y == gy) || t >= _windowSize)
-                return Reconstruct((x, y, t), parent);
-
-            foreach (var (nx, ny) in NbWait(x, y))
-            {
-                int nt = t + 1;
-                if (reservation.Contains((nx, ny, globalT + nt))) continue;
-                if (closed.Contains((nx, ny, nt))) continue;
-                if (parent.ContainsKey((nx, ny, nt))) continue;
-
-                parent[(nx, ny, nt)] = (x, y, t);
-                open.Enqueue((nx, ny, nt), nt + H(nx, ny, gx, gy));
-            }
-        }
-
-        return new List<(int X, int Y)> { start };
-    }
-
-    private List<(int X, int Y)> NbWait(int x, int y)
-    {
-        var r = new List<(int, int)> { (x, y) };
-        r.AddRange(_map.Neighbors(x, y));
-        return r;
-    }
-
-    private List<(int X, int Y)> Reconstruct((int, int, int) goal,
-        Dictionary<(int, int, int), (int, int, int)?> parent)
-    {
-        var path = new List<(int X, int Y)>();
-        (int, int, int)? c = goal;
-        while (c != null) { path.Add((c.Value.Item1, c.Value.Item2)); c = parent[c.Value]; }
-        path.Reverse();
-        return path;
-    }
-
-    private static int H(int x, int y, int gx, int gy) => Math.Abs(x - gx) + Math.Abs(y - gy);
 }

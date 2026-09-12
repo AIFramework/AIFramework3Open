@@ -143,6 +143,12 @@ public static class Si
     /// <summary>Сутки</summary>
     public static Unit Day { get; } = new("d", Dimension.TimeDim, 86400.0, 0.0, false);
 
+    /// <summary>
+    /// Юлианский год, 365.25 сут — единица периодов полураспада и астрономических времён.
+    /// Принимает приставки: ka, Ma, Ga
+    /// </summary>
+    public static Unit Year { get; } = new("a", Dimension.TimeDim, 31_557_600.0);
+
     /// <summary>Литр</summary>
     public static Unit Litre { get; } = new("L", Dimension.Volume, 1e-3);
 

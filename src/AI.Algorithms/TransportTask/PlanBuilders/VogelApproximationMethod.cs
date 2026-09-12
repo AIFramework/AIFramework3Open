@@ -26,7 +26,8 @@ public class VogelApproximationMethod : IInitialPlanBuilder
 
         while (supplyCopy.Sum() > 0 && demandCopy.Sum() > 0)
         {
-            int maxPenalty = int.MinValue;
+            // Штрафы дробные: прежнее приведение к int отбрасывало дробную часть стоимостей
+            double maxPenalty = double.NegativeInfinity;
             int selectedRow = -1, selectedCol = -1;
             bool isRowSelected = true;
 
@@ -40,7 +41,7 @@ public class VogelApproximationMethod : IInitialPlanBuilder
                                             .OrderBy(c => c)
                                             .ToList();
 
-                int penalty = sortedCosts.Count > 1 ? (int)(sortedCosts[1] - sortedCosts[0]) : (int)sortedCosts[0];
+                double penalty = sortedCosts.Count > 1 ? sortedCosts[1] - sortedCosts[0] : sortedCosts[0];
                 if (penalty > maxPenalty)
                 {
                     maxPenalty = penalty;
@@ -59,7 +60,7 @@ public class VogelApproximationMethod : IInitialPlanBuilder
                                             .OrderBy(c => c)
                                             .ToList();
 
-                int penalty = sortedCosts.Count > 1 ? (int)(sortedCosts[1] - sortedCosts[0]) : (int)sortedCosts[0];
+                double penalty = sortedCosts.Count > 1 ? sortedCosts[1] - sortedCosts[0] : sortedCosts[0];
                 if (penalty > maxPenalty)
                 {
                     maxPenalty = penalty;

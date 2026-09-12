@@ -83,45 +83,50 @@ public class TabuSearchVRP
         return best;
     }
 
+    // Окрестность: перемещения клиента в другой маршрут (не больше 50, выбранных случайно
+    // с заданным зерном) и все обмены соседей внутри маршрутов. Прежде перемещения брались
+    // всегда в одном порядке и обрывались на 51-м: клиенты поздних маршрутов не двигались вовсе,
+    // а до обменов дело не доходило. Запрет — на повторное перемещение того же клиента
+    private const int RelocateLimit = 50;
+
     private List<(VRPSolution, long)> GenerateMoves(VRPSolution sol)
     {
         var moves = new List<(VRPSolution, long)>();
+        var relocations = new List<(int Route, int Index, int Target)>();
 
         for (int r = 0; r < sol.Routes.Count; r++)
-        {
-            var route = sol.Routes[r];
-            for (int i = 0; i < route.Count; i++)
-            {
-                int customer = route[i];
-
+            for (int i = 0; i < sol.Routes[r].Count; i++)
                 for (int r2 = 0; r2 < sol.Routes.Count; r2++)
-                {
-                    if (r2 == r) continue;
-                    double load = sol.Routes[r2].Sum(c => _inst.Demand[c]);
-                    if (load + _inst.Demand[customer] > _inst.VehicleCapacity) continue;
+                    if (r2 != r)
+                        relocations.Add((r, i, r2));
 
-                    var candidate = sol.Clone();
-                    candidate.Routes[r].RemoveAt(i);
+        Shuffle(relocations);
 
-                    int bestPos = 0;
-                    double bestInsertCost = double.MaxValue;
-                    for (int p = 0; p <= candidate.Routes[r2].Count; p++)
-                    {
-                        candidate.Routes[r2].Insert(p, customer);
-                        double c = candidate.TotalDistance(_inst);
-                        if (c < bestInsertCost) { bestInsertCost = c; bestPos = p; }
-                        candidate.Routes[r2].RemoveAt(p);
-                    }
+        foreach (var (r, i, r2) in relocations)
+        {
+            if (moves.Count >= RelocateLimit) break;
 
-                    candidate.Routes[r2].Insert(bestPos, customer);
-                    candidate.Routes.RemoveAll(rt => rt.Count == 0);
+            int customer = sol.Routes[r][i];
+            double load = sol.Routes[r2].Sum(c => _inst.Demand[c]);
+            if (load + _inst.Demand[customer] > _inst.VehicleCapacity) continue;
 
-                    long key = customer * 10000L + r2;
-                    moves.Add((candidate, key));
+            var candidate = sol.Clone();
+            candidate.Routes[r].RemoveAt(i);
 
-                    if (moves.Count > 50) return moves;
-                }
+            int bestPos = 0;
+            double bestInsertCost = double.MaxValue;
+            for (int p = 0; p <= candidate.Routes[r2].Count; p++)
+            {
+                candidate.Routes[r2].Insert(p, customer);
+                double c = candidate.TotalDistance(_inst);
+                if (c < bestInsertCost) { bestInsertCost = c; bestPos = p; }
+                candidate.Routes[r2].RemoveAt(p);
             }
+
+            candidate.Routes[r2].Insert(bestPos, customer);
+            candidate.Routes.RemoveAll(rt => rt.Count == 0);
+
+            moves.Add((candidate, customer));
         }
 
         for (int r = 0; r < sol.Routes.Count; r++)
@@ -134,11 +139,20 @@ public class TabuSearchVRP
                 var candidate = sol.Clone();
                 var cr = candidate.Routes[r];
                 int tmp = cr[i]; cr[i] = cr[i + 1]; cr[i + 1] = tmp;
-                long key = -(route[i] * 10000L + route[i + 1]);
+                long key = -(Math.Min(route[i], route[i + 1]) * 10000L + Math.Max(route[i], route[i + 1]) + 1);
                 moves.Add((candidate, key));
             }
         }
 
         return moves;
+    }
+
+    private void Shuffle<TItem>(List<TItem> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = _rng.Next(i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
     }
 }

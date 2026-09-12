@@ -94,7 +94,10 @@ public class FringeSearch<T> where T : BaseEdge, new()
                     if (inFringe[w])
                     {
                         var existingNode = nodeMap[w];
-                        if (existingNode != current)
+
+                        // Узел, только что вставленный после текущего, уже стоит на своём месте:
+                        // при параллельных дугах его удаление и вставка после него же падали
+                        if (existingNode != current && existingNode != insertAfter)
                         {
                             fringe.Remove(existingNode);
                             var newNode = fringe.AddAfter(insertAfter, w);

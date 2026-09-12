@@ -43,8 +43,21 @@ public class AntColony
     /// <summary>
     /// Решает задачу VRP методом муравьиной оптимизации
     /// </summary>
+    /// <exception cref="ArgumentException">
+    /// Спрос клиента больше грузоподъёмности: такого клиента не обслужит ни одна машина,
+    /// и построение маршрутов прежде зацикливалось
+    /// </exception>
     public VRPSolution Solve()
     {
+        for (int c = 0; c < _inst.N; c++)
+        {
+            if (_inst.Demand[c] > _inst.VehicleCapacity)
+                throw new ArgumentException($"Спрос клиента {c} больше грузоподъёмности: его не обслужит ни одна машина");
+        }
+
+        if (_inst.N == 0)
+            return new VRPSolution();
+
         int total = _inst.TotalNodes;
         double[,] pheromone = new double[total, total];
         double tau0 = 1.0 / (_inst.N * NearestNeighborDist());
@@ -153,13 +166,18 @@ public class AntColony
 
         double r = _rng.NextDouble() * totalProb;
         double cum = 0;
+        int last = -1;
         for (int c = 0; c < _inst.N; c++)
         {
             if (probs[c] <= 0) continue;
             cum += probs[c];
+            last = c;
             if (r <= cum) return c;
         }
-        return -1;
+
+        // Округление суммы могло оставить r чуть больше накопленного: берём последнего кандидата,
+        // а не закрываем маршрут раньше времени
+        return last;
     }
 
     private double NearestNeighborDist()

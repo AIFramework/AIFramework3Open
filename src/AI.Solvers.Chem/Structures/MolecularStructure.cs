@@ -28,6 +28,21 @@ public sealed class AtomSite
     /// <summary>Формальный заряд</summary>
     public double Charge { get; init; }
 
+    /// <summary>Название остатка по PDB (ALA, GLY, HOH…); пусто, если структура не биополимер</summary>
+    public string ResidueName { get; init; } = string.Empty;
+
+    /// <summary>Идентификатор цепи; пробел, если не задан</summary>
+    public char ChainId { get; init; } = ' ';
+
+    /// <summary>Номер остатка в цепи</summary>
+    public int ResidueNumber { get; init; }
+
+    /// <summary>Код вставки: различает остатки с одинаковым номером</summary>
+    public char InsertionCode { get; init; } = ' ';
+
+    /// <summary>Атом записан как HETATM: лиганд, вода или нестандартный остаток</summary>
+    public bool IsHetero { get; init; }
+
     /// <summary>Копия атома со сдвинутой позицией</summary>
     /// <param name="position">Новые координаты</param>
     public AtomSite WithPosition(Vector3 position) => new()
@@ -37,7 +52,12 @@ public sealed class AtomSite
         Position = position,
         Occupancy = Occupancy,
         ThermalParameter = ThermalParameter,
-        Charge = Charge
+        Charge = Charge,
+        ResidueName = ResidueName,
+        ChainId = ChainId,
+        ResidueNumber = ResidueNumber,
+        InsertionCode = InsertionCode,
+        IsHetero = IsHetero
     };
 
     /// <summary>Элемент и координаты</summary>

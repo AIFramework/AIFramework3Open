@@ -37,24 +37,29 @@ public class SimulatedAnnealingVRP
     /// <summary>
     /// Решает задачу VRP методом имитации отжига
     /// </summary>
+    /// <remarks>
+    /// Перегруз штрафуется пропорционально масштабу задачи, а возвращается лучшее допустимое
+    /// решение из встреченных. Прежде штраф был постоянным 10⁶, и при больших координатах
+    /// недопустимое решение выходило дешевле допустимого и возвращалось как лучшее.
+    /// </remarks>
     /// <param name="initial">Начальное решение (если null — строится автоматически)</param>
     public VRPSolution Solve(VRPSolution initial = null)
     {
         var current = initial?.Clone() ?? new ClarkeWright(_inst).Solve();
-        double currentCost = current.TotalDistance(_inst);
+        double penalty = VrpPenalty.Scale(_inst);
+        double currentCost = VrpPenalty.Cost(_inst, current, penalty);
 
         var best = current.Clone();
         double bestCost = currentCost;
+
+        VRPSolution bestFeasible = current.IsValid(_inst) ? current.Clone() : null;
+        double bestFeasibleCost = bestFeasible != null ? current.TotalDistance(_inst) : double.PositiveInfinity;
         double temp = _initialTemp;
 
         for (int iter = 0; iter < _maxIterations; iter++)
         {
             var neighbor = GenerateNeighbor(current);
-            double neighborCost = neighbor.TotalDistance(_inst);
-
-            if (!neighbor.IsValid(_inst))
-                neighborCost += 1e6;
-
+            double neighborCost = VrpPenalty.Cost(_inst, neighbor, penalty);
             double delta = neighborCost - currentCost;
 
             if (delta < 0 || _rng.NextDouble() < Math.Exp(-delta / Math.Max(temp, 1e-10)))
@@ -67,12 +72,22 @@ public class SimulatedAnnealingVRP
                     bestCost = currentCost;
                     best = current.Clone();
                 }
+
+                if (current.IsValid(_inst))
+                {
+                    double distance = current.TotalDistance(_inst);
+                    if (distance < bestFeasibleCost)
+                    {
+                        bestFeasibleCost = distance;
+                        bestFeasible = current.Clone();
+                    }
+                }
             }
 
             temp *= _coolingRate;
         }
 
-        return best;
+        return bestFeasible ?? best;
     }
 
     private VRPSolution GenerateNeighbor(VRPSolution sol)

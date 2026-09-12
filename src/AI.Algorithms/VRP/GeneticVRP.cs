@@ -33,22 +33,27 @@ public class GeneticVRP
     /// <summary>
     /// Решает задачу VRP генетическим алгоритмом
     /// </summary>
+    /// <remarks>
+    /// Возвращается лучшее допустимое решение из встреченных; элита каждого поколения — лучшая
+    /// особь текущей популяции. Прежде индекс элиты не обновлялся после смены поколения, и в
+    /// следующее переходила случайная особь, а постоянный штраф 10⁶ при больших координатах
+    /// позволял недопустимому решению выиграть.
+    /// </remarks>
     public VRPSolution Solve()
     {
+        _penalty = VrpPenalty.Scale(_inst);
+
         var population = InitPopulation();
         var fitness = population.Select(p => Fitness(p)).ToArray();
 
-        int bestIdx = 0;
-        for (int i = 1; i < fitness.Length; i++)
-            if (fitness[i] < fitness[bestIdx]) bestIdx = i;
-
-        var bestSol = population[bestIdx].Clone();
-        double bestFit = fitness[bestIdx];
+        VRPSolution bestSol = null;
+        double bestDistance = double.PositiveInfinity;
+        Remember(population, ref bestSol, ref bestDistance);
 
         for (int gen = 0; gen < _generations; gen++)
         {
             var newPop = new List<VRPSolution>();
-            newPop.Add(population[bestIdx].Clone());
+            newPop.Add(population[ArgMin(fitness)].Clone());
 
             while (newPop.Count < _populationSize)
             {
@@ -62,19 +67,36 @@ public class GeneticVRP
 
             population = newPop;
             fitness = population.Select(p => Fitness(p)).ToArray();
-
-            for (int i = 0; i < fitness.Length; i++)
-            {
-                if (fitness[i] < bestFit)
-                {
-                    bestFit = fitness[i];
-                    bestSol = population[i].Clone();
-                    bestIdx = i;
-                }
-            }
+            Remember(population, ref bestSol, ref bestDistance);
         }
 
-        return bestSol;
+        return bestSol ?? population[ArgMin(fitness)].Clone();
+    }
+
+    private double _penalty = 1;
+
+    private void Remember(List<VRPSolution> population, ref VRPSolution bestSol, ref double bestDistance)
+    {
+        foreach (var candidate in population)
+        {
+            if (!candidate.IsValid(_inst))
+                continue;
+
+            double distance = candidate.TotalDistance(_inst);
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                bestSol = candidate.Clone();
+            }
+        }
+    }
+
+    private static int ArgMin(double[] values)
+    {
+        int best = 0;
+        for (int i = 1; i < values.Length; i++)
+            if (values[i] < values[best]) best = i;
+        return best;
     }
 
     private List<VRPSolution> InitPopulation()
@@ -113,13 +135,7 @@ public class GeneticVRP
         return sol;
     }
 
-    private double Fitness(VRPSolution sol)
-    {
-        double dist = sol.TotalDistance(_inst);
-        if (!sol.IsValid(_inst))
-            dist += 1e6;
-        return dist;
-    }
+    private double Fitness(VRPSolution sol) => VrpPenalty.Cost(_inst, sol, _penalty);
 
     private VRPSolution TournamentSelect(List<VRPSolution> pop, double[] fit)
     {

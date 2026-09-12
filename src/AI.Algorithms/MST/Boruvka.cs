@@ -80,21 +80,17 @@ public class Boruvka<T> where T : BaseEdge, new()
         }
     }
 
+    // Каждое ребро — один раз; параллельные рёбра остаются, и дешевейшее выбирается честно
     private static List<T> CollectEdges(GraphW<T> graph)
     {
-        HashSet<(int, int)> seen = new HashSet<(int, int)>();
+        HashSet<T> seen = new HashSet<T>(ReferenceEqualityComparer.Instance);
         List<T> edges = new List<T>();
 
         for (int i = 0; i < graph.V; i++)
         {
             foreach (T e in graph.AdjEW(i))
             {
-                int u = e.Either();
-                int w = e.Other(u);
-                int lo = Math.Min(u, w);
-                int hi = Math.Max(u, w);
-
-                if (seen.Add((lo, hi)))
+                if (seen.Add(e))
                     edges.Add(e);
             }
         }

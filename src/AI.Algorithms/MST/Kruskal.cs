@@ -52,21 +52,19 @@ public class Kruskal<T> where T : BaseEdge, new()
         }
     }
 
+    // Каждое ребро — один раз: неориентированное лежит в списках обоих концов. Параллельные рёбра
+    // не выбрасываются: прежде из пары оставалось первое попавшееся, а не лёгкое, и остов тяжелел.
+    // Крускал сам возьмёт лёгкое, а тяжёлое отбросит как замыкающее цикл
     private static List<T> CollectEdges(GraphW<T> graph)
     {
-        HashSet<(int, int)> seen = new HashSet<(int, int)>();
+        HashSet<T> seen = new HashSet<T>(ReferenceEqualityComparer.Instance);
         List<T> edges = new List<T>();
 
         for (int i = 0; i < graph.V; i++)
         {
             foreach (T e in graph.AdjEW(i))
             {
-                int u = e.Either();
-                int v = e.Other(u);
-                int lo = Math.Min(u, v);
-                int hi = Math.Max(u, v);
-
-                if (seen.Add((lo, hi)))
+                if (seen.Add(e))
                     edges.Add(e);
             }
         }

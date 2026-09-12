@@ -27,6 +27,9 @@ public class YenKShortestPaths<T> where T : BaseEdge, new()
         Paths = new List<(List<int> Path, double Cost)>();
         int V = graph.V;
 
+        if (K <= 0)
+            return;
+
         double cost0;
         List<int> path0 = FindShortestPath(graph, source, target,
             new HashSet<int>(), new HashSet<long>(), out cost0);
@@ -79,17 +82,19 @@ public class YenKShortestPaths<T> where T : BaseEdge, new()
                         totalPath.Add(prevPath[j]);
                     totalPath.AddRange(spurPath);
 
+                    // Стоимость корня — по самой лёгкой из параллельных дуг и с учётом направления:
+                    // прежде бралась первая попавшаяся дуга между вершинами, в том числе встречная
                     double rootCost = 0;
                     for (int j = 0; j < i; j++)
                     {
+                        double lightest = double.MaxValue;
                         foreach (T e in graph.AdjEW(prevPath[j]))
                         {
-                            if (e.Other(prevPath[j]) == prevPath[j + 1])
-                            {
-                                rootCost += e.W;
-                                break;
-                            }
+                            if (e.StartV == prevPath[j] && e.EndV == prevPath[j + 1] && e.W < lightest)
+                                lightest = e.W;
                         }
+
+                        rootCost += lightest;
                     }
 
                     double totalCost = rootCost + spurCost;

@@ -90,6 +90,9 @@ public class FloydWarshall<T> where T : BaseEdge, new()
     /// <returns>Список вершин пути или null если путь не существует</returns>
     public List<int> PathBetween(int u, int v)
     {
+        // Путь из вершины в неё же — сама вершина
+        if (u == v) return new List<int> { u };
+
         if (Next[u, v] == -1) return null;
 
         List<int> path = new List<int>();
@@ -101,6 +104,9 @@ public class FloydWarshall<T> where T : BaseEdge, new()
             current = Next[current, v];
             if (current == -1) return null;
             path.Add(current);
+
+            // Больше V вершин — путь проходит по отрицательному циклу и не определён
+            if (path.Count > Dist.GetLength(0)) return null;
         }
 
         return path;

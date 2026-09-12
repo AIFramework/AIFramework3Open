@@ -30,6 +30,7 @@ public class SimplePriorityQueueMax<T> : IPriorityQueueMax<T>
     {
         _data = new T[data.Length];
         Array.Copy(data, 0, _data, 0, _data.Length);
+        size = data.Length;
     }
 
     /// <summary>
@@ -38,6 +39,9 @@ public class SimplePriorityQueueMax<T> : IPriorityQueueMax<T>
     /// <returns></returns>
     public T DelMax()
     {
+        if (size == 0)
+            throw new InvalidOperationException("Очередь пуста");
+
         int maxInd = 0;
 
         for (int i = 1; i < size; i++)
@@ -75,9 +79,20 @@ public class SimplePriorityQueueMax<T> : IPriorityQueueMax<T>
         else return false;
     }
 
+    /// <summary>
+    /// Наибольший элемент без извлечения
+    /// </summary>
     public T KeyMax()
     {
-        throw new NotImplementedException();
+        if (size == 0)
+            throw new InvalidOperationException("Очередь пуста");
+
+        int maxInd = 0;
+
+        for (int i = 1; i < size; i++)
+            if (IsMax(i, maxInd)) maxInd = i;
+
+        return _data[maxInd];
     }
 
     /// <summary>

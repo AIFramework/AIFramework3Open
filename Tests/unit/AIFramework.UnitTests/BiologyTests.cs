@@ -416,4 +416,217 @@ public class BiologyTests
     }
 
     #endregion
+
+    #region Регрессии: выравнивание и размер вспышки
+
+    [Fact]
+    public void Alignment_Global_MatchesExhaustiveSearch()
+    {
+        // Прежде обратный ход шёл по максимумам клеток, а переход «пропуск — пропуск в другой строке» был запрещён
+        var rng = new Random(5);
+        ScoringScheme[] schemes = [ScoringScheme.Nucleotide, new(2, -3, -5, -1), new(1, -4, -1, -1), ScoringScheme.Linear(1, -1, -1)];
+
+        for (int trial = 0; trial < 240; trial++)
+        {
+            string a = RandomText(rng, "ACGT", rng.Next(0, 6));
+            string b = RandomText(rng, "ACGT", rng.Next(0, 6));
+            ScoringScheme s = schemes[trial % schemes.Length];
+            double Similarity(char x, char y) => x == y ? s.Match : s.Mismatch;
+
+            AlignmentResult result = Alignment.Global(a, b, s);
+
+            Assert.Equal(BestGlobal(a, b, Similarity, s.GapOpen, s.GapExtend), result.Score, 9);
+            Assert.Equal(a, result.First.Replace("-", string.Empty));
+            Assert.Equal(b, result.Second.Replace("-", string.Empty));
+            Assert.Equal(result.Score, Rescore(result.First, result.Second, Similarity, s.GapOpen, s.GapExtend), 9);
+        }
+    }
+
+    [Fact]
+    public void Alignment_Local_MatchesExhaustiveSearch()
+    {
+        var rng = new Random(6);
+
+        for (int trial = 0; trial < 80; trial++)
+        {
+            string a = RandomText(rng, "ACGT", 1 + rng.Next(4));
+            string b = RandomText(rng, "ACGT", 1 + rng.Next(4));
+            ScoringScheme s = trial % 2 == 0 ? ScoringScheme.Nucleotide : new ScoringScheme(2, -1, -1.5, -0.5);
+            double Similarity(char x, char y) => x == y ? s.Match : s.Mismatch;
+
+            double best = 0;
+
+            for (int i = 0; i <= a.Length; i++)
+                for (int j = i + 1; j <= a.Length; j++)
+                    for (int k = 0; k <= b.Length; k++)
+                        for (int l = k + 1; l <= b.Length; l++)
+                            best = Math.Max(best, BestGlobal(a[i..j], b[k..l], Similarity, s.GapOpen, s.GapExtend));
+
+            AlignmentResult result = Alignment.Local(a, b, s);
+
+            Assert.Equal(best, result.Score, 9);
+
+            if (result.First.Length > 0)
+            {
+                Assert.Contains(result.First.Replace("-", string.Empty), a, StringComparison.Ordinal);
+                Assert.Contains(result.Second.Replace("-", string.Empty), b, StringComparison.Ordinal);
+                Assert.Equal(result.Score, Rescore(result.First, result.Second, Similarity, s.GapOpen, s.GapExtend), 9);
+            }
+        }
+    }
+
+    [Fact]
+    public void Blosum62_KnownEntries_AndProteinAlignmentIsOptimal()
+    {
+        SubstitutionMatrix blosum = SubstitutionMatrix.Blosum62;
+
+        Assert.Equal(11, blosum['W', 'W']);
+        Assert.Equal(9, blosum['C', 'C']);
+        Assert.Equal(4, blosum['A', 'A']);
+        Assert.Equal(3, blosum['I', 'V']);
+        Assert.Equal(3, blosum['F', 'Y']);
+        Assert.Equal(-4, blosum['W', 'N']);
+        Assert.Equal(1, blosum['s', 'a']);
+        _ = Assert.Throws<ArgumentException>(() => blosum['B', 'A']);
+
+        var rng = new Random(7);
+
+        for (int trial = 0; trial < 60; trial++)
+        {
+            string a = RandomText(rng, AminoAcids.Standard, rng.Next(0, 5));
+            string b = RandomText(rng, AminoAcids.Standard, rng.Next(0, 5));
+
+            AlignmentResult result = Alignment.Global(a, b, blosum, -4, -1);
+
+            Assert.Equal(BestGlobal(a, b, (x, y) => blosum[x, y], -4, -1), result.Score, 9);
+        }
+    }
+
+    [Theory]
+    [InlineData(1.01)]
+    [InlineData(1.05)]
+    [InlineData(1.3)]
+    [InlineData(2.0)]
+    [InlineData(3.0)]
+    [InlineData(10.0)]
+    public void FinalEpidemicSize_SolvesTheEquationNearThreshold(double r0)
+    {
+        // Прежняя простая итерация при R₀ = 1,01 ошибалась больше, чем на сам ответ
+        double size = EpidemicModels.FinalEpidemicSize(r0);
+        double low = 1e-12, high = 1;
+
+        for (int i = 0; i < 200; i++)
+        {
+            double middle = (low + high) / 2;
+
+            if (1 - middle - Math.Exp(-r0 * middle) > 0)
+                low = middle;
+            else
+                high = middle;
+        }
+
+        Assert.Equal((low + high) / 2, size, 12);
+        Assert.True(Math.Abs(1 - size - Math.Exp(-r0 * size)) < 1e-13);
+    }
+
+    [Fact]
+    public void Simulations_RequireAtLeastTwoOutputPoints()
+    {
+        // Прежде одна точка давала шаг 0/0 и молча возвращала NaN
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => EpidemicModels.Sir(0.3, 0.1, points: 1));
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => LotkaVolterra.Simulate(1, 0.02, 0.5, 0.01, 10, 5, 10, points: 1));
+    }
+
+    private static string RandomText(Random rng, string alphabet, int length)
+        => new(Enumerable.Range(0, length).Select(_ => alphabet[rng.Next(alphabet.Length)]).ToArray());
+
+    /// <summary>Перебор всех выравниваний с независимым подсчётом счёта</summary>
+    private static double BestGlobal(string a, string b, Func<char, char, double> similarity, double open, double extend)
+    {
+        double best = double.NegativeInfinity;
+        var top = new System.Text.StringBuilder();
+        var bottom = new System.Text.StringBuilder();
+
+        void Walk(int i, int j)
+        {
+            if (i == a.Length && j == b.Length)
+            {
+                best = Math.Max(best, Rescore(top.ToString(), bottom.ToString(), similarity, open, extend));
+                return;
+            }
+
+            if (i < a.Length && j < b.Length)
+            {
+                top.Append(a[i]);
+                bottom.Append(b[j]);
+                Walk(i + 1, j + 1);
+                top.Length--;
+                bottom.Length--;
+            }
+
+            if (i < a.Length)
+            {
+                top.Append(a[i]);
+                bottom.Append('-');
+                Walk(i + 1, j);
+                top.Length--;
+                bottom.Length--;
+            }
+
+            if (j < b.Length)
+            {
+                top.Append('-');
+                bottom.Append(b[j]);
+                Walk(i, j + 1);
+                top.Length--;
+                bottom.Length--;
+            }
+        }
+
+        Walk(0, 0);
+
+        return best;
+    }
+
+    /// <summary>Счёт готового выравнивания: пары по схеме, каждый сплошной пропуск — открытие и продления</summary>
+    private static double Rescore(string top, string bottom, Func<char, char, double> similarity, double open, double extend)
+    {
+        Assert.Equal(top.Length, bottom.Length);
+
+        double score = 0;
+
+        for (int k = 0; k < top.Length; k++)
+        {
+            Assert.False(top[k] == '-' && bottom[k] == '-', "столбец из двух пропусков");
+
+            if (top[k] != '-' && bottom[k] != '-')
+                score += similarity(top[k], bottom[k]);
+        }
+
+        return score + GapCost(top, open, extend) + GapCost(bottom, open, extend);
+    }
+
+    private static double GapCost(string row, double open, double extend)
+    {
+        double cost = 0;
+        int run = 0;
+
+        for (int k = 0; k <= row.Length; k++)
+        {
+            if (k < row.Length && row[k] == '-')
+            {
+                run++;
+                continue;
+            }
+
+            if (run > 0)
+                cost += open + ((run - 1) * extend);
+
+            run = 0;
+        }
+
+        return cost;
+    }
+
+    #endregion
 }

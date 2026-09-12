@@ -29,6 +29,15 @@ public class Hungarian
         int cols = costMatrix.GetLength(1);
         int n = Math.Max(rows, cols);
 
+        // Бесконечная стоимость ломает выбор минимума; запрет назначения — большое конечное число
+        foreach (double cost in costMatrix)
+        {
+            if (!double.IsFinite(cost))
+                throw new ArgumentException(
+                    "Стоимости должны быть конечными: запрещённое назначение задают большим конечным числом",
+                    nameof(costMatrix));
+        }
+
         double[,] c = new double[n, n];
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < cols; j++)
@@ -103,7 +112,10 @@ public class Hungarian
             while (j0 != 0);
         }
 
+        // Строки, доставшиеся фиктивным столбцам, остаются без назначения: прежде у них оставался
+        // нуль по умолчанию, и один столбец оказывался назначен дважды
         Assignment = new int[rows];
+        Array.Fill(Assignment, -1);
         TotalCost = 0;
 
         for (int j = 1; j <= n; j++)
@@ -113,12 +125,6 @@ public class Hungarian
                 Assignment[p[j] - 1] = j - 1;
                 TotalCost += costMatrix[p[j] - 1, j - 1];
             }
-        }
-
-        for (int i = 0; i < rows; i++)
-        {
-            if (i >= n || Assignment[i] >= cols)
-                Assignment[i] = -1;
         }
     }
 }

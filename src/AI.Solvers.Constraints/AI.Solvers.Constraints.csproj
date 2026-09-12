@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />
+    <!-- SMT: совместность арифметических атомов проверяет готовый LpSolver -->
+    <ProjectReference Include="..\AI.Solvers.Optimization\AI.Solvers.Optimization.csproj" />
   </ItemGroup>
 
 </Project>

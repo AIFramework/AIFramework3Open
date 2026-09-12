@@ -12,6 +12,8 @@ public class DijkstraSPath<T> where T : BaseEdge, new()
     private readonly T[] _edges;
     private readonly double[] _distace;
     private readonly IndexPriorityQueueMin<double> minPQ;
+    private readonly long _relaxationLimit;
+    private long _relaxations;
 
     /// <summary>
     /// Расстояния
@@ -27,11 +29,18 @@ public class DijkstraSPath<T> where T : BaseEdge, new()
     /// <summary>
     /// Алгоритм Дейкстры
     /// </summary>
+    /// <remarks>
+    /// Вершина может вернуться в очередь, поэтому отрицательные дуги без отрицательных циклов
+    /// дают верный ответ, хотя и медленнее. Отрицательный цикл обнаруживается по числу улучшений
+    /// расстояний и вызывает исключение вместо бесконечной работы.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">В графе, достижимом из начальной вершины, есть отрицательный цикл</exception>
     public DijkstraSPath(GraphW<T> graph, int vertex_start)
     {
         _edges = new T[graph.V];
         _distace = new double[graph.V];
         minPQ = new IndexPriorityQueueMin<double>(graph.V);
+        _relaxationLimit = ((long)graph.V * (graph.Arcs + 1)) + graph.V;
 
         for (int i = 0; i < graph.V; i++)
             _distace[i] = double.MaxValue;
@@ -57,6 +66,9 @@ public class DijkstraSPath<T> where T : BaseEdge, new()
 
         if (_distace[v_out] > w)
         {
+            if (++_relaxations > _relaxationLimit)
+                throw new InvalidOperationException(
+                    "Расстояния улучшаются без конца: в графе есть цикл отрицательной длины. Используйте BellmanFordSP");
 
             _distace[v_out] = w;
             _edges[v_out] = e;

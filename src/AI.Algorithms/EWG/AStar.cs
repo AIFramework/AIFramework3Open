@@ -82,15 +82,16 @@ public class AStarSearch<T> where T : BaseEdge, new()
             foreach (T e in graph.AdjEW(current))
             {
                 int neighbor = e.EndV;
-                if (closedSet[neighbor]) continue;
-
                 double tentativeG = GScore[current] + e.W;
 
+                // Закрытая вершина переоткрывается, если к ней нашёлся путь короче: с допустимой,
+                // но несогласованной эвристикой без этого ответ был бы не оптимальным
                 if (tentativeG < GScore[neighbor])
                 {
                     CameFrom[neighbor] = e;
                     GScore[neighbor] = tentativeG;
                     fScore[neighbor] = tentativeG + heuristic(neighbor);
+                    closedSet[neighbor] = false;
 
                     if (openSet.IsContain(neighbor))
                         openSet.Update(neighbor, fScore[neighbor]);

@@ -51,13 +51,39 @@ public class Graph
     /// <param name="j"></param>
     public virtual void AddEdge(int i, int j)
     {
-        if (!(_adjacencyArray[i].Contains(j) && _adjacencyArray[j].Contains(i)))
+        // Петля по-прежнему хранится дважды в одном списке — на этом держится подсчёт петель
+        if (i == j)
+        {
+            if (!_adjacencyArray[i].Contains(j))
+            {
+                _adjacencyArray[i].Add(j);
+                _adjacencyArray[j].Add(i);
+                E++;
+                Arcs += 2;
+            }
+
+            return;
+        }
+
+        // Каждое направление добавляется, только если его ещё нет: иначе ребро поверх
+        // уже существующей дуги давало бы дубликат в списке смежности
+        bool forward = !_adjacencyArray[i].Contains(j);
+        bool backward = !_adjacencyArray[j].Contains(i);
+
+        if (forward)
         {
             _adjacencyArray[i].Add(j);
-            _adjacencyArray[j].Add(i);
-            E++;
-            Arcs += 2;
+            Arcs++;
         }
+
+        if (backward)
+        {
+            _adjacencyArray[j].Add(i);
+            Arcs++;
+        }
+
+        if (forward || backward)
+            E++;
     }
 
     /// <summary>
@@ -138,15 +164,13 @@ public class Graph
     public Graph Reverse()
     {
         Graph graph = new Graph(V);
-        for (int i = 0; i < graph.V; i++)
+        for (int i = 0; i < V; i++)
         {
-            int[] arcs = graph.Adj(i);
-            for (int j = 0; j < arcs.Length; j++)
+            foreach (int j in Adj(i))
                 graph.AddArc(j, i);
         }
 
         return graph;
-
     }
 
     /// <summary>

@@ -80,21 +80,33 @@ Console.WriteLine($"Удельная стоимость: {cost / flow:F2} на �
 Три алгоритма дают одну и ту же оптимальную стоимость — различаются лишь скоростью сходимости:
 
 ```csharp
-foreach (var name in new[] { "SSP", "CycleCanceling", "CostScaling" })
+// Общих интерфейсов у трёх классов нет, поэтому сеть задаётся через их методы как делегаты.
+// dynamic здесь не подходит: имена полей кортежа во время выполнения не существуют
+(double flow, double cost) Run(Action<int, int, int, double> addEdge, Func<int, int, (double flow, double cost)> solve)
 {
-    dynamic solver = name switch
-    {
-        "CycleCanceling" => new CycleCanceling(5),
-        "CostScaling"    => new CostScaling(5),
-        _                => new SuccessiveShortestPaths(5),
-    };
+    addEdge(0, 1, 4, 1.0); addEdge(0, 2, 3, 2.0);
+    addEdge(1, 3, 2, 3.0); addEdge(2, 3, 5, 1.0);
+    addEdge(3, 4, 6, 2.0);
 
-    solver.AddEdge(0, 1, 4, 1.0); solver.AddEdge(0, 2, 3, 2.0);
-    solver.AddEdge(1, 3, 2, 3.0); solver.AddEdge(2, 3, 5, 1.0);
-    solver.AddEdge(3, 4, 6, 2.0);
+    return solve(0, 4);
+}
 
-    var r = solver.Solve(0, 4);
+var ssp = new SuccessiveShortestPaths(5);
+var cc  = new CycleCanceling(5);
+var cs  = new CostScaling(5);
+
+foreach (var (name, r) in new[]
+{
+    ("SSP", Run(ssp.AddEdge, ssp.Solve)),
+    ("CycleCanceling", Run(cc.AddEdge, cc.Solve)),
+    ("CostScaling", Run(cs.AddEdge, cs.Solve)),
+})
+{
     Console.WriteLine($"{name,-15} поток={r.flow:F0} стоимость={r.cost:F2}");
 }
 ```
+
+Метод последовательных кратчайших путей требует, чтобы в сети не было циклов отрицательной
+стоимости, и сообщает о таком цикле исключением. Отмена циклов и масштабирование стоимости
+решают и такие сети.
 

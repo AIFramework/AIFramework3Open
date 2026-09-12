@@ -46,6 +46,12 @@ public class GomoryHu
     /// <summary>
     /// Строит дерево Гомори-Ху
     /// </summary>
+    /// <remarks>
+    /// Метод Гасфилда: n − 1 максимальных потоков без стягивания вершин. Шаг с перестановкой,
+    /// когда родитель стока оказывается на стороне истока, обязателен: без него дерево даёт
+    /// верные величины разрезов, но не сами разрезы — удаление ребра дерева могло бы разбить
+    /// вершины не так, как минимальный разрез.
+    /// </remarks>
     public void Build()
     {
         for (int i = 0; i < _n; i++)
@@ -54,8 +60,9 @@ public class GomoryHu
             _treeCost[i] = 0;
         }
 
-        for (int i = 1; i < _n; i++)
+        for (int s = 1; s < _n; s++)
         {
+            int t = _treeParent[s];
             FlowNetwork network = new FlowNetwork(_n);
             for (int u = 0; u < _n; u++)
             {
@@ -69,13 +76,22 @@ public class GomoryHu
                 }
             }
 
-            FordFulkerson ff = new FordFulkerson(network, i, _treeParent[i]);
-            _treeCost[i] = ff.MaxFlow;
+            FordFulkerson ff = new FordFulkerson(network, s, t);
+            double cut = ff.MaxFlow;
+            _treeCost[s] = cut;
 
-            for (int j = i + 1; j < _n; j++)
+            for (int j = 0; j < _n; j++)
             {
-                if (_treeParent[j] == _treeParent[i] && ff.InCut(j))
-                    _treeParent[j] = i;
+                if (j != s && _treeParent[j] == t && ff.InCut(j))
+                    _treeParent[j] = s;
+            }
+
+            if (_treeParent[t] != t && ff.InCut(_treeParent[t]))
+            {
+                _treeParent[s] = _treeParent[t];
+                _treeParent[t] = s;
+                _treeCost[s] = _treeCost[t];
+                _treeCost[t] = cut;
             }
         }
 
@@ -146,6 +162,9 @@ public class GomoryHu
     {
         if (!_built)
             throw new InvalidOperationException("Сначала вызовите Build()");
+
+        if (u == v)
+            throw new ArgumentException("Разрез разделяет две разные вершины", nameof(v));
 
         // Найти ребро-бутылочное горло на пути u-v в дереве
         bool[] visited = new bool[_n];

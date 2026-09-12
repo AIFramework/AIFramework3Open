@@ -74,14 +74,16 @@ public class StoerWagner
             }
 
             inA[start] = true;
-            prev = start;
+            last = start;
 
+            // Ключ вершины — суммарный вес её рёбер в множество A, поэтому он растёт на веса
+            // вершины, добавленной на предыдущем шаге, а не стартовой
             for (int j = 1; j < remaining; j++)
             {
                 for (int i = 0; i < n; i++)
                 {
                     if (active[i] && !inA[i])
-                        key[i] += w[prev, i];
+                        key[i] += w[last, i];
                 }
 
                 double maxKey = -1;
@@ -96,8 +98,8 @@ public class StoerWagner
                 }
 
                 inA[maxV] = true;
-                if (j == remaining - 2) prev = maxV;
-                if (j == remaining - 1) last = maxV;
+                prev = last;
+                last = maxV;
             }
 
             double cutOfPhase = key[last];

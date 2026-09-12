@@ -112,7 +112,7 @@ public class GraphW<T> where T : BaseEdge, new()
         int[] ints = new int[eArr.Length];
 
         for (int j = 0; j < eArr.Length; j++)
-            ints[i] = eArr[j].Other(i);
+            ints[j] = eArr[j].Other(i);
 
         return ints.ToArray();
     }
@@ -178,18 +178,23 @@ public class GraphW<T> where T : BaseEdge, new()
     /// <summary>
     /// Меняет направления в графе на противоположные
     /// </summary>
+    /// <remarks>
+    /// Каждая дуга <c>StartV → EndV</c> становится дугой <c>EndV → StartV</c>; веса не переносятся,
+    /// результат — невзвешенный граф.
+    /// </remarks>
     public Graph Reverse()
     {
         Graph graph = new Graph(V);
-        for (int i = 0; i < graph.V; i++)
+        for (int i = 0; i < V; i++)
         {
-            int[] arcs = graph.Adj(i);
-            for (int j = 0; j < arcs.Length; j++)
-                graph.AddArc(j, i);
+            foreach (T edge in AdjEW(i))
+            {
+                if (edge.StartV == i)
+                    graph.AddArc(edge.EndV, i);
+            }
         }
 
         return graph;
-
     }
 
     /// <summary>

@@ -54,7 +54,7 @@ public static class UnitRegistry
         Add(Si.Becquerel); Add(Si.Gray); Add(Si.Sievert); Add(Si.Katal);
         Add(Si.Radian); Add(Si.Steradian);
 
-        Add(Si.Percent); Add(Si.Degree); Add(Si.Minute); Add(Si.Hour); Add(Si.Day);
+        Add(Si.Percent); Add(Si.Degree); Add(Si.Minute); Add(Si.Hour); Add(Si.Day); Add(Si.Year);
         Add(Si.Litre); Add(Si.Tonne); Add(Si.Hectare); Add(Si.Bar); Add(Si.Atmosphere);
         Add(Si.MillimetreOfMercury); Add(Si.ElectronVolt); Add(Si.Calorie);
         Add(Si.Angstrom); Add(Si.AstronomicalUnit); Add(Si.Dalton);
@@ -67,6 +67,7 @@ public static class UnitRegistry
         Symbols["ohm"] = Si.Ohm;
         Symbols["Ω"] = Si.Ohm;
         Symbols["u"] = Si.Dalton;
+        Symbols["yr"] = Si.Year;
         Symbols["deg"] = Si.Degree;
         Symbols["degC"] = Si.DegreeCelsius;
         Symbols["degF"] = Si.DegreeFahrenheit;

@@ -59,10 +59,12 @@ $$G = \sum_{i=1}^{k} g_i > 0, \quad g_i = d(x_i) - d(y_i)$$
 | `.TwoOpt(sol)`, `.ThreeOpt(sol)`, `.OrOpt(sol)` | Соответствующие окрестности; возвращают улучшенное `VRPSolution` |
 | `LinKernighan(VRPInstance inst)` | Переменная глубина обмена |
 | `.Solve(VRPSolution initial = null)` | Улучшает `initial` или строит решение с нуля |
-| `Christofides(VRPInstance inst)` | Приближение с гарантией 3/2 |
-| `.SolveTSP()` | `List<int>` — тур; в `VRPSolution` его нужно завернуть вручную |
+| `Christofides(VRPInstance inst)` | Приближение с гарантией 3/2 — при точном паросочетании, см. `GuaranteeHolds` |
+| `.SolveTSP()` | `List<int>` — узлы тура: депо — узел 0, клиент c — узел c + 1 |
+| `.SolveAsSolution()` | Тот же тур как `VRPSolution` с индексами клиентов |
+| `.GuaranteeHolds` | Было ли паросочетание нечётных вершин точным, а значит, держится ли граница 3/2 |
 
-`Christofides.SolveTSP()` возвращает **список вершин**, а не `VRPSolution`, — это единственный метод с таким возвратом.
+`Christofides.SolveTSP()` возвращает **узлы**, а не индексы клиентов: депо — узел 0, клиент c — узел c + 1. Завернуть такой список в `VRPSolution` напрямую нельзя — `TotalDistance` выйдет за границу матрицы расстояний. Для этого есть `SolveAsSolution()`.
 
 Исходники: `src/AI.Algorithms/VRP/`.
 
@@ -96,12 +98,13 @@ var lk = new LinKernighan(inst).Solve(initial);
 Console.WriteLine($"Lin-Kernighan:  {lk.TotalDistance(inst):F1}");
 ```
 
-Christofides даёт доказанную границу 3/2 от оптимума — но только для метрики, удовлетворяющей неравенству треугольника:
+Christofides даёт доказанную границу 3/2 от оптимума при двух условиях: метрика удовлетворяет неравенству треугольника, а паросочетание нечётных вершин остовного дерева минимально. Пока нечётных вершин не больше 20, оно ищется точно — динамикой по подмножествам; при большем числе — жадно, и гарантии нет. Какой случай был, показывает `GuaranteeHolds`:
 
 ```csharp
-var tour = new Christofides(inst).SolveTSP();
-var sol  = new VRPSolution { Routes = new List<List<int>> { tour } };
+var christofides = new Christofides(inst);
+var sol = christofides.SolveAsSolution();
 
 Console.WriteLine($"Christofides:   {sol.TotalDistance(inst):F1}");
+Console.WriteLine($"Гарантия 3/2:   {christofides.GuaranteeHolds}");
 ```
 

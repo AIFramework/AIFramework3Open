@@ -30,6 +30,7 @@ public class SimplePriorityQueueMin<T> : IPriorityQueueMin<T>
     {
         _data = new T[data.Length];
         Array.Copy(data, 0, _data, 0, _data.Length);
+        size = data.Length;
     }
 
     /// <summary>
@@ -38,6 +39,9 @@ public class SimplePriorityQueueMin<T> : IPriorityQueueMin<T>
     /// <returns></returns>
     public T DelMin()
     {
+        if (size == 0)
+            throw new InvalidOperationException("Очередь пуста");
+
         int minInd = 0;
 
         for (int i = 1; i < size; i++)
@@ -63,12 +67,26 @@ public class SimplePriorityQueueMin<T> : IPriorityQueueMin<T>
     /// <returns>Был ли добавлен элемент (true - был, false - нет)</returns>
     public void Insert(T element)
     {
+        if (size == _data.Length)
+            throw new InvalidOperationException($"Очередь заполнена: ёмкость {_data.Length}");
+
         _data[size++] = element;
     }
 
+    /// <summary>
+    /// Наименьший элемент без извлечения
+    /// </summary>
     public T KeyMin()
     {
-        throw new NotImplementedException();
+        if (size == 0)
+            throw new InvalidOperationException("Очередь пуста");
+
+        int minInd = 0;
+
+        for (int i = 1; i < size; i++)
+            if (Less(i, minInd)) minInd = i;
+
+        return _data[minInd];
     }
 
     /// <summary>

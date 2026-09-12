@@ -80,14 +80,22 @@ public class BellmanFordSP<T> where T : BaseEdge, new()
     /// Последовательность рёбер кратчайшего пути до вершины
     /// </summary>
     /// <param name="v">Целевая вершина</param>
-    /// <returns>Рёбра пути или null если путь не существует</returns>
+    /// <returns>
+    /// Рёбра пути или null, если путь не существует или не определён: при отрицательном цикле
+    /// дерево предков замыкается в кольцо, и обход по нему не кончался бы
+    /// </returns>
     public IEnumerable<T> PathTo(int v)
     {
         if (Distances[v] >= double.MaxValue) return null;
 
         Stack<T> path = new Stack<T>();
         for (T e = Edges[v]; e != null; e = Edges[e.StartV])
+        {
             path.Push(e);
+
+            if (path.Count > Distances.Length)
+                return null;
+        }
 
         return path;
     }

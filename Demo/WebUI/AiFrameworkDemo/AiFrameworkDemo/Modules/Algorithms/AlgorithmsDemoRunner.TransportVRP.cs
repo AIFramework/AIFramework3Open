@@ -134,9 +134,9 @@ namespace AiFrameworkDemo.Modules.Algorithms
                 }
                 case 2:
                 {
+                    // SolveTSP возвращает узлы (с депо и сдвигом на единицу), а не индексы клиентов
                     var chris = new Christofides(inst);
-                    var tour = chris.SolveTSP();
-                    sol = new VRPSolution { Routes = new List<List<int>> { tour } };
+                    sol = chris.SolveAsSolution();
                     algoName = "Christofides";
                     break;
                 }

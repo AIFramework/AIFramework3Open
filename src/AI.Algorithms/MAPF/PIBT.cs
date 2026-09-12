@@ -9,6 +9,22 @@ namespace AI.Algorithms.MAPF;
 /// На каждом временном шаге агенты по приоритету выбирают ход;
 /// при блокировке нижестоящий агент наследует приоритет и отходит.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Агент перебирает клетки по расстоянию до цели (обход в ширину, а не манхэттенская оценка —
+/// она обманывает у стен). Если клетка занята агентом, ещё не сделавшим ход, тот наследует
+/// приоритет и должен освободить её; вернуться на клетку того, кто его толкает, он не может —
+/// так исключается обмен местами. Если отойти некуда, толкающий пробует следующую клетку.
+/// Прежде проверка обмена стояла не там, и агенты зацикливались или менялись местами.
+/// </para>
+/// <para>
+/// Приоритет растёт с каждым шагом, проведённым не на цели, поэтому застрявший агент рано
+/// или поздно получает право хода. Гарантия PIBT — каждый агент рано или поздно побывает
+/// на цели — доказана лишь для графов, где любые две соседние клетки лежат на общем цикле;
+/// одновременного прибытия всех она не обещает. Если за отведённое число шагов не все дошли,
+/// решение не проходит <see cref="MAPFSolution.IsValid"/>.
+/// </para>
+/// </remarks>
 [Serializable]
 public class PIBT
 {
@@ -36,106 +52,110 @@ public class PIBT
     {
         int n = _agents.Count;
         var pos = new (int X, int Y)[n];
+        var distance = new int[n][,];
+
         for (int i = 0; i < n; i++)
+        {
             pos[i] = (_agents[i].StartX, _agents[i].StartY);
+            distance[i] = SpaceTimePlanner.DistancesTo(_map, _agents[i].GoalX, _agents[i].GoalY);
+        }
 
         var paths = new List<List<(int X, int Y)>>(n);
         for (int i = 0; i < n; i++)
             paths.Add(new List<(int X, int Y)> { pos[i] });
 
+        // Дробная часть — постоянная добавка для однозначного порядка при равных приоритетах
         var priority = new double[n];
         for (int i = 0; i < n; i++)
-            priority[i] = n - i;
+            priority[i] = (double)(n - i) / (n + 1);
 
         for (int t = 0; t < _maxTimesteps; t++)
         {
-            bool allDone = true;
-            for (int i = 0; i < n; i++)
+            if (Enumerable.Range(0, n).All(i => AtGoal(i, pos[i])))
+                break;
+
+            var next = new (int X, int Y)?[n];
+
+            foreach (int i in Enumerable.Range(0, n).OrderByDescending(i => priority[i]))
             {
-                if (pos[i] != (_agents[i].GoalX, _agents[i].GoalY))
-                { allDone = false; break; }
-            }
-            if (allDone) break;
-
-            var next = new (int X, int Y)[n];
-            Array.Copy(pos, next, n);
-            var decided = new bool[n];
-
-            var order = Enumerable.Range(0, n)
-                .OrderByDescending(i => priority[i])
-                .ToArray();
-
-            foreach (int i in order)
-            {
-                if (!decided[i])
-                    PibtStep(i, pos, next, decided);
+                if (next[i] == null)
+                    Step(i, -1, pos, next, distance);
             }
 
             for (int i = 0; i < n; i++)
             {
-                pos[i] = next[i];
+                pos[i] = next[i]!.Value;
                 paths[i].Add(pos[i]);
 
-                if (pos[i] == (_agents[i].GoalX, _agents[i].GoalY))
-                    priority[i] = 0;
-                else
-                    priority[i] += 1;
+                double tie = priority[i] - Math.Floor(priority[i]);
+                priority[i] = AtGoal(i, pos[i]) ? tie : priority[i] + 1;
             }
         }
 
         return new MAPFSolution { Paths = paths };
     }
 
-    private bool PibtStep(int agent, (int X, int Y)[] cur, (int X, int Y)[] next, bool[] decided)
+    private bool Step(int agent, int pusher, (int X, int Y)[] pos, (int X, int Y)?[] next, int[][,] distance)
     {
-        decided[agent] = true;
-        var (x, y) = cur[agent];
-        int gx = _agents[agent].GoalX, gy = _agents[agent].GoalY;
+        (int X, int Y) here = pos[agent];
 
-        var candidates = new List<(int X, int Y)>(_map.Neighbors(x, y));
-        candidates.Add((x, y));
-        candidates.Sort((a, b) =>
-            H(a.X, a.Y, gx, gy).CompareTo(H(b.X, b.Y, gx, gy)));
+        // При равном расстоянии — сначала свободные клетки, а вытесняемый уходит подальше
+        // от цели толкающего, а не в тупик на его пути
+        List<(int X, int Y)> candidates = _map.Neighbors(here.X, here.Y);
+        candidates.Add(here);
+        candidates = candidates
+            .OrderBy(c => distance[agent][c.X, c.Y])
+            .ThenBy(c => Occupant(c, agent, pos, next) >= 0 ? 1 : 0)
+            .ThenByDescending(c => pusher >= 0 ? distance[pusher][c.X, c.Y] : 0)
+            .ToList();
 
-        foreach (var (nx, ny) in candidates)
+        foreach ((int X, int Y) cell in candidates)
         {
-            bool takenByDecided = false;
-            for (int j = 0; j < _agents.Count; j++)
-            {
-                if (j != agent && decided[j] && next[j] == (nx, ny))
-                { takenByDecided = true; break; }
-            }
-            if (takenByDecided) continue;
+            if (Claimed(cell, agent, next))
+                continue;
 
-            int occupant = -1;
-            for (int j = 0; j < _agents.Count; j++)
+            // Вернуться на клетку толкающего нельзя: это был бы обмен местами
+            if (pusher >= 0 && cell == pos[pusher])
+                continue;
+
+            next[agent] = cell;
+            int occupant = Occupant(cell, agent, pos, next);
+
+            if (occupant >= 0 && !Step(occupant, agent, pos, next, distance))
             {
-                if (j != agent && !decided[j] && cur[j] == (nx, ny))
-                { occupant = j; break; }
+                next[agent] = null;
+                continue;
             }
 
-            if (occupant >= 0)
-            {
-                next[agent] = (nx, ny);
-                if (PibtStep(occupant, cur, next, decided))
-                {
-                    bool swapConflict = false;
-                    if (next[occupant] == cur[agent]) swapConflict = true;
-                    if (!swapConflict) return true;
-                }
-                next[agent] = cur[agent];
-                decided[occupant] = false;
-            }
-            else
-            {
-                next[agent] = (nx, ny);
-                return true;
-            }
+            return true;
         }
 
-        next[agent] = cur[agent];
+        next[agent] = here;
         return false;
     }
 
-    private static int H(int x, int y, int gx, int gy) => Math.Abs(x - gx) + Math.Abs(y - gy);
+    private static bool Claimed((int X, int Y) cell, int agent, (int X, int Y)?[] next)
+    {
+        for (int k = 0; k < next.Length; k++)
+        {
+            if (k != agent && next[k] == cell)
+                return true;
+        }
+
+        return false;
+    }
+
+    // Агент, стоящий в клетке и ещё не выбравший ход
+    private static int Occupant((int X, int Y) cell, int agent, (int X, int Y)[] pos, (int X, int Y)?[] next)
+    {
+        for (int k = 0; k < pos.Length; k++)
+        {
+            if (k != agent && next[k] == null && pos[k] == cell)
+                return k;
+        }
+
+        return -1;
+    }
+
+    private bool AtGoal(int agent, (int X, int Y) cell) => cell == (_agents[agent].GoalX, _agents[agent].GoalY);
 }

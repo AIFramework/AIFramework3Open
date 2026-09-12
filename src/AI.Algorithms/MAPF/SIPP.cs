@@ -123,12 +123,14 @@ public class SIPP
             var cur = open.Dequeue();
             int g = gVal.TryGetValue(cur, out int gv) ? gv : int.MaxValue;
 
-            if (cur.X == gx && cur.Y == gy)
-                return ReconstructPath(cur, parent, gVal, startTime);
-
             var curIntervals = GetIntervals(cur.X, cur.Y);
             if (cur.Idx >= curIntervals.Count) continue;
             var curInt = curIntervals[cur.Idx];
+
+            // Агент остаётся на цели, поэтому годится только последний, бессрочный безопасный
+            // интервал цели: прежде путь принимался в любом, и позже на агента наезжало препятствие
+            if (cur.X == gx && cur.Y == gy && curInt.End >= _maxTime)
+                return ReconstructPath(cur, parent, gVal, startTime);
 
             foreach (var (nx, ny) in _map.Neighbors(cur.X, cur.Y))
             {

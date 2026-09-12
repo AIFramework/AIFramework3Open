@@ -115,14 +115,24 @@ public static class StructureFormats
 
     /// <summary>Читает структуру из формата PDB</summary>
     /// <param name="text">Содержимое файла</param>
+    /// <remarks>
+    /// Кроме координат читаются название, номер и цепь остатка — без них белок нельзя разобрать
+    /// на остатки. Из файла с несколькими моделями (ЯМР, ансамбли) берётся первая: прежде атомы
+    /// всех моделей складывались в одну структуру. Из альтернативных положений атома берётся
+    /// первое встреченное.
+    /// </remarks>
     public static MolecularStructure ReadPdb(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
 
         var structure = new MolecularStructure();
+        var alternates = new HashSet<(char Chain, int Residue, char Insertion, string Atom)>();
 
         foreach (string raw in text.Replace("\r\n", "\n").Split('\n'))
         {
+            if (raw.StartsWith("ENDMDL", StringComparison.Ordinal))
+                break;
+
             if (raw.StartsWith("CRYST1", StringComparison.Ordinal) && raw.Length >= 54)
             {
                 structure.Cell = new UnitCell(
@@ -144,17 +154,32 @@ public static class StructureFormats
             if (!isAtom || raw.Length < 54)
                 continue;
 
+            string label = raw.Substring(12, 4).Trim();
+            char chain = raw[21];
+            char insertion = raw[26];
+            int residueNumber = int.TryParse(raw.AsSpan(22, 4), NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)
+                ? number
+                : 0;
+
+            if (raw[16] != ' ' && !alternates.Add((chain, residueNumber, insertion, label)))
+                continue;
+
             // Символ элемента стоит в колонках 77-78, но во многих файлах он пуст:
             // тогда его выводят из имени атома
             string element = raw.Length >= 78 ? raw.Substring(76, 2).Trim() : string.Empty;
 
             if (element.Length == 0)
-                element = new string(raw.Substring(12, 4).Trim().TakeWhile(char.IsLetter).ToArray());
+                element = new string(label.TakeWhile(char.IsLetter).ToArray());
 
             structure.Add(new AtomSite
             {
                 Element = NormalizeElement(element),
-                Label = raw.Substring(12, 4).Trim(),
+                Label = label,
+                ResidueName = raw.Substring(17, 3).Trim(),
+                ChainId = chain,
+                ResidueNumber = residueNumber,
+                InsertionCode = insertion,
+                IsHetero = raw.StartsWith("HETATM", StringComparison.Ordinal),
                 Position = new Vector3(
                     Number(raw.Substring(30, 8)),
                     Number(raw.Substring(38, 8)),
