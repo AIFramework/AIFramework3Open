@@ -39,7 +39,7 @@ public sealed class StructuredJsonPolicy : IReActPolicy
     private static readonly string[] FinalNames = ["final", "final_answer", "answer", "output"];
     private static readonly string[] FinalActions = ["final", "finish", "done", "answer", "stop"];
 
-    private readonly ReActCompletionDelegate _complete;
+    private readonly ReActContextCompletionDelegate _complete;
     private readonly string _contract;
     private readonly int _historyMessages;
     private readonly int _historyMessageChars;
@@ -58,6 +58,21 @@ public sealed class StructuredJsonPolicy : IReActPolicy
     /// </param>
     public StructuredJsonPolicy(
         ReActCompletionDelegate complete,
+        string contract = null,
+        int historyMessages = 6,
+        int historyMessageChars = 300)
+        : this(
+            complete == null ? null : (_, system, user, token) => complete(system, user, token),
+            contract, historyMessages, historyMessageChars)
+    {
+    }
+
+    /// <summary>
+    /// Создаёт реализацию поверх обращения к модели, которому нужен контекст шага (например,
+    /// чтобы закрыть схему ответа именами инструментов этого шага).
+    /// </summary>
+    public StructuredJsonPolicy(
+        ReActContextCompletionDelegate complete,
         string contract = null,
         int historyMessages = 6,
         int historyMessageChars = 300)
@@ -88,7 +103,7 @@ public sealed class StructuredJsonPolicy : IReActPolicy
         string raw;
         try
         {
-            raw = await _complete(context.SystemPrompt, user, cancellationToken).ConfigureAwait(false);
+            raw = await _complete(context, context.SystemPrompt, user, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

@@ -156,8 +156,66 @@ public class ReActToolIdentityTests
 
         ReActResult result = await engine.RunAsync("вопрос");
 
-        // Инструмент падает подряд — ход останавливается, как бы модель его ни называла.
+        // Инструмент падает подряд — блокируется, как бы модель его ни называла: третий вызов
+        // не исполняется. Он в наборе единственный, и без инструментов ход останавливается.
         Assert.Equal(ReActStopReason.NoProgress, result.StopReason);
         Assert.Equal(2, tool.Invocations.Count);
+    }
+
+    [Fact]
+    public async Task ReActEngine_RunAsync_BlocksExhaustedToolAndContinuesWithTheRest()
+    {
+        var broken = new FakeReActTool(
+            "web_search",
+            (_, _) => Task.FromResult(ReActToolOutcome.Failure("сеть недоступна")));
+        var working = new FakeReActTool(
+            "calc",
+            (_, _) => Task.FromResult(ReActToolOutcome.Success("42")));
+
+        var policy = new FakeReActPolicy(
+            ReActDecision.Act(new ReActAction("web_search", "а")),
+            ReActDecision.Act(new ReActAction("web_search", "б")),
+            ReActDecision.Act(new ReActAction("calc", "2*21")),
+            ReActDecision.Final("готово"));
+
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithPolicy(policy)
+            .WithTool(broken)
+            .WithTool(working)
+            .WithRepeatedActionPolicy(maxRepeats: 5, maxConsecutiveFailures: 2)
+            .WithMaxIterations(6)
+            .Build();
+
+        ReActResult result = await engine.RunAsync("вопрос");
+
+        Assert.Equal(ReActStopReason.FinalAnswer, result.StopReason);
+        Assert.Single(working.Invocations);
+
+        // После блокировки политика видит набор без сорвавшегося инструмента.
+        Assert.DoesNotContain(policy.Calls[^1].Tools, t => t.Name == "web_search");
+        Assert.Contains(policy.Calls[^1].Tools, t => t.Name == "calc");
+    }
+
+    [Fact]
+    public async Task ReActEngine_RunAsync_StopsWhenEveryToolIsBlocked()
+    {
+        var broken = new FakeReActTool(
+            "web_search",
+            (_, _) => Task.FromResult(ReActToolOutcome.Failure("сеть недоступна")));
+        var policy = new FakeReActPolicy(
+            ReActDecision.Act(new ReActAction("web_search", "а")),
+            ReActDecision.Act(new ReActAction("web_search", "б")));
+
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithPolicy(policy)
+            .WithTool(broken)
+            .WithRepeatedActionPolicy(maxRepeats: 5, maxConsecutiveFailures: 2)
+            .WithMaxIterations(6)
+            .Build();
+
+        ReActResult result = await engine.RunAsync("вопрос");
+
+        Assert.Equal(ReActStopReason.NoProgress, result.StopReason);
+        Assert.Equal(2, broken.Invocations.Count);
     }
 }

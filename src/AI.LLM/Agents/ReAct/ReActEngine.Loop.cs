@@ -121,9 +121,19 @@ public sealed partial class ReActEngine
             string exhausted = FindExhaustedTool(run.Tools, run.Trace, decision.Actions);
             if (exhausted != null)
             {
-                run.StopReason = ReActStopReason.NoProgress;
-                yield return new ReActEvent.Note(step, _template.BuildRepeatedFailureNote(exhausted));
-                break;
+                // Блокировка до конца прогона, а не остановка: сорвавшийся инструмент исчезает из
+                // набора и из системной инструкции, цикл продолжается остальными. Раньше два отказа
+                // подряд гасили весь прогон, и собранное до них уходило в ответ по накопленному.
+                run.Tools = WithoutTool(run.Tools, exhausted);
+                run.SystemPrompt = _template.BuildSystemPrompt(_basePrompt, run.Tools, run.Skills, run.Query.ToRunContext());
+                note = _template.BuildRepeatedFailureNote(exhausted);
+                yield return new ReActEvent.Note(step, note);
+
+                if (run.Tools.Count == 0)
+                {
+                    run.StopReason = ReActStopReason.NoProgress;
+                    break;
+                }
             }
         }
 
@@ -179,6 +189,19 @@ public sealed partial class ReActEngine
         }
 
         return repeats;
+    }
+
+    /// <summary>Набор без заблокированного инструмента; имя сравнивается каноническое.</summary>
+    private static IReadOnlyList<IReActTool> WithoutTool(IReadOnlyList<IReActTool> tools, string name)
+    {
+        var rest = new List<IReActTool>(tools.Count);
+        foreach (IReActTool tool in tools)
+        {
+            if (!string.Equals(tool.Name, name, StringComparison.Ordinal))
+                rest.Add(tool);
+        }
+
+        return rest;
     }
 
     /// <summary>Инструмент, исчерпавший лимит падений подряд; <c>null</c>, если таких нет.</summary>

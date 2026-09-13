@@ -1,5 +1,6 @@
 using AI.LLM.Agents.ReAct;
 using AI.LLM.Agents.ReAct.Policies;
+using AI.LLM.Agents.ReAct.Tools;
 using Xunit;
 
 namespace AI.LLM.UnitTests;
@@ -147,6 +148,28 @@ public class StructuredJsonPolicyTests
 
         Assert.True(decision.IsMalformed);
         Assert.False(decision.IsFinal);
+    }
+
+    /// <summary>Обращение к модели с контекстом шага видит инструменты этого шага.</summary>
+    [Fact]
+    public async Task StructuredJsonPolicy_ContextDelegate_SeesTheStepTools()
+    {
+        IReadOnlyList<string> seen = [];
+        var policy = new StructuredJsonPolicy((ReActPolicyContext context, string _, string _, CancellationToken _) =>
+        {
+            seen = context.Tools.Select(t => t.Name).ToList();
+            return Task.FromResult("""{"thought":"","action":"final","final":"ок"}""");
+        });
+
+        var decision = await policy.DecideAsync(new ReActPolicyContext
+        {
+            Query = new ReActQuery("вопрос"),
+            Tools = [new AI.LLM.UnitTests.Fakes.FakeReActTool("calc", (_, _) => Task.FromResult(ReActToolOutcome.Success("1")))],
+            SystemPrompt = "system",
+        });
+
+        Assert.True(decision.IsFinal);
+        Assert.Equal(["calc"], seen);
     }
 
     /// <summary>
