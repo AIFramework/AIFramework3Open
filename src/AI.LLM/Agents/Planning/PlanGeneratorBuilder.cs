@@ -64,6 +64,9 @@ public sealed class PlanGeneratorBuilder
     /// </summary>
     public PlanGeneratorBuilder WithPortsPrompt(string prompt) { _config.PortsPrompt = prompt; return this; }
 
+    /// <summary>Строгая схема ответа с закрытым перечнем инструментов (см. <see cref="PlanGeneratorConfig.StrictSchema"/>).</summary>
+    public PlanGeneratorBuilder WithStrictSchema(bool on = true) { _config.StrictSchema = on; return this; }
+
     /// <summary>Строит генератор планов.</summary>
     public PlanGenerator Build()
     {
