@@ -225,9 +225,12 @@ internal static class ReActJsonParser
             switch (value.ValueKind)
             {
                 case JsonValueKind.String:
+                    // Пустая строка — не завершение: строгая схема требует поле final в каждом
+                    // решении, и у действия оно приходит пустым.
                     string s = value.GetString();
-                    if (!string.IsNullOrWhiteSpace(s))
-                        text = s;
+                    if (string.IsNullOrWhiteSpace(s))
+                        continue;
+                    text = s;
                     return true;
 
                 case JsonValueKind.False:

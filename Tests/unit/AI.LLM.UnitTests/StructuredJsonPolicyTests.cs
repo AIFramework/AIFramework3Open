@@ -148,4 +148,24 @@ public class StructuredJsonPolicyTests
         Assert.True(decision.IsMalformed);
         Assert.False(decision.IsFinal);
     }
+
+    /// <summary>
+    /// Строгая схема требует поле final в каждом решении, и у действия оно пустое: пустая строка
+    /// завершением не считается, действие исполняется.
+    /// </summary>
+    [Fact]
+    public void StructuredJsonPolicy_Parse_EmptyFinalIsNotCompletion()
+    {
+        ReActDecision act = StructuredJsonPolicy.Parse(
+            """{"thought":"ищу","action":"web_search","arg":"погода","final":""}""");
+
+        Assert.False(act.IsFinal);
+        Assert.Equal("web_search", Assert.Single(act.Actions).ToolName);
+
+        ReActDecision final = StructuredJsonPolicy.Parse(
+            """{"thought":"готово","action":"final","arg":"","final":"Ответ."}""");
+
+        Assert.True(final.IsFinal);
+        Assert.Equal("Ответ.", final.FinalText);
+    }
 }
