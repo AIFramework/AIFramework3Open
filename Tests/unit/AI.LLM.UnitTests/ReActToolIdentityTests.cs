@@ -191,9 +191,11 @@ public class ReActToolIdentityTests
         Assert.Equal(ReActStopReason.FinalAnswer, result.StopReason);
         Assert.Single(working.Invocations);
 
-        // После блокировки политика видит набор без сорвавшегося инструмента.
+        // После блокировки политика видит набор без сорвавшегося инструмента, а системная
+        // инструкция остается прежней: префикс не мутирует посреди прогона (дисциплина кэша).
         Assert.DoesNotContain(policy.Calls[^1].Tools, t => t.Name == "web_search");
         Assert.Contains(policy.Calls[^1].Tools, t => t.Name == "calc");
+        Assert.All(policy.Calls, c => Assert.Equal(policy.Calls[0].SystemPrompt, c.SystemPrompt));
     }
 
     [Fact]
