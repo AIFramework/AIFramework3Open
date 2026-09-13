@@ -244,7 +244,12 @@ public static partial class FunctionsForEachElements
     /// <param name="x">Аргумент</param>
     public static double Erf(double x)
     {
+        if (double.IsNaN(x)) return double.NaN;
+
         double t = x * x;
+        // x бесконечен или x² переполнился: цепная дробь дала бы 0·∞, а erf там уже ровно ±1
+        if (double.IsInfinity(t)) return Math.Sign(x);
+
         // При малых x берём ряд для P: 1 - Q дало бы вычитание близких величин
         double magnitude = t < IncompleteGammaSeriesLimit
             ? IncompleteGammaP(0.5, t)
@@ -264,9 +269,13 @@ public static partial class FunctionsForEachElements
     /// <param name="x">Аргумент</param>
     public static double Erfc(double x)
     {
+        if (double.IsNaN(x)) return double.NaN;
         if (x < 0) return 2.0 - Erfc(-x);
 
         double t = x * x;
+        // x бесконечен или x² переполнился: хвост меньше наименьшего double, а цепная дробь дала бы 0·∞
+        if (double.IsInfinity(t)) return 0;
+
         return t < IncompleteGammaSeriesLimit
             ? 1.0 - IncompleteGammaP(0.5, t)
             : IncompleteGammaQ(0.5, t);

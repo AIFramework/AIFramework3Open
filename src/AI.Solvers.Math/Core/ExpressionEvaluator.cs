@@ -204,52 +204,11 @@ public static class ExpressionEvaluator
         return h * System.Math.Exp(-y);
     }
 
-    private static double NumericalFresnelS(double x)
-    {
-        // S(x) = ∫₀ˣ sin(π t² / 2) dt
-        if (System.Math.Abs(x) < 1e-12) return 0;
-        // Разложение в ряд (быстро сходится для |x| <= ~3): Σ (-1)^n (π/2)^(2n+1) x^(4n+3) / ((2n+1)!(4n+3))
-        if (System.Math.Abs(x) <= 3)
-        {
-            double pi2 = System.Math.PI / 2;
-            double sum = 0;
-            double sign = 1;
-            double pow = pi2 * x * x * x;
-            double fact = 1;
-            for (int n = 0; n < 30; n++)
-            {
-                sum += sign * pow / (fact * (4 * n + 3));
-                sign = -sign;
-                pow *= pi2 * pi2 * x * x * x * x;
-                fact *= (2 * n + 2) * (2 * n + 3);
-            }
-            return sum;
-        }
-        return Quadrature.Integrate(t => System.Math.Sin(System.Math.PI * t * t / 2), 0, x);
-    }
+    // Интегралы Френеля берутся из ядра: ряд здесь при |x| около 3 терял точность на сокращении слагаемых,
+    // а дальше переходил на квадратуру осциллирующей функции
+    private static double NumericalFresnelS(double x) => AI.HighLevelFunctions.SpecialFunctions.FresnelS(x);
 
-    private static double NumericalFresnelC(double x)
-    {
-        // C(x) = ∫₀ˣ cos(π t² / 2) dt
-        if (System.Math.Abs(x) < 1e-12) return 0;
-        if (System.Math.Abs(x) <= 3)
-        {
-            double pi2 = System.Math.PI / 2;
-            double sum = 0;
-            double sign = 1;
-            double pow = x;
-            double fact = 1;
-            for (int n = 0; n < 30; n++)
-            {
-                sum += sign * pow / (fact * (4 * n + 1));
-                sign = -sign;
-                pow *= pi2 * pi2 * x * x * x * x;
-                fact *= (2 * n + 1) * (2 * n + 2);
-            }
-            return sum;
-        }
-        return Quadrature.Integrate(t => System.Math.Cos(System.Math.PI * t * t / 2), 0, x);
-    }
+    private static double NumericalFresnelC(double x) => AI.HighLevelFunctions.SpecialFunctions.FresnelC(x);
 
     private static double NumericalLi(double x)
     {

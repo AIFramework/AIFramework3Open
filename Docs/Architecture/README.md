@@ -17,6 +17,7 @@
 | Системы управления **`AI.ControlSystems`** | [ControlSystems.md](ControlSystems.md) |
 | Нечёткая логика **`AI.Fuzzy`** | [FuzzyLogic.md](FuzzyLogic.md) |
 | NLP **`AI.NLP`** | [NLP.md](NLP.md) |
+| Психология **`AI.Psychology`**: когнитивные модели, психометрия, IRT | [Psychology.md](Psychology.md) |
 | Графики: **`AI.Charts`**, `.JS`, `.WinForms`, `.Avalonia` | [Charts.md](Charts.md) |
 | Вспомогательные модули (ONNX, DataPrepaire, KNN, Faiss, …) | [SupportingModules.md](SupportingModules.md) |
 

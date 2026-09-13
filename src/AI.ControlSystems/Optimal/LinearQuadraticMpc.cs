@@ -30,7 +30,7 @@ public static class LinearQuadraticMpc
         for (int t = 0; t < horizon; t++)
         {
             Matrix btsb = bt * s * b + r;
-            Matrix inv = btsb.GetInvertMatrix();
+            Matrix inv = ControlLinAlg.Inverse(btsb);
             Matrix k = inv * bt * s * a;
             if (t == horizon - 1)
                 k0 = k;

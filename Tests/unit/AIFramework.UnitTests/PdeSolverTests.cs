@@ -28,6 +28,57 @@ public class PdeSolverTests
     #region Линейная алгебра
 
     [Fact]
+    public void BandedCholesky_SolvesBandedSystem_AndAgreesWithConjugateGradient()
+    {
+        const int Size = 60, Half = 4;
+        var rng = new Random(3);
+        var matrix = new SparseMatrix(Size, Size);
+
+        // Диагональ больше суммы модулей строки — матрица положительно определена
+        for (int i = 0; i < Size; i++)
+        {
+            matrix.Add(i, i, (4 * Half) + 1);
+
+            for (int j = i + 1; j <= Math.Min(Size - 1, i + Half); j++)
+            {
+                double value = (rng.NextDouble() * 2) - 1;
+                matrix.Add(i, j, value);
+                matrix.Add(j, i, value);
+            }
+        }
+
+        var right = new Vector(Enumerable.Range(0, Size).Select(_ => rng.NextDouble()).ToArray());
+
+        BandedCholesky factor = BandedCholesky.Factor(matrix);
+        Vector solution = factor.Solve(right);
+        Vector residual = matrix.Multiply(solution) - right;
+        Vector iterative = IterativeSolvers.ConjugateGradient(matrix, right, 1e-13).Solution;
+
+        Assert.Equal(Half, factor.HalfBandwidth);
+
+        for (int i = 0; i < Size; i++)
+        {
+            Assert.True(Math.Abs(residual[i]) < 1e-12, $"невязка в строке {i}: {residual[i]}");
+            Assert.Equal(iterative[i], solution[i], 1e-10);
+        }
+    }
+
+    [Fact]
+    public void BandedCholesky_RefusesIndefiniteAndAsymmetricMatrices()
+    {
+        var indefinite = new SparseMatrix(2, 2);
+        indefinite.Add(0, 0, 1); indefinite.Add(0, 1, 2);
+        indefinite.Add(1, 0, 2); indefinite.Add(1, 1, 1);
+
+        // Элемент есть только над диагональью — несимметричность должна быть замечена и здесь
+        var asymmetric = new SparseMatrix(2, 2);
+        asymmetric.Add(0, 0, 2); asymmetric.Add(0, 1, 1); asymmetric.Add(1, 1, 2);
+
+        _ = Assert.Throws<InvalidOperationException>(() => BandedCholesky.Factor(indefinite));
+        _ = Assert.Throws<ArgumentException>(() => BandedCholesky.Factor(asymmetric));
+    }
+
+    [Fact]
     public void ConjugateGradient_SolvesSmallSystem()
     {
         var matrix = new SparseMatrix(3, 3);

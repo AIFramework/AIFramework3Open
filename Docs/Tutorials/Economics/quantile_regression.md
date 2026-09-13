@@ -77,7 +77,7 @@ $1 - \sum\rho_\tau(e_i)/\sum\rho_\tau(y_i - \hat q_\tau)$, где $\hat q_\tau$ 
 
 ```csharp
 using AI.DataStructs.Algebraic;
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Statistics;
 
 Random rng = RandomEngine.Create(131);

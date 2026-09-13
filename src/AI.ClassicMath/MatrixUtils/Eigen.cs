@@ -33,7 +33,7 @@ public enum EigenOrder
 /// </para>
 /// </remarks>
 [Serializable]
-public static class Eigen
+public static partial class Eigen
 {
     /// <summary>Число проходов метода вращений по умолчанию</summary>
     public const int DefaultIterations = 500;

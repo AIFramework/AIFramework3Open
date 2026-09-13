@@ -83,7 +83,7 @@ $t - g$: до нуля должно быть плоско (проверка до
 ## Код
 
 ```csharp
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Statistics;
 
 Random rng = RandomEngine.Create(137);

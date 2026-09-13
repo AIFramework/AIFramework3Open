@@ -86,7 +86,7 @@ $\alpha$: $\mathrm{Var}(y) = \mu + \alpha\mu^2$. Значимое $\alpha$ оз�
 
 ```csharp
 using AI.DataStructs.Algebraic;
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Statistics;
 
 Random rng = RandomEngine.Create(127);

@@ -59,12 +59,9 @@ AiCore/quantiles.md
 AiCore/uniform_normal.md
 AiCore/weibull_poisson.md
 AutoControl/KalmanFilter.md
-AutoControl/LQR.md
 AutoControl/LuenbergerObserver.md
 AutoControl/PID.md
 AutoControl/RLS.md
-AutoControl/SlidingMode.md
-AutoControl/StateSpace.md
 Charts/ChartViewAndControls.md
 ClassicMath/Algebra.md
 ClassicMath/Combinatorics.md

@@ -11,14 +11,14 @@
 | # | Файл | Алгоритм | Пространство имён |
 |---|------|----------|-------------------|
 | 1 | [PID.md](PID.md) | PID-регулятор, векторный PID, IMC-настройка, ограничение скорости | `AI.ControlSystems.Pid` |
-| 2 | [StateSpace.md](StateSpace.md) | Дискретная LTI-модель, ZOH-дискретизация | `AI.ControlSystems.Linear` |
-| 3 | [PolePlacement.md](PolePlacement.md) | Размещение полюсов (формула Аккермана, SISO) | `AI.ControlSystems.Linear` |
+| 2 | [StateSpace.md](StateSpace.md) | Дискретная LTI-модель, точный ZOH, шум по Ван Лоану, управляемость, полюса, уравнения Ляпунова | `AI.ControlSystems.Linear` |
+| 3 | [PolePlacement.md](PolePlacement.md) | Размещение полюсов (формула Аккермана, SISO), наблюдатель по двойственности | `AI.ControlSystems.Linear` |
 | 4 | [LuenbergerObserver.md](LuenbergerObserver.md) | Наблюдатель Люенбергера | `AI.ControlSystems.Observers` |
-| 5 | [KalmanFilter.md](KalmanFilter.md) | Фильтр Калмана (KF) и расширенный (EKF) | `AI.ControlSystems.Observers` |
-| 6 | [LQR.md](LQR.md) | LQR и LQG (оптимальное управление) | `AI.ControlSystems.Optimal` |
-| 7 | [MPC.md](MPC.md) | Линейный квадратичный MPC | `AI.ControlSystems.Optimal` |
-| 8 | [SlidingMode.md](SlidingMode.md) | Регулятор скользящего режима | `AI.ControlSystems.Nonlinear` |
-| 9 | [MRAC.md](MRAC.md) | Адаптивный регулятор с эталонной моделью | `AI.ControlSystems.Adaptive` |
+| 5 | [KalmanFilter.md](KalmanFilter.md) | Фильтр Калмана (KF), установившийся KF и расширенный (EKF) | `AI.ControlSystems.Observers` |
+| 6 | [LQR.md](LQR.md) | LQR через уравнение Риккати (метод удвоения), синтез LQG с ожидаемой стоимостью | `AI.ControlSystems.Optimal` |
+| 7 | [MPC.md](MPC.md) | MPC с ограничениями на управление, его скорость и состояние | `AI.ControlSystems.Optimal` |
+| 8 | [SlidingMode.md](SlidingMode.md) | Скользящий режим: скалярный, по состоянию, super-twisting | `AI.ControlSystems.Nonlinear` |
+| 9 | [MRAC.md](MRAC.md) | MRAC первого порядка и по состоянию | `AI.ControlSystems.Adaptive` |
 | 10 | [RLS.md](RLS.md) | Рекурсивные МНК (идентификация параметров) | `AI.ControlSystems.Identification` |
 
 ---
@@ -28,12 +28,12 @@
 ```
 Нужен простой регулятор?
   └─ Линейный объект, известная модель → PID (+ IMC-настройка)
-  └─ Нелинейный объект, нужна робастность → SlidingMode
+  └─ Нужна робастность к возмущениям по каналу управления → SlidingMode
 
 Нужна оптимальность?
   └─ Полное состояние доступно → LQR
-  └─ Только выход (шумные измерения) → LQG = LQR + KalmanFilter
-  └─ Конечный горизонт, планирование → MPC
+  └─ Только выход (шумные измерения) → LQG
+  └─ Есть ограничения на управление или состояние → MPC
 
 Состояние недоступно напрямую?
   └─ Линейная модель, нет шума → LuenbergerObserver
@@ -45,7 +45,7 @@
   └─ Адаптивное управление → MRAC
 
 Нужно перейти от непрерывной модели к дискретной?
-  └─ ZOH-дискретизация → StateSpace (Discretization)
+  └─ ZOH и шум процесса → StateSpace (Discretization)
 
 Нужно разместить полюса замкнутой системы?
   └─ SISO → PolePlacement (Ackermann)
@@ -59,18 +59,22 @@
 ```
 AI.ControlSystems.Linear
   ├── DiscreteLtiModel          ← базовая модель
-  ├── Discretization (ZOH)      ← непрерывная → дискретная
+  ├── Discretization            ← ZOH, шум по Ван Лоану
+  ├── SystemAnalysis            ← управляемость, наблюдаемость, полюса
+  ├── RiccatiEquation           ← DARE методом удвоения
+  ├── LyapunovEquation          ← непрерывное и дискретное уравнения Ляпунова
   └── PolePlacement             ← синтез усиления
 
 AI.ControlSystems.Observers
   ├── LuenbergerObserver        ← детерминированный наблюдатель
-  ├── KalmanFilter              ← оптимальный (стохастический)
+  ├── KalmanFilter              ← оптимальный (стохастический), установившийся режим
   └── ExtendedKalmanFilter      ← нелинейный
 
 AI.ControlSystems.Optimal
   ├── DiscreteLqr               ← синтез K через DARE
-  ├── LqgRegulator              ← LQR + KalmanFilter
-  └── LinearQuadraticMpc        ← конечный горизонт
+  ├── LqgRegulator              ← LQR + установившийся фильтр Калмана
+  ├── ModelPredictiveController ← MPC с ограничениями (QP на каждом такте)
+  └── LinearQuadraticMpc        ← конечный горизонт без ограничений
 
 AI.ControlSystems.Pid
   ├── PidController             ← скалярный PID
@@ -79,14 +83,20 @@ AI.ControlSystems.Pid
   └── SlewRateLimiter           ← ограничение скорости
 
 AI.ControlSystems.Nonlinear
-  └── SlidingModeController     ← скользящий режим
+  ├── SlidingModeController     ← скалярный по ошибке
+  ├── StateSlidingModeController← по состоянию с эквивалентным управлением
+  └── SuperTwistingController   ← второго порядка, непрерывное управление
 
 AI.ControlSystems.Adaptive
-  └── ModelReferenceAdaptiveController  ← MRAC
+  ├── ModelReferenceAdaptiveController       ← MRAC первого порядка
+  └── StateModelReferenceAdaptiveController  ← MRAC по состоянию
 
 AI.ControlSystems.Identification
   └── RecursiveLeastSquares     ← RLS с забыванием
 ```
+
+Собственные значения берутся из `AI.ClassicMath` (`Eigen.General`), квадратичное
+программирование для MPC — из `AI.Solvers.Optimization` (`QpSolver`).
 
 ---
 

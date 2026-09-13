@@ -59,7 +59,7 @@ public sealed class ExtendedKalmanFilter
         Vector nu = y - yPredicted;
         Matrix ht = hJacobian.Transpose();
         Matrix s = hJacobian * Covariance * ht + r;
-        Matrix sInv = s.GetInvertMatrix();
+        Matrix sInv = ControlLinAlg.Inverse(s);
         Matrix k = Covariance * ht * sInv;
         State = State + ControlLinAlg.MatVec(k, nu);
         Matrix ikh = ControlLinAlg.Eye(StateDimension) - k * hJacobian;

@@ -10,6 +10,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AI.Solvers.Math\AI.Solvers.Math.csproj" />
+    <!-- Трёхмерные векторы: геометрия трассировки лучей -->
+    <ProjectReference Include="..\AI.Geometry\AI.Geometry.csproj" />
+    <!-- Проекция UTM и эллипсоид: перевод рельефа SRTM в локальные метры -->
+    <ProjectReference Include="..\AI.Earth\AI.Earth.csproj" />
   </ItemGroup>
 
 </Project>

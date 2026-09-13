@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />
+    <!-- LU и Холецкий: системы Каруша — Куна — Таккера в квадратичном программировании -->
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
   </ItemGroup>
 
 </Project>

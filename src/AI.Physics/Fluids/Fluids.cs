@@ -283,9 +283,10 @@ public static class FlowDynamics
     /// Коэффициент трения по формуле Свами — Джайна — явное приближение уравнения Колбрука
     /// </summary>
     /// <remarks>
-    /// Уравнение Колбрука неявное и требует итераций; приближение Свами — Джайна отличается
-    /// от него не более чем на процент в диапазоне, где обе формулы применимы, и считается
-    /// в одно действие.
+    /// Уравнение Колбрука неявное и требует итераций; приближение Свами — Джайна считается в одно
+    /// действие и на большей части диапазона 5·10³ ≤ Re ≤ 10⁸, 10⁻⁶ ≤ ε/d ≤ 10⁻² отличается от него меньше
+    /// чем на процент, но на краю — при Re = 5000 и ε/d = 0,01 — почти на три. Точное решение —
+    /// <see cref="ColebrookFrictionFactor"/>.
     /// </remarks>
     private static double SwameeJain(double reynolds, double relativeRoughness)
     {
@@ -294,6 +295,46 @@ public static class FlowDynamics
         return 0.25 / (logarithm * logarithm);
     }
 
+    /// <summary>
+    /// Коэффициент трения турбулентного течения по уравнению Колбрука — Уайта, решённому итерациями:
+    /// <c>1/√f = −2·lg(ε/(3,7d) + 2,51/(Re·√f))</c>
+    /// </summary>
+    /// <remarks>
+    /// Уравнение неявное; итерации по 1/√f начинаются с приближения Свами — Джайна и сходятся за
+    /// несколько шагов, потому что правая часть почти не зависит от f. Приближение, которым считает
+    /// <see cref="PipeFlow"/>, отличается от этого решения на проценты.
+    /// </remarks>
+    /// <param name="reynolds">Число Рейнольдса, турбулентный режим</param>
+    /// <param name="relativeRoughness">Относительная шероховатость ε/d</param>
+    public static double ColebrookFrictionFactor(double reynolds, double relativeRoughness)
+    {
+        if (!(reynolds > 0) || double.IsInfinity(reynolds))
+            throw new ArgumentOutOfRangeException(nameof(reynolds), "Число Рейнольдса должно быть положительным");
+
+        if (!(relativeRoughness >= 0) || double.IsInfinity(relativeRoughness))
+            throw new ArgumentOutOfRangeException(nameof(relativeRoughness), "Шероховатость не может быть отрицательной");
+
+        double x = 1 / Math.Sqrt(SwameeJain(reynolds, relativeRoughness));
+
+        for (int i = 0; i < 100; i++)
+        {
+            double next = -2 * Math.Log10((relativeRoughness / 3.7) + (2.51 * x / reynolds));
+
+            if (Math.Abs(next - x) <= 1e-14 * next)
+            {
+                x = next;
+                break;
+            }
+
+            x = next;
+        }
+
+        return 1 / (x * x);
+    }
+
     /// <summary>Размерность динамической вязкости, Па·с</summary>
     public static Dimension ViscosityDimension { get; } = Dimension.Pressure * Dimension.TimeDim;
+
+    /// <summary>Размерность кинематической вязкости, м²/с</summary>
+    public static Dimension KinematicViscosityDimension { get; } = Dimension.Area / Dimension.TimeDim;
 }

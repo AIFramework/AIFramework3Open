@@ -30,15 +30,52 @@ public class StatInferenceAccuracyTests
     }
 
     [Fact]
-    public void NormalQuantile_InvertsNormalCdf()
+    public void NormalQuantile_InvertsNormalCdf_AcrossSixSigma()
     {
-        foreach (double z in new[] { -2.5, -1.0, 0.5, 1.96 })
-        {
-            double p = StatInference.NormalCdf(z);
+        // Φ считается через точную erfc, квантиль уточняется шагом Галлея: обращение держится далеко за 1e-9
+        for (double z = -6; z <= 6; z += 0.25)
+            Assert.Equal(z, StatInference.NormalQuantile(StatInference.NormalCdf(z)), tolerance: 1e-11);
+    }
 
-            // Точность ограничена аппроксимацией функции ошибок (~1e-7)
-            Assert.Equal(z, StatInference.NormalQuantile(p), tolerance: 1e-5);
-        }
+    [Theory]
+    [InlineData(0.5, 0.5204998778130465)]
+    [InlineData(1.0, 0.8427007929497149)]
+    [InlineData(2.0, 0.9953222650189527)]
+    [InlineData(-1.5, -0.9661051464753107)]
+    public void Erf_MatchesReferenceValues(double x, double expected)
+    {
+        // Прежняя формула Абрамовица - Стиган 7.1.26 ошибалась здесь до 1.5e-7
+        Assert.Equal(expected, StatInference.Erf(x), tolerance: 1e-15);
+    }
+
+    [Theory]
+    [InlineData(1.0, 0.8413447460685429)]
+    [InlineData(-1.0, 0.15865525393145707)]
+    [InlineData(1.96, 0.9750021048517795)]
+    [InlineData(-5.0, 2.866515718791939e-7)]
+    [InlineData(-10.0, 7.619853024160527e-24)]
+    public void NormalCdf_MatchesReferenceValues_InRelativeTerms(double x, double expected)
+    {
+        // Относительная точность: при x = −10 прежняя ½·(1 + erf) давала хвост из одних округлений
+        Assert.Equal(expected, StatInference.NormalCdf(x), tolerance: 1e-13 * expected);
+    }
+
+    [Fact]
+    public void Erfc_KeepsTheTail_AndLimitsAreExact()
+    {
+        Assert.Equal(1.5374597944280351e-12, StatInference.Erfc(5), tolerance: 1e-13 * 1.5374597944280351e-12);
+        Assert.Equal(2.0884875837625447e-45, StatInference.Erfc(10), tolerance: 1e-12 * 2.0884875837625447e-45);
+        Assert.Equal(1.9999779095030014, StatInference.Erfc(-3), tolerance: 1e-15);
+
+        Assert.Equal(1, StatInference.Erf(double.PositiveInfinity));
+        Assert.Equal(-1, StatInference.Erf(double.NegativeInfinity));
+        Assert.Equal(0, StatInference.NormalCdf(double.NegativeInfinity));
+        Assert.Equal(1, StatInference.NormalCdf(double.PositiveInfinity));
+        Assert.Equal(1, StatInference.Erf(1e200));
+        Assert.True(double.IsNaN(StatInference.NormalCdf(double.NaN)));
+
+        foreach (double x in new[] { 0.3, 1.7, 4.0 })
+            Assert.Equal(1, StatInference.NormalCdf(x) + StatInference.NormalCdf(-x), tolerance: 1e-15);
     }
 
     [Theory]

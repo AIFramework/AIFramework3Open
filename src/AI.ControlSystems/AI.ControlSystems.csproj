@@ -14,6 +14,10 @@
   <ItemGroup>
     <ProjectReference Include="..\AI.ML\AI.ML.csproj" />
     <ProjectReference Include="..\AI\AI.csproj" />
+    <!-- Собственные значения, LU и SVD: полюса, уравнения Ляпунова, ранги -->
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+    <!-- Квадратичное программирование для MPC с ограничениями -->
+    <ProjectReference Include="..\AI.Solvers.Optimization\AI.Solvers.Optimization.csproj" />
   </ItemGroup>
 
 </Project>

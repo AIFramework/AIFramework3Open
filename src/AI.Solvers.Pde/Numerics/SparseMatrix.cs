@@ -161,6 +161,16 @@ public sealed class SparseMatrix
         _entries.Clear();
     }
 
+    /// <summary>Ненулевые элементы в строчном порядке; матрица при этом собирается</summary>
+    internal IEnumerable<(int Row, int Column, double Value)> NonZeros()
+    {
+        Compress();
+
+        for (int row = 0; row < Rows; row++)
+            for (int index = _rowStart![row]; index < _rowStart[row + 1]; index++)
+                yield return (row, _columns![index], _values![index]);
+    }
+
     /// <summary>Произведение матрицы на вектор</summary>
     /// <param name="vector">Вектор длины <see cref="Columns"/></param>
     public Vector Multiply(Vector vector)

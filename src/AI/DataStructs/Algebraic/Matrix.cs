@@ -73,31 +73,14 @@ public partial class Matrix : IAlgebraicStructure<double>, IEquatable<Matrix>, I
                 throw new InvalidOperationException("Матрица не является квадратной");
             }
 
-            double result = 1.0;
-
             if (IsZero)
             {
                 return 0;
             }
 
-            if (IsTriangle || IsDiagonal)
-            {
-                for (int i = 0; i < Height; i++)
-                {
-                    result *= this[i, i];
-                }
-
-                return result;
-            }
-
-            Matrix matrix = ToTriangularMatr();
-
-            for (int i = 0; i < Height; i++)
-            {
-                result *= matrix[i, i];
-            }
-
-            return result;
+            // LU с выбором главного элемента. Эвристики IsTriangle и IsDiagonal приближённые и
+            // для определителя не годятся: почти диагональная матрица — не диагональная
+            return PivotedDeterminant();
         }
     }
     /// <summary>

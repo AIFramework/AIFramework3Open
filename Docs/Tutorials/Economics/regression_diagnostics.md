@@ -95,7 +95,7 @@ $\sqrt{10}\approx 3{,}2$ раза.
 
 ```csharp
 using AI.DataStructs.Algebraic;
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Statistics;
 
 Random gen = RandomEngine.Create(103);

@@ -1,8 +1,15 @@
 using System;
 using AI.ControlSystems.Internal;
+using AI.ControlSystems.Linear;
 using AI.DataStructs.Algebraic;
 
 namespace AI.ControlSystems.Observers;
+
+/// <summary>Установившийся фильтр Калмана</summary>
+/// <param name="Gain">Усиление коррекции L: x̂⁺ = x̄ + L(y − Cx̄)</param>
+/// <param name="PriorCovariance">Ковариация ошибки после предсказания</param>
+/// <param name="PosteriorCovariance">Ковариация ошибки после коррекции</param>
+public sealed record SteadyStateKalman(Matrix Gain, Matrix PriorCovariance, Matrix PosteriorCovariance);
 
 /// <summary>
 /// Дискретный линейный фильтр Калмана (управляемый объект):
@@ -76,6 +83,30 @@ public sealed class KalmanFilter
         Covariance = p0 ?? ControlLinAlg.Symmetrize(ControlLinAlg.Eye(StateDimension) * 1e-2);
     }
 
+    /// <summary>
+    /// Установившийся режим: ковариация, к которой сходится фильтр, и постоянное усиление
+    /// </summary>
+    /// <remarks>
+    /// Ковариация после предсказания — решение уравнения Риккати, двойственного к LQR: с парой
+    /// (Aᵀ, Cᵀ) вместо (A, B). Решение существует, если пара (A, C) обнаруживаема.
+    /// </remarks>
+    /// <param name="a">A</param>
+    /// <param name="c">C</param>
+    /// <param name="q">Ковариация шума процесса</param>
+    /// <param name="r">Ковариация шума измерения, положительно определённая</param>
+    public static SteadyStateKalman SteadyState(Matrix a, Matrix c, Matrix q, Matrix r)
+    {
+        if (a == null || c == null || q == null || r == null)
+            throw new ArgumentNullException();
+
+        Matrix prior = RiccatiEquation.SolveDiscrete(a.Transpose(), c.Transpose(), q, r);
+        Matrix ct = c.Transpose();
+        Matrix gain = prior * ct * ControlLinAlg.Inverse((c * prior * ct) + r);
+        Matrix posterior = ControlLinAlg.Symmetrize((ControlLinAlg.Eye(a.Height) - (gain * c)) * prior);
+
+        return new SteadyStateKalman(gain, prior, posterior);
+    }
+
     /// <summary>Предсказание по модели с управлением u.</summary>
     public void Predict(Vector u)
     {
@@ -101,7 +132,7 @@ public sealed class KalmanFilter
 
         Matrix ct = _c.Transpose();
         Matrix s = _c * Covariance * ct + R;
-        Matrix sInv = s.GetInvertMatrix();
+        Matrix sInv = ControlLinAlg.Inverse(s);
         Matrix pcT = Covariance * ct;
         Matrix k = pcT * sInv;
 

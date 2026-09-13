@@ -146,6 +146,26 @@ public static class Poisson2D
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(boundary);
 
+        (SparseMatrix matrix, Vector right) = Assemble(grid, source, boundary);
+
+        IterativeResult result = IterativeSolvers.ConjugateGradient(matrix, right, tolerance, maxIterations);
+
+        var values = new Matrix(grid.CountY, grid.CountX);
+
+        for (int j = 0; j < grid.CountY; j++)
+            for (int i = 0; i < grid.CountX; i++)
+                values[j, i] = result.Solution[grid.Index(i, j)];
+
+        return new PoissonSolution(grid, values, result.Iterations, result.Residual, result.Converged);
+    }
+
+    /// <summary>
+    /// Пятиточечная матрица оператора −Δ с исключёнными граничными узлами и правая часть.
+    /// Общая для задачи Пуассона и уравнения функции тока в <see cref="LidDrivenCavity"/>.
+    /// </summary>
+    internal static (SparseMatrix Matrix, Vector RightHandSide) Assemble(
+        Grid2D grid, Func<double, double, double> source, Func<double, double, double> boundary)
+    {
         int size = grid.NodeCount;
         double hx = grid.StepX;
         double hy = grid.StepY;
@@ -187,15 +207,7 @@ public static class Poisson2D
             }
         }
 
-        IterativeResult result = IterativeSolvers.ConjugateGradient(matrix, right, tolerance, maxIterations);
-
-        var values = new Matrix(grid.CountY, grid.CountX);
-
-        for (int j = 0; j < grid.CountY; j++)
-            for (int i = 0; i < grid.CountX; i++)
-                values[j, i] = result.Solution[grid.Index(i, j)];
-
-        return new PoissonSolution(grid, values, result.Iterations, result.Residual, result.Converged);
+        return (matrix, right);
     }
 
     /// <summary>

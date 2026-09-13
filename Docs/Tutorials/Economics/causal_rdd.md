@@ -83,7 +83,7 @@ $$
 ## Код
 
 ```csharp
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Statistics;
 
 Random rng = RandomEngine.Create(139);

@@ -423,7 +423,8 @@ public static partial class ControlDemoRunner
                 {
                     ta[i] = i * dt; xa[i] = x;
                     double us = smc.Compute(0.0, x, dt); ua[i] = us;
-                    xd -= us * dt; x += xd * dt;
+                    // Двойной интегратор ẍ = u; прежде знак объекта был перевёрнут, чтобы скрыть ошибку знака в регуляторе
+                    xd += us * dt; x += xd * dt;
                 }
                 cv.ChartName = $"SMC двойной интегратор  λ={lambda:F1}, K={gain:F0}, Φ={phi:F2}";
                 cv.LabelX = "t, с"; cv.LabelY = "";

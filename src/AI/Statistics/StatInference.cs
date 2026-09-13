@@ -243,15 +243,20 @@ public static partial class StatInference
 
     #region Приближения квантилей и CDF
 
-    /// <summary>Квантиль стандартного нормального (приближение Beasley-Springer-Moro).</summary>
+    /// <summary>
+    /// Квантиль стандартного нормального: алгоритм Acklam с одним шагом уточнения Галлея по точной <see cref="Erfc"/>.
+    /// </summary>
+    /// <remarks>
+    /// Рациональное приближение Acklam само по себе даёт относительную погрешность около 1,15e-9 — против 4.5e-4
+    /// у аппроксимации Абрамовица - Стиган 26.2.23, стоявшей здесь раньше. Шаг Галлея, который рекомендует сам Acklam,
+    /// доводит квантиль почти до двойной точности: невязка Φ(x) − p считается через erfc и не теряет знаков в хвостах.
+    /// </remarks>
     public static double NormalQuantile(double p)
     {
         if (p <= 0) return double.NegativeInfinity;
         if (p >= 1) return double.PositiveInfinity;
         if (Math.Abs(p - 0.5) < 1e-15) return 0;
 
-        // Алгоритм Acklam: относительная погрешность порядка 1e-9 против 4.5e-4
-        // у рациональной аппроксимации Абрамовица - Стиган 26.2.23, стоявшей здесь раньше.
         double[] a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
                        1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
         double[] b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
@@ -262,34 +267,45 @@ public static partial class StatInference
                       3.754408661907416e+00];
 
         const double PLow = 0.02425;
-        double q, r;
+        double q, r, x;
 
         if (p < PLow)
         {
             q = Math.Sqrt(-2 * Math.Log(p));
-            return ((((((c[0] * q) + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
-                   (((((d[0] * q) + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+            x = ((((((c[0] * q) + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+                (((((d[0] * q) + d[1]) * q + d[2]) * q + d[3]) * q + 1);
         }
-
-        if (p <= 1 - PLow)
+        else if (p <= 1 - PLow)
         {
             q = p - 0.5;
             r = q * q;
-            return ((((((a[0] * r) + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
-                   ((((((b[0] * r) + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+            x = ((((((a[0] * r) + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
+                ((((((b[0] * r) + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+        }
+        else
+        {
+            q = Math.Sqrt(-2 * Math.Log(1 - p));
+            x = -((((((c[0] * q) + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+                 (((((d[0] * q) + d[1]) * q + d[2]) * q + d[3]) * q + 1);
         }
 
-        q = Math.Sqrt(-2 * Math.Log(1 - p));
-        return -((((((c[0] * q) + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
-                (((((d[0] * q) + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+        // Шаг Галлея для уравнения Φ(x) = p. Где e^(x²/2) переполняется (p порядка 1e-320), остаётся приближение Acklam
+        double u = (NormalCdf(x) - p) * Math.Sqrt(2 * Math.PI) * Math.Exp(x * x / 2);
+        return double.IsFinite(u) ? x - (u / (1 + (x * u / 2))) : x;
     }
 
-    /// <summary>CDF стандартного нормального.</summary>
-    public static double NormalCdf(double x)
-    {
-        // Approximation via error function
-        return 0.5 * (1.0 + Erf(x / Math.Sqrt(2.0)));
-    }
+    /// <summary>CDF стандартного нормального: Φ(x) = ½·erfc(−x/√2).</summary>
+    /// <remarks>
+    /// Через дополнительную функцию ошибок, а не ½·(1 + erf): в левом хвосте разность 1 − erf состоит из одних
+    /// разрядов округления, а erfc считается напрямую, поэтому Φ(−10) = 7,6e-24 верна и в относительном смысле.
+    /// </remarks>
+    public static double NormalCdf(double x) => 0.5 * Erfc(-x / Math.Sqrt(2.0));
+
+    /// <summary>
+    /// Дополнительная функция ошибок erfc(x) = 1 − erf(x), вычисленная напрямую, без вычитания, — точна и в хвостах.
+    /// Реализация общая с <see cref="AI.HighLevelFunctions.FunctionsForEachElements.Erfc(double)"/>.
+    /// </summary>
+    public static double Erfc(double x) => AI.HighLevelFunctions.FunctionsForEachElements.Erfc(x);
 
     /// <summary>
     /// Квантиль t-распределения. Для df = 1 и df = 2 — точные замкнутые формулы;
@@ -413,14 +429,12 @@ public static partial class StatInference
 
     #region Математические утилиты
 
-    /// <summary>Функция ошибок (Abramowitz & Stegun, точность ~1.5e-7).</summary>
-    public static double Erf(double x)
-    {
-        double t = 1.0 / (1.0 + 0.3275911 * Math.Abs(x));
-        double poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
-        double result = 1.0 - poly * Math.Exp(-x * x);
-        return x >= 0 ? result : -result;
-    }
+    /// <summary>
+    /// Функция ошибок через неполную гамма-функцию, erf(x) = P(½, x²), — почти двойная точность.
+    /// Реализация общая с <see cref="AI.HighLevelFunctions.FunctionsForEachElements.Erf(double)"/>: прежняя формула
+    /// Абрамовица - Стиган 7.1.26 ошибалась до 1.5e-7, и эта погрешность доходила до всех потребителей Φ.
+    /// </summary>
+    public static double Erf(double x) => AI.HighLevelFunctions.FunctionsForEachElements.Erf(x);
 
     /// <summary>
     /// Логарифм гамма-функции, аппроксимация Ланцоша (g = 7, n = 9).

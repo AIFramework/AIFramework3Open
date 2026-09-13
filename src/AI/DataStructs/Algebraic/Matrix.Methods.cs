@@ -86,49 +86,10 @@ public partial class Matrix
             throw new InvalidOperationException("Matrix is zero");
         }
 
-        if (IsDiagonal)
-        {
-            Matrix output = new Matrix(Height, Height);
-
-            for (int i = 0; i < Height; i++)
-            {
-                output[i, i] = 1.0 / this[i, i];
-            }
-
-            return output;
-        }
-        else
-        {
-
-            Matrix output = new Matrix(Height, Height);
-            double det = Determinant;
-
-            // РЈР»СѓС‡С€РµРЅРЅР°СЏ РїСЂРѕРІРµСЂРєР° РѕРїСЂРµРґРµР»РёС‚РµР»СЏ
-            const double DET_EPSILON = 1e-10;
-            if (Math.Abs(det) < DET_EPSILON)
-            {
-                throw new InvalidOperationException(
-                    $"РћРїСЂРµРґРµР»РёС‚РµР»СЊ Р±Р»РёР·РѕРє Рє РЅСѓР»СЋ (det = {det}). РњР°С‚СЂРёС†Р° РІС‹СЂРѕР¶РґРµРЅРЅР°СЏ РёР»Рё РїР»РѕС…Рѕ РѕР±СѓСЃР»РѕРІР»РµРЅРЅР°СЏ.");
-            }
-
-            // РџСЂРѕРІРµСЂРєР° РЅР° NaN/Infinity
-            if (double.IsNaN(det) || double.IsInfinity(det))
-            {
-                throw new InvalidOperationException(
-                    $"РћРїСЂРµРґРµР»РёС‚РµР»СЊ РёРјРµРµС‚ РЅРµРґРѕРїСѓСЃС‚РёРјРѕРµ Р·РЅР°С‡РµРЅРёРµ (det = {det}).");
-            }
-
-
-            for (int i = 0; i < Height; i++)
-            {
-                for (int j = 0; j < Height; j++)
-                {
-                    output[i, j] = FunctionsForEachElements.MinusOnePow(j + i) * GetMinor(i, j) / det;
-                }
-            }
-
-            return output.Transpose();
-        }
+        // LU с выбором главного элемента и относительным порогом вырожденности. Прежде «почти
+        // диагональная» матрица обращалась по одной диагонали, а остальные — через миноры, O(n⁵),
+        // с абсолютным порогом |det| < 1e-10, который отвергал хорошо обусловленные матрицы малого масштаба
+        return PivotedInverse();
     }
     /// <summary>
     /// РњРёРЅРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РјР°С‚СЂРёС†С‹
@@ -462,24 +423,31 @@ public partial class Matrix
     /// РџРµСЂРµРІРѕРґРёС‚ РїСЂРѕРёР·РІРѕР»СЊРЅСѓСЋ РјР°С‚СЂРёС†Сѓ РІ С‚СЂРµСѓРіРѕР»СЊРЅСѓСЋ
     /// </summary>
     /// <returns>Р”РёР°РіРѕРЅР°Р»СЊРЅР°СЏ РјР°С‚СЂРёС†Р°</returns>
+    /// <remarks>
+    /// Верхнетреугольная U из разложения PA = LU с частичным выбором главного элемента. Строки
+    /// переставлены, поэтому произведение диагонали равно определителю с точностью до знака
+    /// перестановки. Прежде исключение шло без перестановок и заменяло NaN нулём.
+    /// </remarks>
     public Matrix ToTriangularMatr()
     {
-        Matrix matrix = Copy();
-        int n = matrix.Height;
-
-        for (int i = 0; i < n - 1; i++)
+        if (!IsSquared)
         {
-            for (int j = i + 1; j < n; j++)
-            {
-                double koef = matrix[j, i] / matrix[i, i];
+            throw new InvalidOperationException("Матрица не является квадратной");
+        }
 
-                for (int k = i; k < n; k++)
-                {
-                    matrix[j, k] -= matrix[i, k] * koef;
-                }
+        int n = Height;
+        double[] lu = FactorLu(out _, out _);
+        var upper = new Matrix(n, n);
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = i; j < n; j++)
+            {
+                upper[i, j] = lu[(i * n) + j];
             }
         }
-        return matrix.Transform(x => double.IsNaN(x) ? 0 : x);
+
+        return upper;
     }
     /// <summary>
     /// Р’РѕР·РІСЂР°С‰Р°РµС‚ РІРµРєС‚РѕСЂ СЃ РЅСѓР¶РЅРѕРіРѕ СЃСЂРµР·Р°, РЅСѓР¶РЅС‹Р№ РёРЅРґРµРєСЃ

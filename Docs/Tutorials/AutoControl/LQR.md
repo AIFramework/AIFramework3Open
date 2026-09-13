@@ -1,50 +1,67 @@
 # LQR и LQG
 
-**Пространство имён:** `AI.ControlSystems.Optimal`  
-**Классы:** `DiscreteLqr`, `LqgRegulator`
+**Пространство имён:** `AI.ControlSystems.Optimal`, `AI.ControlSystems.Linear`  
+**Классы:** `DiscreteLqr`, `LqrDesign`, `RiccatiEquation`, `LqgRegulator`
+
+---
+
+## Постановка задачи
+
+Для дискретной системы $x_{k+1} = Ax_k + Bu_k$ найти обратную связь, минимизирующую бесконечный
+квадратичный критерий
+
+$$J = \sum_{k=0}^{\infty} \bigl(x_k^\top Q\,x_k + u_k^\top R\,u_k\bigr), \qquad Q \succeq 0,\; R \succ 0.$$
+
+Если состояние не измеряется, а доступен зашумлённый выход $y_k = Cx_k + v_k$ при шуме процесса
+$w_k$, та же задача в среднем решается LQG-регулятором: LQR по оценке фильтра Калмана.
 
 ---
 
 ## Теория
 
-### LQR — линейный квадратичный регулятор
+### LQR и уравнение Риккати
 
-Задача: минимизировать бесконечный квадратичный критерий:
+Оптимум — линейная обратная связь $u = -Kx$ с
 
-$$J = \sum_{k=0}^{\infty} \bigl(x[k]^\top Q\,x[k] + u[k]^\top R\,u[k]\bigr)$$
+$$K = (R + B^\top P B)^{-1} B^\top P A,$$
 
-при ограничении $x[k+1] = Ax[k] + Bu[k]$.
+где $P$ — стабилизирующее решение дискретного уравнения Риккати (DARE):
 
-Оптимальный закон управления — линейная обратная связь по состоянию:
+$$P = A^\top P A - A^\top P B (R + B^\top P B)^{-1} B^\top P A + Q.$$
 
-$$u[k] = -Kx[k]$$
+Минимальная стоимость из $x_0$ — квадратичная форма $J^* = x_0^\top P x_0$.
 
-Матрица $K$ вычисляется через решение **дискретного уравнения Риккати** (DARE):
+`RiccatiEquation.SolveDiscrete` решает DARE **методом удвоения**, сохраняющим структуру (SDA):
 
-$$P = A^\top P A - A^\top P B(B^\top P B + R)^{-1} B^\top P A + Q$$
+$$A_{j+1} = A_j W^{-1} A_j,\quad G_{j+1} = G_j + A_j W^{-1} G_j A_j^\top,\quad H_{j+1} = H_j + A_j^\top H_j W^{-1} A_j,$$
 
-$$K = (B^\top P B + R)^{-1} B^\top P A$$
+где $W = I + G_j H_j$, $G_0 = BR^{-1}B^\top$, $H_0 = Q$. $H_j \to P$ квадратично: каждое удвоение
+соответствует $2^j$ шагам обычной итерации Риккати. После сходимости проверяются невязка DARE и
+спектральный радиус $A - BK$. Если пара $(A, B)$ не стабилизируема или неустойчивая мода не видна
+через $Q$, выбрасывается исключение с причиной, а не возвращается бесполезное усиление.
 
-Итерации продолжаются до сходимости $\|P_{new} - P_{old}\|_F < \varepsilon$.
+### Выбор Q и R
 
-### Выбор матриц Q и R
+- $Q_{ii}$ — вес отклонения координаты $x_i$, $R_{jj}$ — цена управления $u_j$.
+- Правило Брайсона как начальное приближение: $Q_{ii} = 1/x_{i,\max}^2$, $R_{jj} = 1/u_{j,\max}^2$.
 
-- **Q** — матрица штрафов за отклонение состояния. Диагональный элемент $Q_{ii}$ задаёт относительную «важность» координаты $x_i$.
-- **R** — матрица штрафов за управление. Увеличение $R$ приводит к более экономному, но более медленному управлению.
-- **Правило Брайсона** (рекомендуемое начальное приближение): $Q_{ii} = 1/x_{i,\max}^2$, $R_{jj} = 1/u_{j,\max}^2$, где $x_{i,\max}$ и $u_{j,\max}$ — допустимые отклонения координат.
+### LQG и принцип разделения
 
-### LQG — линейный квадратичный гауссов регулятор
+Установившийся фильтр Калмана — двойственная задача: $P_f$ = DARE($A^\top$, $C^\top$, $W$, $V$),
+коэффициент коррекции $L = P_f C^\top (C P_f C^\top + V)^{-1}$, апостериорная ковариация
+$\Sigma = (I - LC)P_f$. Регулятор на каждом шаге предсказывает $\bar x = A\hat x + Bu_{prev}$,
+корректирует $\hat x = \bar x + L(y - C\bar x)$ и выдаёт $u = -K\hat x$.
 
-LQG = LQR + фильтр Калмана. По **принципу разделения** задачи оптимального управления и оценки состояния решаются независимо:
+По **принципу разделения** полюса замкнутой системы — объединение полюсов регулятора и оценщика:
 
-1. Синтезируем $K$ методом LQR.
-2. Строим фильтр Калмана для оценки $\hat x$ по зашумлённым измерениям.
-3. Применяем: $u = -K\hat x$.
+$$\mathrm{eig}(A - BK) \;\cup\; \mathrm{eig}(A - LCA).$$
 
-На каждом шаге `LqgRegulator.Step(uPrev, y)`:
-1. Предсказание КФ: $\bar x = A\hat x + Bu_{prev}$.
-2. Коррекция КФ: $\hat x^+ = \bar x + K_{KF}(y - C\bar x)$.
-3. Управление: $u = -K\hat x^+$.
+Средняя стоимость за шаг в установившемся режиме:
+
+$$\bar J = \mathrm{tr}(P W) + \mathrm{tr}\bigl(K^\top (R + B^\top P B) K\,\Sigma\bigr).$$
+
+Первое слагаемое — цена шума процесса при полностью известном состоянии, второе — цена ошибки
+оценки.
 
 ---
 
@@ -54,106 +71,159 @@ LQG = LQR + фильтр Калмана. По **принципу разделе�
 
 | Метод | Описание |
 |-------|----------|
-| `Solve(A, B, Q, R)` | Возвращает матрицу усилений $K$ (m×n). |
-| `Solve(A, B, Q, R, tolerance, maxIterations)` | С явными параметрами сходимости. |
+| `Design(A, B, Q, R)` | `LqrDesign`: усиление $K$, решение $P$ (`CostToGo`), полюса $A - BK$. |
+| `Solve(A, B, Q, R)` | Только $K$ (m×n). Параметр `maxIterations` сохранён для совместимости и не используется. |
+
+### `RiccatiEquation`
+
+| Метод | Описание |
+|-------|----------|
+| `SolveDiscrete(A, B, Q, R, tolerance)` | Стабилизирующее решение DARE. |
+| `DiscreteResidual(A, B, Q, R, X)` | Невязка DARE для проверки чужого решения. |
+| `DiscreteGain(A, B, R, X)` | $K$ по решению $X$. |
 
 ### `LqgRegulator`
 
 | Член | Описание |
 |------|----------|
-| `LqgRegulator(kalmanFilter, K)` | Создаёт регулятор из готового КФ и матрицы $K$. |
-| `Step(uPrev, y)` | Один шаг: возвращает управление $u = -K\hat x^+$. |
-| `StateFeedbackGain` | Матрица $K$. |
-| `Filter` | Доступ к внутреннему `KalmanFilter`. |
+| `Design(A, B, C, Q, R, W, V)` | Синтез: LQR + установившийся фильтр Калмана + ожидаемая стоимость. |
+| `LqgRegulator(kalmanFilter, K)` | Сборка из готовых частей; характеристики синтеза остаются пустыми. |
+| `Step(uPrev, y)` | Шаг: оценка и управление $u = -K\hat x$. |
+| `StateFeedbackGain`, `EstimatorGain` | $K$ и $L$. |
+| `CostToGo`, `EstimationCovariance` | $P$ и $\Sigma$. |
+| `ExpectedCost` | $\bar J$. |
+| `ClosedLoopPoles` | $2n$ полюсов замкнутой системы. |
+| `Filter` | Внутренний `KalmanFilter`. |
 
 ---
 
 ## Примеры
 
-### LQR для двойного интегратора
+### LQR и стоимость без моделирования
 
 ```csharp
 using AI.ControlSystems.Linear;
 using AI.ControlSystems.Optimal;
 using AI.DataStructs.Algebraic;
 
-double dt = 0.01;
+double dt = 0.1;
 var A = new Matrix(new double[,] { { 1, dt }, { 0, 1 } });
 var B = new Matrix(new double[,] { { 0.5 * dt * dt }, { dt } });
+var Q = new Matrix(new double[,] { { 1, 0 }, { 0, 0.2 } });
+var R = new Matrix(new double[,] { { 0.05 } });
 
-// Штрафы: позиция важна, скорость менее важна, управление умеренное
-var Q = new Matrix(new double[,] { { 10, 0 }, { 0, 1 } });
-var R = new Matrix(new double[,] { { 0.1 } });
-
-Matrix K = DiscreteLqr.Solve(A, B, Q, R);
+LqrDesign design = DiscreteLqr.Design(A, B, Q, R);
+Matrix K = design.Gain;
 Console.WriteLine($"K = [{K[0, 0]:F4}, {K[0, 1]:F4}]");
 
-// Симуляция
-var C = new Matrix(new double[,] { { 1, 0 } });
-var model = new DiscreteLtiModel(A, B, C);
-var x = new Vector(new[] { 5.0, 0.0 });
+foreach (var pole in design.ClosedLoopPoles)
+    Console.WriteLine($"полюс {pole.Real:F4} {pole.Imaginary:+0.0000;-0.0000}i");
 
-for (int k = 0; k < 200; k++)
-{
-    Vector xState = model.State;
-    double u = -(K[0, 0] * xState[0] + K[0, 1] * xState[1]);
-    model.Step(new Vector(new[] { u }));
+// J* = x₀ᵀ P x₀ — без единого шага моделирования
+var x0 = new Vector(new[] { 3.0, -1.0 });
+double predicted = 0;
+for (int i = 0; i < 2; i++)
+    for (int j = 0; j < 2; j++)
+        predicted += x0[i] * design.CostToGo[i, j] * x0[j];
 
-    if (k % 20 == 0)
-        Console.WriteLine($"k={k:D3}  x1={model.State[0]:F4}  x2={model.State[1]:F4}  u={u:F4}");
-}
-```
-
-### LQG — управление по зашумлённым измерениям
-
-```csharp
-using AI.ControlSystems.Observers;
-using AI.ControlSystems.Optimal;
-using AI.DataStructs.Algebraic;
-
-double dt = 0.01;
-var A = new Matrix(new double[,] { { 1, dt }, { 0, 1 } });
-var B = new Matrix(new double[,] { { 0.5 * dt * dt }, { dt } });
 var C = new Matrix(new double[,] { { 1, 0 } });
 var D = new Matrix(new double[,] { { 0 } });
+var model = new DiscreteLtiModel(A, B, C, D, x0);
+double simulated = 0;
 
-// LQR
-var Qlqr = new Matrix(new double[,] { { 10, 0 }, { 0, 1 } });
-var Rlqr = new Matrix(new double[,] { { 0.1 } });
-Matrix K = DiscreteLqr.Solve(A, B, Qlqr, Rlqr);
-
-// Калман
-var Qkf = new Matrix(new double[,] { { 1e-4, 0 }, { 0, 1e-4 } });
-var Rkf = new Matrix(new double[,] { { 0.01 } });
-var kf = new KalmanFilter(A, B, C, D, Qkf, Rkf);
-
-// LQG
-var lqg = new LqgRegulator(kf, K);
-
-// Симуляция объекта
-var plant = new DiscreteLtiModel(A, B, C);
-var uPrev = new Vector(new[] { 0.0 });
-var rng = new Random(0);
-
-for (int k = 0; k < 300; k++)
+for (int k = 0; k < 5000; k++)
 {
-    Vector y = plant.Step(uPrev);
-    // Добавляем шум измерения
-    var yNoisy = new Vector(new[] { y[0] + (rng.NextDouble() - 0.5) * 0.1 });
-
-    Vector u = lqg.Step(uPrev, yNoisy);
-    uPrev = u;
-
-    if (k % 30 == 0)
-        Console.WriteLine($"k={k:D3}  x1={plant.State[0]:F4}  x̂1={lqg.Filter.State[0]:F4}  u={u[0]:F4}");
+    Vector x = model.State;
+    double u = -(K[0, 0] * x[0] + K[0, 1] * x[1]);
+    simulated += Q[0, 0] * x[0] * x[0] + Q[1, 1] * x[1] * x[1] + R[0, 0] * u * u;
+    model.Step(new Vector(new[] { u }));
 }
+
+Console.WriteLine($"J* = {predicted:F6}, по моделированию {simulated:F6}");
 ```
+
+### Проверка решения Риккати
+
+```csharp
+Matrix P = RiccatiEquation.SolveDiscrete(A, B, Q, R);
+Matrix residual = RiccatiEquation.DiscreteResidual(A, B, Q, R, P);
+Console.WriteLine($"невязка DARE: {residual.Data.Max(Math.Abs):E1}");
+```
+
+### LQG по зашумлённому положению
+
+```csharp
+// Измеряется только положение, σ = 0.1; шум процесса по обеим координатам
+var Qg = new Matrix(new double[,] { { 1, 0 }, { 0, 0.1 } });
+var Rg = new Matrix(new double[,] { { 0.1 } });
+var W = new Matrix(new double[,] { { 1e-4, 0 }, { 0, 1e-3 } });
+var V = new Matrix(new double[,] { { 0.01 } });
+
+LqgRegulator lqg = LqgRegulator.Design(A, B, C, Qg, Rg, W, V);
+Console.WriteLine($"ожидаемая стоимость за шаг {lqg.ExpectedCost:F5}, полюсов {lqg.ClosedLoopPoles.Length}");
+
+var rng = new Random(8);
+double Gauss() => Math.Sqrt(-2 * Math.Log(1 - rng.NextDouble())) * Math.Cos(2 * Math.PI * rng.NextDouble());
+
+var state = new Vector(2);
+var uPrev = new Vector(new[] { 0.0 });
+double total = 0;
+int samples = 0;
+
+for (int k = 0; k < 100_000; k++)
+{
+    var y = new Vector(new[] { state[0] + 0.1 * Gauss() });
+    Vector u = lqg.Step(uPrev, y);
+
+    if (k >= 1000)
+    {
+        total += Qg[0, 0] * state[0] * state[0] + Qg[1, 1] * state[1] * state[1] + Rg[0, 0] * u[0] * u[0];
+        samples++;
+    }
+
+    state = new Vector(new[]
+    {
+        A[0, 0] * state[0] + A[0, 1] * state[1] + B[0, 0] * u[0] + 0.01 * Gauss(),
+        A[1, 0] * state[0] + A[1, 1] * state[1] + B[1, 0] * u[0] + Math.Sqrt(1e-3) * Gauss()
+    });
+    uPrev = u;
+}
+
+Console.WriteLine($"по моделированию {total / samples:F5}");   // в пределах 5 % от ExpectedCost
+```
+
+---
+
+## Сложность
+
+| Операция | Стоимость |
+|----------|-----------|
+| `RiccatiEquation.SolveDiscrete` | $O(n^3)$ на удвоение; удвоений обычно 5–30 при пределе 100 |
+| `DiscreteLqr.Design` | DARE + собственные значения $A - BK$, $O(n^3)$ |
+| `LqgRegulator.Design` | два DARE и собственные значения, $O(n^3)$ |
+| `LqgRegulator.Step` | $O(n^2 + nm + np + p^3)$ |
 
 ---
 
 ## Замечания
 
-- `DiscreteLqr.Solve` требует, чтобы $Q \ge 0$ (положительно полуопределённая) и $R > 0$ (положительно определённая).
-- Если система неуправляема или $Q$ не «наблюдает» все нестабильные моды, итерации могут не сойтись.
-- В `LqgRegulator` матрица $K$ должна иметь размер m×n (число управлений × порядок системы).
-- LQG оптимален только при гауссовом шуме; при негауссовом шуме рассмотрите робастные методы.
+- Только дискретное время. Непрерывную модель сначала дискретизируйте (`Discretization.ZeroOrderHold`),
+  а шум процесса — по Ван Лоану (`Discretization.DiscretizeProcessNoise`).
+- $R$ должна быть положительно определённой, иначе `ArgumentException`. Нестабилизируемая пара или
+  неустойчивая мода, не видимая через $Q$, дают `InvalidOperationException` с причиной. Прежняя
+  версия в таком случае молча возвращала усиление, не стабилизирующее систему.
+- LQG не гарантирует запасов устойчивости (Дойл, 1978): оптимальность в среднем не означает
+  робастности к ошибкам модели.
+- `ExpectedCost` верна для белых гауссовых независимых шумов и фильтра в установившемся режиме.
+
+---
+
+## Проверка
+
+Тесты `ControlSystemsLinearTests` и `ControlSystemsAdvancedTests`:
+
+- скалярное DARE сверено с замкнутой формулой;
+- на 10 случайных системах 4×4 с двумя входами решение совпадает с 20 000 итераций Риккати до 6 знаков;
+- в первом примере $x_0^\top P x_0$ совпадает со стоимостью, накопленной за 5000 шагов, до 8 знаков;
+- полюса LQG совпадают с собственными числами явно собранной замкнутой системы 4×4 до $10^{-8}$;
+- во втором примере стоимость по 99 000 шагам укладывается в 5 % от `ExpectedCost`.

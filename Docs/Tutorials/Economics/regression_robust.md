@@ -88,7 +88,7 @@ $\frac{G}{G-1}\cdot\frac{n-1}{n-k}$. Игнорирование кластеро
 
 ```csharp
 using AI.DataStructs.Algebraic;
-using AI.Economics.Econometrics;
+using AI.Econometrics;
 using AI.Statistics;
 
 Random rng = RandomEngine.Create(101);

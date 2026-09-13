@@ -1,4 +1,5 @@
 using AI.Statistics;
+using AI.Units;
 
 namespace AI.Microwave.Propagation;
 
@@ -15,6 +16,21 @@ public static class LinkBudget
     /// <param name="receiverGainDbi">Усиление приёмной антенны, дБи; у телефона около нуля</param>
     public static double ReceivedPowerDbm(double eirpDbm, double pathLossDb, double receiverGainDbi = 0.0) =>
         eirpDbm - pathLossDb + receiverGainDbi;
+
+    /// <summary>
+    /// Мощность теплового шума в полосе с учётом коэффициента шума приёмника, дБм: 10·lg(k·T·B / 1 мВт) + NF.
+    /// При 290 К это −174 дБм/Гц + 10·lg B + NF
+    /// </summary>
+    /// <param name="bandwidthHz">Шумовая полоса, Гц</param>
+    /// <param name="noiseFigureDb">Коэффициент шума приёмника, дБ</param>
+    /// <param name="temperatureK">Шумовая температура, К; 290 К — стандартная</param>
+    public static double ThermalNoiseDbm(double bandwidthHz, double noiseFigureDb = 0.0, double temperatureK = 290.0)
+    {
+        Guard.RequirePositive(bandwidthHz, nameof(bandwidthHz));
+        Guard.RequirePositive(temperatureK, nameof(temperatureK));
+
+        return (10.0 * Math.Log10(PhysicalConstants.BoltzmannConstant.SiValue * temperatureK * bandwidthHz * 1000.0)) + noiseFigureDb;
+    }
 
     /// <summary>
     /// Вероятность, что сигнал выше чувствительности приёмника, при логнормальном затенении: P = Φ((Pr − S)/σ)
