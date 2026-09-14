@@ -88,6 +88,9 @@ public static class DiagnosticCodes
     /// <summary>Повторное объявление функции.</summary>
     public const string DuplicateFunction = "AIS1207";
 
+    /// <summary><c>set</c> для встроенной константы: <c>pi</c>, <c>e</c>, <c>tau</c>, <c>phi</c>.</summary>
+    public const string ConstantAssignment = "AIS1208";
+
     // --- AIS2xxx: типы и предупреждения ---
 
     /// <summary>Несовместимый тип аргумента.</summary>

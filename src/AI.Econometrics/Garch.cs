@@ -230,7 +230,7 @@ public static class Garch
             _ => [0.15, -0.05, 2.0],
         };
 
-        double[] estimate = NelderMead.Minimize(Negative, start, 6000);
+        double[] estimate = NelderMead.Minimize(Negative, start, maxIter: 6000);
         double logLikelihood = Likelihood(shocks, variance, estimate, model, out double[] h);
 
         (double omega, double alpha, double beta, double gamma) = Unpack(estimate, model, variance);

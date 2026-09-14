@@ -243,7 +243,9 @@ public sealed partial class Interpreter
                         throw new ScriptError(
                             DiagnosticCodes.DuplicateLet,
                             $"имя '{let.Name}' уже связано в этой области",
-                            $"изменить значение можно через 'set {let.Name} = ...'");
+                            ScriptConstants.All.ContainsKey(let.Name)
+                                ? $"если это встроенная константа ({string.Join(", ", ScriptConstants.All.Keys)}) — назовите переменную иначе"
+                                : $"изменить значение можно через 'set {let.Name} = ...'");
                     }
 
                     scope.Declare(let.Name, ApplyDeclaredType(let.DeclaredType, value, let.Name));

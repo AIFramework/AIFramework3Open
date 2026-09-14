@@ -29,7 +29,7 @@ namespace AI.Script.Std;
 /// бы обслуживать во всём языке ради одного пространства.
 /// </para>
 /// </remarks>
-[ScriptModule("siglab", "Радиоканал: модуляция и демодуляция; биты — вектор нулей и единиц", Version = "0.1")]
+[ScriptModule("siglab", "Радиоканал: модуляция, демодуляция; биты — вектор из 0 и 1", Version = "0.1")]
 public static class SiglabModule
 {
     // --- биты ---

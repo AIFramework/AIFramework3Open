@@ -22,7 +22,7 @@ public sealed class ManifestTests
         string text = Host().DescribeCapabilities(ManifestOptions.Index);
 
         foreach (IScriptModule module in Host().Registry.Modules)
-            Assert.Contains($"**{module.Name}**", text, StringComparison.Ordinal);
+            Assert.Contains($"- {module.Name} — ", text, StringComparison.Ordinal);
 
         Assert.DoesNotContain("math.sqrt(", text, StringComparison.Ordinal);
     }

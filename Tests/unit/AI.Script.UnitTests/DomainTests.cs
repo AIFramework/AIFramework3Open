@@ -456,9 +456,9 @@ public sealed class DomainTests
     {
         string index = Host().DescribeCapabilities(AI.Script.Docs.ManifestOptions.Index);
 
-        Assert.Contains("**chem**", index, StringComparison.Ordinal);
-        Assert.Contains("**econ**", index, StringComparison.Ordinal);
-        Assert.Contains("**mw**", index, StringComparison.Ordinal);
+        Assert.Contains("- chem — ", index, StringComparison.Ordinal);
+        Assert.Contains("- econ — ", index, StringComparison.Ordinal);
+        Assert.Contains("- mw — ", index, StringComparison.Ordinal);
     }
 
     private static object? Field(object? record, string name)

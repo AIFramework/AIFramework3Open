@@ -376,7 +376,7 @@ public static class Copulas
             ? [Inverse(start, family), Math.Log(3.0)]
             : [Inverse(start, family)];
 
-        double[] estimate = NelderMead.Minimize(Negative, initial, 2000);
+        double[] estimate = NelderMead.Minimize(Negative, initial, maxIter: 2000);
 
         double parameter = Transform(estimate[0], family);
         double degrees = family == CopulaFamily.StudentT

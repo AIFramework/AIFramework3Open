@@ -215,7 +215,7 @@ public static class StateSpace
         }
 
         double[] start = trend ? [Math.Log(0.5), Math.Log(0.05), Math.Log(0.005)] : [Math.Log(0.5), Math.Log(0.05)];
-        double[] estimate = NelderMead.Minimize(Negative, start, 3000);
+        double[] estimate = NelderMead.Minimize(Negative, start, maxIter: 3000);
 
         double observationVariance = Math.Exp(Math.Clamp(estimate[0], -30, 20)) * scale;
         double levelVariance = Math.Exp(Math.Clamp(estimate[1], -30, 20)) * scale;

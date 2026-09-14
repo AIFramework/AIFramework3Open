@@ -25,6 +25,12 @@
     <!-- Экономика и СВЧ живут здесь, а не отдельными сборками: их собственные зависимости —
          AI, AI.ML и AI.Solvers.Math — уже подключены выше, поэтому веса они не добавляют. -->
     <ProjectReference Include="..\AI.Economics\AI.Economics.csproj" />
+    <!-- Эконометрика — тоже: ей нужны только AI и AI.ClassicMath. -->
+    <ProjectReference Include="..\AI.Econometrics\AI.Econometrics.csproj" />
+    <!-- И оптимизация: ей нужны те же AI и AI.ClassicMath. -->
+    <ProjectReference Include="..\AI.Solvers.Optimization\AI.Solvers.Optimization.csproj" />
+    <!-- Задачи на ограничения: сверх оптимизации ничего не тянут. -->
+    <ProjectReference Include="..\AI.Solvers.Constraints\AI.Solvers.Constraints.csproj" />
     <ProjectReference Include="..\AI.Microwave\AI.Microwave.csproj" />
     <ProjectReference Include="..\AI.Logic\AI.Logic.csproj" />
     <ProjectReference Include="..\AI.SignalLabs\AI.SignalLabs.csproj" />

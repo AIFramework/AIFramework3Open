@@ -108,6 +108,16 @@ public sealed record PanelResult : IInterpretable
     /// <summary>Параметр квазивнутригруппового преобразования в модели случайных эффектов.</summary>
     public double Theta { get; init; }
 
+    /// <summary>
+    /// Оценка σ остатков, по которой посчитаны стандартные ошибки коэффициентов.
+    /// </summary>
+    /// <remarks>
+    /// Нужна тесту Хаусмана: ковариации двух оценок сравнимы только при общей σ. Взятые каждая
+    /// со своей, на конечной выборке они дают отрицательную разность дисперсий, и тест теряет
+    /// смысл. Ноль — оценка σ неизвестна.
+    /// </remarks>
+    public double ResidualScale { get; init; }
+
     /// <summary>Остатки преобразованной регрессии.</summary>
     public Vector Residuals { get; init; } = new(0);
 
@@ -207,13 +217,40 @@ public sealed record HausmanResult : IInterpretable
     /// <summary>Расхождения оценок по коэффициентам.</summary>
     public IReadOnlyList<(string Variable, double Fixed, double Random, double Difference)> Differences { get; init; } = [];
 
+    /// <summary>Сколько коэффициентов не вошло в статистику: разность их дисперсий неположительна.</summary>
+    public int Excluded { get; init; }
+
+    /// <summary>
+    /// Определён ли тест: вошёл ли в статистику хотя бы один коэффициент.
+    /// </summary>
+    /// <remarks>
+    /// Неопределённый тест — не то же, что непринятая гипотеза: у него нет p-значения, и
+    /// выдавать единицу значило бы подтверждать случайные эффекты без единого сравнения.
+    /// </remarks>
+    public bool IsDefined => DegreesOfFreedom > 0;
+
     /// <summary>Отвергается ли экзогенность индивидуальных эффектов.</summary>
-    public bool PrefersFixedEffects => PValue < 0.05;
+    public bool PrefersFixedEffects => IsDefined && PValue < 0.05;
 
     /// <inheritdoc />
     public Interpretation Interpret()
     {
         var largest = Differences.OrderByDescending(d => Math.Abs(d.Difference)).FirstOrDefault();
+
+        if (!IsDefined)
+        {
+            return new InterpretationBuilder("Тест Хаусмана")
+                .Summary("Тест не определён: разность ковариаций оценок неположительна ни по одному " +
+                         "коэффициенту, и статистику построить не из чего.")
+                .Metric("Наибольшее расхождение", largest.Difference, null,
+                    $"по коэффициенту «{largest.Variable}»", MetricQuality.Neutral, 4)
+                .Warning("Отсутствие статистики не говорит в пользу случайных эффектов: сравнение " +
+                         "не состоялось. Обычно причина — малая выборка или оценки, посчитанные " +
+                         "с кластерными ошибками.")
+                .Recommendation("Оцените обе модели с обычными ошибками либо сравните величину " +
+                                "расхождения коэффициентов с их стандартными ошибками напрямую.")
+                .Build();
+        }
 
         return new InterpretationBuilder("Тест Хаусмана")
             .Summary($"Статистика {Fmt.Num(Statistic, 3)} при {DegreesOfFreedom} степенях свободы, " +
@@ -235,6 +272,9 @@ public sealed record HausmanResult : IInterpretable
             .FindingIf(!PrefersFixedEffects,
                 "Непринятие гипотезы не доказывает экзогенность: тест может не иметь " +
                 "мощности при малом числе объектов или слабой вариации регрессоров.")
+            .WarningIf(Excluded > 0,
+                $"Коэффициентов не вошло в статистику: {Excluded} — разность их дисперсий " +
+                "неположительна. Тест опирается только на остальные.")
             .WarningIf(Statistic < 0,
                 "Отрицательная статистика означает, что разность ковариационных матриц " +
                 "не положительно определена. Обычно это следствие малой выборки; " +
@@ -317,8 +357,17 @@ public static class PanelData
         ArgumentNullException.ThrowIfNull(fixedEffects);
         ArgumentNullException.ThrowIfNull(randomEffects);
 
+        // Ковариации сравниваются при общей σ — от эффективной оценки, как sigmamore в Stata.
+        // Каждая со своей σ на конечной выборке они давали отрицательную разность дисперсий:
+        // коэффициент молча выпадал из статистики, а когда выпадали все, тест возвращал p = 1,
+        // то есть уверенное «случайные эффекты допустимы» там, где сравнивать было нечего.
+        double scale = fixedEffects.ResidualScale > 0 && randomEffects.ResidualScale > 0
+            ? (randomEffects.ResidualScale * randomEffects.ResidualScale)
+                / (fixedEffects.ResidualScale * fixedEffects.ResidualScale)
+            : 1;
+
         double statistic = 0;
-        int df = 0;
+        int df = 0, excluded = 0;
         var differences = new List<(string, double, double, double)>();
 
         foreach (Coefficient fe in fixedEffects.Coefficients)
@@ -331,10 +380,14 @@ public static class PanelData
             double difference = fe.Estimate - re.Estimate;
             differences.Add((fe.Name, fe.Estimate, re.Estimate, difference));
 
-            double variance = (fe.StandardError * fe.StandardError)
+            double variance = (fe.StandardError * fe.StandardError * scale)
                 - (re.StandardError * re.StandardError);
 
-            if (variance <= 1e-18) continue;
+            if (variance <= 1e-18)
+            {
+                excluded++;
+                continue;
+            }
 
             statistic += difference * difference / variance;
             df++;
@@ -342,9 +395,10 @@ public static class PanelData
 
         return new HausmanResult
         {
-            Statistic = statistic,
+            Statistic = df > 0 ? statistic : double.NaN,
             DegreesOfFreedom = df,
-            PValue = df > 0 ? Distributions.ChiSquarePValue(statistic, df) : 1,
+            PValue = df > 0 ? Distributions.ChiSquarePValue(statistic, df) : double.NaN,
+            Excluded = excluded,
             Differences = differences,
         };
     }
@@ -367,6 +421,7 @@ public static class PanelData
             Observations = dataset.Observations,
             SigmaUnit = sigmaUnit,
             SigmaError = sigmaError,
+            ResidualScale = fit.Sigma,
             Residuals = fit.Residuals,
         };
     }
@@ -412,6 +467,7 @@ public static class PanelData
             Observations = n,
             SigmaUnit = sigmaUnit,
             SigmaError = sigmaError,
+            ResidualScale = fit.Sigma,
             Residuals = fit.Residuals,
         };
     }
@@ -465,6 +521,7 @@ public static class PanelData
             SigmaUnit = Math.Sqrt(sigmaUnitSquared),
             SigmaError = sigmaError,
             Theta = theta,
+            ResidualScale = fit.Sigma,
             Residuals = fit.Residuals,
         };
     }

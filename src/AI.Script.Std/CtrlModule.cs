@@ -95,7 +95,7 @@ public sealed class ArxModel
 /// <summary>
 /// Пространство <c>ctrl</c>: идентификация, регуляторы, наблюдатели, замкнутая симуляция.
 /// </summary>
-[ScriptModule("ctrl", "Системы управления: идентификация, ПИД, LQR, фильтр Калмана, симуляция", Version = "0.1")]
+[ScriptModule("ctrl", "Управление: идентификация, ПИД, LQR, фильтр Калмана, симуляция", Version = "0.1")]
 public static class CtrlModule
 {
     /// <summary>Тип-тег дескриптора модели объекта.</summary>

@@ -440,7 +440,7 @@ public static class LimitedDependent
             return -total;
         }
 
-        double[] estimate = NelderMead.Minimize(Negative, initial, 4000);
+        double[] estimate = NelderMead.Minimize(Negative, initial, maxIter: 4000);
         double sigmaHat = Math.Exp(Math.Clamp(estimate[k], -20, 20));
 
         var beta = new double[k];
@@ -595,7 +595,7 @@ public static class LimitedDependent
             return -FitCount(design, y, names, alpha).LogLikelihood;
         }
 
-        double[] optimum = NelderMead.Minimize(Profile, [Math.Log(0.5)], 200);
+        double[] optimum = NelderMead.Minimize(Profile, [Math.Log(0.5)], maxIter: 200);
         double alphaHat = Math.Exp(Math.Clamp(optimum[0], -12, 5));
 
         return FitCount(design, y, names, alphaHat);

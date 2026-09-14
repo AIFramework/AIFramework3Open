@@ -1160,6 +1160,26 @@ public sealed partial class Interpreter
                         };
                     }
 
+                    // Вторая линия после проверки: хост, исполняющий без неё, не должен получить
+                    // прогон, в котором pi посреди расчёта стало тройкой.
+                    if (ScriptConstants.All.ContainsKey(name.Name))
+                    {
+                        Scope? owner = scope;
+
+                        while (owner != null && !owner.DeclaredHere(name.Name)) owner = owner.Parent;
+
+                        if (ReferenceEquals(owner, _global))
+                        {
+                            throw new ScriptError(
+                                DiagnosticCodes.ConstantAssignment,
+                                $"'{name.Name}' — встроенная константа, её значение менять нельзя",
+                                $"заведите своё имя: let my_{name.Name} = ...")
+                            {
+                                Span = name.Span,
+                            };
+                        }
+                    }
+
                     if (set.Compound != null) value = Operations.Binary(set.Compound.Value, current, value);
 
                     _ = scope.TryAssign(name.Name, value);

@@ -157,10 +157,30 @@ public sealed partial class Parser
 
         Error(DiagnosticCodes.UnexpectedToken, Current.Span,
             $"ожидался конец инструкции, встречено {Token.Describe(Current.Kind)}",
-            "инструкции разделяются переводом строки; точка с запятой в языке не используется");
+            CallWithoutParentheses() is string name
+                ? $"похоже на вызов без скобок: пишите {name}(...)"
+                : "инструкции разделяются переводом строки; точка с запятой в языке не используется");
 
         while (Current.Kind is not (TokenKind.Newline or TokenKind.EndOfFile or TokenKind.RBrace))
             _ = Advance();
+    }
+
+    /// <summary>
+    /// Имя функции, если инструкция похожа на вызов без скобок: имя, а через пробел — значение.
+    /// </summary>
+    /// <remarks>
+    /// <c>print x</c> читается как инструкция из двух слов, и без этой подсказки автор видел
+    /// «ожидался конец инструкции» и совет про точку с запятой — ни то, ни другое не про его ошибку.
+    /// Так ошибся и автор самого языка, проверяя эконометрику.
+    /// </remarks>
+    private string? CallWithoutParentheses()
+    {
+        if (_position == 0 || Current.Kind is not (TokenKind.Identifier or TokenKind.Number or TokenKind.String))
+            return null;
+
+        Token previous = _tokens[_position - 1];
+
+        return previous.Kind == TokenKind.Identifier ? previous.Text : null;
     }
 
     private void Error(string code, TextSpan span, string message, string? hint = null) =>

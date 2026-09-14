@@ -1,5 +1,6 @@
 using System;
-using Vector = AI.DataStructs.Algebraic.Vector;
+using AI.Geometry.Primitives;
+using Vector =AI.DataStructs.Algebraic.Vector;
 using Matrix = AI.DataStructs.Algebraic.Matrix;
 
 namespace AI.Geometry.Transforms;
@@ -223,6 +224,114 @@ public readonly struct Quaternion : IEquatable<Quaternion>
         var result = this * p * Conjugate;
         return new Vector(new[] { result.X, result.Y, result.Z });
     }
+
+    /// <summary>
+    /// Вращает точку кватернионом: то же, что q·p·q*, но без промежуточных кватернионов и без выделения памяти.
+    /// </summary>
+    /// <param name="point">Точка или вектор.</param>
+    /// <returns>Повернутая точка; у ненормированного кватерниона она дополнительно умножена на квадрат нормы.</returns>
+    public Vector3 Rotate(Vector3 point)
+    {
+        var u = new Vector3(X, Y, Z);
+        double uu = u.Dot(u);
+        return (point * ((W * W) - uu)) + (u * (2 * u.Dot(point))) + (u.Cross(point) * (2 * W));
+    }
+
+    /// <summary>
+    /// Создает кватернион вращения вокруг оси на заданный угол (рад).
+    /// </summary>
+    /// <param name="axis">Ось вращения, не обязательно единичная.</param>
+    /// <param name="angle">Угол, радианы.</param>
+    public static Quaternion FromAxisAngle(Vector3 axis, double angle)
+    {
+        double length = axis.Length;
+        return length > 0 ? FromRotationVector(axis * (angle / length)) : Identity;
+    }
+
+    /// <summary>
+    /// Экспоненциальное отображение: кватернион поворота на угол |θ| вокруг направления θ.
+    /// </summary>
+    /// <remarks>
+    /// При малом угле sin(|θ|/2)/|θ| берется рядом Тейлора, поэтому нулевой и почти нулевой
+    /// вектор дают точный результат без деления на ноль.
+    /// </remarks>
+    /// <param name="rotationVector">Вектор поворота: направление оси, умноженное на угол в радианах.</param>
+    public static Quaternion FromRotationVector(Vector3 rotationVector)
+    {
+        double angle = rotationVector.Length;
+        double half = 0.5 * angle;
+        double squared = angle * angle;
+
+        // sin(θ/2)/θ = 1/2 − θ²/48 + θ⁴/3840 − ...
+        double k = angle < 1e-4
+            ? 0.5 - (squared / 48) + (squared * squared / 3840)
+            : Math.Sin(half) / angle;
+
+        return new Quaternion(Math.Cos(half), rotationVector.X * k, rotationVector.Y * k, rotationVector.Z * k);
+    }
+
+    /// <summary>
+    /// Логарифмическое отображение: вектор поворота (ось, умноженная на угол в радианах).
+    /// </summary>
+    /// <remarks>
+    /// Кватернионы q и −q задают один поворот; берется тот, что дает угол не больше π
+    /// (кратчайшая дуга). Кватернион предварительно нормируется.
+    /// </remarks>
+    public Vector3 ToRotationVector()
+    {
+        double norm = Norm;
+
+        if (norm == 0)
+            return Vector3.Zero;
+
+        double w = W / norm;
+        var v = new Vector3(X, Y, Z) / norm;
+
+        if (w < 0)
+        {
+            w = -w;
+            v = -v;
+        }
+
+        double sine = v.Length;
+
+        // Угол 2·atan2(|v|, w); при малом |v| отношение угла к |v| стремится к 2/w
+        double k = sine < 1e-8 ? 2 / w : 2 * Math.Atan2(sine, w) / sine;
+        return v * k;
+    }
+
+    /// <summary>
+    /// Шаг ориентации за время dt при постоянной угловой скорости в мировых осях.
+    /// </summary>
+    /// <remarks>
+    /// Поворот на угол |ω|·dt вокруг ω точный (экспоненциальное отображение), в отличие от
+    /// поправки q + ½·ω·q·dt, которая при быстром вращении теряет угол и норму.
+    /// Результат нормируется, чтобы ошибка округления не копилась от шага к шагу.
+    /// </remarks>
+    /// <param name="angularVelocity">Угловая скорость в мировых осях, рад/с.</param>
+    /// <param name="dt">Шаг времени, с.</param>
+    public Quaternion Integrate(Vector3 angularVelocity, double dt)
+        => (FromRotationVector(angularVelocity * dt) * this).Normalize;
+
+    /// <summary>
+    /// Скалярное произведение кватернионов как четырехмерных векторов.
+    /// </summary>
+    /// <param name="a">Первый кватернион.</param>
+    /// <param name="b">Второй кватернион.</param>
+    public static double Dot(Quaternion a, Quaternion b)
+        => (a.W * b.W) + (a.X * b.X) + (a.Y * b.Y) + (a.Z * b.Z);
+
+    /// <summary>
+    /// Вектор поворота в мировых осях, переводящий ориентацию from в ориентацию to: to = exp(θ)·from.
+    /// </summary>
+    /// <remarks>
+    /// Берется кратчайшая дуга (угол не больше π). Деленный на шаг времени, результат дает
+    /// среднюю угловую скорость между двумя ориентациями.
+    /// </remarks>
+    /// <param name="from">Начальная ориентация (единичный кватернион).</param>
+    /// <param name="to">Конечная ориентация (единичный кватернион).</param>
+    public static Vector3 RotationVectorBetween(Quaternion from, Quaternion to)
+        => (to * from.Conjugate).ToRotationVector();
 
     /// <inheritdoc/>
     public bool Equals(Quaternion other)

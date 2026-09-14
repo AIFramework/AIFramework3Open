@@ -229,6 +229,73 @@ public sealed class LanguageStyleTests
         Assert.True(mixed.Count == 0, "кириллица в именах примеров:\n  " + string.Join("\n  ", mixed));
     }
 
+    /// <summary>
+    /// Примеры не связывают имена встроенных констант.
+    /// </summary>
+    /// <remarks>
+    /// Разбор и сверка с сигнатурами этого не видят: <c>let e = causal.did(...)</c> разбирается и
+    /// зовёт настоящую функцию, а исполнить его нельзя — <c>e</c> занято числом Эйлера. Пять
+    /// таких примеров появились вместе с <c>causal</c> и прошли бы все остальные проверки;
+    /// модель, скопировавшая пример, получала бы отказ на первой же строке.
+    /// </remarks>
+    [Fact]
+    public void Examples_DoNotBindBuiltInConstants()
+    {
+        var clashes = new List<string>();
+
+        foreach (ScriptFunction function in Functions)
+        {
+            if (string.IsNullOrWhiteSpace(function.Example)) continue;
+
+            var text = new SourceText(function.Example, function.FullName);
+            var diagnostics = new DiagnosticBag(text);
+            ScriptUnit unit = new Parser(text, diagnostics).ParseUnit();
+
+            if (diagnostics.HasErrors) continue;
+
+            foreach (Stmt statement in unit.Statements)
+            {
+                if (statement is LetStmt let && Runtime.ScriptConstants.All.ContainsKey(let.Name))
+                    clashes.Add($"{function.FullName}: 'let {let.Name}'");
+            }
+        }
+
+        Assert.True(clashes.Count == 0, "примеры занимают имена констант:\n  " + string.Join("\n  ", clashes));
+    }
+
+    /// <summary>
+    /// Отказ на имени константы говорит, что это константа, и не советует её переписать.
+    /// </summary>
+    [Fact]
+    public void RebindingConstant_IsExplained_WithoutSuggestingSet()
+    {
+        Diagnostic error = Script.CheckFailsWith("let e = 1");
+
+        Assert.Contains("встроенная константа", error.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("set", error.Hint, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Константу нельзя переписать: иначе <c>pi</c> меняется для всего прогона.
+    /// </summary>
+    [Fact]
+    public void AssigningConstant_IsRejected() =>
+        Assert.Equal(DiagnosticCodes.ConstantAssignment, Script.CheckFailsWith("set pi = 3").Code);
+
+    /// <summary>Вызов без скобок объясняется как вызов, а не как лишнее слово в инструкции.</summary>
+    [Fact]
+    public void CallWithoutParentheses_IsExplained()
+    {
+        Diagnostic error = Script.CheckFailsWith("let total = 3\nprint total");
+
+        Assert.Contains("print(", error.Hint, StringComparison.Ordinal);
+    }
+
+    /// <summary>Затенить константу своим именем внутри функции по-прежнему можно.</summary>
+    [Fact]
+    public void ShadowingConstant_InsideFunction_IsAllowed() =>
+        Assert.Equal(3.0, Script.RunOk("fn f() {\n    let e = 3\n    return e\n}\nemit r = f()").Emitted["r"]);
+
     // --- единообразие ---
 
     /// <summary>
@@ -406,6 +473,13 @@ public sealed class LanguageStyleTests
     [InlineData("ml.split(mat.eye(8), <0, 1, 0, 1, 0, 1, 0, 1>)")]
     [InlineData("dsp.fft(signal.sine(signal.time(0.05, fs: 1000), freq: 50), fs: 1000)")]
     [InlineData("ctrl.identify(signal.noise(60, sigma: 1), signal.noise(60, sigma: 1), order: 2).describe()")]
+    [InlineData("regress.ols(table.of({ x: vec.linspace(0, 1, n: 30), " +
+        "y: vec.linspace(1, 3, n: 30) + signal.noise(30, sigma: 0.1) }), \"y\", [\"x\"])")]
+    [InlineData("ts.stationarity(signal.noise(100, sigma: 1))")]
+    [InlineData("opt.lp({ x: 1 }, table.of({ x: <1>, sign: [\">=\"], rhs: <2> }))")]
+    [InlineData("opt.minimize(p => (p[0] - 2) * (p[0] - 2), <0>)")]
+    [InlineData("csp.solve([\"x\", \"y\"], lower: 0, upper: 3, all_different: [[\"x\", \"y\"]])")]
+    [InlineData("csp.sat([[\"a\", \"b\"], [\"!a\"]])")]
     public void RecordFields_AreAsciiSnakeCase(string call)
     {
         RunResult result = Script.RunWith(Host, $"emit r = {call}", new RunOptions { Seed = 3 });
@@ -445,7 +519,27 @@ public sealed class LanguageStyleTests
         string index = Host.DescribeCapabilities(ManifestOptions.Index);
 
         foreach (IScriptModule module in Host.Registry.Modules)
-            Assert.Contains($"**{module.Name}**", index, StringComparison.Ordinal);
+            Assert.Contains($"- {module.Name} — ", index, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Описание пространства укладывается в одну строку индекса.
+    /// </summary>
+    /// <remarks>
+    /// Бюджет индекса общий на все пространства: при сорока пяти пространствах на строку
+    /// приходится около шестидесяти знаков. Одно многословное описание не ломает бюджет само,
+    /// но съедает место у пространств, которые ещё не подключены, — и узнают об этом тогда,
+    /// когда подключать станет некуда. Так и вышло: к эконометрике индекс заполнился на 99%,
+    /// а двенадцать описаний были длиннее 64 знаков.
+    /// </remarks>
+    [Fact]
+    public void NamespaceDescriptions_FitOneIndexLine()
+    {
+        string[] verbose = [.. Host.Registry.Modules
+            .Where(module => module.Description.Length > 64)
+            .Select(module => $"{module.Name} ({module.Description.Length}): {module.Description}")];
+
+        Assert.True(verbose.Length == 0, "описания длиннее 64 знаков:\n  " + string.Join("\n  ", verbose));
     }
 
     /// <summary>

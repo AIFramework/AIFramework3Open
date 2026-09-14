@@ -214,7 +214,7 @@ public sealed class ScriptToolTests
 
         Assert.Contains("Вызов функции:", prompt, StringComparison.Ordinal);
         Assert.Contains("Пространства имён", prompt, StringComparison.Ordinal);
-        Assert.Contains("**plot**", prompt, StringComparison.Ordinal);
+        Assert.Contains("- plot — ", prompt, StringComparison.Ordinal);
         Assert.DoesNotContain("Этот текст кладётся в системный промпт", prompt, StringComparison.Ordinal);
     }
 

@@ -306,7 +306,7 @@ public static class ExtremeValue
         }
 
         double[] estimate = NelderMead.Minimize(
-            Negative, [Math.Clamp(startShape, -0.4, 0.9), Math.Log(startScale)], 3000);
+            Negative, [Math.Clamp(startShape, -0.4, 0.9), Math.Log(startScale)], maxIter: 3000);
 
         double fittedShape = Math.Clamp(estimate[0], -0.49, 1.5);
         double fittedScale = Math.Exp(Math.Clamp(estimate[1], -30, 10));

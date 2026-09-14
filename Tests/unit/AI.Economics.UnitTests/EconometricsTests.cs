@@ -315,12 +315,83 @@ public class EconometricsTests
             Regressors = x, Response = y, Units = unitIds, Periods = periodIds, Names = ["x"],
         };
 
+        // Классический тест — с обычными ошибками: кластерные нарушают его предпосылку.
         HausmanResult hausman = PanelData.Hausman(
-            PanelData.Fit(dataset, PanelEstimator.FixedEffects),
-            PanelData.Fit(dataset, PanelEstimator.RandomEffects));
+            PanelData.Fit(dataset, PanelEstimator.FixedEffects, clusterByUnit: false),
+            PanelData.Fit(dataset, PanelEstimator.RandomEffects, clusterByUnit: false));
 
-        Assert.True(hausman.Statistic >= 0);
+        // Раньше тест проверял только неотрицательность статистики, а не то, что обещает его
+        // имя, — и пропустил случай, когда тест молча выдавал p = 1 на коррелированных эффектах.
+        Assert.True(hausman.IsDefined);
+        Assert.True(hausman.PrefersFixedEffects, $"p = {hausman.PValue}");
         Assert.NotEmpty(hausman.Differences);
+    }
+
+    /// <summary>
+    /// Неопределённый тест не выдаёт себя за непринятую гипотезу.
+    /// </summary>
+    /// <remarks>
+    /// Ошибки случайных эффектов больше, чем у фиксированных, при одинаковой σ — разность
+    /// дисперсий отрицательна, и сравнивать нечего. Прежде это давало p = 1 и вывод
+    /// «случайные эффекты допустимы».
+    /// </remarks>
+    [Fact]
+    public void PanelData_Hausman_WithoutComparableVariances_IsUndefined()
+    {
+        PanelResult fixedEffects = new()
+        {
+            Coefficients = [new Coefficient("x", 2.0, 0.030, 66.7, 0, 1.94, 2.06)],
+            ResidualScale = 1,
+        };
+
+        PanelResult randomEffects = new()
+        {
+            Coefficients = [new Coefficient("x", 2.1, 0.040, 52.5, 0, 2.02, 2.18)],
+            ResidualScale = 1,
+        };
+
+        HausmanResult hausman = PanelData.Hausman(fixedEffects, randomEffects);
+
+        Assert.False(hausman.IsDefined);
+        Assert.False(hausman.PrefersFixedEffects);
+        Assert.True(double.IsNaN(hausman.PValue));
+        Assert.Equal(1, hausman.Excluded);
+        Assert.Contains("не определён", hausman.Interpret().Summary, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// При одинаковом для всех эффекте двусторонняя оценка совпадает с устойчивой — на любом
+    /// уровне отклика.
+    /// </summary>
+    /// <remarks>
+    /// Регрессия шла без свободного члена и без фиктивной переменной первого объекта: его уровень
+    /// принудительно считался нулём, и на выручке около ста эффект 3 оценивался как 16. Данные
+    /// прежних тестов начинались с нуля и этого не показывали.
+    /// </remarks>
+    [Fact]
+    public void DifferenceInDifferences_TwoWay_IsUnbiasedForHomogeneousEffect()
+    {
+        Random rng = RandomEngine.Create(21);
+        var observations = new List<DidObservation>();
+
+        for (int unit = 0; unit < 30; unit++)
+        {
+            int start = unit < 15 ? 4 + ((unit % 3) * 2) : 0;
+            double level = 100 + (5 * RandomEngine.NextGaussian(rng)) + (unit < 15 ? 7 : 0);
+
+            for (int period = 1; period <= 10; period++)
+            {
+                bool treated = start > 0 && period >= start;
+                double outcome = level + (0.8 * period) + (treated ? 3 : 0) + RandomEngine.NextGaussian(rng, 0, 0.5);
+
+                observations.Add(new DidObservation(unit, period, outcome, start));
+            }
+        }
+
+        DidResult result = DifferenceInDifferences.Estimate(observations, bootstrapSamples: 20, seed: 1);
+
+        Assert.InRange(result.TwoWayFixedEffects, 2.6, 3.4);
+        Assert.InRange(result.RobustAtt, 2.6, 3.4);
     }
 
     [Fact]

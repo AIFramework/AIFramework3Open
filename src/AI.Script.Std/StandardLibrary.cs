@@ -47,6 +47,11 @@ public static class StandardLibrary
         ScriptModule.FromType(typeof(LogicModule)),
         ScriptModule.FromType(typeof(SiglabModule)),
         ScriptModule.FromType(typeof(ExplainModule)),
+        ScriptModule.FromType(typeof(RegressModule)),
+        ScriptModule.FromType(typeof(TsModule)),
+        ScriptModule.FromType(typeof(CausalModule)),
+        ScriptModule.FromType(typeof(OptModule)),
+        ScriptModule.FromType(typeof(CspModule)),
     ];
 
     /// <summary>Регистрирует стандартную библиотеку в хосте.</summary>

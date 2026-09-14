@@ -14,6 +14,8 @@
     <ProjectReference Include="..\AI\AI.csproj" />
     <!-- Общий решатель задачи на собственные значения -->
     <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+    <!-- Метод Нелдера — Мида: одна реализация на весь репозиторий -->
+    <ProjectReference Include="..\AI.Solvers.Optimization\AI.Solvers.Optimization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

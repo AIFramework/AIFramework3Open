@@ -23,7 +23,7 @@ namespace AI.Script.Llm;
 /// после, потому что до запроса никто не знает, сколько токенов вернёт модель.
 /// </para>
 /// </remarks>
-[ScriptModule("llm", "Языковые модели: запросы, эмбеддинги; сеть может быть запрещена прогону")]
+[ScriptModule("llm", "Языковые модели: запросы, эмбеддинги; сеть бывает запрещена")]
 public sealed class LlmModule
 {
     private readonly ILLMClient? _client;

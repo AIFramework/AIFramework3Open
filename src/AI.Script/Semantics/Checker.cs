@@ -455,6 +455,15 @@ public sealed class Checker
                     return;
                 }
 
+                if (IsBuiltInConstant(name.Name))
+                {
+                    _diagnostics.Error(DiagnosticCodes.ConstantAssignment, name.Span,
+                        $"'{name.Name}' — встроенная константа, её значение менять нельзя",
+                        $"заведите своё имя: let my_{name.Name} = ...");
+
+                    return;
+                }
+
                 RequirePureInParallel(name);
 
                 if (set.Compound is BinaryOperator op && current is ScriptType left && valueType is ScriptType right)
@@ -1282,6 +1291,26 @@ public sealed class Checker
         }
     }
 
+    /// <summary>
+    /// Разрешается ли имя во встроенную константу, а не в затеняющую её переменную.
+    /// </summary>
+    /// <remarks>
+    /// Затенить константу внутри блока можно — это новое имя, и о нём предупреждают. Переписать
+    /// саму константу нельзя: <c>set pi = 3</c> молча менял бы <c>pi</c> для всего прогона,
+    /// включая код, написанный в расчёте на настоящее значение.
+    /// </remarks>
+    private bool IsBuiltInConstant(string name)
+    {
+        if (!ScriptConstants.All.ContainsKey(name)) return false;
+
+        for (int i = _scopes.Count - 1; i > 0; i--)
+        {
+            if (_scopes[i].ContainsKey(name)) return false;
+        }
+
+        return true;
+    }
+
     private void DeclareName(string name, TextSpan span, ScriptType? type, bool warnShadowing = true)
     {
         if (string.IsNullOrEmpty(name)) return;
@@ -1290,6 +1319,17 @@ public sealed class Checker
 
         if (current.ContainsKey(name))
         {
+            // Константа живёт в той же области, что и переменные верхнего уровня, и без этой
+            // ветки автор, написавший «let e = ...», получал совет переписать число Эйлера.
+            if (ReferenceEquals(current, _scopes[0]) && Runtime.ScriptConstants.All.ContainsKey(name))
+            {
+                _diagnostics.Error(DiagnosticCodes.DuplicateLet, span,
+                    $"'{name}' — встроенная константа, это имя занято",
+                    $"назовите переменную иначе; встроенные константы: {string.Join(", ", Runtime.ScriptConstants.All.Keys)}");
+
+                return;
+            }
+
             _diagnostics.Error(DiagnosticCodes.DuplicateLet, span,
                 $"имя '{name}' уже связано в этой области",
                 $"изменить значение можно через 'set {name} = ...'");

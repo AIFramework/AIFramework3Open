@@ -170,24 +170,27 @@ public static class ManifestBuilder
     {
         var builder = new StringBuilder();
 
+        // Индекс уходит в системный промпт целиком и всегда, поэтому в нём нет ничего, что
+        // не сообщает модели нового: ни заголовков, ни жирного шрифта, ни числа функций.
+        // Каждая строка короче на десять знаков, а на четырёх десятках пространств это
+        // четыреста знаков — место ещё для шести пространств в том же бюджете.
+        if (options.IndexOnly)
+        {
+            _ = builder.AppendLine("Пространства имён AIScript:");
+
+            foreach (IScriptModule module in modules)
+                _ = builder.Append("- ").Append(module.Name).Append(" — ").AppendLine(module.Description);
+
+            return builder.Append("Подробно: `help(\"имя\")`, `help(\"имя.функция\")`.").ToString();
+        }
+
         _ = builder.AppendLine("# Возможности AIScript").AppendLine();
         _ = builder.AppendLine("## Пространства имён").AppendLine();
 
         foreach (IScriptModule module in modules)
         {
-            // Число функций в скобках сразу после имени, а не отдельными словами в конце
-            // строки: индекс целиком уходит в системный промпт, и слово «функций» на каждой
-            // строке — это два десятка токенов, не сообщающих читателю ничего нового.
             _ = builder.Append("- **").Append(module.Name).Append("** (").Append(module.Functions.Count)
                 .Append(") — ").Append(module.Description).AppendLine();
-        }
-
-        if (options.IndexOnly)
-        {
-            _ = builder.AppendLine()
-                .AppendLine("Подробности по пространству: `help(\"имя\")`; по функции: `help(\"пространство.функция\")`.");
-
-            return builder.ToString().TrimEnd();
         }
 
         foreach (IScriptModule module in modules)

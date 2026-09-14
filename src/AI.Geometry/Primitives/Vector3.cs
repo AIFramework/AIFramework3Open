@@ -81,6 +81,26 @@ public readonly record struct Vector3(double X, double Y, double Z)
     /// <summary>Покомпонентное произведение</summary>
     public Vector3 Scale(Vector3 other) => new(X * other.X, Y * other.Y, Z * other.Z);
 
+    /// <summary>Покомпонентный минимум</summary>
+    /// <param name="a">Первый вектор</param>
+    /// <param name="b">Второй вектор</param>
+    public static Vector3 Min(Vector3 a, Vector3 b) => new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Min(a.Z, b.Z));
+
+    /// <summary>Покомпонентный максимум</summary>
+    /// <param name="a">Первый вектор</param>
+    /// <param name="b">Второй вектор</param>
+    public static Vector3 Max(Vector3 a, Vector3 b) => new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y), Math.Max(a.Z, b.Z));
+
+    /// <summary>Покомпонентный модуль</summary>
+    /// <param name="a">Вектор</param>
+    public static Vector3 Abs(Vector3 a) => new(Math.Abs(a.X), Math.Abs(a.Y), Math.Abs(a.Z));
+
+    /// <summary>Линейная интерполяция a + (b − a)·t</summary>
+    /// <param name="a">Значение при t = 0</param>
+    /// <param name="b">Значение при t = 1</param>
+    /// <param name="t">Параметр; вне отрезка [0, 1] дает экстраполяцию</param>
+    public static Vector3 Lerp(Vector3 a, Vector3 b, double t) => a + ((b - a) * t);
+
     /// <summary>Координата по индексу</summary>
     public double this[int index] => index switch
     {

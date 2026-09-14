@@ -270,8 +270,11 @@ public static class DifferenceInDifferences
         var unitIndex = units.Select((u, i) => (u, i)).ToDictionary(p => p.u, p => p.i);
         var periodIndex = periods.Select((p, i) => (p, i)).ToDictionary(p => p.p, p => p.i);
 
+        // Свободного члена в регрессии нет, поэтому фиктивная переменная нужна каждому объекту,
+        // а не всем, кроме первого. Прежде первый объект выпадал, его уровень принудительно
+        // считался нулевым, и на отклике около ста эффект 3 оценивался как 16.
         int n = observations.Count;
-        int k = 1 + (units.Count - 1) + (periods.Count - 1);
+        int k = 1 + units.Count + (periods.Count - 1);
         var design = new double[n, k];
         var response = new double[n];
 
@@ -279,12 +282,10 @@ public static class DifferenceInDifferences
         {
             DidObservation o = observations[i];
             design[i, 0] = o.IsTreated ? 1 : 0;
-
-            int unit = unitIndex[o.Unit];
-            if (unit > 0) design[i, unit] = 1;
+            design[i, 1 + unitIndex[o.Unit]] = 1;
 
             int period = periodIndex[o.Period];
-            if (period > 0) design[i, units.Count - 1 + period] = 1;
+            if (period > 0) design[i, units.Count + period] = 1;
 
             response[i] = o.Outcome;
         }

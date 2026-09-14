@@ -20,7 +20,7 @@ namespace AI.Script.Std;
 /// в ней нет.
 /// </para>
 /// </remarks>
-[ScriptModule("solve", "Символьная математика и численные методы: производные, интегралы, корни, ОДУ", Version = "0.1")]
+[ScriptModule("solve", "Производные, интегралы, корни, ОДУ — символьно и численно", Version = "0.1")]
 public static class SolveModule
 {
     [ScriptFn("diff", "Символьная производная выражения", Example = "solve.diff(\"x^2 + 3*x\", by: \"x\")")]
