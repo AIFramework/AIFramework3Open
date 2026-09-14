@@ -360,3 +360,4 @@ src/AI.Script/PROMPT_CARD.md
 # Выходы лёгкой сборки (build.ps1 -Light, AIFramework.Light.sln)
 bin-light/
 obj-light/
+src/AI.Script/README.md
