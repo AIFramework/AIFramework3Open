@@ -208,5 +208,3 @@ let features =
 emit лидер = clients[0].client
 show table.describe(clients)
 ```
-
-Решения, которые ещё не приняты, собраны в [§18 DESIGN.md](DESIGN.md#18-решения-которые-нужно-принять).
