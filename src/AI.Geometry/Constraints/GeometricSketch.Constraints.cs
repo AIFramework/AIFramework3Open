@@ -46,9 +46,7 @@ public sealed partial class GeometricSketch
     /// <param name="b">Вторая точка.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
     public SketchConstraint Coincident(string a, string b, string? name = null) =>
-        Add("coincident", name, [a, b], [.. Point(a), .. Point(b)], 2,
-            v => [v[0] - v[2], v[1] - v[3]],
-            _ => new double[,] { { 1, 0, -1, 0 }, { 0, 1, 0, -1 } });
+        AddLinear("coincident", name, [a, b], [a, b], [1, -1]);
 
     /// <summary>
     /// Расстояние между двумя точками равно числу. Для нулевого расстояния используйте <see cref="Coincident"/>.
@@ -155,46 +153,62 @@ public sealed partial class GeometricSketch
             _ => new double[,] { { 1, 0, -1, 0 } });
 
     /// <summary>
-    /// Параллельность двух прямых (невязка: синус угла между ними).
+    /// Параллельность двух прямых (невязка: синус угла между ними). В пространстве сущностями могут быть прямые
+    /// и плоскости в любом сочетании: прямая параллельна плоскости, если перпендикулярна ее нормали.
     /// </summary>
-    /// <param name="first">Первая прямая.</param>
-    /// <param name="second">Вторая прямая.</param>
+    /// <param name="first">Первая прямая или плоскость.</param>
+    /// <param name="second">Вторая прямая или плоскость.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
-    public SketchConstraint Parallel(string first, string second, string? name = null) =>
-        Add("parallel", name, [first, second], [.. Line(first), .. Line(second)], 1,
-            v => [LineSinCos(v, 0, 4).Sin]);
+    public SketchConstraint Parallel(string first, string second, string? name = null)
+    {
+        var (unknowns, units, mixed) = Directions(first, second);
+        return units is null
+            ? Add("parallel", name, [first, second], unknowns, 1, v => [LineSinCos(v, 0, 4).Sin])
+            : Add("parallel", name, [first, second], unknowns, mixed ? 1 : 3, v => Relation(units(v), !mixed));
+    }
 
     /// <summary>
-    /// Перпендикулярность двух прямых (невязка: косинус угла между ними).
+    /// Перпендикулярность двух прямых (невязка: косинус угла между ними). В пространстве сущностями могут быть
+    /// прямые и плоскости в любом сочетании: прямая перпендикулярна плоскости, если параллельна ее нормали.
     /// </summary>
-    /// <param name="first">Первая прямая.</param>
-    /// <param name="second">Вторая прямая.</param>
+    /// <param name="first">Первая прямая или плоскость.</param>
+    /// <param name="second">Вторая прямая или плоскость.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
-    public SketchConstraint Perpendicular(string first, string second, string? name = null) =>
-        Add("perpendicular", name, [first, second], [.. Line(first), .. Line(second)], 1,
-            v => [LineSinCos(v, 0, 4).Cos]);
+    public SketchConstraint Perpendicular(string first, string second, string? name = null)
+    {
+        var (unknowns, units, mixed) = Directions(first, second);
+        return units is null
+            ? Add("perpendicular", name, [first, second], unknowns, 1, v => [LineSinCos(v, 0, 4).Cos])
+            : Add("perpendicular", name, [first, second], unknowns, mixed ? 3 : 1, v => Relation(units(v), mixed));
+    }
 
     /// <summary>
-    /// Неориентированный угол между прямыми (от 0 до π/2 радиан) равен числу.
+    /// Неориентированный угол между прямыми (от 0 до π/2 радиан) равен числу; в пространстве также угол между
+    /// прямой и плоскостью или между двумя плоскостями.
     /// Для 0 и π/2 надежнее <see cref="Parallel"/> и <see cref="Perpendicular"/>.
     /// </summary>
-    /// <param name="first">Первая прямая.</param>
-    /// <param name="second">Вторая прямая.</param>
+    /// <param name="first">Первая прямая или плоскость.</param>
+    /// <param name="second">Вторая прямая или плоскость.</param>
     /// <param name="radians">Угол в радианах.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
     public SketchConstraint Angle(string first, string second, double radians, string? name = null) =>
         Angle(first, second, Constant(radians), name);
 
     /// <summary>
-    /// Неориентированный угол между прямыми (от 0 до π/2 радиан) равен параметру.
+    /// Неориентированный угол между прямыми (от 0 до π/2 радиан) равен параметру; в пространстве также угол между
+    /// прямой и плоскостью или между двумя плоскостями.
     /// </summary>
-    /// <param name="first">Первая прямая.</param>
-    /// <param name="second">Вторая прямая.</param>
+    /// <param name="first">Первая прямая или плоскость.</param>
+    /// <param name="second">Вторая прямая или плоскость.</param>
     /// <param name="parameter">Имя параметра со значением угла в радианах.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
-    public SketchConstraint Angle(string first, string second, string parameter, string? name = null) =>
-        Add("angle", name, [first, second], [.. Line(first), .. Line(second), parameter], 1,
-            v => [UnorientedAngle(v, 0, 4) - v[8]]);
+    public SketchConstraint Angle(string first, string second, string parameter, string? name = null)
+    {
+        var (unknowns, units, mixed) = Directions(first, second);
+        return units is null
+            ? Add("angle", name, [first, second], [.. unknowns, parameter], 1, v => [UnorientedAngle(v, 0, 4) - v[8]])
+            : Add("angle", name, [first, second], [.. unknowns, parameter], 1, v => [SpatialAngle(units(v), mixed) - v[^1]]);
+    }
 
     /// <summary>
     /// Ориентированный угол от направления первой прямой (от ее первой точки ко второй) до направления второй
@@ -219,14 +233,19 @@ public sealed partial class GeometricSketch
             v => [WrapAngle(DirectedAngle(v, 0, 4) - v[8])]);
 
     /// <summary>
-    /// Точка лежит на прямой (невязка: знаковое расстояние до прямой).
+    /// Точка лежит на прямой (невязка: знаковое расстояние до прямой; в пространстве вектор смещения от прямой).
     /// </summary>
     /// <param name="point">Точка.</param>
     /// <param name="line">Прямая.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
-    public SketchConstraint PointOnLine(string point, string line, string? name = null) =>
-        Add("pointOnLine", name, [point, line], [.. Point(point), .. Line(line)], 1,
-            v => [SignedDistance(v[0], v[1], v, 2)]);
+    public SketchConstraint PointOnLine(string point, string line, string? name = null)
+    {
+        string[][] c = Coordinates([point, .. Corners(line)]);
+        string[] unknowns = [.. c.SelectMany(p => p)];
+        return c[0].Length == 2
+            ? Add("pointOnLine", name, [point, line], unknowns, 1, v => [SignedDistance(v[0], v[1], v, 2)])
+            : Add("pointOnLine", name, [point, line], unknowns, 3, v => Components(LineOffset(v)));
+    }
 
     /// <summary>
     /// Расстояние от точки до прямой равно числу (больше нуля; для нуля используйте <see cref="PointOnLine"/>).
@@ -272,12 +291,14 @@ public sealed partial class GeometricSketch
     {
         var (c1, r1) = CircleParts(first);
         var (c2, r2) = CircleParts(second);
+        string[][] c = Coordinates([c1, c2]);
+        int d = c[0].Length;
         return Add(isInternal ? "tangentInternal" : "tangentExternal", name, [first, second],
-            [.. Point(c1), .. Point(c2), r1, r2], 1,
+            [.. c[0], .. c[1], r1, r2], 1,
             v =>
             {
-                double gap = isInternal ? Math.Abs(v[4] - v[5]) : v[4] + v[5];
-                return [Hypot(v[0] - v[2], v[1] - v[3]) - gap];
+                double gap = isInternal ? Math.Abs(v[2 * d] - v[(2 * d) + 1]) : v[2 * d] + v[(2 * d) + 1];
+                return [Span(v, 0, d) - gap];
             });
     }
 
@@ -287,9 +308,12 @@ public sealed partial class GeometricSketch
     /// <param name="first">Первый отрезок.</param>
     /// <param name="second">Второй отрезок.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
-    public SketchConstraint EqualLength(string first, string second, string? name = null) =>
-        Add("equalLength", name, [first, second], [.. Line(first), .. Line(second)], 1,
-            v => [SegmentLength(v, 0) - SegmentLength(v, 4)]);
+    public SketchConstraint EqualLength(string first, string second, string? name = null)
+    {
+        var (unknowns, d) = Segments(first, second);
+        return Add("equalLength", name, [first, second], unknowns, 1,
+            v => [Span(v, 0, d) - Span(v, 2 * d, d)]);
+    }
 
     /// <summary>
     /// Отношение длин отрезков: длина первого равна числу, умноженному на длину второго.
@@ -308,9 +332,12 @@ public sealed partial class GeometricSketch
     /// <param name="second">Второй отрезок.</param>
     /// <param name="parameter">Имя параметра со значением отношения.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
-    public SketchConstraint LengthRatio(string first, string second, string parameter, string? name = null) =>
-        Add("lengthRatio", name, [first, second], [.. Line(first), .. Line(second), parameter], 1,
-            v => [SegmentLength(v, 0) - (v[8] * SegmentLength(v, 4))]);
+    public SketchConstraint LengthRatio(string first, string second, string parameter, string? name = null)
+    {
+        var (unknowns, d) = Segments(first, second);
+        return Add("lengthRatio", name, [first, second], [.. unknowns, parameter], 1,
+            v => [Span(v, 0, d) - (v[4 * d] * Span(v, 2 * d, d))]);
+    }
 
     /// <summary>
     /// Точка является серединой отрезка между двумя точками.
@@ -320,20 +347,26 @@ public sealed partial class GeometricSketch
     /// <param name="b">Второй конец.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
     public SketchConstraint Midpoint(string middle, string a, string b, string? name = null) =>
-        Add("midpoint", name, [middle, a, b], [.. Point(middle), .. Point(a), .. Point(b)], 2,
-            v => [v[0] - (0.5 * (v[2] + v[4])), v[1] - (0.5 * (v[3] + v[5]))],
-            _ => new double[,] { { 1, 0, -0.5, 0, -0.5, 0 }, { 0, 1, 0, -0.5, 0, -0.5 } });
+        AddLinear("midpoint", name, [middle, a, b], [middle, a, b], [1, -0.5, -0.5]);
 
     /// <summary>
     /// Точки симметричны относительно прямой: середина между ними лежит на прямой,
-    /// а соединяющий их отрезок перпендикулярен прямой.
+    /// а соединяющий их отрезок перпендикулярен прямой. В пространстве это симметрия относительно оси
+    /// (поворот вокруг нее на π).
     /// </summary>
     /// <param name="a">Первая точка.</param>
     /// <param name="b">Вторая точка.</param>
     /// <param name="line">Ось симметрии.</param>
     /// <param name="name">Имя ограничения; если null, строится автоматически.</param>
-    public SketchConstraint Symmetric(string a, string b, string line, string? name = null) =>
-        Add("symmetric", name, [a, b, line], [.. Point(a), .. Point(b), .. Line(line)], 2,
+    public SketchConstraint Symmetric(string a, string b, string line, string? name = null)
+    {
+        string[][] c = Coordinates([a, b, .. Corners(line)]);
+        string[] unknowns = [.. c.SelectMany(p => p)];
+
+        if (c[0].Length == 3)
+            return Add("symmetric", name, [a, b, line], unknowns, 4, SymmetricResiduals);
+
+        return Add("symmetric", name, [a, b, line], unknowns, 2,
             v =>
             {
                 double dx = v[6] - v[4];
@@ -342,6 +375,7 @@ public sealed partial class GeometricSketch
                 double along = ((dx * (v[2] - v[0])) + (dy * (v[3] - v[1]))) / length;
                 return [SignedDistance(0.5 * (v[0] + v[2]), 0.5 * (v[1] + v[3]), v, 4), along];
             });
+    }
 
     /// <summary>
     /// Произвольное ограничение: выражение от именованных значений должно равняться нулю.
@@ -383,13 +417,16 @@ public sealed partial class GeometricSketch
     internal IEnumerable<string> Expand(string reference)
     {
         if (_points.Contains(reference))
-            return Point(reference);
+            return _spatial.Contains(reference) ? Spatial(reference) : Point(reference);
 
-        if (_lines.ContainsKey(reference))
-            return Line(reference);
+        if (_lines.TryGetValue(reference, out var line))
+            return [.. Expand(line.Start), .. Expand(line.End)];
+
+        if (_planes.TryGetValue(reference, out var plane))
+            return [.. Expand(plane.A), .. Expand(plane.B), .. Expand(plane.C)];
 
         if (_circles.TryGetValue(reference, out var circle))
-            return [.. Point(circle.Center), circle.Radius];
+            return [.. Expand(circle.Center), circle.Radius];
 
         IndexOf(reference);
         return [reference];
@@ -429,9 +466,6 @@ public sealed partial class GeometricSketch
         return Math.Atan2(Math.Abs(sin), Math.Abs(cos));
     }
 
-    internal static double SegmentLength(IReadOnlyList<double> v, int offset) =>
-        Hypot(v[offset + 2] - v[offset], v[offset + 3] - v[offset + 1]);
-
     // Приведение угла к промежутку (-π, π]
     private static double WrapAngle(double angle)
     {
@@ -451,21 +485,41 @@ public sealed partial class GeometricSketch
         return [X(start), Y(start), X(end), Y(end)];
     }
 
-    // |AB| - value с аналитическими производными; в совпадающих точках производная не определена
-    private SketchConstraint AddDistance(string kind, string? name, string[] label, string a, string b, string value) =>
-        Add(kind, name, label, [.. Point(a), .. Point(b), value], 1,
-            v => [Hypot(v[0] - v[2], v[1] - v[3]) - v[4]],
+    // |AB| - value с аналитическими производными в размерности точек; в совпадающих точках производная не определена
+    private SketchConstraint AddDistance(string kind, string? name, string[] label, string a, string b, string value)
+    {
+        string[][] c = Coordinates([a, b]);
+        int d = c[0].Length;
+        return Add(kind, name, label, [.. c[0], .. c[1], value], 1,
+            v => [Span(v, 0, d) - v[2 * d]],
             v =>
             {
-                double dx = v[0] - v[2];
-                double dy = v[1] - v[3];
-                double d = Hypot(dx, dy);
-                return d == 0 ? null : new double[,] { { dx / d, dy / d, -dx / d, -dy / d, -1 } };
-            });
+                double length = Span(v, 0, d);
 
-    private SketchConstraint AddDistanceToLine(string kind, string? name, string[] label, string point, string line, string value) =>
-        Add(kind, name, label, [.. Point(point), .. Line(line), value], 1,
-            v => [Math.Abs(SignedDistance(v[0], v[1], v, 2)) - v[6]]);
+                if (length == 0)
+                    return null;
+
+                var row = new double[1, (2 * d) + 1];
+
+                for (int i = 0; i < d; i++)
+                {
+                    row[0, i] = (v[i] - v[d + i]) / length;
+                    row[0, d + i] = -row[0, i];
+                }
+
+                row[0, 2 * d] = -1;
+                return row;
+            });
+    }
+
+    private SketchConstraint AddDistanceToLine(string kind, string? name, string[] label, string point, string line, string value)
+    {
+        string[][] c = Coordinates([point, .. Corners(line)]);
+        string[] unknowns = [.. c.SelectMany(p => p), value];
+        return c[0].Length == 2
+            ? Add(kind, name, label, unknowns, 1, v => [Math.Abs(SignedDistance(v[0], v[1], v, 2)) - v[6]])
+            : Add(kind, name, label, unknowns, 1, v => [LineOffset(v).Length - v[9]]);
+    }
 
     private SketchConstraint Add(
         string kind,

@@ -184,7 +184,32 @@ public sealed partial class Parser
     }
 
     private void Error(string code, TextSpan span, string message, string? hint = null) =>
-        _diagnostics.Error(code, span, message, hint);
+        _diagnostics.Error(code, span, message, PythonLogicalWord() ?? hint);
+
+    /// <summary>
+    /// Подсказка, если ошибка пришлась на логическое слово из Python: <c>and</c>, <c>or</c>, <c>not</c>.
+    /// </summary>
+    /// <remarks>
+    /// Модель, обученная на Python, пишет <c>a &gt; 0 and b &gt; 0</c> естественно — и получала
+    /// «ожидался конец инструкции» либо «ожидалась ')'»: сообщение о месте, а не о причине. Автор
+    /// самого языка написал так же, проверяя <c>pde</c>. Подсказка главнее переданной: иначе для
+    /// <c>not x</c> сработал бы совет про вызов без скобок, <c>not(...)</c>, — неверный. После
+    /// точки эти слова законны: <c>fuzzy.and</c> — функция, а не оператор.
+    /// </remarks>
+    private string? PythonLogicalWord()
+    {
+        static bool Word(Token token, string text) => token.Kind == TokenKind.Identifier && token.Text == text;
+
+        bool AfterDot(int index) => index > 0 && _tokens[index - 1].Kind == TokenKind.Dot;
+
+        if (Word(Current, "and") && !AfterDot(_position)) return "логическое И пишется &&: a > 0 && b > 0";
+        if (Word(Current, "or") && !AfterDot(_position)) return "логическое ИЛИ пишется ||: a > 0 || b > 0";
+
+        if (_position > 0 && Word(_tokens[_position - 1], "not") && !AfterDot(_position - 1))
+            return "отрицание пишется !: !done";
+
+        return null;
+    }
 
     private (string Name, TextSpan Span) ExpectIdentifier(string context)
     {

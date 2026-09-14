@@ -1450,6 +1450,11 @@ public sealed class Checker
 
     private string FunctionHint(string ns, string name, bool asCallee)
     {
+        // Константа с именем пространства — естественная ошибка: в Python это math.pi. Совет
+        // искать среди функций math уводил бы в сторону, а ближайшим именем подсказал бы pow.
+        if (ScriptConstants.All.ContainsKey(name))
+            return $"{name} — встроенная константа, она пишется без пространства: {name}";
+
         var names = new List<string>();
 
         foreach (ScriptFunction function in _registry.InNamespace(ns)) names.Add(function.Name);

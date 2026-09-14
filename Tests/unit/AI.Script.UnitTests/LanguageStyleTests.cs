@@ -188,6 +188,44 @@ public sealed class LanguageStyleTests
     }
 
     /// <summary>
+    /// Пример не называет несуществующего — ни вызовом, ни обращением без вызова.
+    /// </summary>
+    /// <remarks>
+    /// Сверка с сигнатурами видит только вызовы, и два примера <c>pde</c> с <c>math.pi</c> прошли
+    /// её: константа <c>pi</c> живёт без пространства, а <c>math.pi</c> — не вызов. Здесь пример
+    /// проходит настоящую проверку языка, и падает любое неизвестное имя в пространстве.
+    /// Несвязанные переменные вроде <c>data</c> — законная неполнота примера, их не считаем.
+    /// </remarks>
+    [Fact]
+    public void EveryExample_NamesOnlyRealFunctions()
+    {
+        var wrong = new List<string>();
+
+        foreach (ScriptFunction function in Functions)
+        {
+            if (string.IsNullOrWhiteSpace(function.Example)) continue;
+
+            foreach (Diagnostic diagnostic in Host.Check(function.Example).Diagnostics)
+            {
+                if (diagnostic.Code is DiagnosticCodes.UnknownFunction or DiagnosticCodes.UnknownNamespace)
+                    wrong.Add($"{function.FullName}: {diagnostic.Message}");
+            }
+        }
+
+        Assert.True(wrong.Count == 0, "примеры называют несуществующее:\n  " + string.Join("\n  ", wrong));
+    }
+
+    /// <summary>Константа с именем пространства подсказывает голое имя, а не список функций.</summary>
+    [Fact]
+    public void ConstantUnderNamespace_PointsToBareName()
+    {
+        Diagnostic error = Script.CheckFailsWith("emit r = math.pi * 2");
+
+        Assert.Contains("без пространства", error.Hint, StringComparison.Ordinal);
+        Assert.Contains("pi", error.Hint, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// Имена переменных в примерах — латиницей, как и всё остальное в библиотеке.
     /// </summary>
     /// <remarks>
@@ -289,6 +327,22 @@ public sealed class LanguageStyleTests
         Diagnostic error = Script.CheckFailsWith("let total = 3\nprint total");
 
         Assert.Contains("print(", error.Hint, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Логические слова из Python объясняются операторами языка — и на верхнем уровне, и внутри
+    /// вызова, где ошибка звучит иначе.
+    /// </summary>
+    [Theory]
+    [InlineData("let a = 1\nemit r = a > 0 and a < 2", "&&")]
+    [InlineData("let a = 1\nemit r = a > 0 or a < 2", "||")]
+    [InlineData("emit r = [1, 2] |> core.filter(x => x > 0 and x < 2)", "&&")]
+    [InlineData("let done = false\nemit r = not done", "!done")]
+    public void PythonLogicalWords_AreExplained(string source, string operatorHint)
+    {
+        Diagnostic error = Script.CheckFailsWith(source);
+
+        Assert.Contains(operatorHint, error.Hint, StringComparison.Ordinal);
     }
 
     /// <summary>Затенить константу своим именем внутри функции по-прежнему можно.</summary>
@@ -480,6 +534,12 @@ public sealed class LanguageStyleTests
     [InlineData("opt.minimize(p => (p[0] - 2) * (p[0] - 2), <0>)")]
     [InlineData("csp.solve([\"x\", \"y\"], lower: 0, upper: 3, all_different: [[\"x\", \"y\"]])")]
     [InlineData("csp.sat([[\"a\", \"b\"], [\"!a\"]])")]
+    [InlineData("sim.queue(arrival: 1, service: 2)")]
+    [InlineData("sim.replicate(i => i * 1.5, n: 5)")]
+    [InlineData("sim.ou(mean: 0, reversion: 1, volatility: 1, steps: 5)")]
+    [InlineData("pde.steady(x => 1, nodes: 11)")]
+    [InlineData("pde.heat(x => 0, diffusivity: 1, until: 0.1, nodes: 11, steps: 10)")]
+    [InlineData("pde.mesh(nodes: 4)")]
     public void RecordFields_AreAsciiSnakeCase(string call)
     {
         RunResult result = Script.RunWith(Host, $"emit r = {call}", new RunOptions { Seed = 3 });

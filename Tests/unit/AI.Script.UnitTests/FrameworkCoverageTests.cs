@@ -43,8 +43,6 @@ public sealed class FrameworkCoverageTests
     /// </remarks>
     private static readonly IReadOnlyDictionary<string, string> Pending = new Dictionary<string, string>
     {
-        ["AI.Simulation"] = "симуляция: Монте-Карло, дискретные события, агенты",
-        ["AI.Solvers.Pde"] = "уравнения в частных производных",
         ["AI.Physics"] = "физика: механика, термодинамика, оптика, акустика",
         ["AI.Earth"] = "науки о Земле: геодезия, проекции, астрономия",
         ["AI.Biology"] = "биология: последовательности, филогения, популяции",

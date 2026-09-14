@@ -44,6 +44,7 @@ public static class Svd
         for (int sweep = 0; sweep < maxSweeps; sweep++)
         {
             double offNorm = 0;
+            bool rotated = false;
 
             for (int p = 0; p < n - 1; p++)
             {
@@ -59,8 +60,12 @@ public static class Svd
 
                     offNorm += gamma * gamma;
 
-                    if (Math.Abs(gamma) < eps * Math.Sqrt(alpha * beta))
+                    // Столбцы уже ортогональны с относительной точностью eps; нулевое скалярное произведение
+                    // пропускается явно: при двух нулевых столбцах zeta была бы 0/0
+                    if (gamma == 0 || Math.Abs(gamma) < eps * Math.Sqrt(alpha * beta))
                         continue;
+
+                    rotated = true;
 
                     double zeta = (beta - alpha) / (2.0 * gamma);
 
@@ -89,7 +94,9 @@ public static class Svd
                 }
             }
 
-            if (offNorm < eps * eps) break;
+            // Проход без единого поворота значит, что все пары столбцов ортогональны по относительному критерию:
+            // абсолютный порог offNorm на плохо масштабированных матрицах недостижим, и шли все проходы
+            if (!rotated || offNorm < eps * eps) break;
         }
 
         double[] sigma = new double[n];

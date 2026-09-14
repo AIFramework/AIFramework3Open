@@ -52,6 +52,8 @@ public static class StandardLibrary
         ScriptModule.FromType(typeof(CausalModule)),
         ScriptModule.FromType(typeof(OptModule)),
         ScriptModule.FromType(typeof(CspModule)),
+        ScriptModule.FromType(typeof(SimModule)),
+        ScriptModule.FromType(typeof(PdeModule)),
     ];
 
     /// <summary>Регистрирует стандартную библиотеку в хосте.</summary>

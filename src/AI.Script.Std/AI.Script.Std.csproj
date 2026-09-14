@@ -31,6 +31,10 @@
     <ProjectReference Include="..\AI.Solvers.Optimization\AI.Solvers.Optimization.csproj" />
     <!-- Задачи на ограничения: сверх оптимизации ничего не тянут. -->
     <ProjectReference Include="..\AI.Solvers.Constraints\AI.Solvers.Constraints.csproj" />
+    <!-- Симуляция: AI, AI.ClassicMath и AI.Algorithms уже подключены. -->
+    <ProjectReference Include="..\AI.Simulation\AI.Simulation.csproj" />
+    <!-- Уравнения в частных производных: только ядро AI. -->
+    <ProjectReference Include="..\AI.Solvers.Pde\AI.Solvers.Pde.csproj" />
     <ProjectReference Include="..\AI.Microwave\AI.Microwave.csproj" />
     <ProjectReference Include="..\AI.Logic\AI.Logic.csproj" />
     <ProjectReference Include="..\AI.SignalLabs\AI.SignalLabs.csproj" />

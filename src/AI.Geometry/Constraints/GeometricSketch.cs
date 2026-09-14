@@ -21,6 +21,11 @@ namespace AI.Geometry.Constraints;
 /// Свободный параметр (неизвестная длина, угол, отношение) добавляется методом <see cref="AddParameter"/>
 /// и может стоять на месте числа в ограничениях. Углы задаются в радианах.
 /// </para>
+/// <para>
+/// Точка, добавленная с тремя координатами, создает еще «A.z», и эскиз становится пространственным: расстояния, длины,
+/// совпадение, середина, принадлежность прямой, параллельность, перпендикулярность и угол считаются в пространстве,
+/// а прямые можно сочетать с плоскостями (<see cref="AddPlane"/>). Эскиз только из плоских точек решается как раньше.
+/// </para>
 /// <example>
 /// <code>
 /// var sketch = new GeometricSketch();
@@ -48,8 +53,11 @@ public sealed partial class GeometricSketch
     private readonly HashSet<string> _points = new(StringComparer.Ordinal);
     private readonly Dictionary<string, (string Start, string End)> _lines = new(StringComparer.Ordinal);
     private readonly Dictionary<string, (string Center, string Radius)> _circles = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _spatial = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, (string A, string B, string C)> _planes = new(StringComparer.Ordinal);
     private readonly List<SketchConstraint> _constraints = [];
     private int _constantCount;
+    private string? _zero;
 
     /// <summary>
     /// Имена видимых неизвестных (координаты точек, радиусы, параметры) в порядке добавления.
@@ -92,6 +100,38 @@ public sealed partial class GeometricSketch
         AddUnknown(X(id), x, isFixed);
         AddUnknown(Y(id), y, isFixed);
         _points.Add(id);
+    }
+
+    /// <summary>
+    /// Добавляет точку пространства с неизвестными «id.x», «id.y» и «id.z».
+    /// Ограничения, где участвует такая точка или плоскость, считаются в пространстве; плоская точка в них лежит при z = 0.
+    /// </summary>
+    /// <param name="id">Идентификатор точки.</param>
+    /// <param name="x">Начальное приближение абсциссы.</param>
+    /// <param name="y">Начальное приближение ординаты.</param>
+    /// <param name="z">Начальное приближение аппликаты.</param>
+    /// <param name="isFixed">Если true, все три координаты известны и не меняются решателем.</param>
+    public void AddPoint(string id, double x, double y, double z, bool isFixed = false)
+    {
+        AddPoint(id, x, y, isFixed);
+        AddUnknown(Z(id), z, isFixed);
+        _spatial.Add(id);
+    }
+
+    /// <summary>
+    /// Добавляет плоскость через три ранее добавленные точки. Нормаль плоскости (B − A) × (C − A).
+    /// </summary>
+    /// <param name="id">Идентификатор плоскости.</param>
+    /// <param name="a">Первая точка.</param>
+    /// <param name="b">Вторая точка.</param>
+    /// <param name="c">Третья точка.</param>
+    public void AddPlane(string id, string a, string b, string c)
+    {
+        EnsureNewEntity(id);
+        RequirePoint(a);
+        RequirePoint(b);
+        RequirePoint(c);
+        _planes.Add(id, (a, b, c));
     }
 
     /// <summary>
@@ -158,6 +198,23 @@ public sealed partial class GeometricSketch
     internal (string Center, string Radius) CircleParts(string circle) =>
         _circles.TryGetValue(circle, out var parts) ? parts : throw Missing("окружность", circle);
 
+    internal (string A, string B, string C) PlanePoints(string plane) =>
+        _planes.TryGetValue(plane, out var points) ? points : throw Missing("плоскость", plane);
+
+    internal bool IsPlane(string id) => _planes.ContainsKey(id);
+
+    internal bool IsSpatialPoint(string point) => _spatial.Contains(point);
+
+    // Точки, задающие направление: две у прямой (направляющий вектор), три у плоскости (нормаль)
+    internal string[] Corners(string id)
+    {
+        if (_planes.TryGetValue(id, out var plane))
+            return [plane.A, plane.B, plane.C];
+
+        var (start, end) = LinePoints(id);
+        return [start, end];
+    }
+
     internal void RequirePoint(string point)
     {
         if (!_points.Contains(point))
@@ -170,6 +227,8 @@ public sealed partial class GeometricSketch
     internal static string X(string point) => point + ".x";
 
     internal static string Y(string point) => point + ".y";
+
+    internal static string Z(string point) => point + ".z";
 
     // Число в ограничении хранится как скрытая фиксированная неизвестная: тогда число и параметр обрабатываются одинаково
     private string Constant(double value)
@@ -196,7 +255,7 @@ public sealed partial class GeometricSketch
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
-        if (IsHidden(id) || _points.Contains(id) || _lines.ContainsKey(id) || _circles.ContainsKey(id))
+        if (IsHidden(id) || _points.Contains(id) || _lines.ContainsKey(id) || _circles.ContainsKey(id) || _planes.ContainsKey(id))
             throw new ArgumentException($"Сущность «{id}» уже существует или имя недопустимо.", nameof(id));
     }
 
