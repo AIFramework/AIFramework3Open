@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.Script.Semantics;
 
 namespace AI.Script.Runtime;
@@ -37,6 +37,15 @@ public readonly struct ScriptValue : IEquatable<ScriptValue>
 
     /// <summary>Создаёт число.</summary>
     public static ScriptValue Num(double value) => new(ScriptType.Num, value, null);
+
+    /// <summary>Создаёт точное десятичное число.</summary>
+    public static ScriptValue Dec(decimal value) => new(ScriptType.Dec, 0, value);
+
+    /// <summary>Величина: число в базовых единицах и единица печати.</summary>
+    public static ScriptValue Qty(double magnitude, MeasureUnit unit) => new(ScriptType.Qty, magnitude, unit);
+
+    /// <summary>Величина из числа в единицах обозначения: <c>Quantity(500, g)</c> — это 0,5 кг.</summary>
+    public static ScriptValue Quantity(double value, MeasureUnit unit) => Qty(value * unit.Scale, unit);
 
     /// <summary>Создаёт логическое значение.</summary>
     public static ScriptValue Bool(bool value) => value ? True : False;
@@ -87,6 +96,19 @@ public readonly struct ScriptValue : IEquatable<ScriptValue>
     public double AsNumber(string what = "значение") => Type == ScriptType.Num
         ? _number
         : throw Mismatch(what, ScriptType.Num);
+
+    /// <summary>Точное десятичное число; отказ, если тип другой.</summary>
+    /// <summary>Единица величины.</summary>
+    public MeasureUnit AsUnit(string what = "значение") => Type == ScriptType.Qty
+        ? (MeasureUnit)_reference!
+        : throw Mismatch(what, ScriptType.Qty);
+
+    /// <summary>Число величины в единицах её обозначения: у <c>500 g</c> это 500, а не 0,5.</summary>
+    public double QuantityValue => Type == ScriptType.Qty ? _number / ((MeasureUnit)_reference!).Scale : _number;
+
+    public decimal AsDecimal(string what = "значение") => Type == ScriptType.Dec
+        ? (decimal)_reference!
+        : throw Mismatch(what, ScriptType.Dec);
 
     /// <summary>Логическое значение; отказ, если тип другой.</summary>
     public bool AsBool(string what = "значение") => Type == ScriptType.Bool
@@ -165,6 +187,8 @@ public readonly struct ScriptValue : IEquatable<ScriptValue>
             ScriptType.None => true,
             ScriptType.Num or ScriptType.Bool => _number.Equals(other._number),
             ScriptType.Str => string.Equals((string)_reference!, (string)other._reference!, StringComparison.Ordinal),
+            ScriptType.Dec => ((decimal)_reference!).Equals((decimal)other._reference!),
+            ScriptType.Qty => _number.Equals(other._number) && ((MeasureUnit)_reference!).SameDimension((MeasureUnit)other._reference!),
             ScriptType.Date => ((DateTime)_reference!).Equals((DateTime)other._reference!),
             ScriptType.Dur => ((TimeSpan)_reference!).Equals((TimeSpan)other._reference!),
             ScriptType.Vec => VectorsEqual((Vector)_reference!, (Vector)other._reference!),
@@ -218,8 +242,8 @@ public readonly struct ScriptValue : IEquatable<ScriptValue>
     public override int GetHashCode() => Type switch
     {
         ScriptType.None => 0,
-        ScriptType.Num or ScriptType.Bool => HashCode.Combine(Type, _number),
-        ScriptType.Str or ScriptType.Date or ScriptType.Dur => HashCode.Combine(Type, _reference),
+        ScriptType.Num or ScriptType.Bool or ScriptType.Qty => HashCode.Combine(Type, _number),
+        ScriptType.Str or ScriptType.Date or ScriptType.Dur or ScriptType.Dec => HashCode.Combine(Type, _reference),
         _ => HashCode.Combine(Type, _reference?.GetHashCode() ?? 0),
     };
 

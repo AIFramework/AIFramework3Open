@@ -21,7 +21,7 @@ namespace AI.Script.Std;
 /// <c>options.seed</c>, и повторный прогон даёт тот же ответ.
 /// </para>
 /// </remarks>
-[ScriptModule("causal", "Причинный эффект: DiD, RDD, сопоставление", Version = "0.1")]
+[ScriptModule("causal", "Причинный эффект: DiD, RDD, сопоставление", Version = "0.1", Group = "анализ")]
 public static class CausalModule
 {
     /// <summary>

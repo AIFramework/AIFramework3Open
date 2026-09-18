@@ -243,6 +243,252 @@ public sealed class LlmTests
         Assert.Equal(DiagnosticCodes.BadFileFormat, error.Code);
     }
 
+    // --- схема ответа ---
+
+    /// <summary>
+    /// Схема приводит ответ к объявленным типам: модель пишет сумму строкой, и без приведения
+    /// скрипт упал бы двумя строками ниже — на сложении, а не на разборе.
+    /// </summary>
+    [Fact]
+    public void Json_Schema_CoercesTypes()
+    {
+        var llm = new FakeLlm("""{ "номер": "7", "сумма": "1 234,50", "срочно": "да", "дата": "2026-03-15" }""");
+
+        RunResult result = Script.RunWith(Host(llm), """
+            let счёт = llm.json("Разбери счёт", schema: { номер: "num", сумма: "dec", срочно: "bool", дата: "date" })
+
+            emit номер = счёт.номер
+            emit сумма = счёт.сумма
+            emit срочно = счёт.срочно
+            emit год = date.year(счёт.дата)
+            """, Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(7.0, result.Emitted["номер"]);
+        Assert.Equal(1234.50m, result.Emitted["сумма"]);
+        Assert.Equal(true, result.Emitted["срочно"]);
+        Assert.Equal(2026.0, result.Emitted["год"]);
+    }
+
+    /// <summary>Схема попадает в запрос словами: модели незачем угадывать, чего от неё ждут.</summary>
+    [Fact]
+    public void Json_Schema_IsSpelledOutInRequest()
+    {
+        var llm = new FakeLlm("""{ "сумма": 1 }""");
+
+        _ = Script.RunWith(Host(llm), "emit r = llm.json(\"Разбери\", schema: { сумма: \"dec\" })", Online());
+
+        Assert.Contains("точное число", llm.LastMessages[^1].Content?.ToString() ?? string.Empty, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Промах по схеме стоит одной повторной попытки, и в ней сказано, что именно не подошло.
+    /// Цикла нет намеренно: каждый заход — оплаченный запрос.
+    /// </summary>
+    [Fact]
+    public void Json_Schema_RepairsOnce()
+    {
+        var llm = new FakeLlm("""{ "тон": "хороший" }""", """{ "тон": "хороший", "оценка": 5 }""");
+
+        RunResult result = Script.RunWith(Host(llm), """
+            let разбор = llm.json("Разбери отзыв", schema: { тон: "str", оценка: "num" })
+
+            emit оценка = разбор.оценка
+            """, Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(5.0, result.Emitted["оценка"]);
+        Assert.Equal(2, llm.Requests);
+        Assert.Contains("оценка", llm.LastMessages[^1].Content?.ToString() ?? string.Empty, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Json_Schema_SecondMiss_IsReported()
+    {
+        var llm = new FakeLlm("""{ "тон": "хороший" }""", """{ "тон": "хороший" }""");
+
+        Diagnostic error = Script.FailsWith(
+            "emit r = llm.json(\"Разбери\", schema: { тон: \"str\", оценка: \"num\" })",
+            Online(),
+            Host(llm));
+
+        Assert.Equal(DiagnosticCodes.BadFileFormat, error.Code);
+        Assert.Equal(2, llm.Requests);
+    }
+
+    /// <summary>Пояснение сверх схемы не повод платить второй раз: лишние поля остаются.</summary>
+    [Fact]
+    public void Json_Schema_ExtraFields_AreKept()
+    {
+        var llm = new FakeLlm("""{ "тон": "хороший", "почему": "быстро привезли" }""");
+
+        RunResult result = Script.RunWith(
+            Host(llm),
+            "emit r = llm.json(\"Разбери\", schema: { тон: \"str\" }).почему",
+            Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal("быстро привезли", result.Emitted["r"]);
+        Assert.Equal(1, llm.Requests);
+    }
+
+    // --- пакетная генерация ---
+
+    [Fact]
+    public void Map_AddsAnswerColumn()
+    {
+        var llm = new FakeLlm("чайник", "утюг");
+
+        RunResult result = Script.RunWith(Host(llm), """
+            let t = table.of({ name: ["первый", "второй"] }) |> llm.map(prompt: row => "Назови ${row.name}")
+
+            emit колонки = len(table.columns(t))
+            emit первый = t[0].answer
+            """, Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(2.0, result.Emitted["колонки"]);
+        Assert.Equal("чайник", result.Emitted["первый"]);
+        Assert.Equal(2, llm.Requests);
+    }
+
+    /// <summary>Повторный прогон с теми же запросами не тратит ни одного вызова: ответы из кэша.</summary>
+    [Fact]
+    public void Map_SamePrompts_ComeFromCache()
+    {
+        var llm = new FakeLlm("а", "б");
+        var options = Online();
+
+        options.Cache = new MemoryStageCache();
+
+        const string Source = """
+            let t = table.of({ name: ["x", "y"] }) |> llm.map(prompt: row => "Опиши ${row.name}")
+
+            emit ответ = t[1].answer
+            """;
+
+        RunResult first = Script.RunWith(Host(llm), Source, options);
+        RunResult again = Script.RunWith(Host(llm), Source, options);
+
+        Assert.True(again.Success, Script.Report(again));
+        Assert.Equal(first.Emitted["ответ"], again.Emitted["ответ"]);
+        Assert.Equal(2, llm.Requests);
+    }
+
+    /// <summary>
+    /// Бюджет опыта кончился — опыт останавливается с тем, что успел, а не срывается отказом.
+    /// </summary>
+    [Fact]
+    public void ExperimentUntil_Budget_StopsWithPartialResult()
+    {
+        var llm = new FakeLlm("1", "1", "1", "1", "1", "1", "1", "1") { Cost = 0.4m };
+
+        RunResult result = Script.RunWith(Host(llm), """
+            let итоги = exp.grid({ вариант: ["a"] })
+                |> exp.run(p => { score: len(llm.ask("оцени")) }, repeat: 8, until: { cost: 1 })
+
+            emit строк = len(итоги)
+            emit причина = итоги[0].stopped
+            """, Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(3.0, result.Emitted["строк"]);
+        Assert.Equal("budget", result.Emitted["причина"]);
+    }
+
+    /// <summary>Потолок расходов прогона тоже останавливает опыт с частичным итогом.</summary>
+    [Fact]
+    public void ExperimentUntil_RunLimit_StopsWithPartialResult()
+    {
+        var llm = new FakeLlm("1", "1", "1", "1", "1", "1");
+
+        RunResult result = Script.RunWith(Host(llm), """
+            let итоги = exp.grid({ вариант: ["a"] })
+                |> exp.run(p => { score: len(llm.ask("оцени")) }, repeat: 6, until: { cost: 100 })
+
+            emit строк = len(итоги)
+            emit причина = итоги[0].stopped
+            """, Online(calls: 2));
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(2.0, result.Emitted["строк"]);
+        Assert.Equal("budget", result.Emitted["причина"]);
+    }
+
+    // --- извлечение корпуса ---
+
+    /// <summary>
+    /// Извлечение сразу таблицей: строка на текст, колонка на поле схемы. Иначе корпус из
+    /// десяти договоров пришлось бы собирать в таблицу руками, теряя связь строки с источником.
+    /// </summary>
+    [Fact]
+    public void Extract_BuildsTableFromTexts()
+    {
+        var llm = new FakeLlm(
+            """{ "срок": "2026-03-15", "сумма": "1 250 000,00" }""",
+            """{ "срок": "2026-04-01", "сумма": "700 000,00" }""");
+
+        RunResult result = Script.RunWith(Host(llm), """
+            let тексты = ["первый договор", "второй договор"]
+            let r = llm.extract(тексты, schema: { срок: "date", сумма: "dec" }, about: "договора")
+
+            emit строк = len(r)
+            emit итого = dec.sum(r["сумма"])
+            emit источник = r[1].source
+            emit год = date.year(r[0].срок)
+            """, Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(2.0, result.Emitted["строк"]);
+        Assert.Equal(1_950_000.00m, result.Emitted["итого"]);
+        Assert.Equal(1.0, result.Emitted["источник"]);
+        Assert.Equal(2026.0, result.Emitted["год"]);
+        Assert.Equal(2, llm.Requests);
+    }
+
+    /// <summary>Чего в тексте нет, остаётся пропуском: выдуманное значение хуже отсутствующего.</summary>
+    [Fact]
+    public void Extract_MissingField_StaysEmpty()
+    {
+        var llm = new FakeLlm("""{ "срок": null }""");
+
+        RunResult result = Script.RunWith(
+            Host(llm),
+            "emit пусто = llm.extract(\"договор\", schema: { срок: \"date\" })[0][\"срок\"] == none",
+            Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(true, result.Emitted["пусто"]);
+    }
+
+    [Fact]
+    public void Extract_EmptySchema_IsRejected()
+    {
+        Diagnostic error = Script.FailsWith(
+            "emit r = llm.extract([\"текст\"], schema: { })",
+            Online(),
+            Host(new FakeLlm("{}")));
+
+        Assert.Equal(DiagnosticCodes.BadOperand, error.Code);
+    }
+
+    /// <summary>Схема уходит в запрос словами: модель не угадывает, чего от неё ждут.</summary>
+    [Fact]
+    public void Extract_AsksForDeclaredFields()
+    {
+        var llm = new FakeLlm("""{ "сумма": 1 }""");
+
+        _ = Script.RunWith(
+            Host(llm),
+            "emit r = llm.extract(\"текст\", schema: { сумма: \"dec\" }, about: \"акта\")",
+            Online());
+
+        string asked = llm.LastMessages[^1].Content?.ToString() ?? string.Empty;
+
+        Assert.Contains("акта", asked, StringComparison.Ordinal);
+        Assert.Contains("точное число", asked, StringComparison.Ordinal);
+    }
+
     /// <summary>Ответ приводится к ближайшей метке: модель отвечает не тем словом, о котором просили.</summary>
     [Fact]
     public void Classify_MapsVerboseAnswerToLabel()
@@ -443,6 +689,40 @@ public sealed class LlmTests
     {
         Assert.True(RunProfiles.Trusted().Network.Enabled);
     }
+
+    // --- найденное при проверке ---
+
+    /// <summary>Пустое поле ответа не отбрасывает строку: остальные поля остаются.</summary>
+    [Fact]
+    public void Extract_NullField_KeepsOtherFields()
+    {
+        var llm = new FakeLlm("""{ "срок": null, "сумма": "1 000,00" }""");
+
+        RunResult result = Script.RunWith(Host(llm), """
+            let r = llm.extract(["договор"], schema: { срок: "date", сумма: "dec" })
+            emit сумма = r[0].сумма
+            emit срока_нет = r[0].срок == none
+            """, Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(1000.00m, result.Emitted["сумма"]);
+        Assert.Equal(true, result.Emitted["срока_нет"]);
+    }
+
+    /// <summary>Русская дата: день впереди месяца.</summary>
+    [Fact]
+    public void Json_RussianDate_IsDayFirst()
+    {
+        var llm = new FakeLlm("""{ "срок": "01.02.2026" }""");
+
+        RunResult result = Script.RunWith(Host(llm), """
+            emit месяц = date.month(llm.json("срок", schema: { срок: "date" }).срок)
+            """, Online());
+
+        Assert.True(result.Success, Script.Report(result));
+        Assert.Equal(2.0, result.Emitted["месяц"]);
+    }
+
 }
 
 /// <summary>Имена ролей сообщений — чтобы не повторять строковые литералы в проверках.</summary>

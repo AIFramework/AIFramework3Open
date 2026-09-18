@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.Script.Runtime;
 using AI.Script.Semantics;
 using System.Globalization;
@@ -106,6 +106,20 @@ public static class Json
 
             case ScriptType.Num:
                 AppendNumber(builder, value.RawNumber);
+                return;
+
+            case ScriptType.Qty:
+                _ = builder.Append("{\"value\": ");
+                AppendNumber(builder, value.QuantityValue);
+                _ = builder.Append(", \"unit\": ");
+                AppendString(builder, value.AsUnit().Symbol);
+                _ = builder.Append('}');
+                return;
+
+            case ScriptType.Dec:
+                // Без кавычек и без перевода в double: JSON умеет произвольную точность, и
+                // единственное место, где копейка терялась бы, — наш собственный перевод.
+                _ = builder.Append(value.AsDecimal().ToString(CultureInfo.InvariantCulture));
                 return;
 
             case ScriptType.Str:

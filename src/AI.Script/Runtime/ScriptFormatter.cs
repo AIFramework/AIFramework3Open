@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using System.Globalization;
 using System.Text;
 
@@ -34,6 +34,8 @@ public static class ScriptFormatter
     {
         ScriptType.None => "none",
         ScriptType.Num => Number(value.RawNumber),
+        ScriptType.Dec => Number(value.AsDecimal()),
+        ScriptType.Qty => $"{Number(value.QuantityValue)} {value.AsUnit().Symbol}",
         ScriptType.Bool => value.RawNumber != 0 ? "true" : "false",
         ScriptType.Str => quoteStrings ? Quote(value.AsString()) : value.AsString(),
         ScriptType.Date => FormatDate(value.AsDate()),
@@ -60,7 +62,7 @@ public static class ScriptFormatter
     public static string Summary(ScriptValue value) => value.Type switch
     {
         ScriptType.None => "none",
-        ScriptType.Num or ScriptType.Bool or ScriptType.Date or ScriptType.Dur => Format(value),
+        ScriptType.Num or ScriptType.Dec or ScriptType.Qty or ScriptType.Bool or ScriptType.Date or ScriptType.Dur => Format(value),
         ScriptType.Str => $"str({value.AsString().Length})",
         ScriptType.Vec => $"vec({value.AsVector().Count})",
         ScriptType.Mat => $"mat({value.AsMatrix().Height}×{value.AsMatrix().Width})",
@@ -83,6 +85,15 @@ public static class ScriptFormatter
 
         return value.ToString("G15", CultureInfo.InvariantCulture);
     }
+
+    /// <summary>
+    /// Печатает точное число как есть, вместе с масштабом.
+    /// </summary>
+    /// <remarks>
+    /// Хвостовые нули не срезаются: «12.50» и «12.5» в деньгах говорят о разной точности
+    /// исходных данных, и печать обязана показывать то, что посчитано.
+    /// </remarks>
+    public static string Number(decimal value) => value.ToString(CultureInfo.InvariantCulture);
 
     private static string Quote(string text) => $"\"{text.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
 

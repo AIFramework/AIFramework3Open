@@ -18,6 +18,9 @@ public interface IScriptModule
     /// <summary>Версия модуля.</summary>
     string Version { get; }
 
+    /// <summary>Задача, к которой относится модуль; по задачам строится индекс в промпте.</summary>
+    string Group => string.Empty;
+
     /// <summary>Функции модуля.</summary>
     IReadOnlyList<ScriptFunction> Functions { get; }
 }

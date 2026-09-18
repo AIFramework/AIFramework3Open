@@ -28,7 +28,7 @@ namespace AI.Script.Std;
 /// реализация ради языка.
 /// </para>
 /// </remarks>
-[ScriptModule("opt", "Оптимизация: LP, MILP, QP; минимум произвольной функции", Version = "0.1")]
+[ScriptModule("opt", "Оптимизация: LP, MILP, QP; минимум произвольной функции", Version = "0.1", Group = "решатели")]
 public static class OptModule
 {
     /// <summary>

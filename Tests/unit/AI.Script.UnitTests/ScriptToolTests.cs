@@ -97,7 +97,8 @@ public sealed class ScriptToolTests
     {
         var tool = Tool();
 
-        Assert.Contains("Пространства имён", tool.Help(), StringComparison.Ordinal);
+        Assert.Contains("Пространства AIScript по задачам", tool.Help(), StringComparison.Ordinal);
+        Assert.Contains("table", tool.Help("данные"), StringComparison.Ordinal);
         Assert.Contains("stat.mean", tool.Help("stat"), StringComparison.Ordinal);
         Assert.Contains("Коэффициент корреляции", tool.Help("stat.corr"), StringComparison.Ordinal);
         Assert.Contains("corr", tool.Help("корреляция"), StringComparison.Ordinal);
@@ -213,8 +214,8 @@ public sealed class ScriptToolTests
         string prompt = ScriptPrompt.System(Host());
 
         Assert.Contains("Вызов функции:", prompt, StringComparison.Ordinal);
-        Assert.Contains("Пространства имён", prompt, StringComparison.Ordinal);
-        Assert.Contains("- plot — ", prompt, StringComparison.Ordinal);
+        Assert.Contains("Пространства AIScript по задачам", prompt, StringComparison.Ordinal);
+        Assert.Contains("plot", Script.IndexNamespaces(prompt));
         Assert.DoesNotContain("Этот текст кладётся в системный промпт", prompt, StringComparison.Ordinal);
     }
 

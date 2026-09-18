@@ -18,7 +18,7 @@ namespace AI.Script.Std;
 /// обязаны дать один и тот же сигнал, иначе сравнивать метрики фильтрации бессмысленно.
 /// </para>
 /// </remarks>
-[ScriptModule("signal", "Генерация испытательных сигналов: синус, шум, импульсы", Version = "0.1")]
+[ScriptModule("signal", "Генерация испытательных сигналов: синус, шум, импульсы", Version = "0.1", Group = "сигналы")]
 public static class SignalModule
 {
     [ScriptFn("time", "Вектор моментов времени длительностью seconds при частоте fs",

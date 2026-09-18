@@ -1,8 +1,11 @@
-using AI.Script.Charts;
+﻿using AI.Script.Charts;
 using AI.Script.Chem;
+using AI.Script.Data;
 using AI.Script.Hosting;
 using AI.Script.Llm;
+using AI.Script.Media;
 using AI.Script.Nn;
+using AI.Script.Office;
 using AI.Script.Vision;
 using AI.Script.Semantics;
 using AI.Script.Std;
@@ -23,7 +26,7 @@ internal static class Script
     /// сети и без ключей — разбор, проверка и словесный поиск. Обращение к модели на таком
     /// хосте отказывает внятным сообщением, а не молчаливым таймаутом.
     /// </remarks>
-    public static ScriptHost FullHost() => Host().UseLlm().UseChem().UseNeuralNetworks().UseVision();
+    public static ScriptHost FullHost() => Host().UseLlm().UseChem().UseNeuralNetworks().UseVision().UseOffice().UseData().UseMedia();
 
     /// <summary>Выполняет скрипт.</summary>
     public static RunResult Run(string source, RunOptions? options = null) =>
@@ -139,6 +142,33 @@ internal static class Script
         }
 
         return codes;
+    }
+
+    /// <summary>
+    /// Имена пространств, перечисленные в индексе манифеста.
+    /// </summary>
+    /// <remarks>
+    /// Строка индекса — «- задача: имя, имя — что покрывает»; имена берутся между двоеточием и
+    /// тире, чтобы тест проверял именно список, а не случайное вхождение слова в описание.
+    /// </remarks>
+    public static IReadOnlySet<string> IndexNamespaces(string index)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (string line in index.Split('\n'))
+        {
+            if (!line.StartsWith("- ", StringComparison.Ordinal)) continue;
+
+            int colon = line.IndexOf(':', StringComparison.Ordinal);
+            int dash = line.IndexOf(" — ", StringComparison.Ordinal);
+
+            if (colon < 0 || dash < colon) continue;
+
+            foreach (string name in line[(colon + 1)..dash].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                _ = names.Add(name);
+        }
+
+        return names;
     }
 
     /// <summary>Отчёт для сообщения о провале теста.</summary>

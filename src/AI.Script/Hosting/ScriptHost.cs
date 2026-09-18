@@ -1,4 +1,4 @@
-using AI.Script.Binding;
+﻿using AI.Script.Binding;
 using AI.Script.Docs;
 using AI.Script.Runtime;
 using AI.Script.Semantics;
@@ -58,12 +58,39 @@ public sealed class ScriptHost
         var text = new SourceText(source ?? string.Empty, fileName);
         var diagnostics = new DiagnosticBag(text);
 
-        _ = Analyse(text, diagnostics, seeded);
+        _ = Analyse(text, diagnostics, seeded, null, out IReadOnlyList<ScriptInput> inputs);
 
         return new CheckResult
         {
             Success = !diagnostics.HasErrors,
             Diagnostics = diagnostics.ToList(),
+            Inputs = inputs,
+        };
+    }
+
+    /// <summary>
+    /// Проверяет скрипт с теми данными, которые хост подаст при запуске.
+    /// </summary>
+    /// <remarks>
+    /// Данные нужны проверке не только по именам: у поданной таблицы известны колонки, и
+    /// опечатку <c>row.сума</c> можно поймать до запуска, а не на сотой строке.
+    /// </remarks>
+    public CheckResult Check(string source, RunOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        var text = new SourceText(source ?? string.Empty, options.FileName);
+        var diagnostics = new DiagnosticBag(text);
+
+        _ = Analyse(text, diagnostics, SeededNames(options), SeededColumns(options), out IReadOnlyList<ScriptInput> inputs);
+
+        RequireInputs(inputs, options, diagnostics);
+
+        return new CheckResult
+        {
+            Success = !diagnostics.HasErrors,
+            Diagnostics = diagnostics.ToList(),
+            Inputs = inputs,
         };
     }
 
@@ -76,7 +103,10 @@ public sealed class ScriptHost
         var diagnostics = new DiagnosticBag(text);
         var stopwatch = Stopwatch.StartNew();
 
-        ScriptUnit unit = Analyse(text, diagnostics, SeededNames(effective));
+        ScriptUnit unit = Analyse(
+            text, diagnostics, SeededNames(effective), SeededColumns(effective), out IReadOnlyList<ScriptInput> inputs);
+
+        if (!diagnostics.HasErrors) RequireInputs(inputs, effective, diagnostics);
 
         if (diagnostics.HasErrors)
         {
@@ -95,7 +125,10 @@ public sealed class ScriptHost
         if (effective.Limits.Timeout is TimeSpan timeout && timeout > TimeSpan.Zero)
             timeoutSource.CancelAfter(timeout);
 
-        var context = new RunContext(effective, _registry, diagnostics, timeoutSource.Token);
+        var context = new RunContext(effective, _registry, diagnostics, timeoutSource.Token)
+        {
+            ScriptDigest = Runtime.ValueDigest.Hash(text.Text),
+        };
         var interpreter = new Interpreter(context, _registry, diagnostics, text);
 
         bool success = false;
@@ -159,23 +192,60 @@ public sealed class ScriptHost
         };
     }
 
-    private ScriptUnit Analyse(SourceText text, DiagnosticBag diagnostics, IReadOnlyCollection<string>? seeded)
+    private ScriptUnit Analyse(
+        SourceText text,
+        DiagnosticBag diagnostics,
+        IReadOnlyCollection<string>? seeded,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? seededColumns,
+        out IReadOnlyList<ScriptInput> inputs)
     {
         var parser = new Parser(text, diagnostics);
         ScriptUnit unit = parser.ParseUnit();
 
-        if (!diagnostics.HasErrors) new Checker(diagnostics, _registry, seeded).Check(unit);
+        inputs = [];
+
+        if (diagnostics.HasErrors) return unit;
+
+        var checker = new Checker(diagnostics, _registry, seeded, seededColumns);
+
+        checker.Check(unit);
+        inputs = checker.Inputs;
 
         return unit;
     }
 
     /// <summary>
-    /// Переносит рабочую папку скрипта внутрь песочницы хоста.
+    /// Сверяет объявленные скриптом входы с тем, что подал хост.
     /// </summary>
     /// <remarks>
-    /// Не «сменить корень», а «углубиться»: путь из скрипта проходит через уже настроенную
-    /// песочницу, поэтому <c>workdir: "../.."</c> отклоняется тем же кодом, что и любой другой
-    /// выход наружу.
+    /// Отказ до первой строки исполнения. Скрипт, которому нечего читать, сорвётся всё равно,
+    /// но позже — потратив время, а при живой модели и деньги.
+    /// </remarks>
+    private static void RequireInputs(IReadOnlyList<ScriptInput> inputs, RunOptions options, DiagnosticBag diagnostics)
+    {
+        foreach (ScriptInput input in inputs)
+        {
+            if (options.Seeded != null && options.Seeded.ContainsKey(input.Name)) continue;
+
+            string kind = input.Kind.Length > 0 ? $" ({input.Kind})" : string.Empty;
+            string available = options.Seeded is { Count: > 0 }
+                ? $"хост подал: {string.Join(", ", options.Seeded.Keys)}"
+                : "хост не подал ни одного входа";
+
+            diagnostics.Error(
+                DiagnosticCodes.MissingInput, default,
+                $"не подан вход '{input.Name}'{kind}",
+                $"{input.About}\n{available}".Trim());
+        }
+    }
+
+    /// <summary>
+    /// Переносит рабочую папку скрипта внутрь хранилища хоста.
+    /// </summary>
+    /// <remarks>
+    /// Не «сменить корень», а «углубиться»: папка ложится поверх уже настроенного хранилища
+    /// (<see cref="ScopedSandbox"/>), поэтому <c>workdir: "../.."</c> отклоняется тем же
+    /// кодом, что и любой другой выход наружу, а хранилище может быть любым, не только диском.
     /// </remarks>
     private static void ApplyWorkdir(RunOptions target, OptionFieldNode field, DiagnosticBag diagnostics)
     {
@@ -190,15 +260,34 @@ public sealed class ScriptHost
 
         try
         {
-            string full = target.Sandbox.Resolve(field.Value.AsString("options.workdir"), forWriting: true);
-            bool readOnly = target.Sandbox is WorkspaceSandbox { IsReadOnly: true };
-
-            target.Sandbox = new WorkspaceSandbox(full, readOnly);
+            target.Sandbox = new ScopedSandbox(target.Sandbox, field.Value.AsString("options.workdir"));
         }
         catch (ScriptError error)
         {
             diagnostics.Error(error.Code, field.Span, error.Message, error.Hint);
         }
+    }
+
+    /// <summary>Колонки таблиц среди данных, поданных хостом.</summary>
+    private static Dictionary<string, IReadOnlyList<string>> SeededColumns(RunOptions options)
+    {
+        var columns = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+
+        if (options.Seeded == null) return columns;
+
+        foreach (var pair in options.Seeded)
+        {
+            ScriptTable? table = pair.Value switch
+            {
+                ScriptTable direct => direct,
+                ScriptValue { Type: ScriptType.Table } value => value.AsTable(),
+                _ => null,
+            };
+
+            if (table != null) columns[pair.Key] = table.Names();
+        }
+
+        return columns;
     }
 
     /// <summary>

@@ -86,6 +86,7 @@ public sealed class Token
         TokenKind.Number => "число",
         TokenKind.String => "строка",
         TokenKind.Duration => "длительность",
+        TokenKind.Quantity => "величина с единицей",
         TokenKind.Date => "дата",
         TokenKind.Identifier => "имя",
         TokenKind.Underscore => "'_'",

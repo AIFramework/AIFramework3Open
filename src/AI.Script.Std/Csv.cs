@@ -98,7 +98,7 @@ public static class Csv
     /// Точка с запятой в первую очередь: русскоязычные выгрузки из Excel используют её, и
     /// молча прочитанный такой файл превращается в таблицу из одной колонки.
     /// </remarks>
-    private static char Sniff(string text)
+    internal static char Sniff(string text)
     {
         int end = text.IndexOf('\n');
         string line = end < 0 ? text : text[..end];
@@ -236,10 +236,10 @@ public static class Csv
         return ScriptColumn.Own(name, values);
     }
 
-    private static bool TryParseNumber(string text, out double value) =>
+    internal static bool TryParseNumber(string text, out double value) =>
         double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
 
-    private static List<string> MakeUnique(List<string> names)
+    internal static List<string> MakeUnique(List<string> names)
     {
         var result = new List<string>(names.Count);
         var seen = new Dictionary<string, int>(StringComparer.Ordinal);

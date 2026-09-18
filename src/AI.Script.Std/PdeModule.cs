@@ -24,7 +24,7 @@ namespace AI.Script.Std;
 /// разреженного типа, а для задач прототипа хватает <c>mat.solve</c>.
 /// </para>
 /// </remarks>
-[ScriptModule("pde", "Частные производные: тепло, волна, Пуассон, упругость, каверна", Version = "0.1")]
+[ScriptModule("pde", "Частные производные: тепло, волна, Пуассон, упругость, каверна", Version = "0.1", Group = "решатели")]
 public static class PdeModule
 {
     // --- на отрезке ---

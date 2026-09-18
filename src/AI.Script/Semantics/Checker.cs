@@ -1,4 +1,4 @@
-using AI.Script.Binding;
+﻿using AI.Script.Binding;
 using AI.Script.Runtime;
 using AI.Script.Syntax;
 using AI.Script.Syntax.Ast;
@@ -19,7 +19,7 @@ namespace AI.Script.Semantics;
 /// начинают обходить.
 /// </para>
 /// </remarks>
-public sealed class Checker
+public sealed partial class Checker
 {
     private readonly DiagnosticBag _diagnostics;
     private readonly FunctionRegistry _registry;
@@ -27,6 +27,7 @@ public sealed class Checker
     private readonly Dictionary<string, string> _aliases = new(StringComparer.Ordinal);
     private readonly List<Dictionary<string, ScriptType?>> _scopes = [];
     private readonly IReadOnlyCollection<string> _seeded;
+    private readonly List<ScriptInput> _inputs = [];
 
     private int _loopDepth;
     private int _functionDepth;
@@ -55,12 +56,27 @@ public sealed class Checker
     /// Имена данных, поданных хостом: скрипт видит их связанными, и проверка обязана знать о
     /// них, иначе корректный скрипт не пройдёт её из-за имени, которого нет в исходнике.
     /// </param>
-    public Checker(DiagnosticBag diagnostics, FunctionRegistry registry, IReadOnlyCollection<string>? seeded = null)
+    /// <param name="seededColumns">Колонки поданных хостом таблиц: по ним проверяются имена колонок.</param>
+    public Checker(
+        DiagnosticBag diagnostics,
+        FunctionRegistry registry,
+        IReadOnlyCollection<string>? seeded = null,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? seededColumns = null)
     {
         _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         _seeded = seeded ?? [];
+        _seededColumns = seededColumns ?? new Dictionary<string, IReadOnlyList<string>>();
     }
+
+    /// <summary>
+    /// Входы, объявленные скриптом: <c>input("продажи", kind: "table")</c>.
+    /// </summary>
+    /// <remarks>
+    /// Собираются проверкой, а не исполнением: хост обязан узнать, каких данных скрипту не
+    /// хватает, до того как потрачена секунда счёта и первый платный вызов.
+    /// </remarks>
+    public IReadOnlyList<ScriptInput> Inputs => _inputs;
 
     /// <summary>Проверяет разобранный скрипт.</summary>
     public void Check(ScriptUnit unit)
@@ -76,9 +92,13 @@ public sealed class Checker
 
         _scopes.Add(roots);
 
+        foreach (var pair in _seededColumns) DeclareColumns(pair.Key, pair.Value);
+
         foreach (Stmt statement in unit.Statements) CheckStatement(statement);
 
         _scopes.Clear();
+        _columns.Clear();
+        _units.Clear();
     }
 
     private void CollectDeclarations(ScriptUnit unit)
@@ -338,6 +358,8 @@ public sealed class Checker
         }
 
         DeclareName(let.Name, let.NameSpan, let.DeclaredType ?? valueType);
+        DeclareColumns(let.Name, ColumnsOf(let.Value));
+        DeclareUnit(let.Name, UnitOf(let.Value));
     }
 
     /// <summary>
@@ -474,15 +496,23 @@ public sealed class Checker
                             $"оператор '{OperatorText.Of(op)}=' не определён для типов {left.ToName()} и {right.ToName()}");
                     }
 
+                    // Составное присваивание меняет значение: прежние колонки и единица больше не верны.
+                    Assign(name.Name, current);
+                    AssignUnit(name.Name, null);
                     return;
                 }
 
                 // Тип имени после присваивания больше не известен точно: дальше по тексту
                 // он мог стать любым, и утверждать прежний — значит врать проверке.
-                Assign(name.Name, set.Compound == null ? valueType : current);
+                Assign(name.Name, set.Compound == null ? valueType : current, set.Compound == null ? ColumnsOf(set.Value) : null);
+                AssignUnit(name.Name, set.Compound == null ? UnitOf(set.Value) : null);
                 break;
 
             case IndexExpr index:
+                // Запись в поле (set row["b"] = ...) меняет состав записи: колонки имени неизвестны.
+                if (index.Target is NameExpr indexed && TryLookup(indexed.Name, out ScriptType? indexedType))
+                    Assign(indexed.Name, indexedType);
+
                 _ = CheckExpression(index.Target);
                 foreach (IndexArgument argument in index.Arguments)
                 {
@@ -492,6 +522,9 @@ public sealed class Checker
                 break;
 
             case MemberExpr member:
+                if (member.Target is NameExpr owner && TryLookup(owner.Name, out ScriptType? ownerType))
+                    Assign(owner.Name, ownerType);
+
                 _ = CheckExpression(member.Target);
                 break;
         }
@@ -516,6 +549,8 @@ public sealed class Checker
 
         foreach (string name in loop.Names)
             DeclareName(name, loop.Span, loop.Names.Count == 1 ? element : null, warnShadowing: false);
+
+        if (loop.Names.Count == 1) DeclareColumns(loop.Names[0], ColumnsOf(loop.Iterable));
 
         _loopDepth++;
         _ = CheckBlock(loop.Body, ownScope: false);
@@ -663,6 +698,7 @@ public sealed class Checker
             case PipeExpr pipe:
                 {
                     ScriptType? left = CheckExpression(pipe.Left);
+                    _pipedSource = pipe.Left;
                     return CheckCall(pipe.Right, left, piped: true);
                 }
 
@@ -680,6 +716,11 @@ public sealed class Checker
 
             case LambdaExpr lambda:
                 {
+                    // Строка таблицы достаётся только лямбде, стоящей прямо в аргументах
+                    // функции строк: во вложенной лямбде параметр означает уже что-то своё.
+                    IReadOnlyList<string>? row = _rowColumns;
+                    _rowColumns = null;
+
                     PushScope();
 
                     // На параллельном участке телом лямбды становится отдельная ветвь, поэтому
@@ -692,11 +733,15 @@ public sealed class Checker
                     foreach (string parameter in lambda.Parameters)
                         DeclareName(parameter, lambda.Span, null, warnShadowing: false);
 
+                    if (lambda.Parameters.Count == 1) DeclareColumns(lambda.Parameters[0], row);
+
                     _ = CheckExpression(lambda.Body);
 
                     _parallelFloor = previousFloor;
 
                     PopScope();
+
+                    _rowColumns = row;
 
                     return ScriptType.Fn;
                 }
@@ -747,6 +792,10 @@ public sealed class Checker
     {
         ScriptType? leftType = CheckExpression(binary.Left);
         ScriptType? rightType = CheckExpression(binary.Right);
+
+        // Размерности — до выхода по неизвестному типу: произведение величин типизировано как any,
+        // а его единица при этом выводится, и проверять её нужно именно здесь.
+        CheckDimensions(binary);
 
         if (leftType is not ScriptType left || rightType is not ScriptType right) return null;
         if (left == ScriptType.Any || right == ScriptType.Any) return null;
@@ -823,6 +872,8 @@ public sealed class Checker
         foreach (IndexArgument argument in index.Arguments)
             keys.Add(argument.Value == null ? null : CheckExpression(argument.Value));
 
+        CheckColumnIndex(index);
+
         if (target is not ScriptType known) return null;
 
         if (index.Arguments.Count == 2)
@@ -876,7 +927,11 @@ public sealed class Checker
             return null;
         }
 
-        if (TryLookup(root.Name, out _)) return null;
+        if (TryLookup(root.Name, out ScriptType? bound))
+        {
+            CheckField(root, member, bound);
+            return null;
+        }
 
         string? ns = ResolveNamespace(root.Name);
 
@@ -901,9 +956,23 @@ public sealed class Checker
         return null;
     }
 
+    /// <summary>Вызов функции, для которой хост не дал службы: до запуска, а не посреди счета.</summary>
+    private void WarnIfUnavailable(ScriptFunction function, TextSpan span)
+    {
+        if (function.Unavailable is not { } reason) return;
+
+        _diagnostics.Warning(DiagnosticCodes.NotConnected, span,
+            $"функция '{function.FullName}' не подключена: {reason}",
+            "вызов откажет при запуске; проверьте, нет ли другого пути к тем же данным");
+    }
+
     private ScriptType? CheckCall(CallExpr call, ScriptType? pipedType, bool piped)
     {
         var argumentTypes = new List<ScriptType?>(call.Arguments.Count);
+
+        // Вход конвейера принадлежит ровно этому звену: вложенные вызовы в аргументах его не видят.
+        Expr? pipedSource = piped ? _pipedSource : null;
+        _pipedSource = null;
 
         // Признак параллельности читается до проверки аргументов: лямбда, которую предстоит
         // проверить, — это и есть тело будущей ветви.
@@ -911,12 +980,17 @@ public sealed class Checker
 
         if (parallel) _parallelDepth++;
 
+        IReadOnlyList<string>? previousRow = _rowColumns;
+        _rowColumns = RowColumns(call, pipedSource);
+
         foreach (ArgumentNode argument in call.Arguments)
         {
             argumentTypes.Add(argument.Value == null || argument.Value is PlaceholderExpr
                 ? pipedType
                 : CheckExpression(argument.Value));
         }
+
+        _rowColumns = previousRow;
 
         if (parallel) _parallelDepth--;
 
@@ -951,6 +1025,9 @@ public sealed class Checker
                     }
 
                     CheckNativeArguments(call, function, argumentTypes, piped, pipedType);
+                    CheckColumnArguments(call, function, pipedSource);
+                    RecordInput(call, function, pipedSource);
+                    WarnIfUnavailable(function, member.Span);
                     return ReturnTypeOf(function);
                 }
 
@@ -988,6 +1065,7 @@ public sealed class Checker
                     }
 
                     CheckNativeArguments(call, function, argumentTypes, piped, pipedType);
+                    RecordInput(call, function, pipedSource);
                     return ReturnTypeOf(function);
                 }
 
@@ -1260,6 +1338,10 @@ public sealed class Checker
         if (left is ScriptType.Str or ScriptType.Num && right is ScriptType.Str or ScriptType.Num && left != right)
             return "неявных приведений между num и str нет: core.to_str(x) либо core.parse_num(s)";
 
+        // Отказ ловится проверкой, значит и подсказка нужна здесь: до исполнения дело не дойдёт.
+        if (left == ScriptType.Dec || right == ScriptType.Dec)
+            return "точное число складывается с точным: переведите явно — dec.of(x) либо dec.to_num(d)";
+
         return "проверьте типы операндов: type(x) показывает тип значения";
     }
 
@@ -1267,7 +1349,12 @@ public sealed class Checker
 
     private void PushScope() => _scopes.Add(new Dictionary<string, ScriptType?>(StringComparer.Ordinal));
 
-    private void PopScope() => _scopes.RemoveAt(_scopes.Count - 1);
+    private void PopScope()
+    {
+        _ = _columns.Remove(_scopes[^1]);
+        _ = _units.Remove(_scopes[^1]);
+        _scopes.RemoveAt(_scopes.Count - 1);
+    }
 
     private bool TryLookup(string name, out ScriptType? type)
     {
@@ -1280,13 +1367,18 @@ public sealed class Checker
         return false;
     }
 
-    private void Assign(string name, ScriptType? type)
+    private void Assign(string name, ScriptType? type, IReadOnlyList<string>? columns = null)
     {
         for (int i = _scopes.Count - 1; i >= 0; i--)
         {
             if (!_scopes[i].ContainsKey(name)) continue;
 
             _scopes[i][name] = type;
+
+            // Колонки нового значения либо никаких: прежние после присваивания были бы враньём.
+            // Присваивание глубже объявления (в ветке, в цикле) случается не на каждом пути,
+            // поэтому после него колонки неизвестны вовсе.
+            SetColumns(_scopes[i], name, i == _scopes.Count - 1 ? columns : null);
             return;
         }
     }

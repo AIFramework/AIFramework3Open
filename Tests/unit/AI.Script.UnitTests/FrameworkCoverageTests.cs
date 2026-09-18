@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace AI.Script.UnitTests;
@@ -24,7 +24,6 @@ public sealed class FrameworkCoverageTests
     /// </summary>
     private static readonly IReadOnlyDictionary<string, string> Excluded = new Dictionary<string, string>
     {
-        ["AI.Charts"] = "основа графиков; язык строит их через AI.Charts.JS — пространство plot",
         ["AI.Charts.Avalonia"] = "окно Avalonia — интерфейс, а не расчёт",
         ["AI.Charts.WinForms"] = "окно WinForms — интерфейс, а не расчёт",
         ["AI.ImageEditor"] = "интерактивный редактор с сессией правок; обработка изображений — пространство cv",

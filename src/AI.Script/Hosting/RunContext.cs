@@ -1,4 +1,4 @@
-using AI.Script.Binding;
+﻿using AI.Script.Binding;
 using AI.Script.Runtime;
 using AI.Script.Semantics;
 
@@ -49,6 +49,8 @@ public sealed class RunContext : IScriptContext
         Counters = new LimitCounters(options.Limits);
         Cache = options.Cache ?? DisabledStageCache.Instance;
         Progress = options.Progress;
+        Journal = options.Journal;
+        Pilot = options.Pilot;
         Parallelism = Math.Max(1, options.Parallelism);
         Network = options.Network ?? NetworkPolicy.Denied;
         Secrets = new SecretMask(options.Secrets);
@@ -66,11 +68,20 @@ public sealed class RunContext : IScriptContext
     /// <inheritdoc/>
     public CancellationToken Cancellation => _branchCancellation.Value ?? RunCancellation;
 
-    /// <summary>Кэш результатов стадий.</summary>
+    /// <inheritdoc/>
     public IStageCache Cache { get; }
 
     /// <summary>Приёмник сообщений о ходе работы; <c>null</c>, если хосту это не нужно.</summary>
     public IProgressSink? Progress { get; }
+
+    /// <inheritdoc/>
+    public IExperimentJournal? Journal { get; }
+
+    /// <inheritdoc/>
+    public ExperimentPilot? Pilot { get; }
+
+    /// <inheritdoc/>
+    public string ScriptDigest { get; init; } = string.Empty;
 
     /// <summary>Граф вызовов стадий.</summary>
     public RunGraph Graph { get; } = new();
@@ -105,17 +116,24 @@ public sealed class RunContext : IScriptContext
         _branchCancellation.Value = previous == RunCancellation ? null : previous;
 
     /// <summary>
-    /// Даёт ветви собственный ГСЧ, выведенный из зерна прогона и номера ветви.
+    /// Даёт ветви собственный ГСЧ, выведенный из зерна участка и номера ветви.
     /// </summary>
+    /// <param name="section">Зерно параллельного участка: его вытягивает вызывающий из своего потока.</param>
+    /// <param name="branch">Номер ветви внутри участка.</param>
     /// <remarks>
     /// Возвращает объект, восстанавливающий прежнее состояние: подстановка обязана быть
     /// парной, иначе случайные числа после параллельного участка зависели бы от него.
+    /// <para>
+    /// Зерно участка, а не зерно прогона: иначе два параллельных участка одного скрипта (круги
+    /// опыта, два <c>core.map</c> подряд) получали бы одни и те же числа в ветвях с тем же номером,
+    /// и повторы опыта выглядели бы идеально согласованными.
+    /// </para>
     /// </remarks>
-    public IDisposable UseBranchRandom(int branch)
+    public IDisposable UseBranchRandom(int section, int branch)
     {
         Random? previous = _branchRandom.Value;
 
-        _branchRandom.Value = new Random(BranchSeed(Seed, branch));
+        _branchRandom.Value = new Random(BranchSeed(section, branch));
 
         return new BranchScope(this, previous);
     }
@@ -160,6 +178,42 @@ public sealed class RunContext : IScriptContext
 
     /// <inheritdoc/>
     public IScriptSandbox Sandbox => Options.Sandbox;
+
+    /// <inheritdoc/>
+    public bool TryInput(string name, out ScriptValue value)
+    {
+        value = ScriptValue.None;
+
+        if (Options.Seeded == null || !Options.Seeded.TryGetValue(name, out object? seeded)) return false;
+
+        value = Marshaller.FromClr(seeded);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Отмечает сохранённый файл артефактом прогона.
+    /// </summary>
+    /// <remarks>
+    /// Байтов в артефакте нет: файл уже лежит в хранилище прогона, и хост читает его оттуда.
+    /// Копия в памяти удвоила бы расход на файле, который и писался ради того, чтобы его не
+    /// держать в памяти.
+    /// </remarks>
+    public void FileSaved(ScriptFileInfo file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+
+        var artifact = new ScriptArtifact
+        {
+            Kind = "file",
+            Title = file.Path,
+            Text = $"сохранён файл {file.Path} ({file.Size} байт)",
+            Value = file,
+            MediaType = file.MediaType,
+        };
+
+        lock (_sync) Artifacts.Add(artifact);
+    }
 
     /// <inheritdoc/>
     public NetworkPolicy Network { get; }

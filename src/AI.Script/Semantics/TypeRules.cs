@@ -1,4 +1,4 @@
-using AI.Script.Runtime;
+﻿using AI.Script.Runtime;
 using AI.Script.Syntax;
 
 namespace AI.Script.Semantics;
@@ -53,7 +53,8 @@ public static class TypeRules
 
         if (OperatorText.IsComparison(op))
         {
-            return left == right && left is ScriptType.Num or ScriptType.Str or ScriptType.Date or ScriptType.Dur
+            return left == right
+                && left is ScriptType.Num or ScriptType.Dec or ScriptType.Qty or ScriptType.Str or ScriptType.Date or ScriptType.Dur
                 ? ScriptType.Bool
                 : null;
         }
@@ -69,6 +70,8 @@ public static class TypeRules
         return operand switch
         {
             ScriptType.Num => ScriptType.Num,
+            ScriptType.Dec => ScriptType.Dec,
+            ScriptType.Qty => ScriptType.Qty,
             ScriptType.Vec => ScriptType.Vec,
             ScriptType.Mat => ScriptType.Mat,
             ScriptType.Dur => ScriptType.Dur,
@@ -93,6 +96,10 @@ public static class TypeRules
     {
         if (left == ScriptType.Num && right == ScriptType.Num) return ScriptType.Num;
 
+        if (left == ScriptType.Qty || right == ScriptType.Qty) return QuantityResult(op, left, right);
+
+        if (left == ScriptType.Dec || right == ScriptType.Dec) return DecimalResult(op, left, right);
+
         if (left == ScriptType.Mat || right == ScriptType.Mat) return MatrixResult(op, left, right);
         if (left == ScriptType.Vec || right == ScriptType.Vec) return VectorResult(op, left, right);
 
@@ -103,6 +110,52 @@ public static class TypeRules
         }
 
         return TemporalResult(op, left, right);
+    }
+
+    /// <summary>
+    /// Величины: сложение между собой, умножение и деление — и с числами.
+    /// </summary>
+    /// <remarks>
+    /// Произведение и частное двух величин типизированы как <c>any</c>: единицы могут сократиться
+    /// (<c>2 kg / 1 kg</c> — это число), а узнать это можно только по размерности, которой в типе нет.
+    /// Размерность сверяет отдельная проверка единиц.
+    /// </remarks>
+    private static ScriptType? QuantityResult(BinaryOperator op, ScriptType left, ScriptType right)
+    {
+        bool additive = op is BinaryOperator.Add or BinaryOperator.Subtract;
+
+        if (left == ScriptType.Qty && right == ScriptType.Qty)
+        {
+            if (additive) return ScriptType.Qty;
+
+            return op is BinaryOperator.Multiply or BinaryOperator.Divide ? ScriptType.Any : null;
+        }
+
+        if (additive) return null;
+
+        if (left == ScriptType.Qty && right == ScriptType.Num)
+            return op is BinaryOperator.Multiply or BinaryOperator.Divide ? ScriptType.Qty : null;
+
+        return left == ScriptType.Num && right == ScriptType.Qty && op is BinaryOperator.Multiply or BinaryOperator.Divide
+            ? ScriptType.Qty
+            : null;
+    }
+
+    /// <summary>Точные числа: между собой полностью, с <c>num</c> — только масштабирование.</summary>
+    private static ScriptType? DecimalResult(BinaryOperator op, ScriptType left, ScriptType right)
+    {
+        bool arithmetic = op is BinaryOperator.Add or BinaryOperator.Subtract or BinaryOperator.Multiply
+            or BinaryOperator.Divide or BinaryOperator.Modulo;
+
+        if (left == ScriptType.Dec && right == ScriptType.Dec) return arithmetic ? ScriptType.Dec : null;
+
+        bool scaling = op is BinaryOperator.Multiply or BinaryOperator.Divide;
+
+        if (left == ScriptType.Dec && right == ScriptType.Num) return scaling ? ScriptType.Dec : null;
+
+        return left == ScriptType.Num && right == ScriptType.Dec && op == BinaryOperator.Multiply
+            ? ScriptType.Dec
+            : null;
     }
 
     private static ScriptType? MatrixResult(BinaryOperator op, ScriptType left, ScriptType right)

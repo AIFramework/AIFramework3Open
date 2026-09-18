@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />
     <ProjectReference Include="..\AI.Charts.JS\AI.Charts.JS.csproj" />
+    <ProjectReference Include="..\AI.Charts\AI.Charts.csproj" />
     <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
   </ItemGroup>
 

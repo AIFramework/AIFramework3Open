@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using System.Text;
 
 namespace AI.Script.Runtime;
@@ -130,6 +130,15 @@ public static class ScriptValueCodec
                 writer.Write(value.RawNumber);
                 break;
 
+            case ScriptType.Dec:
+                writer.Write(value.AsDecimal());
+                break;
+
+            case ScriptType.Qty:
+                writer.Write(value.QuantityValue);
+                writer.Write(value.AsUnit().Symbol);
+                break;
+
             case ScriptType.Bool:
                 writer.Write(value.RawNumber != 0);
                 break;
@@ -238,6 +247,18 @@ public static class ScriptValueCodec
 
             case ScriptType.Num:
                 return ScriptValue.Num(reader.ReadDouble());
+
+            case ScriptType.Dec:
+                return ScriptValue.Dec(reader.ReadDecimal());
+
+            case ScriptType.Qty:
+                {
+                    double number = reader.ReadDouble();
+
+                    return MeasureUnit.TryParse(reader.ReadString(), out MeasureUnit unit)
+                        ? ScriptValue.Quantity(number, unit)
+                        : throw new InvalidDataException("неизвестная единица величины в записи кэша");
+                }
 
             case ScriptType.Bool:
                 return ScriptValue.Bool(reader.ReadBoolean());

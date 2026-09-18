@@ -1,4 +1,4 @@
-using AI.Script.Hosting;
+﻿using AI.Script.Hosting;
 
 namespace AI.Script.UnitTests;
 
@@ -104,7 +104,12 @@ public sealed class ExamplesTests
             Assert.Equal(4.0, result.Emitted["обучающая"]);
             Assert.Equal(2.0, result.Emitted["тестовая"]);
             Assert.Equal(3.0, result.Emitted["месяцы"]);
-            Assert.Single(result.Artifacts);
+            // Артефакта два: показанная сводка и записанный файл. Файл отмечается сам, без
+            // io.save: хост обязан узнать о нём в любом случае, иначе отчёт остаётся в
+            // хранилище, о котором пользователю никто не сказал.
+            Assert.Equal(2, result.Artifacts.Count);
+            Assert.Contains(result.Artifacts, artifact => artifact.Kind == "file" && artifact.Title == "sales.csv");
+            Assert.Contains(result.Artifacts, artifact => artifact.Kind == "table");
 
             Assert.True(File.Exists(Path.Combine(root, "m1", "sales.csv")));
         }

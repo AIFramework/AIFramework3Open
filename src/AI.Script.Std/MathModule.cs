@@ -9,7 +9,7 @@ namespace AI.Script.Std;
 /// Все функции работают со скалярами. Поэлементные операции над векторами делают операторы
 /// (<c>v * 2</c>, <c>v + w</c>) и пространство <c>vec</c>.
 /// </remarks>
-[ScriptModule("math", "Элементарные математические функции над числами", Version = "0.1")]
+[ScriptModule("math", "Элементарные математические функции над числами", Version = "0.1", Group = "основа")]
 public static class MathModule
 {
     [ScriptFn("abs", "Модуль числа", Example = "math.abs(-3)")]

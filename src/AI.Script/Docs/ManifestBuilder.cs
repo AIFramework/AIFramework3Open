@@ -171,17 +171,18 @@ public static class ManifestBuilder
         var builder = new StringBuilder();
 
         // Индекс уходит в системный промпт целиком и всегда, поэтому в нём нет ничего, что
-        // не сообщает модели нового: ни заголовков, ни жирного шрифта, ни числа функций.
-        // Каждая строка короче на десять знаков, а на четырёх десятках пространств это
-        // четыреста знаков — место ещё для шести пространств в том же бюджете.
+        // не сообщает модели нового: ни заголовков, ни жирного шрифта, ни числа функций. И
+        // строка в нём — на задачу, а не на пространство: строка на пространство перестала
+        // помещаться в бюджет, а описания пространств задачи отдаёт help("задача").
         if (options.IndexOnly)
         {
-            _ = builder.AppendLine("Пространства имён AIScript:");
+            _ = builder.AppendLine("Пространства AIScript по задачам:");
 
-            foreach (IScriptModule module in modules)
-                _ = builder.Append("- ").Append(module.Name).Append(" — ").AppendLine(module.Description);
+            foreach (string line in IndexLines(modules)) _ = builder.Append("- ").AppendLine(line);
 
-            return builder.Append("Подробно: `help(\"имя\")`, `help(\"имя.функция\")`.").ToString();
+            return builder
+                .Append("Пространства задачи: `help(\"данные\")`; функции: `help(\"имя\")`, `help(\"имя.функция\")`.")
+                .ToString();
         }
 
         _ = builder.AppendLine("# Возможности AIScript").AppendLine();
@@ -253,13 +254,7 @@ public static class ManifestBuilder
     {
         var builder = new StringBuilder();
 
-        if (options.IndexOnly)
-        {
-            foreach (IScriptModule module in modules)
-                _ = builder.Append(module.Name).Append(" — ").AppendLine(module.Description);
-
-            return builder.ToString().TrimEnd();
-        }
+        if (options.IndexOnly) return string.Join("\n", IndexLines(modules));
 
         List<ScriptFunction> functions = Functions(modules, options, out int dropped);
 
@@ -268,6 +263,13 @@ public static class ManifestBuilder
         if (dropped > 0) _ = builder.Append("… ещё ").Append(dropped).AppendLine(" функций не показано");
 
         return builder.ToString().TrimEnd();
+    }
+
+    /// <summary>Строки индекса: задача, её пространства и что она покрывает.</summary>
+    private static IEnumerable<string> IndexLines(IReadOnlyList<IScriptModule> modules)
+    {
+        foreach ((string group, string description, IReadOnlyList<IScriptModule> members) in ManifestGroups.Arrange(modules))
+            yield return $"{group}: {string.Join(", ", members.Select(module => module.Name))} — {description}";
     }
 
     private static string Json(IReadOnlyList<IScriptModule> modules, ManifestOptions options)
@@ -286,6 +288,7 @@ public static class ManifestBuilder
             AppendJsonField(builder, "name", module.Name, first: true);
             AppendJsonField(builder, "description", module.Description);
             AppendJsonField(builder, "version", module.Version);
+            AppendJsonField(builder, "group", ManifestGroups.Of(module));
             _ = builder.Append(",\"count\":").Append(module.Functions.Count.ToString(CultureInfo.InvariantCulture));
 
             if (!options.IndexOnly) AppendJsonFunctions(builder, module, options);

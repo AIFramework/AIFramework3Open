@@ -1,4 +1,4 @@
-using AI.Script.Runtime;
+﻿using AI.Script.Runtime;
 using AI.Script.Semantics;
 
 namespace AI.Script.Hosting;
@@ -17,6 +17,9 @@ public sealed class ScriptArtifact
 
     /// <summary>Значение как объект C#.</summary>
     public object? Value { get; init; }
+
+    /// <summary>Медиатип для артефакта-файла; <c>null</c> — не файл.</summary>
+    public string? MediaType { get; init; }
 }
 
 /// <summary>Счётчики прогона.</summary>
@@ -73,6 +76,15 @@ public sealed class CheckResult
 
     /// <summary>Все сообщения, отсортированные по позиции.</summary>
     public IReadOnlyList<Diagnostic> Diagnostics { get; init; } = [];
+
+    /// <summary>
+    /// Данные, которые скрипт просит у хоста: <c>input("продажи", kind: "table")</c>.
+    /// </summary>
+    /// <remarks>
+    /// Хост читает этот список до запуска: чего нет — то и нужно найти, спросить у человека
+    /// либо честно сказать, что задача не решается.
+    /// </remarks>
+    public IReadOnlyList<ScriptInput> Inputs { get; init; } = [];
 
     /// <summary>Развёрнутый отчёт для человека и модели.</summary>
     public string Render()

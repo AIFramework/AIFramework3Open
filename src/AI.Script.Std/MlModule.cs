@@ -24,7 +24,7 @@ namespace AI.Script.Std;
 /// раз на роль, а не по разу на каждый алгоритм.
 /// </para>
 /// </remarks>
-[ScriptModule("ml", "Машинное обучение: классификация, кластеризация, регрессия, PCA", Version = "0.1")]
+[ScriptModule("ml", "Машинное обучение: классификация, кластеризация, регрессия, PCA", Version = "0.1", Group = "анализ")]
 public static class MlModule
 {
     /// <summary>Тип-тег дескриптора классификатора.</summary>

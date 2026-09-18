@@ -1,4 +1,4 @@
-namespace AI.Script.Binding;
+﻿namespace AI.Script.Binding;
 
 /// <summary>
 /// Помечает класс как модуль языка: его функции попадают в пространство имён <see cref="Name"/>.
@@ -18,6 +18,15 @@ public sealed class ScriptModuleAttribute : Attribute
 
     /// <summary>Версия модуля; входит в манифест и в ключ кэша стадий.</summary>
     public string Version { get; set; } = "1.0";
+
+    /// <summary>
+    /// Задача, к которой относится модуль: <c>данные</c>, <c>анализ</c>, <c>тексты</c>…
+    /// </summary>
+    /// <remarks>
+    /// По задачам строится индекс в системном промпте. Список известных задач закрыт —
+    /// <see cref="Docs.ManifestGroups.All"/>; неизвестная попадает в «прочее».
+    /// </remarks>
+    public string Group { get; set; } = string.Empty;
 
     /// <summary>Помечает класс как модуль языка.</summary>
     /// <param name="name">Имя пространства имён.</param>
@@ -44,6 +53,29 @@ public sealed class ScriptFnAttribute : Attribute
 
     /// <summary>Тип-тег результата, если функция возвращает дескриптор.</summary>
     public string? Returns { get; set; }
+
+    /// <summary>
+    /// Расширения файлов, которые функция открывает по пути первым аргументом: <c>"csv,tsv"</c>.
+    /// </summary>
+    /// <remarks>
+    /// По ним <c>io.load</c> выбирает, чем открыть файл. Модуль сам объявляет, что умеет
+    /// открыть, и <c>io</c> ничего о нём не знает: подключили модуль к хосту — формат открылся.
+    /// Остальные параметры такой функции обязаны быть необязательными.
+    /// </remarks>
+    public string? Reads { get; set; }
+
+    /// <summary>
+    /// Расширения файлов, которые функция записывает: значение первым аргументом, путь вторым.
+    /// </summary>
+    /// <remarks>
+    /// Обратная сторона <see cref="Reads"/>: по ним <c>io.save</c> выбирает, чем записать
+    /// значение, и так же ничего не знает про модуль, который это умеет.
+    /// </remarks>
+    public string? Writes { get; set; }
+
+    /// <summary>Колонки таблицы-результата, если они постоянны: <c>"path,name,size"</c>.</summary>
+    /// <remarks>Проверка до запуска сверяет с ними имена колонок в коде ниже по конвейеру.</remarks>
+    public string? Columns { get; set; }
 
     /// <summary>Помечает метод как функцию языка.</summary>
     /// <param name="name">Имя функции; <c>null</c> — из имени метода.</param>

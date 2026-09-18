@@ -9,8 +9,8 @@ namespace AI.Script.Std;
 /// <summary>
 /// Пространство <c>stat</c>: описательные статистики и метрики качества.
 /// </summary>
-[ScriptModule("stat", "Описательные статистики, корреляции и метрики качества", Version = "0.1")]
-public static class StatModule
+[ScriptModule("stat", "Описательные статистики, корреляции и метрики качества", Version = "0.1", Group = "анализ")]
+public static partial class StatModule
 {
     [ScriptFn("mean", "Среднее арифметическое выборки", Example = "stat.mean(v)")]
     public static double Mean([ScriptParam("выборка")] Vector v) => Require(v, "mean").Mean();

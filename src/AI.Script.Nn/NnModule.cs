@@ -19,7 +19,7 @@ namespace AI.Script.Nn;
 /// дальше работает та же сеть.
 /// </para>
 /// </remarks>
-[ScriptModule("nn", "Нейросеть над матрицей признаков; вход нормируйте через prep", Version = "0.1")]
+[ScriptModule("nn", "Нейросеть над матрицей признаков; вход нормируйте через prep", Version = "0.1", Group = "анализ")]
 public static class NnModule
 {
     /// <summary>Тип-тег дескриптора обученной сети.</summary>

@@ -833,11 +833,15 @@ public sealed partial class Interpreter
             CancellationToken = _context.Cancellation,
         };
 
+        // Зерно участка тянется из потока вызывающего до старта ветвей: у каждого участка свое,
+        // а порядок вытягивания задан текстом скрипта, так что воспроизводимость сохраняется.
+        int section = _context.Random.Next();
+
         await Parallel.ForAsync(0, items.Count, scheduling, async (index, cancellation) =>
         {
             Interpreter branch = Branch();
 
-            using (_context.UseBranchRandom(index))
+            using (_context.UseBranchRandom(section, index))
                 results[index] = await branch.CallAsync(callable, items[index]).ConfigureAwait(false);
         }).ConfigureAwait(false);
 

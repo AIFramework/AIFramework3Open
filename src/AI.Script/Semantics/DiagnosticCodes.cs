@@ -1,4 +1,4 @@
-namespace AI.Script.Semantics;
+﻿namespace AI.Script.Semantics;
 
 /// <summary>
 /// Коды диагностик. Диапазоны закреплены за стадиями обработки — см. приложение C в DESIGN.md.
@@ -68,6 +68,12 @@ public static class DiagnosticCodes
     /// <summary>Неизвестное пространство имён.</summary>
     public const string UnknownNamespace = "AIS1110";
 
+    /// <summary>Нет такой колонки в таблице, схема которой известна до запуска.</summary>
+    public const string UnknownColumn = "AIS1120";
+
+    /// <summary>Хост не подал вход, объявленный скриптом.</summary>
+    public const string MissingInput = "AIS1130";
+
     // --- AIS12xx: области видимости ---
 
     /// <summary>Повторный <c>let</c> для уже связанного имени.</summary>
@@ -123,6 +129,9 @@ public static class DiagnosticCodes
     /// <summary>Возможность языка ещё не реализована в текущей версии.</summary>
     public const string NotImplementedYet = "AIS2901";
 
+    /// <summary>Функция есть в языке, но служба для нее хостом не подключена.</summary>
+    public const string NotConnected = "AIS2902";
+
     // --- AIS31xx: исполнение ---
 
     /// <summary>Индекс вне границ.</summary>
@@ -156,6 +165,9 @@ public static class DiagnosticCodes
 
     /// <summary>Прогон отменён.</summary>
     public const string Cancelled = "AIS3210";
+
+    /// <summary>Пробный прогон опыта остановлен после первого испытания: оценка записана.</summary>
+    public const string PilotStopped = "AIS3211";
 
     /// <summary>Превышен потолок расходов на внешние вызовы.</summary>
     public const string CostLimit = "AIS3205";

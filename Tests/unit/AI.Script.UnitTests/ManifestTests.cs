@@ -20,9 +20,10 @@ public sealed class ManifestTests
     public void Manifest_Index_ListsEveryNamespaceAndNoFunctions()
     {
         string text = Host().DescribeCapabilities(ManifestOptions.Index);
+        IReadOnlySet<string> listed = Script.IndexNamespaces(text);
 
         foreach (IScriptModule module in Host().Registry.Modules)
-            Assert.Contains($"- {module.Name} — ", text, StringComparison.Ordinal);
+            Assert.Contains(module.Name, listed);
 
         Assert.DoesNotContain("math.sqrt(", text, StringComparison.Ordinal);
     }
@@ -215,5 +216,58 @@ public sealed class ManifestTests
         ScriptHost host = Host();
 
         Assert.Equal(host.Describe("math.sqrt"), Script.Text("help(\"math.sqrt\")"));
+    }
+
+    /// <summary>
+    /// Каждое пространство полного хоста относится к известной задаче.
+    /// </summary>
+    /// <remarks>
+    /// Пространство без задачи попадает в «прочее», а «прочее» в индексе — это строка, по
+    /// которой модель не поймёт, зачем туда идти. Забытая задача ловится здесь, а не в промпте.
+    /// </remarks>
+    [Fact]
+    public void EveryNamespace_BelongsToKnownTask()
+    {
+        string[] orphans = [.. Script.FullHost().Registry.Modules
+            .Where(module => ManifestGroups.Of(module) == ManifestGroups.Other)
+            .Select(module => module.Name)];
+
+        Assert.True(orphans.Length == 0, "пространства без задачи: " + string.Join(", ", orphans));
+    }
+
+    [Fact]
+    public void Help_DescribesTaskWithItsNamespaces()
+    {
+        string text = Host().Describe("данные");
+
+        Assert.Contains("io", text, StringComparison.Ordinal);
+        Assert.Contains("table", text, StringComparison.Ordinal);
+        Assert.Contains("Файлы прогона", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("stat ", text, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Индекс по задачам держит бюджет и при пятидесяти пространствах.
+    /// </summary>
+    /// <remarks>
+    /// Ради этого индекс и перестроен: строка на пространство упёрлась в бюджет на тридцати
+    /// восьми. Недостающие пространства добавляются пустыми, но с настоящими именами длины
+    /// реальных — мерится то, что уйдёт модели, когда их подключат.
+    /// </remarks>
+    [Fact]
+    public void Manifest_Index_FitsFiftyNamespaces()
+    {
+        ScriptHost host = Script.FullHost();
+
+        for (int i = host.Registry.Modules.Count; i < 50; i++)
+        {
+            string group = ManifestGroups.All[i % ManifestGroups.All.Count].Name;
+            _ = host.Use(new ScriptModule($"extra{i:00}", "Пространство для замера бюджета", "1.0", [], group));
+        }
+
+        string text = host.DescribeCapabilities(ManifestOptions.Index);
+
+        Assert.True(host.Registry.Modules.Count >= 50);
+        Assert.True(text.Length < 2800, $"индекс на {host.Registry.Modules.Count} пространствах занял {text.Length} символов");
     }
 }

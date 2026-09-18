@@ -17,7 +17,7 @@ namespace AI.Script.Std;
 /// <c>ml</c>. Один вид данных на всю библиотеку означает, что результат <c>table.to_matrix</c>
 /// годится и туда, и туда без переупаковки.
 /// </remarks>
-[ScriptModule("geom", "Геометрия: преобразования, подгонка прямых и окружностей, кривые", Version = "0.1")]
+[ScriptModule("geom", "Геометрия: преобразования, подгонка прямых и окружностей, кривые", Version = "0.1", Group = "решатели")]
 public static class GeomModule
 {
     [ScriptFn("translate", "Матрица переноса на плоскости", Example = "geom.translate(dx: 2, dy: 3)")]

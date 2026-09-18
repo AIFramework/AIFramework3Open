@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.Economics.Forecasting;
 using AI.Economics.Portfolio;
 using AI.Economics.Pricing;
@@ -26,8 +26,8 @@ namespace AI.Script.Std;
 /// а <c>ltv_to_cac</c> посреди русского скрипта заставляет держать в голове перевод.
 /// </para>
 /// </remarks>
-[ScriptModule("econ", "Экономика: юнит-экономика, инвестиции, кредиты, риск, прогноз", Version = "0.1")]
-public static class EconModule
+[ScriptModule("econ", "Экономика: юнит-экономика, инвестиции, кредиты, риск, прогноз", Version = "0.1", Group = "прогноз")]
+public static partial class EconModule
 {
     // --- юнит-экономика ---
 
@@ -430,25 +430,32 @@ public static class EconModule
     /// Прогноз ряда с доверительным интервалом.
     /// </summary>
     /// <remarks>
-    /// Модель подбирается автоматически, и её имя возвращается вместе с прогнозом: без него
-    /// нельзя понять, учтена ли сезонность, а по одному ряду чисел это не видно.
+    /// Имя выбранной модели возвращается вместе с прогнозом: без него нельзя понять, учтена ли
+    /// сезонность, а по одному ряду чисел это не видно.
+    /// <para>
+    /// Интервал приходит всегда. Точка без интервала выглядит как знание, которого нет:
+    /// «выручка составит 4,2 млн» и «от 3,1 до 5,3 млн» — разные утверждения, и решения по ним
+    /// принимаются разные.
+    /// </para>
     /// </remarks>
-    [ScriptFn("forecast", "Прогноз ряда экспоненциальным сглаживанием с интервалом", Example = "econ.forecast(выручка, horizon: 6, season: 12)")]
+    [ScriptFn("forecast", "Прогноз ряда с интервалом: модель подбирается либо задаётся",
+        Example = "econ.forecast(выручка, horizon: 6, season: 12)")]
     public static ScriptRecord Forecast(
         IScriptContext context,
         [ScriptParam("исторический ряд")] Vector series,
         [ScriptParam("на сколько периодов вперёд")] int horizon,
         [ScriptParam("длина сезона; 1 — без сезонности")] int season = 1,
+        [ScriptParam("модель: \"auto\", \"ets\", \"arima\", \"theta\"")] string kind = "auto",
         [ScriptParam("уровень доверия интервала")] double confidence = 0.9)
     {
         Require(horizon > 0, "econ.forecast: горизонт должен быть больше нуля");
         Require(series.Count > season, "econ.forecast: ряд короче сезона");
 
-        ForecastResult result = ExponentialSmoothing.AutoFit(series, horizon, season, confidence);
+        (ForecastResult result, string chosen) = Predict(series, horizon, season, kind, confidence, "econ.forecast");
 
         context.CountAllocation(horizon * 3L);
 
-        return ForecastRecord(result);
+        return ForecastRecord(result, chosen);
     }
 
     [ScriptFn("theta", "Прогноз ряда методом тета: устойчив на коротких рядах", Example = "econ.theta(выручка, horizon: 4)")]
@@ -465,7 +472,7 @@ public static class EconModule
 
         context.CountAllocation(horizon * 3L);
 
-        return ForecastRecord(result);
+        return ForecastRecord(result, "theta");
     }
 
     // --- цены ---
@@ -516,7 +523,8 @@ public static class EconModule
 
     // --- внутреннее ---
 
-    private static ScriptRecord ForecastRecord(ForecastResult result) => Record(
+    private static ScriptRecord ForecastRecord(ForecastResult result, string kind) => Record(
+        ("kind", ScriptValue.Str(kind)),
         ("model", ScriptValue.Str(result.Model)),
         ("forecast", ScriptValue.Vec(result.PointForecast)),
         ("lower", ScriptValue.Vec(result.Lower)),

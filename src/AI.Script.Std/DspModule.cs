@@ -16,7 +16,7 @@ namespace AI.Script.Std;
 /// фильтр применяют один раз к целому сигналу, и заводить ради этого дескриптор с состоянием
 /// значило бы усложнить запись, ничего не дав.
 /// </remarks>
-[ScriptModule("dsp", "Спектральный анализ и фильтрация сигналов", Version = "0.1")]
+[ScriptModule("dsp", "Спектральный анализ и фильтрация сигналов", Version = "0.1", Group = "сигналы")]
 public static class DspModule
 {
     [ScriptFn("fft", "Спектр сигнала: амплитуды и частоты", Example = "let s = dsp.fft(signal, fs: 8000)")]

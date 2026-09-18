@@ -4,7 +4,7 @@ using AI.Script.Runtime;
 namespace AI.Script.Std;
 
 /// <summary>Пространство <c>str</c>: операции над строками.</summary>
-[ScriptModule("str", "Операции над строками", Version = "0.1")]
+[ScriptModule("str", "Операции над строками", Version = "0.1", Group = "основа")]
 public static class StrModule
 {
     [ScriptFn("upper", "Верхний регистр", Example = "str.upper(\"код\")")]

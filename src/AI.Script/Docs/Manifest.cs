@@ -36,10 +36,12 @@ public static class Manifest
         return builder.ToString();
     }
 
-    /// <summary>Справка по пространству имён либо по конкретной функции.</summary>
+    /// <summary>Справка по задаче, по пространству имён либо по конкретной функции.</summary>
     public static string Describe(IReadOnlyList<IScriptModule> modules, string query)
     {
         if (string.IsNullOrWhiteSpace(query)) return Namespaces(modules);
+
+        if (ManifestGroups.Describe(query) is string about) return DescribeGroup(modules, query, about);
 
         foreach (IScriptModule module in modules)
         {
@@ -61,6 +63,27 @@ public static class Manifest
         }
 
         return NotFound(modules, query);
+    }
+
+    /// <summary>
+    /// Пространства задачи с описаниями — второй шаг после индекса.
+    /// </summary>
+    /// <remarks>
+    /// В индексе у задачи только имена пространств; что в каком из них, модель узнаёт здесь,
+    /// одним вопросом на задачу, а не сорока строками в каждом промпте.
+    /// </remarks>
+    private static string DescribeGroup(IReadOnlyList<IScriptModule> modules, string group, string about)
+    {
+        var builder = new StringBuilder().Append(group).Append(" — ").Append(about).AppendLine().AppendLine();
+
+        foreach (IScriptModule module in Ordered(modules))
+        {
+            if (!string.Equals(ManifestGroups.Of(module), group, StringComparison.Ordinal)) continue;
+
+            _ = builder.Append("  ").Append(module.Name.PadRight(10)).AppendLine(module.Description);
+        }
+
+        return builder.AppendLine().Append("Функции пространства: help(\"имя\").").ToString();
     }
 
     private static string DescribeModule(IScriptModule module)
@@ -120,6 +143,8 @@ public static class Manifest
     private static string NotFound(IReadOnlyList<IScriptModule> modules, string query)
     {
         var names = new List<string>();
+
+        foreach ((string group, _) in ManifestGroups.All) names.Add(group);
 
         foreach (IScriptModule module in modules)
         {

@@ -1,4 +1,4 @@
-using AI.ComputerVision;
+﻿using AI.ComputerVision;
 using AI.ComputerVision.FrequencyDomain;
 using AI.ComputerVision.ImgTransforms;
 using AI.ComputerVision.SpatialFilters;
@@ -26,8 +26,8 @@ namespace AI.Script.Vision;
 /// самовольно значило бы рассогласовать язык с той библиотекой, которую он показывает.
 /// </para>
 /// </remarks>
-[ScriptModule("cv", "Картинка — матрица яркостей 0..255: фильтры, контуры, признаки", Version = "0.1")]
-public static class CvModule
+[ScriptModule("cv", "Изображения: цвет по каналам, фильтры, контуры, признаки", Version = "0.2", Group = "сигналы")]
+public static partial class CvModule
 {
     // --- ввод и вывод ---
 
@@ -41,19 +41,20 @@ public static class CvModule
     /// </remarks>
     [ScriptFn("load", "Загружает изображение матрицей яркостей 0..255",
         Example = "let img = cv.load(\"photo.png\", width: 256, height: 256)")]
-    public static Matrix Load(
+    public static async Task<Matrix> Load(
         IScriptContext context,
         [ScriptParam("путь относительно рабочей папки")] string path,
         [ScriptParam("канал: \"gray\", \"red\", \"green\", \"blue\" либо \"hue\"")] string channel = "gray",
         [ScriptParam("ширина при загрузке; 0 — как есть")] int width = 0,
         [ScriptParam("высота при загрузке; 0 — как есть")] int height = 0)
     {
-        string full = context.Sandbox.Resolve(path, forWriting: false);
-
-        if (!File.Exists(full))
+        if (await context.Sandbox.InfoAsync(path, context.Cancellation).ConfigureAwait(false) == null)
             throw new ScriptError(DiagnosticCodes.FileNotFound, $"cv.load: файл не найден — {path}");
 
-        using SKBitmap bitmap = ImageMatrixConverter.GetBitmap(full);
+        byte[] bytes = await context.Sandbox.ReadAsync(path, context.Cancellation).ConfigureAwait(false);
+
+        using SKBitmap bitmap = SKBitmap.Decode(bytes)
+            ?? throw new ScriptError(DiagnosticCodes.BadFileFormat, $"cv.load: не удалось прочитать изображение — {path}");
 
         Matrix image = Channel(bitmap, channel, "cv.load");
 
@@ -64,37 +65,49 @@ public static class CvModule
         return image;
     }
 
-    [ScriptFn("save", "Сохраняет матрицу яркостей изображением; возвращает путь",
-        Example = "cv.save(img, \"result.png\")")]
-    public static string Save(
+    [ScriptFn("save", "Сохраняет изображение либо матрицу яркостей в png; возвращает путь",
+        Example = "cv.save(img, \"result.png\")", Writes = "png")]
+    public static async Task<string> Save(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image,
         [ScriptParam("путь относительно рабочей папки")] string path)
     {
-        string full = context.Sandbox.Resolve(path, forWriting: true);
+        byte[] bytes;
 
-        using SKBitmap bitmap = ImageMatrixConverter.ToBitmap(image);
-        using SKData data = bitmap.Encode(SKEncodedImageFormat.Png, 100);
-        using FileStream stream = File.Create(full);
+        if (image.Type == ScriptType.Handle)
+        {
+            bytes = Color(image.AsHandle(), "cv.save").Png();
+        }
+        else
+        {
+            using SKBitmap bitmap = ImageMatrixConverter.ToBitmap(Brightness(image, "cv.save"));
+            using SKData data = bitmap.Encode(SKEncodedImageFormat.Png, 100);
 
-        data.SaveTo(stream);
+            bytes = data.ToArray();
+        }
+
+        await context.Sandbox.WriteAsync(path, bytes, context.Cancellation).ConfigureAwait(false);
+
+        context.FileSaved(new AI.Script.Hosting.ScriptFileInfo(path, bytes.LongLength, DateTimeOffset.UtcNow));
 
         return path;
     }
 
     [ScriptFn("resize", "Меняет размер изображения", Example = "cv.resize(img, width: 128, height: 128)")]
-    public static Matrix Resize(
+    public static ScriptValue Resize(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image,
         [ScriptParam("ширина")] int width,
         [ScriptParam("высота")] int height)
     {
         if (width < 1 || height < 1)
             throw new ScriptError(DiagnosticCodes.BadOperand, "cv.resize: размеры должны быть положительны");
 
-        context.CountAllocation((long)width * height);
+        // Память считается по размеру результата до увеличения: исходник мог быть маленьким, а
+        // растянутый до девяти миллионов точек уже нет.
+        context.CountAllocation((image.Type == ScriptType.Handle ? 3L : 1L) * width * height);
 
-        return Resized(image, width, height);
+        return Pixels(context, image, "cv.resize", channel => Resized(channel, width, height));
     }
 
     /// <summary>
@@ -105,52 +118,38 @@ public static class CvModule
     /// приведения картинка выйдет чёрной или белой целиком, а разбираться в этом будут долго.
     /// </remarks>
     [ScriptFn("normalize", "Растягивает яркости на отрезок 0..255", Example = "cv.normalize(spectrum)")]
-    public static Matrix Normalize(
-        [ScriptParam("матрица яркостей")] Matrix image) => FFT2D.NormalizeTo255(image);
+    public static ScriptValue Normalize(
+        IScriptContext context,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image) =>
+        Pixels(context, image, "cv.normalize", FFT2D.NormalizeTo255);
 
     // --- фильтрация ---
 
     [ScriptFn("filter", "Свёртка изображения с заданным ядром", Example = "cv.filter(img, kernel: k)")]
-    public static Matrix Filter(
+    public static ScriptValue Filter(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
-        [ScriptParam("ядро свёртки")] Matrix kernel)
-    {
-        context.CountAllocation((long)image.Height * image.Width);
-
-        return ImgFilters.SpatialFilter(image, kernel);
-    }
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image,
+        [ScriptParam("ядро свёртки")] Matrix kernel) =>
+        Pixels(context, image, "cv.filter", channel => ImgFilters.SpatialFilter(channel, kernel));
 
     [ScriptFn("smooth", "Сглаживание изображения", Example = "cv.smooth(img)")]
-    public static Matrix Smooth(
+    public static ScriptValue Smooth(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image)
-    {
-        context.CountAllocation((long)image.Height * image.Width);
-
-        return new Smoothing().Filtration(image);
-    }
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image) =>
+        Pixels(context, image, "cv.smooth", channel => new Smoothing().Filtration(channel));
 
     [ScriptFn("blur", "Гауссово размытие", Example = "cv.blur(img)")]
-    public static Matrix Blur(
+    public static ScriptValue Blur(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image)
-    {
-        context.CountAllocation((long)image.Height * image.Width);
-
-        return new GaussianBlurFilter().Filtration(image);
-    }
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image) =>
+        Pixels(context, image, "cv.blur", channel => new GaussianBlurFilter().Filtration(channel));
 
     [ScriptFn("sharpen", "Повышение резкости", Example = "cv.sharpen(img, amount: 1.5)")]
-    public static Matrix Sharpen(
+    public static ScriptValue Sharpen(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
-        [ScriptParam("сила повышения")] double amount = 1)
-    {
-        context.CountAllocation((long)image.Height * image.Width);
-
-        return new Sharpness(amount).Filtration(image);
-    }
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image,
+        [ScriptParam("сила повышения")] double amount = 1) =>
+        Pixels(context, image, "cv.sharpen", channel => new Sharpness(amount).Filtration(channel));
 
     /// <summary>
     /// Медианный фильтр.
@@ -161,26 +160,26 @@ public static class CvModule
     /// </remarks>
     [ScriptFn("median", "Медианный фильтр: убирает точечный шум, сохраняя границы",
         Example = "cv.median(img, size: 5)")]
-    public static Matrix Median(
+    public static ScriptValue Median(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image,
         [ScriptParam("размер окна, нечётный")] int size = 3)
     {
         RequireOddWindow(size, "cv.median");
 
-        context.CountAllocation((long)image.Height * image.Width);
-
-        return ImgFilters.MedianFilter(image, size, size);
+        return Pixels(context, image, "cv.median", channel => ImgFilters.MedianFilter(channel, size, size));
     }
 
     [ScriptFn("texture", "Локальное среднеквадратичное отклонение: мера зернистости",
         Example = "cv.texture(img, size: 5)")]
     public static Matrix Texture(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue picture,
         [ScriptParam("размер окна, нечётный")] int size = 3)
     {
         RequireOddWindow(size, "cv.texture");
+
+        Matrix image = Brightness(picture, "cv.texture");
 
         context.CountAllocation((long)image.Height * image.Width);
 
@@ -200,8 +199,10 @@ public static class CvModule
     [ScriptFn("sobel", "Контуры: модуль и направление градиента", Example = "let edges = cv.sobel(img)")]
     public static ScriptRecord Sobel(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image)
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue picture)
     {
+        Matrix image = Brightness(picture, "cv.sobel");
+
         SobelData data = new SobelTransform().Transform(image);
 
         context.CountAllocation((long)image.Height * image.Width * 4);
@@ -219,7 +220,7 @@ public static class CvModule
         Example = "let features = cv.hog(img, bins: 9)")]
     public static Vector Hog(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image,
         [ScriptParam("число направлений")] int bins = 8,
         [ScriptParam("нормировать результат")] bool normalize = true)
     {
@@ -227,28 +228,24 @@ public static class CvModule
 
         context.CountAllocation(bins);
 
-        return new HOG(bins).CalcHist(image, normalize);
+        return new HOG(bins).CalcHist(Brightness(image, "cv.hog"), normalize);
     }
 
     [ScriptFn("histogram", "Гистограмма яркостей изображения", Example = "show plot.bar(cv.histogram(img))")]
     public static Vector Histogram(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image)
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image)
     {
         context.CountAllocation(256);
 
-        return ImageHistogram.GetHistogram(image);
+        return ImageHistogram.GetHistogram(Brightness(image, "cv.histogram"));
     }
 
     [ScriptFn("equalize", "Выравнивание гистограммы: повышает контраст", Example = "cv.equalize(img)")]
-    public static Matrix Equalize(
+    public static ScriptValue Equalize(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image)
-    {
-        context.CountAllocation((long)image.Height * image.Width);
-
-        return ImageHistogram.Equalize(image);
-    }
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image) =>
+        Pixels(context, image, "cv.equalize", ImageHistogram.Equalize);
 
     /// <summary>
     /// Порогование в чёрно-белое.
@@ -261,9 +258,11 @@ public static class CvModule
     [ScriptFn("binary", "Порогование: матрица нулей и единиц", Example = "cv.binary(img, threshold: 128)")]
     public static Matrix Binary(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue picture,
         [ScriptParam("порог яркости")] double threshold = 128)
     {
+        Matrix image = Brightness(picture, "cv.binary");
+
         var result = new Matrix(image.Height, image.Width);
 
         context.CountAllocation((long)image.Height * image.Width);
@@ -290,9 +289,11 @@ public static class CvModule
         Example = "show plot.heatmap(cv.spectrum(img))")]
     public static Matrix Spectrum(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue picture,
         [ScriptParam("логарифмический масштаб")] bool log = true)
     {
+        Matrix image = Brightness(picture, "cv.spectrum");
+
         (double[,] re, double[,] im, int _, int _) = FFT2D.Forward(image);
 
         context.CountAllocation((long)image.Height * image.Width * 2);
@@ -302,26 +303,28 @@ public static class CvModule
 
     [ScriptFn("lowpass", "Частотная фильтрация: оставить низкие частоты",
         Example = "cv.lowpass(img, radius: 40)")]
-    public static Matrix LowPass(
+    public static ScriptValue LowPass(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image,
         [ScriptParam("радиус среза в отсчётах частоты")] double radius)
     {
         RequireRadius(radius, "cv.lowpass");
 
-        return Filtered(context, image, (re, im) => FFT2D.LowPassFilter(re, im, radius));
+        return Pixels(context, image, "cv.lowpass",
+            channel => Filtered(context, channel, (re, im) => FFT2D.LowPassFilter(re, im, radius)));
     }
 
     [ScriptFn("highpass", "Частотная фильтрация: оставить высокие частоты",
         Example = "cv.highpass(img, radius: 10)")]
-    public static Matrix HighPass(
+    public static ScriptValue HighPass(
         IScriptContext context,
-        [ScriptParam("матрица яркостей")] Matrix image,
+        [ScriptParam("изображение либо матрица яркостей")] ScriptValue image,
         [ScriptParam("радиус среза в отсчётах частоты")] double radius)
     {
         RequireRadius(radius, "cv.highpass");
 
-        return Filtered(context, image, (re, im) => FFT2D.HighPassFilter(re, im, radius));
+        return Pixels(context, image, "cv.highpass",
+            channel => Filtered(context, channel, (re, im) => FFT2D.HighPassFilter(re, im, radius)));
     }
 
     // --- внутреннее ---

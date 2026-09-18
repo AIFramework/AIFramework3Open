@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.Script.Semantics;
 
 namespace AI.Script.Runtime;
@@ -66,7 +66,7 @@ public sealed class ScriptColumn
     {
         if (_numbers != null) return _numbers;
 
-        if (Type != ScriptType.Num)
+        if (Type is not (ScriptType.Num or ScriptType.Dec))
         {
             throw new ScriptError(
                 DiagnosticCodes.TypeMismatch,
@@ -78,8 +78,14 @@ public sealed class ScriptColumn
 
         // Пропуск становится nan, а не нулём: ноль — это значение, и подмена одного другим
         // тихо смещает любое среднее, посчитанное дальше по конвейеру.
+        // Точная колонка переводится в double: матрица признаков двоичная по определению,
+        // и обучению нужна она, а не копейка. Деньги остаются точными там, где их складывают.
         for (int i = 0; i < _values.Length; i++)
-            vector[i] = _values[i].IsNone ? double.NaN : _values[i].RawNumber;
+        {
+            vector[i] = _values[i].IsNone
+                ? double.NaN
+                : _values[i].Type == ScriptType.Dec ? (double)_values[i].AsDecimal() : _values[i].RawNumber;
+        }
 
         _numbers = vector;
         return vector;

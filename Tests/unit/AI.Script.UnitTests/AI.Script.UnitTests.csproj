@@ -25,6 +25,9 @@
     <ProjectReference Include="..\..\..\src\AI.Script.Chem\AI.Script.Chem.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Script.Nn\AI.Script.Nn.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Script.Vision\AI.Script.Vision.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Script.Data\AI.Script.Data.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Script.Media\AI.Script.Media.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Script.Office\AI.Script.Office.csproj" />
   </ItemGroup>
 
 </Project>

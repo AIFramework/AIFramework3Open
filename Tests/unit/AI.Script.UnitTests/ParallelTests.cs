@@ -80,8 +80,8 @@ public sealed class ParallelTests
 
         RunResult result = Script.RunOk(source);
 
-        Assert.Equal(0.932414, result.Emitted["first"]);
-        Assert.Equal(0.536385, result.Emitted["third"]);
+        Assert.Equal(0.867386, result.Emitted["first"]);
+        Assert.Equal(0.65054, result.Emitted["third"]);
     }
 
     /// <summary>Зерно ветви зависит только от зерна прогона и номера, а не от запуска.</summary>
@@ -124,7 +124,7 @@ public sealed class ParallelTests
             """;
 
         Assert.Equal(Script.RunOk(source).Emitted["подписи"], Script.RunOk(source).Emitted["подписи"]);
-        Assert.Equal("111,0,100,111,100,11,1,110", Script.RunOk(source).Emitted["подписи"]);
+        Assert.Equal("101,101,1,0,101,110,10,101", Script.RunOk(source).Emitted["подписи"]);
     }
 
     [Fact]

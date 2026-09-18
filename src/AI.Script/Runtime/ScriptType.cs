@@ -1,4 +1,4 @@
-namespace AI.Script.Runtime;
+﻿namespace AI.Script.Runtime;
 
 /// <summary>
 /// Тип значения языка. Он же используется в аннотациях типов и в сигнатурах привязок.
@@ -58,6 +58,21 @@ public enum ScriptType
     /// <summary>Дескриптор объекта фреймворка.</summary>
     Handle,
 
+    /// <summary>
+    /// Точное десятичное число: деньги и всё, что обязано сходиться до копейки.
+    /// </summary>
+    /// <remarks>
+    /// Дописан в конец, а не поставлен рядом с <see cref="Num"/>: номер тега уходит в двоичный
+    /// кэш стадий, и вставка в середину обесценила бы всё, что уже посчитано.
+    /// </remarks>
+    Dec,
+
+    /// <summary>
+    /// Величина с единицей: <c>5 kg</c>, <c>120 rub</c>.
+    /// </summary>
+    /// <remarks>Тоже в конце, по той же причине, что и <see cref="Dec"/>: тег уходит в кэш стадий.</remarks>
+    Qty,
+
     /// <summary>Любой тип; только в аннотациях и сигнатурах.</summary>
     Any,
 }
@@ -84,6 +99,8 @@ public static class ScriptTypeNames
         ScriptType.Range => "range",
         ScriptType.Fn => "fn",
         ScriptType.Handle => "handle",
+        ScriptType.Dec => "dec",
+        ScriptType.Qty => "qty",
         _ => "any",
     };
 
@@ -106,6 +123,8 @@ public static class ScriptTypeNames
         "range" => ScriptType.Range,
         "fn" => ScriptType.Fn,
         "handle" => ScriptType.Handle,
+        "dec" => ScriptType.Dec,
+        "qty" => ScriptType.Qty,
         "any" => ScriptType.Any,
         _ => null,
     };

@@ -1,4 +1,4 @@
-using AI.Script.Runtime;
+﻿using AI.Script.Runtime;
 using AI.Script.Semantics;
 using System.Reflection;
 using System.Text;
@@ -20,15 +20,24 @@ public sealed class ScriptModule : IScriptModule
     public string Version { get; }
 
     /// <inheritdoc/>
+    public string Group { get; }
+
+    /// <inheritdoc/>
     public IReadOnlyList<ScriptFunction> Functions { get; }
 
     /// <summary>Создаёт модуль из готового списка функций.</summary>
-    public ScriptModule(string name, string description, string version, IReadOnlyList<ScriptFunction> functions)
+    public ScriptModule(
+        string name,
+        string description,
+        string version,
+        IReadOnlyList<ScriptFunction> functions,
+        string group = "")
     {
         Name = name;
         Description = description;
         Version = version;
         Functions = functions;
+        Group = group ?? string.Empty;
     }
 
     /// <summary>Собирает модуль из статических методов типа.</summary>
@@ -67,7 +76,8 @@ public sealed class ScriptModule : IScriptModule
             functions.Add(BuildFunction(moduleAttribute.Name, instance, method, attribute));
         }
 
-        return new ScriptModule(moduleAttribute.Name, moduleAttribute.Description, moduleAttribute.Version, functions);
+        return new ScriptModule(
+            moduleAttribute.Name, moduleAttribute.Description, moduleAttribute.Version, functions, moduleAttribute.Group);
     }
 
     private static ScriptFunction BuildFunction(string ns, object? instance, MethodInfo method, ScriptFnAttribute attribute)
@@ -101,7 +111,7 @@ public sealed class ScriptModule : IScriptModule
                 Type = Marshaller.TypeOf(parameter.ParameterType),
                 Description = parameterAttribute?.Description ?? string.Empty,
                 IsOptional = parameter.HasDefaultValue,
-                Default = parameter.HasDefaultValue ? Marshaller.FromClr(parameter.DefaultValue) : ScriptValue.None,
+                Default = parameter.HasDefaultValue ? Marshaller.FromClr(DefaultOf(parameter)) : ScriptValue.None,
                 IsVariadic = parameterAttribute?.Variadic ?? false,
             });
 
@@ -110,22 +120,46 @@ public sealed class ScriptModule : IScriptModule
 
         Type returnType = UnwrapTask(method.ReturnType);
         var methodAttribute = method.GetCustomAttribute<ScriptMethodAttribute>();
+        string? unavailable = (instance as IScriptAvailability)?.Unavailable(name);
 
         var function = new ScriptFunction
         {
             Namespace = ns,
             Name = name,
-            Description = attribute.Description,
+            // Пометка в описании, а не в отдельном поле справки: описание показывают все виды
+            // справки и поиск, и ни один из них не забудет сказать, что функция не подключена.
+            Description = unavailable is null ? attribute.Description : $"[не подключено] {attribute.Description}",
+            Unavailable = unavailable,
             Example = attribute.Example,
             Parameters = scriptParameters,
             ReturnType = attribute.Returns != null ? ScriptType.Handle : Marshaller.TypeOf(returnType),
             ReturnHandleType = attribute.Returns,
             MethodOf = methodAttribute?.HandleType,
+            Reads = SplitList(attribute.Reads),
+            Writes = SplitList(attribute.Writes),
+            Columns = SplitList(attribute.Columns),
             Invoke = CreateInvoker(fullName, instance, method, clrParameters, scriptParameters, mapping, attribute.Returns),
         };
 
         return function;
     }
+
+    /// <summary>
+    /// Значение по умолчанию параметра.
+    /// </summary>
+    /// <remarks>
+    /// <c>TimeSpan every = default</c> отражение отдает как <c>null</c>, и без поправки длительность
+    /// по умолчанию превращалась в пропуск, который проверка отвергает как не тот тип.
+    /// </remarks>
+    private static object? DefaultOf(ParameterInfo parameter) =>
+        parameter.DefaultValue ?? (parameter.ParameterType.IsValueType && Nullable.GetUnderlyingType(parameter.ParameterType) is null
+            ? Activator.CreateInstance(parameter.ParameterType)
+            : null);
+
+    private static string[] SplitList(string? text) =>
+        string.IsNullOrWhiteSpace(text)
+            ? []
+            : text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private static Func<ScriptValue[], IScriptContext, ValueTask<ScriptValue>> CreateInvoker(
         string fullName,

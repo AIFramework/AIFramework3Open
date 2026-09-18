@@ -1,4 +1,4 @@
-using AI.Script.Docs;
+﻿using AI.Script.Docs;
 using AI.Script.Hosting;
 using AI.Script.Semantics;
 using System.Reflection;
@@ -100,7 +100,10 @@ public static class ScriptPrompt
 
         using var reader = new StreamReader(stream, Encoding.UTF8);
 
-        string text = reader.ReadToEnd();
+        // Переводы строк приводятся к одному виду: карточка уходит в промпт как есть, и
+        // рядом с ней не должно быть двух разных промптов в зависимости от того, чем её
+        // разметил чекаут.
+        string text = reader.ReadToEnd().Replace("\r\n", "\n", StringComparison.Ordinal);
 
         // До первой горизонтальной черты идёт объяснение, зачем нужен файл; модели оно
         // говорит о языке ровно ничего.

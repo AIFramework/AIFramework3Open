@@ -1,4 +1,4 @@
-using AI.Charts.JS;
+﻿using AI.Charts.JS;
 using AI.Script.Hosting;
 using System.Text;
 
@@ -12,10 +12,13 @@ namespace AI.Script.Charts;
 /// артефакт, а по строке уже не понять, где кончается один и начинается другой. Строка
 /// получается по требованию — <see cref="ToJson"/>.
 /// </remarks>
-public sealed class PlotFigure : IScriptArtifactSource
+public sealed partial class PlotFigure : IScriptArtifactSource, IScriptImageSource
 {
     private readonly PlotlyBuilder? _builder;
     private readonly IReadOnlyList<PlotFigure> _parts;
+    private readonly IReadOnlyList<PlotSeries> _series = [];
+    private readonly string _xlabel = string.Empty;
+    private readonly string _ylabel = string.Empty;
 
     /// <summary>Заголовок графика.</summary>
     public string Title { get; }
@@ -27,11 +30,24 @@ public sealed class PlotFigure : IScriptArtifactSource
     public IReadOnlyList<PlotFigure> Parts => _parts;
 
     /// <summary>Создаёт одиночный график.</summary>
-    public PlotFigure(string title, PlotlyBuilder builder)
+    /// <param name="title">Заголовок.</param>
+    /// <param name="builder">Описание Plotly.</param>
+    /// <param name="series">Те же серии числами — для картинки; пусто — график рисует только браузер.</param>
+    /// <param name="xlabel">Подпись оси X.</param>
+    /// <param name="ylabel">Подпись оси Y.</param>
+    public PlotFigure(
+        string title,
+        PlotlyBuilder builder,
+        IReadOnlyList<PlotSeries>? series = null,
+        string xlabel = "",
+        string ylabel = "")
     {
         Title = title;
         _builder = builder;
         _parts = [];
+        _series = series ?? [];
+        _xlabel = xlabel;
+        _ylabel = ylabel;
     }
 
     /// <summary>Создаёт составной график.</summary>

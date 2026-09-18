@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Script.Media</RootNamespace>
+    <AssemblyName>AI.Script.Media</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Звук, видео, генерация и распознавание. Отдельно от Std, потому что результат распознавания
+       это документ (Office), а кадр это изображение (Vision): хост без медиа не тянет ни того,
+       ни другого. Сами службы дает хост через ScriptMediaServices. -->
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.DSP\AI.DSP.csproj" />
+    <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
+    <ProjectReference Include="..\AI.Script.Office\AI.Script.Office.csproj" />
+    <ProjectReference Include="..\AI.Script.Vision\AI.Script.Vision.csproj" />
+  </ItemGroup>
+
+</Project>

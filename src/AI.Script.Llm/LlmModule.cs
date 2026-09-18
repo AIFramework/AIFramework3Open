@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
 using AI.LLM.Core.Models.Common.Requests;
@@ -23,8 +23,8 @@ namespace AI.Script.Llm;
 /// после, потому что до запроса никто не знает, сколько токенов вернёт модель.
 /// </para>
 /// </remarks>
-[ScriptModule("llm", "Языковые модели: запросы, эмбеддинги; сеть бывает запрещена")]
-public sealed class LlmModule
+[ScriptModule("llm", "Языковые модели: запросы, эмбеддинги; сеть бывает запрещена", Group = "тексты")]
+public sealed partial class LlmModule
 {
     private readonly ILLMClient? _client;
     private readonly IEmbedderService? _embedder;
@@ -118,27 +118,65 @@ public sealed class LlmModule
     /// надеяться — значит получать отказ на каждом десятом вызове.
     /// </remarks>
     [ScriptFn("json", "Запрос со структурированным ответом: разбирает JSON из ответа модели",
-        Example = "llm.json(\"Разбери отзыв\", shape: { тон: \"строка\", оценка: \"число\" })")]
+        Example = "llm.json(\"Разбери отзыв\", schema: { тон: \"str\", оценка: \"num\" })")]
     public async Task<ScriptValue> Json(
         IScriptContext context,
         [ScriptParam("текст запроса")] string prompt,
         [ScriptParam("образец ответа: поля и что в них класть")] ScriptValue shape = default,
+        [ScriptParam("схема ответа: поле — тип (str, num, dec, bool, date, list, record)")] ScriptValue schema = default,
         [ScriptParam("системная инструкция")] string system = "",
         [ScriptParam("температура")] double temperature = 0)
     {
-        string instruction = shape.Type == ScriptType.Record
-            ? $"{prompt}\n\nОтветь одним объектом JSON такого вида:\n{ScriptFormatter.Format(shape, quoteStrings: true)}"
-            : $"{prompt}\n\nОтветь одним объектом JSON без пояснений.";
-
+        string instruction = Instruction(prompt, shape, schema);
         string answer = await Ask(context, instruction, system, temperature).ConfigureAwait(false);
 
-        if (JsonIsland.TryExtract(answer, out ScriptValue value)) return value;
+        if (schema.Type != ScriptType.Record)
+        {
+            return JsonIsland.TryExtract(answer, out ScriptValue plain)
+                ? plain
+                : throw NoJson(answer);
+        }
+
+        ScriptRecord declared = schema.AsRecord();
+        string problem = JsonIsland.TryExtract(answer, out ScriptValue parsed)
+            ? SchemaFit.TryFit(parsed, declared, out ScriptValue fitted, out string error) ? string.Empty : error
+            : "в ответе не было объекта JSON";
+
+        if (problem.Length == 0) return Fit(parsed, declared);
+
+        // Одна попытка исправления, а не цикл: модель, не попавшая в схему дважды, обычно не
+        // попадёт и на третий раз, а каждый заход — это оплаченный запрос.
+        string repair = $"{instruction}\n\nПрошлый ответ не подошёл: {problem}. Верни только исправленный JSON.";
+        string second = await Ask(context, repair, system, temperature).ConfigureAwait(false);
+
+        if (!JsonIsland.TryExtract(second, out ScriptValue retry)) throw NoJson(second);
+
+        if (SchemaFit.TryFit(retry, declared, out ScriptValue result, out string again)) return result;
 
         throw new ScriptError(
             DiagnosticCodes.BadFileFormat,
+            $"llm.json: ответ не подошёл схеме — {again}",
+            $"модель ответила: {Shorten(second)}");
+    }
+
+    /// <summary>Что именно просить у модели: образец, схема либо просто JSON.</summary>
+    private static string Instruction(string prompt, ScriptValue shape, ScriptValue schema)
+    {
+        if (schema.Type == ScriptType.Record)
+            return $"{prompt}\n\nОтветь одним объектом JSON с полями: {SchemaFit.Describe(schema.AsRecord())}.";
+
+        return shape.Type == ScriptType.Record
+            ? $"{prompt}\n\nОтветь одним объектом JSON такого вида:\n{ScriptFormatter.Format(shape, quoteStrings: true)}"
+            : $"{prompt}\n\nОтветь одним объектом JSON без пояснений.";
+    }
+
+    private static ScriptValue Fit(ScriptValue parsed, ScriptRecord schema) =>
+        SchemaFit.TryFit(parsed, schema, out ScriptValue fitted, out _) ? fitted : parsed;
+
+    private static ScriptError NoJson(string answer) =>
+        new(DiagnosticCodes.BadFileFormat,
             "llm.json: в ответе модели нет объекта JSON",
             $"модель ответила: {Shorten(answer)}");
-    }
 
     /// <summary>
     /// Относит текст к одной из заданных меток.

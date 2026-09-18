@@ -13,8 +13,8 @@ namespace AI.Script.Std;
 /// <c>t |&gt; table.filter(...) |&gt; table.select(...)</c> читается как последовательность
 /// значений, а не как цепочка изменений одного объекта.
 /// </remarks>
-[ScriptModule("table", "Колоночные таблицы: выборка, фильтрация, группировка, соединение", Version = "0.1")]
-public static class TableModule
+[ScriptModule("table", "Колоночные таблицы: выборка, фильтрация, группировка, соединение", Version = "0.1", Group = "данные")]
+public static partial class TableModule
 {
     [ScriptFn("of", "Таблица из записи «имя колонки → значения»", Example = "table.of({ x: <1, 2>, y: [\"a\", \"b\"] })")]
     public static ScriptTable Of([ScriptParam("запись из колонок")] ScriptRecord cols)
@@ -646,7 +646,7 @@ public static class TableModule
 
             missing[j] = gaps;
 
-            if (column.Type != ScriptType.Num || column.Count == gaps)
+            if (column.Type is not (ScriptType.Num or ScriptType.Dec) || column.Count == gaps)
             {
                 means[j] = double.NaN;
                 stds[j] = double.NaN;
@@ -659,7 +659,7 @@ public static class TableModule
 
             for (int i = 0; i < column.Count; i++)
             {
-                if (!IsMissing(column[i])) present.Add(column[i].RawNumber);
+                if (!IsMissing(column[i])) present.Add(Numeric(column[i]));
             }
 
             var values = new Vector(present);
@@ -748,10 +748,11 @@ public static class TableModule
     /// понятнее, чем <c>region=str:юг</c>. Для категориальной колонки риска смешать «1» и 1
     /// практически нет, а цена ошибки — нечитаемая шапка у каждой модели.
     /// </remarks>
-    private static string Label(ScriptValue value) =>
+    internal static string Label(ScriptValue value) =>
         value.IsNone ? "none" : ScriptFormatter.Format(value, quoteStrings: false);
 
-    private static bool IsMissing(ScriptValue value) =>
+    /// <remarks>Открыто модулю опытов: пропуск в метрике и пропуск в колонке — одно и то же.</remarks>
+    internal static bool IsMissing(ScriptValue value) =>
         value.IsNone || (value.Type == ScriptType.Num && double.IsNaN(value.RawNumber));
 
     private static int[] Sequence(int start, int end)
@@ -790,6 +791,7 @@ public static class TableModule
         return left.Type switch
         {
             ScriptType.Num or ScriptType.Bool => left.RawNumber.CompareTo(right.RawNumber),
+            ScriptType.Dec => left.AsDecimal().CompareTo(right.AsDecimal()),
             ScriptType.Str => string.CompareOrdinal(left.AsString(), right.AsString()),
             ScriptType.Date => left.AsDate().CompareTo(right.AsDate()),
             ScriptType.Dur => left.AsDuration().CompareTo(right.AsDuration()),

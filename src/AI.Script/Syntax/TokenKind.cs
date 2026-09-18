@@ -21,6 +21,9 @@ public enum TokenKind
     /// <summary>Литерал длительности: <c>30s</c>, <c>5m</c>.</summary>
     Duration,
 
+    /// <summary>Литерал величины с единицей: <c>5 kg</c>, <c>120 rub</c>.</summary>
+    Quantity,
+
     /// <summary>Литерал даты: <c>@2026-08-28</c>.</summary>
     Date,
 

@@ -1,3 +1,4 @@
+﻿using AI.Script.Runtime;
 using AI.Script.Semantics;
 using System.Globalization;
 using System.Text;
@@ -320,6 +321,12 @@ public sealed class Lexer
 
         string? unit = ReadDurationUnit();
 
+        if (unit == null && ReadMeasureUnit() is { } measure)
+        {
+            return new Token(TokenKind.Quantity, TextSpan.FromBounds(start, _position), _source.Text[start.._position],
+                ScriptValue.Quantity(value, measure));
+        }
+
         if (unit == null)
             return new Token(TokenKind.Number, TextSpan.FromBounds(start, _position), _source.Text[start.._position], value);
 
@@ -351,6 +358,37 @@ public sealed class Lexer
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Единица величины после числа: <c>5 kg</c>.
+    /// </summary>
+    /// <remarks>
+    /// Через ровно один пробел и только из справочника единиц: число, за которым через пробел идёт
+    /// имя, других значений в языке не имеет, поэтому литерал ничего существующего не перехватывает.
+    /// Слитная запись (<c>5m</c>) остаётся длительностью — единица всегда отделена пробелом.
+    /// </remarks>
+    private MeasureUnit? ReadMeasureUnit()
+    {
+        if (Current != ' ') return null;
+
+        int length = 0;
+
+        while (char.IsLetter(Peek(1 + length))) length++;
+
+        if (length == 0) return null;
+
+        char after = Peek(1 + length);
+
+        if (IsIdentifierPart(after) || after is '(' or '.') return null;
+
+        string word = _source.Text.Substring(_position + 1, length);
+
+        if (s_keywords.ContainsKey(word) || !UnitCatalog.TryLiteral(word, out MeasureUnit unit)) return null;
+
+        _position += 1 + length;
+
+        return unit;
     }
 
     private static bool IsIdentifierPart(char c) => char.IsLetterOrDigit(c) || c == '_';

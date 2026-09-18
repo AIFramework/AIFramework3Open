@@ -572,4 +572,93 @@ public sealed class EconometricsTests
         Assert.Equal(true, result.Emitted["lower"]);
         Assert.Equal(true, result.Emitted["upper"]);
     }
+
+    // --- подбор модели и проверка на истории ---
+
+    /// <summary>«auto» перебирает модели и обязан назвать ту, которую выбрал.</summary>
+    [Fact]
+    public void Forecast_Auto_NamesChosenModel()
+    {
+        RunResult result = Run("""
+            options { seed: 3 }
+
+            let y = vec.linspace(100, 200, n: 48) + signal.noise(48, sigma: 2)
+            let f = econ.forecast(y, horizon: 6)
+
+            emit kind = f.kind
+            emit model = f.model
+            emit steps = len(f.forecast)
+            emit widens = (f.upper[5] - f.lower[5]) >= (f.upper[0] - f.lower[0])
+            """);
+
+        Assert.Contains(result.Emitted["kind"], new object?[] { "ets", "arima", "theta" });
+        Assert.False(string.IsNullOrEmpty((string?)result.Emitted["model"]));
+        Assert.Equal(6.0, result.Emitted["steps"]);
+        Assert.Equal(true, result.Emitted["widens"]);
+    }
+
+    [Theory]
+    [InlineData("ets")]
+    [InlineData("arima")]
+    [InlineData("theta")]
+    public void Forecast_NamedModel_IsHonoured(string kind)
+    {
+        RunResult result = Run($$"""
+            options { seed: 5 }
+
+            let y = vec.linspace(10, 40, n: 40) + signal.noise(40, sigma: 1)
+            let f = econ.forecast(y, horizon: 4, kind: "{{kind}}")
+
+            emit kind = f.kind
+            emit steps = len(f.forecast)
+            """);
+
+        Assert.Equal(kind, result.Emitted["kind"]);
+        Assert.Equal(4.0, result.Emitted["steps"]);
+    }
+
+    [Fact]
+    public void Forecast_UnknownModel_IsRejected()
+    {
+        Diagnostic error = Script.FailsWith("emit r = econ.forecast(vec.linspace(1, 10, n: 20), horizon: 2, kind: \"призма\")");
+
+        Assert.Equal(DiagnosticCodes.UnknownArgument, error.Code);
+    }
+
+    /// <summary>
+    /// Проверка на истории: на ряде с трендом модель обязана обойти наивный прогноз.
+    /// </summary>
+    /// <remarks>
+    /// Это и есть смысл MASE: единица — «не лучше, чем повторить прошлое значение». Число
+    /// прогноза без такого ориентира ничего не говорит о том, стоит ли ему верить.
+    /// </remarks>
+    [Fact]
+    public void Backtest_BeatsNaiveOnTrend()
+    {
+        RunResult result = Run("""
+            options { seed: 7 }
+
+            let y = vec.linspace(100, 300, n: 60) + signal.noise(60, sigma: 2)
+            let b = econ.backtest(y, horizon: 3, folds: 4)
+
+            emit model = b.model
+            emit mase = b.mase
+            emit naive = b.naive_mase
+            emit beats = b.beats_naive
+            emit folds = b.folds
+            """);
+
+        Assert.Equal(4.0, result.Emitted["folds"]);
+        Assert.True((double)result.Emitted["mase"]! < (double)result.Emitted["naive"]!);
+        Assert.Equal(true, result.Emitted["beats"]);
+        Assert.False(string.IsNullOrEmpty((string?)result.Emitted["model"]));
+    }
+
+    [Fact]
+    public void Backtest_ShortSeries_IsRejected()
+    {
+        Diagnostic error = Script.FailsWith("emit r = econ.backtest(<1, 2, 3, 4>, horizon: 2)");
+
+        Assert.Equal(DiagnosticCodes.BadOperand, error.Code);
+    }
 }

@@ -22,7 +22,7 @@ namespace AI.Script.Std;
 /// </para>
 /// </remarks>
 [ScriptModule("explain", "Опора ответа на источник, без сети: сходство, подтверждения",
-    Version = "0.1")]
+    Version = "0.1", Group = "анализ")]
 public static class ExplainModule
 {
     /// <summary>Размер n-граммы по умолчанию.</summary>

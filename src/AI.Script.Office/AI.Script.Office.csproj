@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Script.Office</RootNamespace>
+    <AssemblyName>AI.Script.Office</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Отдельная сборка от AI.Script.Std по весу зависимостей, как Nn и Vision: книги Excel,
+       документы Word и PDF тянут три чужих пакета, а скрипту, которому нужны только таблицы и
+       статистика, платить за них ни размером поставки, ни временем запуска незачем. -->
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.102.3" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
+    <PackageReference Include="PdfPig" Version="0.1.15" />
+    <!-- OpenXml 2.20 тянет System.IO.Packaging 6.0.0 (CVE-2024-43483, CVE-2024-43484, обе high), а
+         разбираются присланные пользователем документы. Версия та же, что у хостов MAS. -->
+    <PackageReference Include="System.IO.Packaging" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
+    <!-- Стандартная библиотека нужна ради разбора человеческой записи чисел и морфологии:
+         счёт по документу обязан понимать «1 234,50 ₽» и словоформы так же, как таблицы. -->
+    <ProjectReference Include="..\AI.Script.Std\AI.Script.Std.csproj" />
+  </ItemGroup>
+
+</Project>

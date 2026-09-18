@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -101,6 +101,19 @@ public static class ValueDigest
                 // «R» вместо формата по умолчанию: иначе 0.1 + 0.2 и 0.3 дали бы один ключ,
                 // хотя это разные числа и стадия вправе посчитать по ним разное.
                 _ = builder.Append(value.RawNumber.ToString("R", CultureInfo.InvariantCulture));
+                return Result.Ok;
+
+            case ScriptType.Dec:
+                // Масштаб входит в отпечаток: 1.50 и 1.5 равны как числа, но говорят о разной
+                // точности исходных данных, и стадия вправе посчитать по ним разное.
+                _ = builder.Append(value.AsDecimal().ToString(CultureInfo.InvariantCulture));
+                return Result.Ok;
+
+            case ScriptType.Qty:
+                // Обозначение входит в отпечаток, как масштаб у dec: 1 kg и 1000 g равны, но
+                // печатаются по-разному, и стадия вправе вернуть по ним разный текст.
+                _ = builder.Append(value.RawNumber.ToString("R", CultureInfo.InvariantCulture))
+                    .Append(' ').Append(value.AsUnit().Symbol);
                 return Result.Ok;
 
             case ScriptType.Bool:

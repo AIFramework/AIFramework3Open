@@ -1,4 +1,4 @@
-using AI.Script.Runtime;
+﻿using AI.Script.Runtime;
 
 namespace AI.Script.Hosting;
 
@@ -58,6 +58,24 @@ public sealed class RunOptions
     public IProgressSink? Progress { get; set; }
 
     /// <summary>
+    /// Журнал опытов; <c>null</c> — журнала нет, и <c>exp.log</c> отвечает пустой таблицей.
+    /// </summary>
+    /// <remarks>
+    /// Тоже владение вызывающего: журнал в поле хоста копит испытания между прогонами (именно
+    /// так опыт и продолжают завтра), а созданный на запуск живёт один прогон.
+    /// </remarks>
+    public IExperimentJournal? Journal { get; set; }
+
+    /// <summary>
+    /// Пробный прогон опыта; <c>null</c> — прогон настоящий.
+    /// </summary>
+    /// <remarks>
+    /// С пилотом первый <c>exp.run</c> считает одно испытание, записывает оценку расхода на
+    /// весь план и останавливает прогон (<see cref="ExperimentPilot"/>).
+    /// </remarks>
+    public ExperimentPilot? Pilot { get; set; }
+
+    /// <summary>
     /// Доступ к сети; по умолчанию запрещён.
     /// </summary>
     /// <remarks>
@@ -98,6 +116,8 @@ public sealed class RunOptions
             Cache = Cache,
             Parallelism = Parallelism,
             Progress = Progress,
+            Journal = Journal,
+            Pilot = Pilot,
             Network = Network,
             Secrets = Secrets,
         };

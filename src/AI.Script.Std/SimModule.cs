@@ -29,7 +29,7 @@ namespace AI.Script.Std;
 /// смежности: её умеют печатать, резать и рисовать без нового типа.
 /// </para>
 /// </remarks>
-[ScriptModule("sim", "Симуляция: очереди, Монте-Карло, MDP, мнения, системная динамика", Version = "0.1")]
+[ScriptModule("sim", "Симуляция: очереди, Монте-Карло, MDP, мнения, системная динамика", Version = "0.1", Group = "решатели")]
 public static class SimModule
 {
     // --- очереди ---

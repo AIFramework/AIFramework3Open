@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.Script.Semantics;
 using AI.Script.Syntax;
 
@@ -47,6 +47,8 @@ public static class Operations
         return operand.Type switch
         {
             ScriptType.Num => ScriptValue.Num(-operand.RawNumber),
+            ScriptType.Dec => ScriptValue.Dec(-operand.AsDecimal()),
+            ScriptType.Qty => ScriptValue.Qty(-operand.RawNumber, operand.AsUnit()),
             ScriptType.Vec => ScriptValue.Vec(-operand.AsVector()),
             ScriptType.Mat => ScriptValue.Mat(operand.AsMatrix() * -1.0),
             ScriptType.Dur => ScriptValue.Dur(-operand.AsDuration()),
@@ -62,6 +64,8 @@ public static class Operations
         int order = left.Type switch
         {
             ScriptType.Num => left.RawNumber.CompareTo(right.RawNumber),
+            ScriptType.Dec => left.AsDecimal().CompareTo(right.AsDecimal()),
+            ScriptType.Qty => Quantities.Compare(left, right, OperatorText.Of(op)),
             ScriptType.Str => string.CompareOrdinal(left.AsString(), right.AsString()),
             ScriptType.Date => left.AsDate().CompareTo(right.AsDate()),
             ScriptType.Dur => left.AsDuration().CompareTo(right.AsDuration()),
@@ -82,6 +86,12 @@ public static class Operations
         if (left.Type == ScriptType.Num && right.Type == ScriptType.Num)
             return ScriptValue.Num(Scalar(op, left.RawNumber, right.RawNumber));
 
+        if (left.Type == ScriptType.Qty || right.Type == ScriptType.Qty)
+            return Quantities.Arithmetic(op, left, right);
+
+        if (left.Type == ScriptType.Dec || right.Type == ScriptType.Dec)
+            return DecimalArithmetic(op, left, right);
+
         if (left.Type == ScriptType.Mat || right.Type == ScriptType.Mat)
             return MatrixArithmetic(op, left, right);
 
@@ -95,6 +105,81 @@ public static class Operations
             return ScriptValue.List(ScriptList.Concat(left.AsList(), right.AsList()));
 
         return TemporalArithmetic(op, left, right);
+    }
+
+    /// <summary>
+    /// Точная десятичная арифметика.
+    /// </summary>
+    /// <remarks>
+    /// Деньги складываются только с деньгами: <c>dec + num</c> внёс бы двоичную дробь в сумму,
+    /// которая обязана сходиться до копейки, и разошёлся бы с книгой Excel на ровном месте.
+    /// Умножение и деление на число разрешены — это доля, ставка, курс; так же устроена
+    /// длительность (<c>2h * 1.5</c>), и второе правило для того же случая было бы лишним.
+    /// </remarks>
+    private static ScriptValue DecimalArithmetic(BinaryOperator op, ScriptValue left, ScriptValue right)
+    {
+        if (left.Type == ScriptType.Dec && right.Type == ScriptType.Dec)
+            return ScriptValue.Dec(Exact(op, left.AsDecimal(), right.AsDecimal()));
+
+        bool scaling = op is BinaryOperator.Multiply or BinaryOperator.Divide;
+
+        if (scaling && left.Type == ScriptType.Dec && right.Type == ScriptType.Num)
+            return ScriptValue.Dec(Exact(op, left.AsDecimal(), Widen(right.RawNumber)));
+
+        if (op == BinaryOperator.Multiply && left.Type == ScriptType.Num && right.Type == ScriptType.Dec)
+            return ScriptValue.Dec(Exact(op, Widen(left.RawNumber), right.AsDecimal()));
+
+        throw new ScriptError(
+            DiagnosticCodes.BadOperand,
+            $"оператор '{OperatorText.Of(op)}' не определён для типов {left.Type.ToName()} и {right.Type.ToName()}",
+            "точное число складывается с точным: переведите явно — dec.of(x) либо dec.to_num(d)");
+    }
+
+    private static decimal Exact(BinaryOperator op, decimal left, decimal right)
+    {
+        try
+        {
+            return op switch
+            {
+                BinaryOperator.Add => left + right,
+                BinaryOperator.Subtract => left - right,
+                BinaryOperator.Multiply => left * right,
+                BinaryOperator.Divide => left / right,
+                BinaryOperator.Modulo => left % right,
+                _ => throw new ScriptError(
+                    DiagnosticCodes.BadOperand,
+                    $"оператор '{OperatorText.Of(op)}' не определён для точных чисел",
+                    "степень считается над num: dec.to_num(x) ^ n"),
+            };
+        }
+        catch (DivideByZeroException)
+        {
+            throw new ScriptError(DiagnosticCodes.BadOperand, "деление точного числа на ноль");
+        }
+        catch (OverflowException)
+        {
+            throw new ScriptError(DiagnosticCodes.BadOperand, "результат не помещается в точное число");
+        }
+    }
+
+    /// <summary>Множитель из <c>num</c>; отказ, если число в точное не помещается.</summary>
+    private static decimal Widen(double factor)
+    {
+        if (double.IsNaN(factor) || double.IsInfinity(factor))
+        {
+            throw new ScriptError(
+                DiagnosticCodes.BadOperand,
+                $"множитель {ScriptFormatter.Number(factor)} не переводится в точное число");
+        }
+
+        try
+        {
+            return (decimal)factor;
+        }
+        catch (OverflowException)
+        {
+            throw new ScriptError(DiagnosticCodes.BadOperand, "множитель не помещается в точное число");
+        }
     }
 
     private static ScriptValue TemporalArithmetic(BinaryOperator op, ScriptValue left, ScriptValue right)

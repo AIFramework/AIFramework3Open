@@ -1,4 +1,4 @@
-using AI.Charts.JS;
+﻿using AI.Charts.JS;
 using AI.DataStructs.Algebraic;
 using AI.Script.Binding;
 using AI.Script.Runtime;
@@ -15,7 +15,7 @@ namespace AI.Script.Charts;
 /// браузере, и в отчёте, и в консоли (где остаётся текстовая строка), а модуль не тянет за
 /// собой ни одного графического движка.
 /// </remarks>
-[ScriptModule("plot", "Графики: линии, точки, столбцы, гистограммы, тепловые карты", Version = "0.1")]
+[ScriptModule("plot", "Графики: линии, точки, столбцы, гистограммы, тепловые карты", Version = "0.1", Group = "данные")]
 public static class PlotModule
 {
     /// <summary>Тип-тег дескриптора графика.</summary>
@@ -44,10 +44,10 @@ public static class PlotModule
     {
         (Vector abscissa, Vector ordinate) = Pair(y, x, "plot.line");
 
-        var builder = Builder(title, xlabel, ylabel);
-        builder.AddLine(abscissa.ToArray(), ordinate.ToArray(), Name(name));
+        var draft = new PlotDraft(title, xlabel, ylabel);
+        draft.Line(abscissa.ToArray(), ordinate.ToArray(), Name(name));
 
-        return Figure(builder, title, $"линия, точек: {ordinate.Count}");
+        return draft.Handle($"линия, точек: {ordinate.Count}");
     }
 
     [ScriptFn("scatter", "Диаграмма рассеяния", Returns = PlotHandle,
@@ -62,10 +62,10 @@ public static class PlotModule
     {
         RequireSameLength(x, y, "plot.scatter");
 
-        var builder = Builder(title, xlabel, ylabel);
-        builder.AddScatter2D(x.ToArray(), y.ToArray(), Name(name));
+        var draft = new PlotDraft(title, xlabel, ylabel);
+        draft.Scatter(x.ToArray(), y.ToArray(), Name(name));
 
-        return Figure(builder, title, $"рассеяние, точек: {x.Count}");
+        return draft.Handle($"рассеяние, точек: {x.Count}");
     }
 
     /// <summary>
@@ -106,7 +106,7 @@ public static class PlotModule
 
         order.Sort();
 
-        var builder = Builder(title, xlabel, ylabel);
+        var draft = new PlotDraft(title, xlabel, ylabel);
 
         foreach (double label in order)
         {
@@ -120,10 +120,10 @@ public static class PlotModule
                 seriesY[i] = y[rows[i]];
             }
 
-            builder.AddScatter2D(seriesX, seriesY, ScriptFormatter.Number(label));
+            draft.Scatter(seriesX, seriesY, ScriptFormatter.Number(label));
         }
 
-        return Figure(builder, title, $"рассеяние, серий: {order.Count}");
+        return draft.Handle($"рассеяние, серий: {order.Count}");
     }
 
     [ScriptFn("bar", "Столбчатая диаграмма", Returns = PlotHandle,
@@ -138,10 +138,10 @@ public static class PlotModule
     {
         (Vector abscissa, Vector ordinate) = Pair(y, x, "plot.bar");
 
-        var builder = Builder(title, xlabel, ylabel);
-        builder.AddBar2D(abscissa.ToArray(), ordinate.ToArray(), Name(name));
+        var draft = new PlotDraft(title, xlabel, ylabel);
+        draft.Bar(abscissa.ToArray(), ordinate.ToArray(), Name(name));
 
-        return Figure(builder, title, $"столбцы: {ordinate.Count}");
+        return draft.Handle($"столбцы: {ordinate.Count}");
     }
 
     [ScriptFn("hist", "Гистограмма распределения", Returns = PlotHandle,
@@ -172,10 +172,10 @@ public static class PlotModule
             counts[Math.Clamp(bin, 0, bins - 1)]++;
         }
 
-        var builder = Builder(title, xlabel, "частота");
-        builder.AddBar2D(centers, counts, null);
+        var draft = new PlotDraft(title, xlabel, "частота");
+        draft.Bar(centers, counts, null);
 
-        return Figure(builder, title, $"гистограмма, интервалов: {bins}");
+        return draft.Handle($"гистограмма, интервалов: {bins}");
     }
 
     [ScriptFn("heatmap", "Тепловая карта матрицы", Returns = PlotHandle,
@@ -204,10 +204,10 @@ public static class PlotModule
             for (int j = 0; j < m.Width; j++) z[i][j] = m[i, j];
         }
 
-        var builder = Builder(title, xlabel, ylabel);
-        builder.AddHeatmap(x, y, z, PlotlyBuilder.MapColorscale(colors), showScale: true);
+        var draft = new PlotDraft(title, xlabel, ylabel);
+        draft.Builder.AddHeatmap(x, y, z, PlotlyBuilder.MapColorscale(colors), showScale: true);
 
-        return Figure(builder, title, $"тепловая карта {m.Height}×{m.Width}");
+        return draft.Handle($"тепловая карта {m.Height}×{m.Width}");
     }
 
     [ScriptFn("spectrum", "График спектра по записи с полями freq и power либо amp", Returns = PlotHandle,
@@ -222,11 +222,11 @@ public static class PlotModule
             ? Field(spectrum, "power", "plot.spectrum")
             : Field(spectrum, "amp", "plot.spectrum");
 
-        var builder = Builder(title, "частота, Гц", "мощность");
-        builder.IsLogY = log;
-        builder.AddLine(frequency.ToArray(), power.ToArray(), null);
+        var draft = new PlotDraft(title, "частота, Гц", "мощность");
+        draft.Builder.IsLogY = log;
+        draft.Line(frequency.ToArray(), power.ToArray(), null);
 
-        return Figure(builder, title, $"спектр, точек: {power.Count}");
+        return draft.Handle($"спектр, точек: {power.Count}");
     }
 
     /// <summary>
@@ -267,16 +267,6 @@ public static class PlotModule
     [ScriptMethod(PlotHandle)]
     public static string ToJson([ScriptParam("график")] ScriptHandle figure) =>
         ((PlotFigure)figure.Target).ToJson();
-
-    private static PlotlyBuilder Builder(string title, string xlabel, string ylabel) => new()
-    {
-        Title = string.IsNullOrWhiteSpace(title) ? null : title,
-        AxisX = string.IsNullOrWhiteSpace(xlabel) ? null : xlabel,
-        AxisY = string.IsNullOrWhiteSpace(ylabel) ? null : ylabel,
-    };
-
-    private static ScriptHandle Figure(PlotlyBuilder builder, string title, string summary) =>
-        new(PlotHandle, new PlotFigure(title, builder), summary);
 
     private static string? Name(string name) => string.IsNullOrWhiteSpace(name) ? null : name;
 

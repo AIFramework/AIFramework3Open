@@ -20,7 +20,7 @@ namespace AI.Script.Std;
 /// называется <c>const</c>.
 /// </para>
 /// </remarks>
-[ScriptModule("regress", "Регрессия с выводом: p-значения, панели, IV", Version = "0.1")]
+[ScriptModule("regress", "Регрессия с выводом: p-значения, панели, IV", Version = "0.1", Group = "анализ")]
 public static class RegressModule
 {
     [ScriptFn("ols", "МНК с выводом: стандартные ошибки, p-значения, устойчивые ковариации",

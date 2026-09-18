@@ -1,4 +1,4 @@
-using AI.LLM.Agents.Tools;
+﻿using AI.LLM.Agents.Tools;
 using AI.Script.Docs;
 using AI.Script.Hosting;
 using AI.Script.Semantics;
@@ -32,6 +32,7 @@ public sealed class ScriptTool
 
     private readonly ScriptHost _host;
     private readonly Func<RunOptions> _options;
+    private readonly Func<IReadOnlyList<ScriptInput>, CancellationToken, Task<IReadOnlyDictionary<string, object?>>>? _inputs;
 
     /// <summary>Создаёт инструмент поверх хоста.</summary>
     /// <param name="host">Хост со стандартной библиотекой.</param>
@@ -40,10 +41,22 @@ public sealed class ScriptTool
     /// и песочницу, и один экземпляр на все вызовы означал бы общий потолок расходов у
     /// независимых запросов агента.
     /// </param>
-    public ScriptTool(ScriptHost host, Func<RunOptions>? options = null)
+    /// <param name="inputs">
+    /// Кто подаёт объявленные скриптом входы (<c>input("продажи")</c>); <c>null</c> — входы не
+    /// подаются, и скрипт с объявленным входом честно откажет до исполнения.
+    /// </param>
+    /// <remarks>
+    /// Входы спрашиваются ПОСЛЕ проверки: до неё не известно, чего скрипт просит, а спрашивать
+    /// «всё, что есть» значит читать файлы, которые никому не понадобились.
+    /// </remarks>
+    public ScriptTool(
+        ScriptHost host,
+        Func<RunOptions>? options = null,
+        Func<IReadOnlyList<ScriptInput>, CancellationToken, Task<IReadOnlyDictionary<string, object?>>>? inputs = null)
     {
         _host = host ?? throw new ArgumentNullException(nameof(host));
         _options = options ?? (static () => RunProfiles.Untrusted());
+        _inputs = inputs;
     }
 
     /// <summary>Последний исход прогона: нужен вызывающему за артефактами и значениями.</summary>
@@ -55,7 +68,8 @@ public sealed class ScriptTool
         [ToolParameter("исходный текст скрипта на языке AIScript")] string script,
         CancellationToken cancellationToken = default)
     {
-        CheckResult check = _host.Check(script ?? string.Empty);
+        string source = script ?? string.Empty;
+        CheckResult check = _host.Check(source);
 
         if (!check.Success)
         {
@@ -64,7 +78,12 @@ public sealed class ScriptTool
             return "Скрипт не прошёл проверку и не выполнялся. Исправьте ровно указанное:\n\n" + check.Render();
         }
 
-        RunResult result = await _host.RunAsync(script, _options(), cancellationToken).ConfigureAwait(false);
+        RunOptions options = _options();
+
+        if (_inputs != null && check.Inputs.Count > 0)
+            options.Seeded = await _inputs(check.Inputs, cancellationToken).ConfigureAwait(false);
+
+        RunResult result = await _host.RunAsync(source, options, cancellationToken).ConfigureAwait(false);
 
         Last = result;
 
@@ -80,10 +99,10 @@ public sealed class ScriptTool
         return check.Success ? "Проверка пройдена: замечаний нет." : check.Render();
     }
 
-    [AgentTool("script_help", "Справка по языку AIScript: пространство имён, конкретная функция " +
-        "либо поиск по словам задачи. Без аргумента — список пространств.")]
+    [AgentTool("script_help", "Справка по языку AIScript: задача (например «данные»), пространство имён, " +
+        "конкретная функция либо поиск по словам задачи. Без аргумента — пространства по задачам.")]
     public string Help(
-        [ToolParameter("имя пространства, полное имя функции либо слова задачи", Required = false)]
+        [ToolParameter("задача, имя пространства, полное имя функции либо слова задачи", Required = false)]
         string query = "")
     {
         if (string.IsNullOrWhiteSpace(query)) return _host.DescribeCapabilities(ManifestOptions.Index);

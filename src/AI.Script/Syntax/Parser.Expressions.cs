@@ -387,6 +387,10 @@ public sealed partial class Parser
                 _ = Advance();
                 return new LiteralExpr { Value = ScriptValue.Dur((TimeSpan)token.Value!), Span = token.Span };
 
+            case TokenKind.Quantity:
+                _ = Advance();
+                return new LiteralExpr { Value = (ScriptValue)token.Value!, Span = token.Span };
+
             case TokenKind.Date:
                 _ = Advance();
                 return new LiteralExpr { Value = ScriptValue.Date((DateTime)token.Value!), Span = token.Span };

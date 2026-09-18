@@ -1,4 +1,4 @@
-using AI.Script.Binding;
+﻿using AI.Script.Binding;
 using AI.Script.Docs;
 using AI.Script.Runtime;
 using AI.Script.Semantics;
@@ -12,7 +12,7 @@ namespace AI.Script.Std;
 /// Единственное пространство, функции которого доступны без префикса. Список короткий
 /// намеренно: чем он длиннее, тем выше шанс, что имя переменной случайно совпадёт с функцией.
 /// </remarks>
-[ScriptModule("core", "Базовые операции: длина, типы, обход последовательностей, вывод", Version = "0.1")]
+[ScriptModule("core", "Базовые операции: длина, типы, обход последовательностей, вывод", Version = "0.1", Group = "основа")]
 public static class CoreModule
 {
     [ScriptFn("len", "Длина строки, списка, вектора, записи или диапазона", Example = "len(xs)")]
@@ -66,6 +66,30 @@ public static class CoreModule
         }
 
         return ScriptList.Own(items);
+    }
+
+    /// <summary>
+    /// Данные, которые подаёт хост.
+    /// </summary>
+    /// <remarks>
+    /// Скрипт пишется раньше, чем найдены файлы: модель описывает работу, а данные к ней подаёт
+    /// хост. Объявленный вход виден проверке до запуска — хост узнаёт, чего не хватает, не
+    /// потратив ни секунды счёта, и прогон без нужных данных не начинается вовсе.
+    /// </remarks>
+    [ScriptFn("input", "Данные, поданные хостом под этим именем",
+        Example = "input(\"продажи\", kind: \"table\")")]
+    public static ScriptValue Input(
+        IScriptContext context,
+        [ScriptParam("имя входа")] string name,
+        [ScriptParam("чего ждём: \"table\", \"doc\", \"image\", \"text\"")] string kind = "",
+        [ScriptParam("пояснение для того, кто будет искать эти данные")] string about = "")
+    {
+        if (context.TryInput(name, out ScriptValue value)) return value;
+
+        throw new ScriptError(
+            DiagnosticCodes.MissingInput,
+            $"вход '{name}' не подан",
+            about.Length > 0 ? about : "входы подаёт хост перед запуском: RunOptions.Seeded");
     }
 
     [ScriptFn("print", "Печатает значения в транскрипт через пробел", Example = "print(\"k =\", k)")]
@@ -150,6 +174,45 @@ public static class CoreModule
 
         return ScriptList.Own(items);
     }
+
+    /// <summary>
+    /// Запись с именами полей, которые известны только при исполнении.
+    /// </summary>
+    /// <remarks>
+    /// Литерал <c>{ a: 1 }</c> требует имён в тексте скрипта, а частоты слов или сводка по
+    /// колонкам получают имена из данных. Пары — список, а не два параллельных списка: имя и
+    /// значение не могут разъехаться.
+    /// </remarks>
+    [ScriptFn("record", "Запись из пар [имя, значение]: имена полей вычисляются",
+        Example = "core.record([[\"a\", 1], [\"b\", 2]])")]
+    public static ScriptRecord Record([ScriptParam("список пар [имя, значение]")] ScriptList pairs)
+    {
+        var fields = new List<KeyValuePair<string, ScriptValue>>(pairs.Count);
+
+        for (int i = 0; i < pairs.Count; i++)
+        {
+            ScriptValue pair = pairs[i];
+
+            if (pair.Type != ScriptType.List || pair.AsList().Count != 2 || pair.AsList()[0].Type != ScriptType.Str)
+            {
+                throw new ScriptError(
+                    DiagnosticCodes.TypeMismatch,
+                    $"core.record: элемент {i} должен быть парой [имя, значение] с именем-строкой",
+                    "пример: core.record([[\"a\", 1], [\"b\", 2]])");
+            }
+
+            fields.Add(new KeyValuePair<string, ScriptValue>(pair.AsList()[0].AsString(), pair.AsList()[1]));
+        }
+
+        return ScriptRecord.From(fields);
+    }
+
+    [ScriptFn("with", "Копия записи с добавленным либо заменённым полем", Example = "core.with({ a: 1 }, \"b\", 2)")]
+    public static ScriptRecord With(
+        [ScriptParam("запись")] ScriptRecord record,
+        [ScriptParam("имя поля")] string name,
+        [ScriptParam("значение")] ScriptValue value)
+        => record.With(name, value);
 
     [ScriptFn("range", "Диапазон от нуля до заданного числа", Example = "core.range(10, by: 2)")]
     public static ScriptRange Range(

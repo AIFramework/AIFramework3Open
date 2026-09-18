@@ -454,11 +454,11 @@ public sealed class DomainTests
     [Fact]
     public void Chem_IsPartOfFullHost()
     {
-        string index = Host().DescribeCapabilities(AI.Script.Docs.ManifestOptions.Index);
+        IReadOnlySet<string> listed = Script.IndexNamespaces(Host().DescribeCapabilities(AI.Script.Docs.ManifestOptions.Index));
 
-        Assert.Contains("- chem — ", index, StringComparison.Ordinal);
-        Assert.Contains("- econ — ", index, StringComparison.Ordinal);
-        Assert.Contains("- mw — ", index, StringComparison.Ordinal);
+        Assert.Contains("chem", listed);
+        Assert.Contains("econ", listed);
+        Assert.Contains("mw", listed);
     }
 
     private static object? Field(object? record, string name)

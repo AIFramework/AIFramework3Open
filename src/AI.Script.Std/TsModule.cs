@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.Econometrics;
 using AI.Script.Binding;
 using AI.Script.Runtime;
@@ -18,8 +18,8 @@ namespace AI.Script.Std;
 /// времени: имена колонок становятся именами переменных в результате.
 /// </para>
 /// </remarks>
-[ScriptModule("ts", "Ряды: стационарность, GARCH, VAR, коинтеграция", Version = "0.1")]
-public static class TsModule
+[ScriptModule("ts", "Ряды: стационарность, GARCH, VAR, коинтеграция", Version = "0.1", Group = "прогноз")]
+public static partial class TsModule
 {
     /// <summary>
     /// Стационарность ряда.

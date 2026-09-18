@@ -1,4 +1,4 @@
-using AI.Script.Runtime;
+﻿using AI.Script.Runtime;
 using System.Text;
 
 namespace AI.Script.Binding;
@@ -70,6 +70,21 @@ public sealed class ScriptFunction
 
     /// <summary>Тип-тег дескриптора, методом которого функция является; <c>null</c> — обычная функция.</summary>
     public string? MethodOf { get; init; }
+
+    /// <summary>Расширения файлов, которые функция открывает; пусто — функция не читатель файлов.</summary>
+    public IReadOnlyList<string> Reads { get; init; } = [];
+
+    /// <summary>Расширения файлов, которые функция записывает; пусто — функция не пишет файлов.</summary>
+    public IReadOnlyList<string> Writes { get; init; } = [];
+
+    /// <summary>Колонки таблицы-результата, если они постоянны; пусто — неизвестны.</summary>
+    public IReadOnlyList<string> Columns { get; init; } = [];
+
+    /// <summary>
+    /// Почему функция не работает у этого хоста; <c>null</c> — работает.
+    /// </summary>
+    /// <remarks>Задает модуль через <see cref="IScriptAvailability"/>.</remarks>
+    public string? Unavailable { get; init; }
 
     /// <summary>Делегат исполнения; аргументы уже разложены по порядку параметров.</summary>
     public Func<ScriptValue[], IScriptContext, ValueTask<ScriptValue>> Invoke { get; init; } = null!;

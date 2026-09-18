@@ -576,10 +576,10 @@ public sealed class LanguageStyleTests
     [Fact]
     public void Index_ListsEveryNamespace()
     {
-        string index = Host.DescribeCapabilities(ManifestOptions.Index);
+        IReadOnlySet<string> listed = Script.IndexNamespaces(Host.DescribeCapabilities(ManifestOptions.Index));
 
         foreach (IScriptModule module in Host.Registry.Modules)
-            Assert.Contains($"- {module.Name} — ", index, StringComparison.Ordinal);
+            Assert.Contains(module.Name, listed);
     }
 
     /// <summary>

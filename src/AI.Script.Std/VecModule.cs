@@ -13,7 +13,7 @@ namespace AI.Script.Std;
 /// <c>vec.zeros(1e12)</c> укладывает процесс за один шаг интерпретатора, и потолок шагов от
 /// этого не спасает.
 /// </remarks>
-[ScriptModule("vec", "Числовые векторы: создание, срезы, свёртки", Version = "0.1")]
+[ScriptModule("vec", "Числовые векторы: создание, срезы, свёртки", Version = "0.1", Group = "данные")]
 public static class VecModule
 {
     [ScriptFn("zeros", "Вектор из нулей", Example = "vec.zeros(10)")]

@@ -1,4 +1,4 @@
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.Script.Runtime;
 using AI.Script.Semantics;
 
@@ -29,8 +29,11 @@ public static class Marshaller
         if (type == typeof(void)) return ScriptType.None;
 
         if (type == typeof(double) || type == typeof(float) || type == typeof(int)
-            || type == typeof(long) || type == typeof(short) || type == typeof(byte)
-            || type == typeof(decimal)) return ScriptType.Num;
+            || type == typeof(long) || type == typeof(short) || type == typeof(byte)) return ScriptType.Num;
+
+        // Деньги библиотеки — деньги языка: перевод decimal в double терял бы ровно ту
+        // точность, ради которой decimal в сигнатуре и стоит.
+        if (type == typeof(decimal)) return ScriptType.Dec;
 
         if (type == typeof(bool)) return ScriptType.Bool;
         if (type == typeof(string)) return ScriptType.Str;
@@ -63,7 +66,8 @@ public static class Marshaller
 
         if (target == typeof(double)) return ExpectNumber(value, what);
         if (target == typeof(float)) return (float)ExpectNumber(value, what);
-        if (target == typeof(decimal)) return (decimal)ExpectNumber(value, what);
+        if (target == typeof(decimal))
+            return value.Type == ScriptType.Dec ? value.AsDecimal(what) : (decimal)ExpectNumber(value, what);
         if (target == typeof(int)) return (int)ExpectInteger(value, what);
         if (target == typeof(long)) return ExpectInteger(value, what);
         if (target == typeof(short)) return (short)ExpectInteger(value, what);
@@ -118,7 +122,10 @@ public static class Marshaller
         long number => ScriptValue.Num(number),
         short number => ScriptValue.Num(number),
         byte number => ScriptValue.Num(number),
-        decimal number => ScriptValue.Num((double)number),
+        decimal number => ScriptValue.Dec(number),
+        QuantityValue quantity => MeasureUnit.TryParse(quantity.Unit, out MeasureUnit unit)
+            ? ScriptValue.Quantity(quantity.Value, unit)
+            : throw new ScriptError(DiagnosticCodes.TypeMismatch, $"неизвестная единица величины «{quantity.Unit}»"),
         bool flag => ScriptValue.Bool(flag),
         string text => ScriptValue.Str(text),
         DateTime moment => ScriptValue.Date(moment),
@@ -156,6 +163,8 @@ public static class Marshaller
     {
         ScriptType.None => null,
         ScriptType.Num => value.RawNumber,
+        ScriptType.Dec => value.AsDecimal(),
+        ScriptType.Qty => new QuantityValue(value.QuantityValue, value.AsUnit().Symbol),
         ScriptType.Bool => value.RawNumber != 0,
         ScriptType.Str => value.AsString(),
         ScriptType.Date => value.AsDate(),

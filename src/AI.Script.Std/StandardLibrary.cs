@@ -1,4 +1,4 @@
-using AI.Script.Binding;
+﻿using AI.Script.Binding;
 using AI.Script.Hosting;
 
 namespace AI.Script.Std;
@@ -32,6 +32,10 @@ public static class StandardLibrary
         ScriptModule.FromType(typeof(DateModule)),
         ScriptModule.FromType(typeof(TableModule)),
         ScriptModule.FromType(typeof(IoModule)),
+        ScriptModule.FromType(typeof(JsonModule)),
+        ScriptModule.FromType(typeof(DecModule)),
+        ScriptModule.FromType(typeof(FmtModule)),
+        ScriptModule.FromType(typeof(QtyModule)),
         ScriptModule.FromType(typeof(MlModule)),
         ScriptModule.FromType(typeof(PrepModule)),
         ScriptModule.FromType(typeof(SignalModule)),
@@ -43,6 +47,7 @@ public static class StandardLibrary
         ScriptModule.FromType(typeof(FuzzyModule)),
         ScriptModule.FromType(typeof(CtrlModule)),
         ScriptModule.FromType(typeof(EconModule)),
+        ScriptModule.FromType(typeof(ExpModule)),
         ScriptModule.FromType(typeof(MwModule)),
         ScriptModule.FromType(typeof(LogicModule)),
         ScriptModule.FromType(typeof(SiglabModule)),
