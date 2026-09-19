@@ -1,5 +1,6 @@
 #nullable enable
 
+using AI.ClassicMath.MatrixUtils;
 using AI.DataStructs.Algebraic;
 using AI.Geometry.Hull;
 using AI.Geometry.MassProperties;
@@ -23,13 +24,19 @@ public sealed class SketchSolution
         double[] values,
         IReadOnlyList<ConstraintResidual> residuals,
         IReadOnlyList<string> violated,
-        IReadOnlyList<string> undetermined)
+        IReadOnlyList<string> undetermined,
+        Matrix jacobian,
+        IReadOnlyList<string> freeUnknowns,
+        IReadOnlyList<string> equationConstraints)
     {
         _sketch = sketch;
         FullValues = values;
         Residuals = residuals;
         ViolatedConstraints = violated;
         UndeterminedUnknowns = undetermined;
+        Jacobian = jacobian;
+        FreeUnknowns = freeUnknowns;
+        EquationConstraints = equationConstraints;
         MaxResidual = residuals.Select(r => r.Value).DefaultIfEmpty(0).Max();
 
         var visible = new Dictionary<string, double>(StringComparer.Ordinal);
@@ -111,7 +118,74 @@ public sealed class SketchSolution
     /// </summary>
     public IReadOnlyDictionary<string, double> Values { get; }
 
+    /// <summary>
+    /// Якобиан ограничений в решении: строка на каждое скалярное уравнение (<see cref="EquationConstraints"/>),
+    /// столбец на каждую незакрепленную неизвестную (<see cref="FreeUnknowns"/>). По нему считаются ранг,
+    /// степени свободы и чувствительность решения к закрепленным неизвестным (<see cref="Sensitivity"/>).
+    /// </summary>
+    public Matrix Jacobian { get; }
+
+    /// <summary>
+    /// Незакрепленные неизвестные в порядке столбцов якобиана, включая служебные с именем на «#».
+    /// </summary>
+    public IReadOnlyList<string> FreeUnknowns { get; }
+
+    /// <summary>
+    /// Имя ограничения для каждой строки якобиана: ограничение из нескольких уравнений занимает несколько строк подряд.
+    /// </summary>
+    public IReadOnlyList<string> EquationConstraints { get; }
+
     internal double[] FullValues { get; }
+
+    /// <summary>
+    /// Чувствительность решения к закрепленной неизвестной: производная каждой незакрепленной неизвестной по ней
+    /// по теореме о неявной функции, J·dx = −∂F/∂p. Для недоопределенной системы берется решение наименьшей нормы,
+    /// для избыточной решение наименьших квадратов; направления с сингулярным числом ниже порога ранга отбрасываются.
+    /// </summary>
+    /// <param name="unknown">Закрепленная неизвестная: параметр или координата с признаком isFixed.</param>
+    /// <returns>Производная по имени незакрепленной неизвестной.</returns>
+    /// <exception cref="ArgumentException">Неизвестной нет или она не закреплена.</exception>
+    public IReadOnlyDictionary<string, double> Sensitivity(string unknown)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(unknown);
+        int index = _sketch.IndexOf(unknown);
+
+        if (!_sketch.IsFixed(index))
+            throw new ArgumentException($"Неизвестная «{unknown}» не закреплена: ее производная есть столбец якобиана.", nameof(unknown));
+
+        double[] column = _sketch.JacobianColumn(FullValues, index);
+        var derivative = new Dictionary<string, double>(StringComparer.Ordinal);
+        int unknowns = FreeUnknowns.Count;
+
+        for (int j = 0; j < unknowns; j++)
+            derivative[FreeUnknowns[j]] = 0;
+
+        if (unknowns == 0 || column.Length == 0)
+            return derivative;
+
+        // Псевдообратная через SVD: dx = −V·Σ⁺·Uᵀ·∂F/∂p
+        var (u, sigma, v) = Svd.Decompose(Jacobian);
+        double largest = sigma.Max();
+        double threshold = GeometricSketch.RankTolerance * largest;
+
+        for (int k = 0; k < sigma.Length; k++)
+        {
+            if (largest == 0 || sigma[k] <= threshold)
+                continue;
+
+            double projection = 0;
+
+            for (int i = 0; i < column.Length; i++)
+                projection += u[i, k] * column[i];
+
+            double factor = -projection / sigma[k];
+
+            for (int j = 0; j < unknowns; j++)
+                derivative[FreeUnknowns[j]] += v[j, k] * factor;
+        }
+
+        return derivative;
+    }
 
     /// <summary>
     /// Значение неизвестной по имени.

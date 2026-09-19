@@ -20,7 +20,7 @@ public sealed partial class GeometricSketch
     public const double DefaultTolerance = 1e-6;
 
     // Порог ранга якобиана относительно наибольшего сингулярного числа
-    private const double RankTolerance = 1e-8;
+    internal const double RankTolerance = 1e-8;
 
     // Неизвестная считается неопределенной, если ее компонента в ядре якобиана больше порога
     private const double NullSpaceThreshold = 1e-3;
@@ -146,7 +146,8 @@ public sealed partial class GeometricSketch
 
         double limit = tolerance * scale;
         bool satisfied = residuals.All(r => r.Value <= limit);
-        var (rank, undetermined) = Analyze(Jacobian(values, maps, column, equations, free.Length), free);
+        double[,] jacobian = Jacobian(values, maps, column, equations, free.Length);
+        var (rank, undetermined) = Analyze(jacobian, free);
         int freedom = free.Length - rank;
         int redundancy = equations - rank;
 
@@ -156,8 +157,10 @@ public sealed partial class GeometricSketch
             : SketchStatus.WellConstrained;
 
         var violated = residuals.Where(r => r.Value > limit).OrderByDescending(r => r.Value).Select(r => r.Name).ToList();
+        var freeNames = free.Select(i => _names[i]).ToList();
+        var rows = _constraints.SelectMany(c => Enumerable.Repeat(c.Name, c.Count)).ToList();
 
-        return new SketchSolution(this, values, residuals, violated, undetermined)
+        return new SketchSolution(this, values, residuals, violated, undetermined, new Matrix(jacobian), freeNames, rows)
         {
             Converged = converged,
             Satisfied = satisfied,
@@ -240,6 +243,25 @@ public sealed partial class GeometricSketch
 
         return jacobian;
     }
+
+    // Столбец производных всех уравнений по одной неизвестной, закрепленной или нет, в заданных значениях
+    internal double[] JacobianColumn(double[] all, int index)
+    {
+        int total = _names.Count;
+        var column = Enumerable.Repeat(-1, total).ToArray();
+        column[index] = 0;
+        int[][] maps = _constraints.Select(c => c.Unknowns.Select(IndexOf).ToArray()).ToArray();
+        int equations = _constraints.Sum(c => c.Count);
+        double[,] jacobian = Jacobian(all, maps, column, equations, 1);
+        var result = new double[equations];
+
+        for (int i = 0; i < equations; i++)
+            result[i] = jacobian[i, 0];
+
+        return result;
+    }
+
+    internal bool IsFixed(int index) => _fixed[index];
 
     private static double[,] NumericalBlock(SketchConstraint constraint, double[] local, int[] map, int[] column)
     {

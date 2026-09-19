@@ -209,6 +209,64 @@ public sealed class GaussianMixture : IDistributionWithoutParams, ISamplableDist
 
     #endregion
 
+    #region Функция распределения и квантили (1D)
+
+    /// <summary>
+    /// Функция распределения одномерной смеси: взвешенная сумма Φ((x − μ_k)/σ_k).
+    /// </summary>
+    /// <param name="x">Точка.</param>
+    /// <exception cref="NotSupportedException">Смесь не одномерная.</exception>
+    public double Cdf(double x)
+    {
+        if (!IsOneD) throw new NotSupportedException("ND-смесь");
+        double sum = 0;
+        for (int k = 0; k < K; k++)
+            sum += Weights[k] * StatInference.NormalCdf((x - Means[k][0]) / Math.Max(Stds[k][0], MinStd));
+        return sum;
+    }
+
+    /// <summary>
+    /// Квантиль одномерной смеси: точка x, в которой <see cref="Cdf"/> равна p. Считается делением отрезка
+    /// пополам между крайними компонентами; для p ≤ 0 и p ≥ 1 возвращаются −∞ и +∞.
+    /// </summary>
+    /// <param name="p">Уровень от 0 до 1.</param>
+    /// <param name="tolerance">Допуск по x относительно наибольшего σ смеси.</param>
+    /// <exception cref="NotSupportedException">Смесь не одномерная.</exception>
+    public double Quantile(double p, double tolerance = 1e-9)
+    {
+        if (!IsOneD) throw new NotSupportedException("ND-смесь");
+        if (double.IsNaN(p)) throw new ArgumentOutOfRangeException(nameof(p));
+        if (p <= 0) return double.NegativeInfinity;
+        if (p >= 1) return double.PositiveInfinity;
+
+        // Отрезок поиска: за 40σ от крайних средних функция распределения отличается от 0 и 1 меньше любого double
+        double low = double.PositiveInfinity, high = double.NegativeInfinity, widest = MinStd;
+        for (int k = 0; k < K; k++)
+        {
+            double std = Math.Max(Stds[k][0], MinStd);
+            low = Math.Min(low, Means[k][0] - (40 * std));
+            high = Math.Max(high, Means[k][0] + (40 * std));
+            widest = Math.Max(widest, std);
+        }
+
+        double limit = tolerance * widest;
+        for (int step = 0; step < 200 && high - low > limit; step++)
+        {
+            double middle = 0.5 * (low + high);
+            if (Cdf(middle) < p) low = middle;
+            else high = middle;
+        }
+
+        return 0.5 * (low + high);
+    }
+
+    /// <summary>
+    /// Медиана одномерной смеси.
+    /// </summary>
+    public double Median => Quantile(0.5);
+
+    #endregion
+
     #region Информационные критерии
 
     /// <summary>
