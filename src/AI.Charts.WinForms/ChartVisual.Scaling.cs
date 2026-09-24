@@ -142,6 +142,19 @@ public partial class ChartVisual
 
 
 
+    /// <summary>
+    /// Фиксированные границы осей: держатся до следующего <see cref="AutoScale"/>
+    /// </summary>
+    /// <param name="xMin">Левая граница</param>
+    /// <param name="xMax">Правая граница</param>
+    /// <param name="yMin">Нижняя граница</param>
+    /// <param name="yMax">Верхняя граница</param>
+    public void SetAxisRange(double xMin, double xMax, double yMin, double yMax)
+    {
+        SetScale(xMin, xMax, yMin, yMax);
+        Rec();
+    }
+
     private void Rec()
     {
         double min = MinX(), max = MaxX();
