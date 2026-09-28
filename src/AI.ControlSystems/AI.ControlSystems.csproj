@@ -8,7 +8,6 @@
     <IsPublishable>False</IsPublishable>
     <RootNamespace>AI</RootNamespace>
     <AssemblyName>AI.ControlSystems</AssemblyName>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

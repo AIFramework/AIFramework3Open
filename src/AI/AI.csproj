@@ -8,7 +8,6 @@
 		<IsPublishable>False</IsPublishable>
 		<RootNamespace>AI</RootNamespace>
 		<AssemblyName>AI</AssemblyName>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
 		<NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
 	</PropertyGroup>

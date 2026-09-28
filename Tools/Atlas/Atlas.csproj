@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>AiFramework.Tools.Atlas</RootNamespace>
+    <AssemblyName>atlas</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <!-- Утилита разработки: анализаторы здесь только шумят -->
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Atlas.UnitTests" />
+  </ItemGroup>
+
+  <!-- Версии SQLite те же, что в AI.Script.Data: иначе хост, собирающий оба, получит
+       понижение пакета (NU1605). Нативная библиотека указана явно: транзитивно приезжает
+       2.1.11 с известной уязвимостью (GHSA-2m69-gcr7-jv3q). -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12" />
+  </ItemGroup>
+
+  <!-- Roslyn только здесь, в библиотеки он не попадает. MSBuildWorkspace с 4.9 грузит проекты
+       во внешнем процессе BuildHost, поэтому MSBuild в процесс утилиты не тянется. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.0.0" />
+  </ItemGroup>
+
+  <!-- Набор модулей AIScript тот же, что у aisc: справка script_help должна видеть
+       те же функции, что и утилита, которой скрипты проверяют руками. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AI.LLM\AI.LLM.csproj" />
+    <ProjectReference Include="..\..\src\AI.Econometrics\AI.Econometrics.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script\AI.Script.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Std\AI.Script.Std.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Charts\AI.Script.Charts.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Llm\AI.Script.Llm.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Chem\AI.Script.Chem.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Nn\AI.Script.Nn.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Vision\AI.Script.Vision.csproj" />
+  </ItemGroup>
+
+</Project>

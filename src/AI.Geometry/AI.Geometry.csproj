@@ -6,7 +6,6 @@
     <Nullable>disable</Nullable>
     <RootNamespace>AI.Geometry</RootNamespace>
     <AssemblyName>AI.Geometry</AssemblyName>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />

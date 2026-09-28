@@ -30,7 +30,7 @@ namespace AI.LLM.Clients.OpenRouter
 
         /// <summary>
         /// Отключаем валидацию контекста для OpenRouter (огромный контекст у Gemma 3 27B)
-        /// Возвращаем 1 чтобы проверка tokensCount < MaxLLMTokens всегда проходила
+        /// Возвращаем 1 чтобы проверка tokensCount &lt; MaxLLMTokens всегда проходила
         /// </summary>
         public override async Task<int> TokenizeAsync(IEnumerable<LLMMessage> messages, CancellationToken cancellationToken = default)
         {

@@ -8,7 +8,6 @@
     <IsPublishable>false</IsPublishable>
     <RootNamespace>AI</RootNamespace>
     <AssemblyName>AI.NeuralNetworks</AssemblyName>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

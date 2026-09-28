@@ -7,7 +7,6 @@
     <IsPublishable>false</IsPublishable>
     <RootNamespace>AI.ML.NeuralNetworks.Onnx</RootNamespace>
     <AssemblyName>AI.NeuralNetworks.Onnx</AssemblyName>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 

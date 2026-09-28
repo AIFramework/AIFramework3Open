@@ -7,7 +7,6 @@
     <LangVersion>12.0</LangVersion>
     <RootNamespace>AI.Physics</RootNamespace>
     <AssemblyName>AI.Physics</AssemblyName>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

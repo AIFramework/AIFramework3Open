@@ -23,7 +23,7 @@
         public static string ChatGPTSummarizationPromptEN { get; set; } = PromptManager.SystemPrompts["summarization_en"];
 
         /// <summary>
-        /// Prompt for text-based Q&A
+        /// Prompt for text-based Q&amp;A
         /// </summary>
         public static string ChatGPTTextQAPromptEN { get; set; } = PromptManager.SystemPrompts["text_qa_en"];
 

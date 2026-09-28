@@ -16,12 +16,12 @@ namespace AI.LLM.Services.Prompts.FewShot
         public List<FewShotElement> FewShots = new List<FewShotElement>();
 
         /// <summary>
-        /// Gets or sets the end token used to denote the end of a model's output. Default is "</s>".
+        /// Gets or sets the end token used to denote the end of a model's output. Default is "&lt;/s&gt;".
         /// </summary>
         public string EndToken { get; set; } = "</s>";
 
         /// <summary>
-        /// Gets or sets the start token used to denote the beginning of a model's output. Default is "<s>".
+        /// Gets or sets the start token used to denote the beginning of a model's output. Default is "&lt;s&gt;".
         /// </summary>
         public string StartToken { get; set; } = "<s>";
 

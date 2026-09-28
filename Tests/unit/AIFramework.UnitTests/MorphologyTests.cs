@@ -225,6 +225,54 @@ public class MorphologyTests
         Assert.Equal("я читать книг в город.", result);
     }
 
+    // Окончание «-ал» у существительного совпадает с прошедшим временем глагола («читал»).
+    // Раньше «сигнал» и «сигнала» разбирались как глагол и становились «сигнать», а
+    // «сигналы» — верно, «сигнал»: формы одного слова расходились (найдено 2026-09-27).
+    private static readonly string[] NounsInAl =
+    [
+        "сигнал", "канал", "интервал", "материал", "капитал", "терминал", "потенциал", "интеграл", "идеал",
+        "финал", "журнал", "вокзал", "зал", "бал", "генерал", "адмирал", "металл",
+    ];
+
+    public static TheoryData<string, string> NounInAlForms()
+    {
+        var data = new TheoryData<string, string>();
+
+        foreach (string noun in NounsInAl)
+        {
+            data.Add(noun, noun);
+            data.Add(noun + "а", noun);
+            data.Add(noun + "ы", noun);
+        }
+
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(NounInAlForms))]
+    public void MorphologicalLemmatizer_NounsInAl_AreNotPastTenseVerbs(string form, string lemma)
+    {
+        MorphAnalysis analysis = MorphologicalLemmatizer.Instance.Analyze(form);
+
+        Assert.Equal(lemma, analysis.Lemma);
+        Assert.Equal(PartOfSpeech.Noun, analysis.PartOfSpeech);
+    }
+
+    [Theory]
+    [InlineData("читал", "читать")]
+    [InlineData("писал", "писать")]
+    [InlineData("играл", "играть")]
+    [InlineData("читала", "читать")]
+    [InlineData("играли", "играть")]
+    [InlineData("мечтал", "мечтать")]
+    public void MorphologicalLemmatizer_VerbsInAl_StayVerbs(string form, string lemma)
+    {
+        MorphAnalysis analysis = MorphologicalLemmatizer.Instance.Analyze(form);
+
+        Assert.Equal(lemma, analysis.Lemma);
+        Assert.Equal(PartOfSpeech.Verb, analysis.PartOfSpeech);
+    }
+
     #endregion
 
     #region Измеренное качество разметки

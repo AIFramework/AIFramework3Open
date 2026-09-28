@@ -243,7 +243,7 @@ public object Evaluate(string expression, ExecutionContext context, Cancellation
         && name.All(c => char.IsLetterOrDigit(c) || c == '_');
     /// <summary>
     /// Находит индекс оператора присваивания '=' вне строковых литералов,
-    /// пропуская ==, !=, <=, >=. Возвращает -1 если не найден.
+    /// пропуская ==, !=, &lt;=, &gt;=. Возвращает -1 если не найден.
     /// </summary>
     private int FindAssignmentEqualsIndex(string expression)
     {

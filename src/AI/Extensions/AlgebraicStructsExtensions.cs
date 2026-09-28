@@ -1,4 +1,7 @@
 using AI.DataStructs.Algebraic;
+using AI.DataStructs.WithComplexElements;
+using System;
+using Complex = System.Numerics.Complex;
 
 namespace AI.Extensions;
 
@@ -219,6 +222,65 @@ public static class AlgebraicStructsExtensions
             vector[i] = array[i][dim];
 
         return vector;
+    }
+    #endregion
+
+    #region Приближённое равенство
+    /// <summary>
+    /// Приближённое равенство чисел: |a − b| не больше <paramref name="absTol"/> или
+    /// <paramref name="relTol"/>·max(|a|, |b|).
+    /// </summary>
+    /// <remarks>
+    /// NaN равен NaN: так сравнивают результаты двух реализаций, где NaN означает одно и то же
+    /// «значения нет». Бесконечность равна только бесконечности того же знака: разность с
+    /// конечным числом бесконечна, и относительный допуск её не спасает.
+    /// </remarks>
+    public static bool ApproxEquals(double a, double b, double relTol = 1e-9, double absTol = 1e-12)
+    {
+        if (a == b) return true;
+        if (double.IsNaN(a) || double.IsNaN(b)) return double.IsNaN(a) && double.IsNaN(b);
+        if (double.IsInfinity(a) || double.IsInfinity(b)) return false;
+
+        double diff = Math.Abs(a - b);
+        return diff <= absTol || diff <= relTol * Math.Max(Math.Abs(a), Math.Abs(b));
+    }
+
+    /// <summary>Приближённое равенство комплексных чисел: по действительной и мнимой части.</summary>
+    public static bool ApproxEquals(this Complex a, Complex b, double relTol = 1e-9, double absTol = 1e-12) =>
+        ApproxEquals(a.Real, b.Real, relTol, absTol) && ApproxEquals(a.Imaginary, b.Imaginary, relTol, absTol);
+
+    /// <summary>
+    /// Приближённое равенство структур (<see cref="Vector"/>, <see cref="Matrix"/>, тензоров):
+    /// та же форма и поэлементно <see cref="ApproxEquals(double, double, double, double)"/>.
+    /// </summary>
+    /// <remarks>Матрицы 2×3 и 3×2 с одинаковыми данными не равны. Две пустые структуры одной формы равны.</remarks>
+    public static bool ApproxEquals(this IAlgebraicStructure<double> a, IAlgebraicStructure<double> b, double relTol = 1e-9, double absTol = 1e-12)
+    {
+        if (a is null || b is null) return a is null && b is null;
+        if (a.Shape != b.Shape) return false;
+
+        double[] x = a.Data, y = b.Data;
+        if (x.Length != y.Length) return false;
+
+        for (int i = 0; i < x.Length; i++)
+            if (!ApproxEquals(x[i], y[i], relTol, absTol)) return false;
+
+        return true;
+    }
+
+    /// <summary>Приближённое равенство комплексных структур (<see cref="ComplexVector"/>): та же форма и поэлементно.</summary>
+    public static bool ApproxEquals(this IComplexStructure a, IComplexStructure b, double relTol = 1e-9, double absTol = 1e-12)
+    {
+        if (a is null || b is null) return a is null && b is null;
+        if (a.Shape != b.Shape) return false;
+
+        Complex[] x = a.Data, y = b.Data;
+        if (x.Length != y.Length) return false;
+
+        for (int i = 0; i < x.Length; i++)
+            if (!x[i].ApproxEquals(y[i], relTol, absTol)) return false;
+
+        return true;
     }
     #endregion
 }

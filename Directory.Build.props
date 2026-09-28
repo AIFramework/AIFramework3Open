@@ -23,6 +23,9 @@
     <IsPackable>true</IsPackable>
     <PackageId>$(AssemblyName)</PackageId>
     <Description>AIFramework 3.0 Open — $(MSBuildProjectName)</Description>
+    <!-- XML-документация рядом с DLL: без неё пакет NuGet приходит без описаний, хотя в исходниках
+         они есть. Пропущенные комментарии (CS1591) не шумят: .editorconfig понижает их до suggestion. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <!-- Лёгкая сборка: правила в отдельном файле, их подключает и Tests/Directory.Build.props -->
   <Import Project="$(MSBuildThisFileDirectory)build/Light.props" />

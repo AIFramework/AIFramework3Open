@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <RootNamespace>AI.Econometrics</RootNamespace>
     <AssemblyName>AI.Econometrics</AssemblyName>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 

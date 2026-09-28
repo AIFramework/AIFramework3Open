@@ -1,3 +1,4 @@
+using AI.Extensions;
 using System;
 
 namespace AI.Geometry.Numerics;
@@ -14,12 +15,10 @@ public static class Eps
 
     /// <summary>
     /// Приблизительное равенство двух чисел с относительным и абсолютным допуском.
+    /// В отличие от <see cref="AlgebraicStructsExtensions.ApproxEquals(double, double, double, double)"/>, NaN не равен ничему.
     /// </summary>
-    public static bool ApproxEqual(double a, double b, double relTol = 1e-9, double absTol = 1e-12)
-    {
-        double diff = Math.Abs(a - b);
-        return diff <= absTol || diff <= relTol * Math.Max(Math.Abs(a), Math.Abs(b));
-    }
+    public static bool ApproxEqual(double a, double b, double relTol = 1e-9, double absTol = 1e-12) =>
+        !double.IsNaN(a) && !double.IsNaN(b) && AlgebraicStructsExtensions.ApproxEquals(a, b, relTol, absTol);
 
     /// <summary>
     /// Знак числа с учётом допуска: +1, -1 или 0.
