@@ -23,6 +23,12 @@ public sealed class PlanTool
     /// <summary>Трекер прогресса текущего плана. Null до первого вызова plan().</summary>
     public PlanTracker Tracker { get; private set; }
 
+    /// <summary>
+    /// Ход планирования для человека: построенный план, причина переплана, отказ. Библиотека
+    /// в консоль не пишет: куда выводить, решает хост.
+    /// </summary>
+    public event Action<string> Progress;
+
     /// <summary>Создаёт инструменты планирования поверх готового генератора.</summary>
     public PlanTool(PlanGenerator generator) => _generator = generator;
 
@@ -35,7 +41,7 @@ public sealed class PlanTool
         CancellationToken cancellationToken = default)
     {
         _currentGoal = goal;
-        Console.WriteLine($"\n[Plan] Generating plan for: {goal}");
+        Progress?.Invoke($"[Plan] Generating plan for: {goal}");
 
         var tree = await _generator.GenerateAsync(goal, null, cancellationToken);
         return ApplyNewPlan(tree, priorFailure: null);
@@ -49,7 +55,7 @@ public sealed class PlanTool
         [ToolParameter("What went wrong and why the current plan failed")] string reason,
         CancellationToken cancellationToken = default)
     {
-        Console.WriteLine($"\n[Replan] Reason: {reason}");
+        Progress?.Invoke($"[Replan] Reason: {reason}");
 
         var failureSkill = new Skill("previous_failure",
             $"Previous attempt failed: {reason}. " +
@@ -66,7 +72,7 @@ public sealed class PlanTool
     {
         if (tree.Steps.Count == 0)
         {
-            Console.WriteLine("[Plan] Could not generate a structured plan.");
+            Progress?.Invoke("[Plan] Could not generate a structured plan.");
             Tracker = null;
             return "Could not generate a structured plan. " +
                    "Proceed step by step: observe the current state first.";
@@ -78,7 +84,7 @@ public sealed class PlanTool
             Tracker = new PlanTracker(tree.Steps);
 
         var formatted = FormatPlan(tree, priorFailure);
-        Console.WriteLine(formatted);
+        Progress?.Invoke(formatted);
         return formatted;
     }
 

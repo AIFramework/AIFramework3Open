@@ -60,14 +60,14 @@ public sealed class PlanTracker
         _lastChangedIndex = -1;
     }
 
-    /// <summary>Печатает прогресс плана в консоль.</summary>
-    public void PrintProgress()
+    /// <summary>Прогресс плана текстом для человека; куда его выводить, решает хост.</summary>
+    public string Describe()
     {
         var done  = _steps.Count(s => s.Done);
         var total = _steps.Count;
 
-        Console.WriteLine();
-        Console.WriteLine($"┌─── Plan Progress ({done}/{total}) ─────────────────────────");
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"┌─── Plan Progress ({done}/{total}) ─────────────────────────");
         foreach (var (s, i) in _steps.Select((s, i) => (s, i)))
         {
             string marker;
@@ -78,10 +78,10 @@ public sealed class PlanTracker
             else                               marker = " ";
 
             var toolTag = s.Step.ToolName != null ? $" [{s.Step.ToolName}]" : "";
-            Console.WriteLine($"│ {marker,-2} {s.Step.Id}{toolTag}: {s.Step.Description}");
+            sb.AppendLine($"│ {marker,-2} {s.Step.Id}{toolTag}: {s.Step.Description}");
         }
-        Console.WriteLine("└───────────────────────────────────────────────────────");
-        Console.WriteLine();
+        sb.Append("└───────────────────────────────────────────────────────");
+        return sb.ToString();
     }
 
     /// <summary>Индекс первого незавершённого шага с этим инструментом; -1 — нет такого.</summary>
