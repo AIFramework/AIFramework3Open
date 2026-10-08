@@ -10,7 +10,7 @@ namespace AI.DataStructs;
 [Serializable]
 public class TableOfContentsOfTheSortedVector
 {
-    private readonly int numberOfСhapters;
+    private readonly int numberOfChapters;
     private readonly int sizeOfVector;
     private readonly List<Vector> chapters = new List<Vector>();
     private readonly List<Diap> diaps = new List<Diap>();
@@ -34,7 +34,7 @@ public class TableOfContentsOfTheSortedVector
         {
             int numCh2 = Math.Min(numCh, (vect.Count / 2000) + 1);
 
-            numberOfСhapters = numCh2;
+            numberOfChapters = numCh2;
             sizeOfVector = vect.Count / numCh2;
 
             for (int i = 0; i < numCh2; i++)
@@ -70,7 +70,7 @@ public class TableOfContentsOfTheSortedVector
     {
         int i = 0;
 
-        for (; i < numberOfСhapters; i++)
+        for (; i < numberOfChapters; i++)
         {
             if (diaps[i].Down < diaps[i].Up)
             {
@@ -81,7 +81,7 @@ public class TableOfContentsOfTheSortedVector
             }
             else
             {
-                if (i + 1 < numberOfСhapters)
+                if (i + 1 < numberOfChapters)
                 {
                     if ((diaps[i].Down <= value) && (diaps[i + 1].Up >= value))
                     {
@@ -92,7 +92,7 @@ public class TableOfContentsOfTheSortedVector
             }
         }
 
-        i = (i >= numberOfСhapters) ? numberOfСhapters - 1 : i;
+        i = (i >= numberOfChapters) ? numberOfChapters - 1 : i;
 
         int startInd = diaps[i].DownIndex;
         int index = chapters[i].IndexValueNeighborhoodMin(value);

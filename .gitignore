@@ -359,4 +359,10 @@ src/AI.Script/DESIGN.md
 # Выходы лёгкой сборки (build.ps1 -Light, AIFramework.Light.sln)
 bin-light/
 obj-light/
-src/AI.Script/README.md
+
+# Аварийные дампы MSYS/Git Bash (grep.exe.stackdump и т. п.)
+*.stackdump
+
+# Локальное состояние Claude Code (общий .claude/launch.json остаётся в репозитории)
+.claude/settings.local.json
+.claude/worktrees/
