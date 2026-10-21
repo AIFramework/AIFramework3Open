@@ -65,6 +65,31 @@ public class LlmFriendlyTests
     }
 
     [Fact]
+    public void VecMap_ReturnsVector()
+    {
+        RunResult result = Script.RunOk("emit r = <1, 2, 3> |> vec.map(x => x * x) |> vec.sum()");
+
+        Assert.Equal(14.0, (double)result.Emitted["r"]!, 9);
+    }
+
+    [Fact]
+    public void StrChars_SplitsStringIntoList()
+    {
+        RunResult result = Script.RunOk("let gc = str.chars(\"GATTACA\") |> core.filter(c => c == \"G\" || c == \"C\")\nemit n = len(gc)");
+
+        Assert.Equal(2.0, (double)result.Emitted["n"]!);
+    }
+
+    [Fact]
+    public void TableFromRows_UnitesFieldsAndFillsGaps()
+    {
+        RunResult result = Script.RunOk("let t = table.from_rows([{ x: 1, y: \"a\" }, { x: 2, z: true }])\nemit rows = len(t)\nemit z_first = t[0].z");
+
+        Assert.Equal(2.0, (double)result.Emitted["rows"]!);
+        Assert.Null(result.Emitted["z_first"]);
+    }
+
+    [Fact]
     public void ListConcatenation_IsUnchanged()
     {
         RunResult result = Script.RunOk("emit r = [1, 2] + [3]");

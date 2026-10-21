@@ -124,6 +124,33 @@ public static class VecModule
         return new Vector(data);
     }
 
+    /// <remarks>
+    /// В отличие от <c>core.map</c> результат — вектор, а не список: дальше работают векторная
+    /// арифметика и функции <c>vec</c>, <c>stat</c>, <c>dsp</c> без обёртки <c>vec.of</c>.
+    /// </remarks>
+    [ScriptFn("map", "Применяет функцию к каждому элементу вектора; результат — вектор", Example = "v |> vec.map(x => x * x)")]
+    public static async Task<Vector> Map(
+        IScriptContext context,
+        [ScriptParam("вектор")] Vector v,
+        [ScriptParam("функция числа, возвращающая число")] ScriptCallable transform,
+        [ScriptParam("считать элементы одновременно (options.parallel ветвей)")] bool parallel = false)
+    {
+        var items = new ScriptValue[v.Count];
+
+        for (int i = 0; i < v.Count; i++) items[i] = ScriptValue.Num(v[i]);
+
+        ScriptValue[] mapped = await context
+            .CallEachAsync(ScriptValue.Fn(transform), items, parallel ? context.Parallelism : 1)
+            .ConfigureAwait(false);
+
+        var result = new Vector(mapped.Length);
+
+        for (int i = 0; i < mapped.Length; i++) result[i] = mapped[i].AsNumber("результат функции в vec.map");
+
+        context.CountAllocation(result.Count);
+        return result;
+    }
+
     [ScriptFn("sum", "Сумма элементов", Example = "vec.sum(v)")]
     public static double Sum([ScriptParam("вектор")] Vector v) => v.Sum();
 
