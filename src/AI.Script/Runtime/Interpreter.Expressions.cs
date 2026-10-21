@@ -335,7 +335,8 @@ public sealed partial class Interpreter
 
             throw new ScriptError(
                 DiagnosticCodes.UnknownFunction,
-                $"у дескриптора '{handle.TypeName}' нет метода '{member.Name}'")
+                $"у дескриптора '{handle.TypeName}' нет метода '{member.Name}'",
+                MethodHint(handle.TypeName))
             {
                 Span = member.NameSpan,
             };
@@ -409,7 +410,8 @@ public sealed partial class Interpreter
                         {
                             throw new ScriptError(
                                 DiagnosticCodes.UnknownFunction,
-                                $"у дескриптора '{handle.TypeName}' нет метода '{member.Name}'")
+                                $"у дескриптора '{handle.TypeName}' нет метода '{member.Name}'",
+                                MethodHint(handle.TypeName))
                             {
                                 Span = member.NameSpan,
                             };
@@ -540,6 +542,17 @@ public sealed partial class Interpreter
             error.Span ??= span;
             throw;
         }
+    }
+
+    /// <summary>
+    /// Методы дескриптора — подсказкой к «нет метода»: имя метода угадывают по привычке из других
+    /// библиотек (transform, coefficients), а перечень сразу показывает, что есть на самом деле.
+    /// </summary>
+    private string MethodHint(string handleType)
+    {
+        IReadOnlyList<string> methods = _registry.MethodsOf(handleType);
+
+        return methods.Count == 0 ? "у этого дескриптора нет методов" : "методы: " + string.Join(", ", methods);
     }
 
     /// <summary>

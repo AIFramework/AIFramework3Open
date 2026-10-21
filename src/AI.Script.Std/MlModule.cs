@@ -264,7 +264,7 @@ public static class MlModule
     // --- регрессия ---
 
     [ScriptFn("linreg", "Линейная регрессия одной переменной", Returns = RegressionHandle,
-        Example = "let m = ml.linreg(x, y)\nemit slope = m.coefficients()[0]")]
+        Example = "let m = ml.linreg(x, y)\nemit r2 = m.score(x, y)\nemit next = m.predict(10)")]
     public static ScriptHandle LinearRegressionModel(
         [ScriptParam("значения независимой переменной")] Vector x,
         [ScriptParam("значения отклика")] Vector y)

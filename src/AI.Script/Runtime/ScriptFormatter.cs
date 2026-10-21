@@ -127,8 +127,28 @@ public static class ScriptFormatter
         return builder.Append('>').ToString();
     }
 
-    private static string FormatMatrix(Matrix matrix) =>
-        $"<mat {matrix.Height}×{matrix.Width}>";
+    /// <summary>
+    /// Матрица — размером и строками, как вектор: первые <see cref="TableRowLimit"/> строк по
+    /// <see cref="PreviewLimit"/> чисел. Только размер ничего не говорил о содержимом.
+    /// </summary>
+    private static string FormatMatrix(Matrix matrix)
+    {
+        var builder = new StringBuilder($"<mat {matrix.Height}×{matrix.Width}>");
+        int rows = Math.Min(matrix.Height, TableRowLimit), cols = Math.Min(matrix.Width, PreviewLimit);
+
+        for (int i = 0; i < rows; i++)
+        {
+            builder.Append("\n  [");
+
+            for (int j = 0; j < cols; j++) builder.Append(j > 0 ? ", " : "").Append(Number(matrix[i, j]));
+
+            builder.Append(cols < matrix.Width ? ", …]" : "]");
+        }
+
+        if (rows < matrix.Height) builder.Append($"\n  … ещё строк: {matrix.Height - rows}");
+
+        return builder.ToString();
+    }
 
     /// <summary>
     /// Печатает таблицу шапкой и первыми строками.

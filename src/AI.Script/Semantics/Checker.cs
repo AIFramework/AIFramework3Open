@@ -21,6 +21,9 @@ namespace AI.Script.Semantics;
 /// </remarks>
 public sealed partial class Checker
 {
+    /// <summary>До скольких имён пространство перечисляется в подсказке к неизвестной функции.</summary>
+    private const int MaxListedFunctions = 40;
+
     private readonly DiagnosticBag _diagnostics;
     private readonly FunctionRegistry _registry;
     private readonly Dictionary<string, FunctionDeclStmt> _declared = new(StringComparer.Ordinal);
@@ -1579,6 +1582,11 @@ public sealed partial class Checker
         }
 
         string suffix = asCallee ? string.Empty : "\nобращение к полю записи требует, чтобы слева было связанное имя";
+
+        // Близкого по написанию нет (percent → pct) — перечень имён пространства: из него ответ
+        // виден сразу, без лишнего круга через help.
+        if (names.Count is > 0 and <= MaxListedFunctions)
+            return $"функции {ns}: {string.Join(", ", names.OrderBy(n => n, StringComparer.Ordinal))}\nописания: help(\"{ns}\"){suffix}";
 
         return $"все функции пространства: help(\"{ns}\"){suffix}";
     }

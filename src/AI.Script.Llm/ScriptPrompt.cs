@@ -18,10 +18,31 @@ public static class ScriptPrompt
 {
     private const string CardResource = "AI.Script.Llm.PromptCard.md";
 
-    private static string? s_card;
+    /// <summary>Начало заметки о модулях: <c>&lt;!-- ns: doc xls --&gt;</c>.</summary>
+    private const string NoteMarker = "<!-- ns:";
 
-    /// <summary>Правила языка — текст карточки без заголовка репозитория.</summary>
-    public static string Card => s_card ??= LoadCard();
+    private static string? s_text;
+
+    /// <summary>Правила языка — ядро карточки без заголовка репозитория и без заметок о модулях.</summary>
+    public static string Card => Core(Text);
+
+    /// <summary>
+    /// Карточка для этого хоста: ядро и заметки о тех модулях, что в нём есть. Заметка о модуле,
+    /// которого нет, заставила бы модель планировать вызовы, которые откажут.
+    /// </summary>
+    public static string CardFor(ScriptHost host)
+    {
+        ArgumentNullException.ThrowIfNull(host);
+
+        var card = new StringBuilder(Card);
+
+        foreach ((IReadOnlyList<string> namespaces, string note) in Notes(Text))
+        {
+            if (namespaces.Any(host.Registry.HasNamespace)) card.Append("\n\n").Append(note);
+        }
+
+        return card.ToString();
+    }
 
     /// <summary>
     /// Системный промпт для написания скрипта под этот хост.
@@ -31,7 +52,7 @@ public static class ScriptPrompt
     {
         ArgumentNullException.ThrowIfNull(host);
 
-        return new StringBuilder(Card)
+        return new StringBuilder(CardFor(host))
             .Append("\n\n## Что доступно в этом хосте\n\n")
             .Append(host.DescribeCapabilities(ManifestOptions.Index))
             .Append("\n\nВ ответе — только текст скрипта, без пояснений до и после.\n")
@@ -110,5 +131,35 @@ public static class ScriptPrompt
         int start = text.IndexOf("\n---\n", StringComparison.Ordinal);
 
         return start < 0 ? text : text[(start + 5)..].TrimStart();
+    }
+
+    /// <summary>Текст карточки после заголовка: ядро и заметки о модулях.</summary>
+    private static string Text => s_text ??= LoadCard();
+
+    private static string Core(string text)
+    {
+        int notes = text.IndexOf(NoteMarker, StringComparison.Ordinal);
+
+        return (notes < 0 ? text : text[..notes]).TrimEnd();
+    }
+
+    /// <summary>Заметки о модулях: пространства из метки и текст до следующей метки.</summary>
+    private static IEnumerable<(IReadOnlyList<string> Namespaces, string Note)> Notes(string text)
+    {
+        int at = text.IndexOf(NoteMarker, StringComparison.Ordinal);
+
+        while (at >= 0)
+        {
+            int close = text.IndexOf("-->", at, StringComparison.Ordinal);
+
+            if (close < 0) yield break;
+
+            string[] namespaces = text[(at + NoteMarker.Length)..close].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            int next = text.IndexOf(NoteMarker, close, StringComparison.Ordinal);
+            string note = (next < 0 ? text[(close + 3)..] : text[(close + 3)..next]).Trim();
+
+            yield return (namespaces, note);
+            at = next;
+        }
     }
 }

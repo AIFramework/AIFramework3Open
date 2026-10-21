@@ -59,6 +59,10 @@ public sealed class FunctionRegistry
     public bool TryGetMethod(string handleType, string name, out ScriptFunction function) =>
         _methods.TryGetValue(MethodKey(handleType, name), out function!);
 
+    /// <summary>Имена методов дескриптора по алфавиту — для подсказки «нет метода».</summary>
+    public IReadOnlyList<string> MethodsOf(string handleType) =>
+        _methods.Values.Where(f => f.MethodOf == handleType).Select(f => f.Name).Distinct().OrderBy(n => n, StringComparer.Ordinal).ToList();
+
     /// <summary>Есть ли такое пространство имён.</summary>
     public bool HasNamespace(string name) => _namespaces.ContainsKey(name);
 
