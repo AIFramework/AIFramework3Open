@@ -5,6 +5,7 @@ using AI.Algorithms.GraphStructure;
 using AI.LLM.Agents.Tools;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
+using AI.LLM.Core.Models.Common.Messages.Content;
 using AI.LLM.Core.Models.Common.Requests;
 using AI.LLM.Core.Models.Common.Responses;
 using Serilog;
@@ -137,21 +138,27 @@ public sealed class PlanGenerator
 
     #region Промпт
 
+    /// <summary>
+    /// Сообщения плана по зонам: правила, порты и образец ответа одинаковы от хода к ходу и стоят первыми под меткой
+    /// кэша провайдера; перечень инструментов под задачу меняется от хода к ходу и идет вторым; задача последней.
+    /// </summary>
     private List<LLMMessage> BuildMessages(string goal, List<Skill> skills, ToolRegistry tools, bool strict)
     {
-        var systemPrompt = BuildSystemPrompt(skills, tools, strict);
-        return
-        [
-            LLMMessage.CreateMessage(Roles.System, systemPrompt),
-            LLMMessage.CreateMessage(Roles.User, goal)
-        ];
+        var messages = new List<LLMMessage>
+        {
+            new(LLMMessage.SystemRole, new MessageContent { new TextContentItem(BuildRules(strict)) { CacheControl = CacheControl.Ephemeral } }),
+        };
+        if (BuildCatalog(skills, tools) is { } catalog)
+            messages.Add(LLMMessage.CreateMessage(Roles.System, catalog));
+        messages.Add(LLMMessage.CreateMessage(Roles.User, goal));
+        return messages;
     }
 
     /// <summary>Карта «порт → значение» в форме, которую ждёт схема: словарь либо массив пар.</summary>
     private static string Map(bool strict, string key, string value) =>
         strict ? $"[{{\"key\": \"{key}\", \"value\": \"{value}\"}}]" : $"{{\"{key}\": \"{value}\"}}";
 
-    private string BuildSystemPrompt(List<Skill> skills, ToolRegistry tools, bool strict)
+    private string BuildRules(bool strict)
     {
         var sb = new StringBuilder();
         sb.AppendLine("Ты — планировщик задач. Разбей задачу пользователя на конкретные шаги.");
@@ -191,31 +198,6 @@ public sealed class PlanGenerator
         sb.AppendLine("  константы самого шага (формат, язык, число); копировать туда текст запроса");
         sb.AppendLine("  или результат предыдущего шага не нужно — он придёт портом.");
 
-        if (tools is { Count: > 0 })
-        {
-            sb.AppendLine();
-            sb.AppendLine("### Доступные инструменты");
-            foreach (var def in tools.GetDefinitions())
-            {
-                sb.AppendLine($"- **{def.Function.Name}**: {def.Function.Description}");
-
-                // Пустую схему не печатаем. «Параметры: {}» — не сведение, а приглашение
-                // придумать аргументы: модель заполняет args тем, что и так придёт портом.
-                if (DeclaresParameters(def.Function.Parameters))
-                    sb.AppendLine($"  Параметры: {def.Function.Parameters!.Value}");
-            }
-        }
-
-        if (skills.Count > 0)
-        {
-            sb.AppendLine();
-            sb.AppendLine("### Доступные навыки (инструкции)");
-            foreach (var skill in skills)
-            {
-                sb.AppendLine($"- **{skill.Name}**: {skill.Description}");
-            }
-        }
-
         if (!string.IsNullOrWhiteSpace(_config.PortsPrompt))
         {
             sb.AppendLine();
@@ -241,6 +223,36 @@ public sealed class PlanGenerator
         sb.AppendLine("```");
 
         return sb.ToString();
+    }
+
+    /// <summary>Перечень инструментов и навыков под эту задачу; <c>null</c>, перечислять нечего.</summary>
+    private static string? BuildCatalog(List<Skill> skills, ToolRegistry tools)
+    {
+        var sb = new StringBuilder();
+
+        if (tools is { Count: > 0 })
+        {
+            sb.AppendLine("### Доступные инструменты");
+            foreach (var def in tools.GetDefinitions())
+            {
+                sb.AppendLine($"- **{def.Function.Name}**: {def.Function.Description}");
+
+                // Пустую схему не печатаем. «Параметры: {}» — не сведение, а приглашение
+                // придумать аргументы: модель заполняет args тем, что и так придёт портом.
+                if (DeclaresParameters(def.Function.Parameters))
+                    sb.AppendLine($"  Параметры: {def.Function.Parameters!.Value}");
+            }
+        }
+
+        if (skills.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("### Доступные навыки (инструкции)");
+            foreach (var skill in skills)
+                sb.AppendLine($"- **{skill.Name}**: {skill.Description}");
+        }
+
+        return sb.Length > 0 ? sb.ToString() : null;
     }
 
     /// <summary>

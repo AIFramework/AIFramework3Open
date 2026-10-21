@@ -1,4 +1,4 @@
-﻿namespace AI.LLM.Core.Models.Common.Messages.Content;
+namespace AI.LLM.Core.Models.Common.Messages.Content;
 
 /// <summary>
 /// Содержание контента (тексты, изображения, звук)
@@ -50,6 +50,14 @@ public class MessageContent : List<IContentItem>
         Add(textContent);
     }
 
+
+    /// <summary>
+    /// Удаляет все текстовые элементы, оставляя изображения и звук
+    /// </summary>
+    public void ClearText()
+    {
+        RemoveAll(item => item is TextContentItem);
+    }
 
     public override string ToString()
     {
