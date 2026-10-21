@@ -101,6 +101,11 @@ public static class TypeRules
         if (left == ScriptType.Dec || right == ScriptType.Dec) return DecimalResult(op, left, right);
 
         if (left == ScriptType.Mat || right == ScriptType.Mat) return MatrixResult(op, left, right);
+
+        // Числовой список рядом с вектором или числом — вектор (так же считает интерпретатор).
+        if (left == ScriptType.List && right is ScriptType.Vec or ScriptType.Num) left = ScriptType.Vec;
+        else if (right == ScriptType.List && left is ScriptType.Vec or ScriptType.Num) right = ScriptType.Vec;
+
         if (left == ScriptType.Vec || right == ScriptType.Vec) return VectorResult(op, left, right);
 
         if (op == BinaryOperator.Add)

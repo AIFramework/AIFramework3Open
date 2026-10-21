@@ -75,6 +75,20 @@ public static class StrModule
         [ScriptParam("подстрока")] string what)
         => text.IndexOf(what, StringComparison.Ordinal);
 
+    /// <remarks>
+    /// Строку можно перебрать циклом <c>for c in s</c>, а для конвейера нужен список: GC-состав,
+    /// частоты букв, разбор кодов — <c>str.chars(dna) |&gt; core.filter(...)</c>.
+    /// </remarks>
+    [ScriptFn("chars", "Символы строки списком", Example = "str.chars(\"ATGC\")")]
+    public static ScriptList Chars([ScriptParam("строка")] string text)
+    {
+        var chars = new ScriptValue[text.Length];
+
+        for (int i = 0; i < text.Length; i++) chars[i] = ScriptValue.Str(text[i].ToString());
+
+        return ScriptList.Own(chars);
+    }
+
     [ScriptFn("sub", "Подстрока [from, to)", Example = "str.sub(s, from: 0, to: 5)")]
     public static string Sub(
         [ScriptParam("строка")] string text,

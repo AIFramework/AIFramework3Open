@@ -185,4 +185,12 @@ public static class DiagnosticCodes
 
     /// <summary>Не удалось разобрать содержимое файла.</summary>
     public const string BadFileFormat = "AIS3421";
+
+    // --- AIS35xx: отладка ---
+
+    /// <summary>Контрольное значение отладчика — не одно выражение.</summary>
+    public const string WatchNotExpression = "AIS3501";
+
+    /// <summary>Контрольное значение обратилось к файлам или сети и не вычислилось сразу.</summary>
+    public const string WatchNotImmediate = "AIS3502";
 }

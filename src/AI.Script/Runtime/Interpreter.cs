@@ -70,6 +70,18 @@ public sealed partial class Interpreter
     private Scope _global = new();
     private int _depth;
 
+    /// <summary>Текущий кадр для отладчика; без отладчика кадры не заводятся.</summary>
+    private DebugFrame? _frame;
+
+    /// <summary>Номер ветви исполнения для отладчика: 0 — основная.</summary>
+    private readonly int _thread;
+
+    /// <summary>Номер элемента в параллельном участке; <c>null</c> — не в нём.</summary>
+    private int? _branchIndex;
+
+    /// <summary>Интерпретатор вычисляет контрольное значение отладчика — сам отладчику не сообщает.</summary>
+    private bool _quiet;
+
     /// <summary>Создаёт интерпретатор прогона.</summary>
     public Interpreter(RunContext context, FunctionRegistry registry, DiagnosticBag diagnostics, SourceText? source = null)
     {
@@ -100,6 +112,9 @@ public sealed partial class Interpreter
         _global = parent._global;
         _depth = parent._depth;
         _currentStage = parent._currentStage;
+        _frame = parent._frame;
+        _quiet = parent._quiet;
+        _thread = _context.NextDebugThread();
     }
 
     /// <summary>Создаёт интерпретатор для ветви параллельного участка.</summary>
@@ -119,6 +134,8 @@ public sealed partial class Interpreter
 
         SeedHostData();
         Hoist(unit);
+
+        if (_context.Debugger != null) _frame = new DebugFrame("скрипт", false, default, null, _global);
 
         foreach (Stmt statement in unit.Statements)
         {
@@ -219,15 +236,35 @@ public sealed partial class Interpreter
         _context.CountStep();
         _context.Cancellation.ThrowIfCancellationRequested();
 
+        // Объявления и use исполняются при подъёме — остановка на них ничего бы не показала.
+        if (_context.Debugger != null && statement is not (FunctionDeclStmt or UseStmt or OptionsStmt))
+            NotifyDebugger(DebugEventKind.Statement, statement.Span, scope, null);
+
         try
         {
             return await ExecuteCoreAsync(statement, scope).ConfigureAwait(false);
         }
-        catch (ScriptError error) when (error.Span == null)
+        catch (ScriptError error) when (Observe(error, statement, scope))
         {
-            error.Span = statement.Span;
             throw;
         }
+    }
+
+    /// <summary>
+    /// Ошибка инструкции: место — по самой внутренней инструкции, отладчику — один раз, пока
+    /// область имён места ошибки ещё жива. Всегда <c>false</c>: ошибка летит дальше нетронутой.
+    /// </summary>
+    private bool Observe(ScriptError error, Stmt statement, Scope scope)
+    {
+        error.Span ??= statement.Span;
+
+        if (_context.Debugger != null && !error.DebuggerSeen && error is not ScriptAbort)
+        {
+            error.DebuggerSeen = true;
+            NotifyDebugger(DebugEventKind.Error, error.Span.Value, scope, error);
+        }
+
+        return false;
     }
 
     private async ValueTask<Completion> ExecuteCoreAsync(Stmt statement, Scope scope)

@@ -58,6 +58,12 @@ public sealed class RunOptions
     public IProgressSink? Progress { get; set; }
 
     /// <summary>
+    /// Отладчик: его зовут перед каждой инструкцией и при ошибке; <c>null</c> — без отладки.
+    /// С отладчиком потолок времени прогона не действует: на паузе время идёт, а прогон стоит.
+    /// </summary>
+    public IScriptDebugger? Debugger { get; set; }
+
+    /// <summary>
     /// Журнал опытов; <c>null</c> — журнала нет, и <c>exp.log</c> отвечает пустой таблицей.
     /// </summary>
     /// <remarks>
@@ -116,6 +122,7 @@ public sealed class RunOptions
             Cache = Cache,
             Parallelism = Parallelism,
             Progress = Progress,
+            Debugger = Debugger,
             Journal = Journal,
             Pilot = Pilot,
             Network = Network,

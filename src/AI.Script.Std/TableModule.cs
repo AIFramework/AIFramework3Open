@@ -26,6 +26,40 @@ public static partial class TableModule
         return ScriptTable.Create(columns);
     }
 
+    /// <remarks>
+    /// Строками думать естественнее, чем колонками: так приходят ответы, ограничения задачи, записи
+    /// журнала. Колонки — объединение полей в порядке появления; нет поля в строке — пропуск.
+    /// </remarks>
+    [ScriptFn("from_rows", "Таблица из списка записей-строк", Example = "table.from_rows([{ x: 1, y: \"a\" }, { x: 2, y: \"b\" }])")]
+    public static ScriptTable FromRows([ScriptParam("список записей")] ScriptList rows)
+    {
+        var records = new ScriptRecord[rows.Count];
+        var names = new List<string>();
+
+        for (int i = 0; i < rows.Count; i++)
+        {
+            records[i] = rows[i].AsRecord($"строка {i}");
+
+            foreach (var pair in records[i].Pairs())
+            {
+                if (!names.Contains(pair.Key)) names.Add(pair.Key);
+            }
+        }
+
+        var columns = new List<ScriptColumn>(names.Count);
+
+        foreach (string name in names)
+        {
+            var values = new ScriptValue[records.Length];
+
+            for (int i = 0; i < records.Length; i++) values[i] = records[i].TryGet(name, out ScriptValue value) ? value : ScriptValue.None;
+
+            columns.Add(ScriptColumn.Own(name, values));
+        }
+
+        return ScriptTable.Create(columns);
+    }
+
     [ScriptFn("from_matrix", "Таблица из матрицы", Example = "table.from_matrix(m, cols: [\"x\", \"y\"])")]
     public static ScriptTable FromMatrix(
         [ScriptParam("матрица")] Matrix m,

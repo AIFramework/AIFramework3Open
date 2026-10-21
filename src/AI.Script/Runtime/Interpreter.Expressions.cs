@@ -1,5 +1,6 @@
 using AI.DataStructs.Algebraic;
 using AI.Script.Binding;
+using AI.Script.Hosting;
 using AI.Script.Semantics;
 using AI.Script.Syntax;
 using AI.Script.Syntax.Ast;
@@ -334,7 +335,8 @@ public sealed partial class Interpreter
 
             throw new ScriptError(
                 DiagnosticCodes.UnknownFunction,
-                $"у дескриптора '{handle.TypeName}' нет метода '{member.Name}'")
+                $"у дескриптора '{handle.TypeName}' нет метода '{member.Name}'",
+                MethodHint(handle.TypeName))
             {
                 Span = member.NameSpan,
             };
@@ -408,7 +410,8 @@ public sealed partial class Interpreter
                         {
                             throw new ScriptError(
                                 DiagnosticCodes.UnknownFunction,
-                                $"у дескриптора '{handle.TypeName}' нет метода '{member.Name}'")
+                                $"у дескриптора '{handle.TypeName}' нет метода '{member.Name}'",
+                                MethodHint(handle.TypeName))
                             {
                                 Span = member.NameSpan,
                             };
@@ -529,6 +532,9 @@ public sealed partial class Interpreter
 
         try
         {
+            if (function.IsElementwise && slots[0].Type is ScriptType.Vec or ScriptType.List or ScriptType.Range)
+                return await InvokeElementwiseAsync(function, slots).ConfigureAwait(false);
+
             return await function.Invoke(slots, _context).ConfigureAwait(false);
         }
         catch (ScriptError error)
@@ -536,6 +542,37 @@ public sealed partial class Interpreter
             error.Span ??= span;
             throw;
         }
+    }
+
+    /// <summary>
+    /// Методы дескриптора — подсказкой к «нет метода»: имя метода угадывают по привычке из других
+    /// библиотек (transform, coefficients), а перечень сразу показывает, что есть на самом деле.
+    /// </summary>
+    private string MethodHint(string handleType)
+    {
+        IReadOnlyList<string> methods = _registry.MethodsOf(handleType);
+
+        return methods.Count == 0 ? "у этого дескриптора нет методов" : "методы: " + string.Join(", ", methods);
+    }
+
+    /// <summary>
+    /// Функция числа от числа над вектором: по вызову на элемент, остальные аргументы общие.
+    /// Проверка типов уже знает, что результат — вектор (<see cref="ScriptFunction.IsElementwise"/>).
+    /// </summary>
+    private async ValueTask<ScriptValue> InvokeElementwiseAsync(ScriptFunction function, ScriptValue[] slots)
+    {
+        Vector source = Binding.Marshaller.ToVector(slots[0], $"аргумент '{function.Parameters[0].Name}' функции '{function.FullName}'");
+        var result = new Vector(source.Count);
+        var element = (ScriptValue[])slots.Clone();
+
+        for (int i = 0; i < source.Count; i++)
+        {
+            element[0] = ScriptValue.Num(source[i]);
+            result[i] = (await function.Invoke(element, _context).ConfigureAwait(false)).AsNumber(function.FullName);
+        }
+
+        _context.CountAllocation(source.Count);
+        return ScriptValue.Vec(result);
     }
 
     private static ScriptValue[] BindNative(
@@ -750,8 +787,17 @@ public sealed partial class Interpreter
     {
         _depth++;
 
+        // Кадр отладчика — только с отладчиком: без него вызов не платит ни одной лишней выделенной памяти.
+        DebugFrame? caller = _frame;
+
+        if (_context.Debugger != null && caller != null) _frame = new DebugFrame(closure.Name, closure.IsStage, span, caller, scope);
+
         try
         {
+            // У лямбды-выражения (x => x * x) нет инструкций — остановка встаёт на само выражение.
+            if (_context.Debugger != null && closure.Body is not BlockExpr)
+                NotifyDebugger(DebugEventKind.Statement, closure.Body.Span, scope, null);
+
             if (closure.Body is BlockExpr block)
             {
                 Completion completion = await ExecuteBlockAsync(block, scope).ConfigureAwait(false);
@@ -774,6 +820,7 @@ public sealed partial class Interpreter
         finally
         {
             _depth--;
+            _frame = caller;
         }
     }
 
@@ -840,6 +887,7 @@ public sealed partial class Interpreter
         await Parallel.ForAsync(0, items.Count, scheduling, async (index, cancellation) =>
         {
             Interpreter branch = Branch();
+            branch._branchIndex = index;
 
             using (_context.UseBranchRandom(section, index))
                 results[index] = await branch.CallAsync(callable, items[index]).ConfigureAwait(false);

@@ -19,7 +19,6 @@ public sealed class TypeCheckTests
     [InlineData("emit r = math.sqrtt(4)", DiagnosticCodes.UnknownFunction)]
     [InlineData("emit r = math.clamp(5, lo: 0)", DiagnosticCodes.UnknownArgument)]
     [InlineData("emit r = math.pow(2)", DiagnosticCodes.MissingArgument)]
-    [InlineData("emit r = core.round(1.5, 2)", DiagnosticCodes.ExtraPositional)]
     [InlineData("let revenue = 1\nemit r = revenu", DiagnosticCodes.UnboundName)]
     [InlineData("let x = 1\nlet x = 2", DiagnosticCodes.DuplicateLet)]
     [InlineData("set x = 1", DiagnosticCodes.UnboundSet)]

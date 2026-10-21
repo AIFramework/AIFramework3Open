@@ -52,4 +52,7 @@ public sealed class Scope
 
     /// <summary>Имена, объявленные в этой области.</summary>
     public IReadOnlyCollection<string> Names => _values.Keys;
+
+    /// <summary>Имена и значения этой области (без родительских) — для отладчика.</summary>
+    public IEnumerable<KeyValuePair<string, ScriptValue>> Entries => _values;
 }

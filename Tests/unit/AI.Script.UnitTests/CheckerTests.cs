@@ -51,7 +51,7 @@ public sealed class CheckerTests
         Diagnostic error = Script.CheckFailsWith("emit r = math.sqrt(4, 5)");
 
         Assert.Equal(DiagnosticCodes.ExtraPositional, error.Code);
-        Assert.Contains("по имени", error.Hint, StringComparison.Ordinal);
+        Assert.Contains("сигнатура", error.Hint, StringComparison.Ordinal);
     }
 
     [Fact]

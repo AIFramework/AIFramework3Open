@@ -6,6 +6,7 @@ using AI.Script.Llm;
 using AI.Script.Media;
 using AI.Script.Nn;
 using AI.Script.Office;
+using AI.Script.Science;
 using AI.Script.Vision;
 using AI.Script.Semantics;
 using AI.Script.Std;
@@ -26,7 +27,7 @@ internal static class Script
     /// сети и без ключей — разбор, проверка и словесный поиск. Обращение к модели на таком
     /// хосте отказывает внятным сообщением, а не молчаливым таймаутом.
     /// </remarks>
-    public static ScriptHost FullHost() => Host().UseLlm().UseChem().UseNeuralNetworks().UseVision().UseOffice().UseData().UseMedia();
+    public static ScriptHost FullHost() => Host().UseLlm().UseChem().UseNeuralNetworks().UseVision().UseOffice().UseData().UseMedia().UseScience();
 
     /// <summary>Выполняет скрипт.</summary>
     public static RunResult Run(string source, RunOptions? options = null) =>

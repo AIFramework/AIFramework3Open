@@ -21,6 +21,9 @@ public class ScriptError : Exception
     /// <summary>Отрезок исходника; заполняется интерпретатором.</summary>
     public TextSpan? Span { get; set; }
 
+    /// <summary>Отладчик уже видел эту ошибку: о ней сообщают один раз — там, где она возникла.</summary>
+    internal bool DebuggerSeen { get; set; }
+
     /// <summary>Создаёт отказ.</summary>
     public ScriptError(string code, string message, string? hint = null)
         : base(message)

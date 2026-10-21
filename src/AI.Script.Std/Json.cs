@@ -155,6 +155,26 @@ public static class Json
                     return;
                 }
 
+            case ScriptType.Mat:
+                {
+                    // Матрица — массивом строк: так её читают и люди, и модели, а emit матрицы больше не
+                    // роняет отчёт о прогоне.
+                    Matrix matrix = value.AsMatrix();
+                    var rows = new ScriptValue[matrix.Height];
+
+                    for (int i = 0; i < matrix.Height; i++)
+                    {
+                        var cells = new Vector(matrix.Width);
+
+                        for (int j = 0; j < matrix.Width; j++) cells[j] = matrix[i, j];
+
+                        rows[i] = ScriptValue.Vec(cells);
+                    }
+
+                    AppendArray(builder, ScriptList.Own(rows), pretty, depth);
+                    return;
+                }
+
             case ScriptType.List:
                 AppendArray(builder, value.AsList(), pretty, depth);
                 return;

@@ -122,7 +122,8 @@ public sealed class ScriptHost
 
         using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        if (effective.Limits.Timeout is TimeSpan timeout && timeout > TimeSpan.Zero)
+        // С отладчиком потолок времени снят: на паузе время идёт, а прогон стоит.
+        if (effective.Debugger == null && effective.Limits.Timeout is TimeSpan timeout && timeout > TimeSpan.Zero)
             timeoutSource.CancelAfter(timeout);
 
         var context = new RunContext(effective, _registry, diagnostics, timeoutSource.Token)

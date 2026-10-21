@@ -247,7 +247,7 @@ public static class Marshaller
         return (long)rounded;
     }
 
-    private static Vector ToVector(ScriptValue value, string what)
+    internal static Vector ToVector(ScriptValue value, string what)
     {
         if (value.Type == ScriptType.Vec) return value.AsVector(what);
         if (value.Type == ScriptType.Range) return new Vector(value.AsRange().Values());

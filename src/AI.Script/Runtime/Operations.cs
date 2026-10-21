@@ -95,6 +95,13 @@ public static class Operations
         if (left.Type == ScriptType.Mat || right.Type == ScriptType.Mat)
             return MatrixArithmetic(op, left, right);
 
+        // Числовой список рядом с вектором или числом считается вектором: core.map над вектором
+        // отдаёт список, и без этого после map не складывалось и не умножалось бы ничего.
+        if (left.Type == ScriptType.List && right.Type is ScriptType.Vec or ScriptType.Num)
+            left = ScriptValue.Vec(Binding.Marshaller.ToVector(left, "левый операнд"));
+        else if (right.Type == ScriptType.List && left.Type is ScriptType.Vec or ScriptType.Num)
+            right = ScriptValue.Vec(Binding.Marshaller.ToVector(right, "правый операнд"));
+
         if (left.Type == ScriptType.Vec || right.Type == ScriptType.Vec)
             return VectorArithmetic(op, left, right);
 

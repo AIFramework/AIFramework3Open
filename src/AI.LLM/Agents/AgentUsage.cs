@@ -21,6 +21,12 @@ public sealed class AgentUsage
     /// <summary>Суммарное число токенов (prompt + completion).</summary>
     public int TotalTokens { get; private set; }
 
+    /// <summary>
+    /// Токены промпта последнего LLM-вызова — сколько контекста модели занято сейчас:
+    /// сумма по итерациям этого не показывает, каждая итерация отправляет весь диалог заново.
+    /// </summary>
+    public int LastPromptTokens { get; private set; }
+
     /// <summary>Суммарная стоимость LLM-вызовов (если провайдер возвращает cost).</summary>
     public decimal? TotalCost { get; private set; }
 
@@ -52,6 +58,7 @@ public sealed class AgentUsage
         if (usage == null) return;
 
         PromptTokens += usage.PromptTokens;
+        LastPromptTokens = usage.PromptTokens;
         CompletionTokens += usage.CompletionTokens;
         ReasoningTokens += usage.ReasoningTokens;
         TotalTokens += usage.TotalTokens;

@@ -628,7 +628,7 @@ public static class SimModule
             ScriptCallable callable = flow.AsCallable($"поток '{name}'");
 
             double NetFlow(double time, IReadOnlyList<double> levels) =>
-                ScriptCallbacks.Invoke(context, callable, ScriptValue.Num(time), ScriptValue.Record(Levels(names, levels)))
+                ScriptCallbacks.Invoke(context, callable, ScriptValue.Num(time), ScriptValue.Record(ScriptData.Numbers(names, levels)))
                     .AsNumber($"{function}: поток '{name}'");
 
             _ = model.AddStock(
@@ -821,15 +821,6 @@ public static class SimModule
         for (int i = 0; i < list.Count; i++) facts[i] = list[i].AsString($"actions[{index}].{field}[{i}]");
 
         return facts;
-    }
-
-    private static ScriptRecord Levels(IReadOnlyList<string> names, IReadOnlyList<double> levels)
-    {
-        var fields = new List<KeyValuePair<string, ScriptValue>>(names.Count);
-
-        for (int j = 0; j < names.Count; j++) fields.Add(new(names[j], ScriptValue.Num(levels[j])));
-
-        return ScriptRecord.From(fields);
     }
 
     private static double Bound(

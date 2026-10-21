@@ -155,9 +155,23 @@ public static class Manifest
 
         IReadOnlyList<string> nearest = Suggestions.Nearest(query, names);
 
-        return nearest.Count > 0
-            ? $"Ничего не найдено по запросу '{query}'. Возможно: {string.Join(", ", nearest)}."
-            : $"Ничего не найдено по запросу '{query}'. Список пространств: help().";
+        if (nearest.Count > 0)
+            return $"Ничего не найдено по запросу '{query}'. Возможно: {string.Join(", ", nearest)}.";
+
+        // Не опечатка в имени, а слова задачи («корреляция», «скользящее среднее») — то же, что
+        // find_fn: модель спрашивает help и не обязана знать о второй функции поиска.
+        IReadOnlyList<ManifestMatch> found = ManifestBuilder.Search(modules, query, 8);
+
+        if (found.Count > 0)
+        {
+            var list = new StringBuilder($"По запросу «{query}» подходят:\n");
+
+            foreach (ManifestMatch match in found) list.Append("  ").Append(match.Function.Signature).Append('\n');
+
+            return list.Append("Подробно — help(\"пространство.функция\").").ToString();
+        }
+
+        return $"Ничего не найдено по запросу '{query}'. Список пространств: help().";
     }
 
     private static IEnumerable<IScriptModule> Ordered(IReadOnlyList<IScriptModule> modules)

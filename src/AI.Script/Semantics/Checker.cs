@@ -21,6 +21,9 @@ namespace AI.Script.Semantics;
 /// </remarks>
 public sealed partial class Checker
 {
+    /// <summary>До скольких имён пространство перечисляется в подсказке к неизвестной функции.</summary>
+    private const int MaxListedFunctions = 40;
+
     private readonly DiagnosticBag _diagnostics;
     private readonly FunctionRegistry _registry;
     private readonly Dictionary<string, FunctionDeclStmt> _declared = new(StringComparer.Ordinal);
@@ -1024,11 +1027,11 @@ public sealed partial class Checker
                         return null;
                     }
 
-                    CheckNativeArguments(call, function, argumentTypes, piped, pipedType);
+                    bool elementwise = CheckNativeArguments(call, function, argumentTypes, piped, pipedType);
                     CheckColumnArguments(call, function, pipedSource);
                     RecordInput(call, function, pipedSource);
                     WarnIfUnavailable(function, member.Span);
-                    return ReturnTypeOf(function);
+                    return elementwise ? ScriptType.Vec : ReturnTypeOf(function);
                 }
 
             case MemberExpr member:
@@ -1064,9 +1067,9 @@ public sealed partial class Checker
                         return null;
                     }
 
-                    CheckNativeArguments(call, function, argumentTypes, piped, pipedType);
+                    bool elementwise = CheckNativeArguments(call, function, argumentTypes, piped, pipedType);
                     RecordInput(call, function, pipedSource);
-                    return ReturnTypeOf(function);
+                    return elementwise ? ScriptType.Vec : ReturnTypeOf(function);
                 }
 
             default:
@@ -1086,11 +1089,16 @@ public sealed partial class Checker
     /// Сверяет аргументы вызова с сигнатурой функции модуля.
     /// </summary>
     /// <remarks>
-    /// Правило простое и потому запоминаемое: позиционно передаются обязательные параметры в
-    /// порядке объявления, всё необязательное — только по имени. По имени можно передать что
-    /// угодно. Так порядок аргументов перестаёт быть тем, в чём можно ошибиться молча.
+    /// Позиционно параметры заполняются в порядке объявления — и обязательные, и необязательные
+    /// (<c>core.round(x, 2)</c>, <c>str.replace(s, ",", ".")</c>): так пишет любой, кто пришёл из
+    /// других языков, и модель в том числе. По имени можно передать что угодно, и это нагляднее.
+    /// <para>
+    /// Функция числа от числа принимает и вектор (<see cref="ScriptFunction.IsElementwise"/>): тогда
+    /// вызов поэлементный, а результат — вектор.
+    /// </para>
     /// </remarks>
-    private void CheckNativeArguments(
+    /// <returns>true — вызов поэлементный: результат вектор, а не тип из сигнатуры.</returns>
+    private bool CheckNativeArguments(
         CallExpr call,
         ScriptFunction function,
         IReadOnlyList<ScriptType?> argumentTypes,
@@ -1111,13 +1119,13 @@ public sealed partial class Checker
 
         if (piped && !hasPlaceholder) positional++;
 
-        int allowed = function.IsVariadic ? int.MaxValue : Math.Max(function.RequiredCount, 1);
+        int allowed = function.IsVariadic ? int.MaxValue : Math.Max(function.Parameters.Count, 1);
 
         if (positional > allowed)
         {
             _diagnostics.Error(DiagnosticCodes.ExtraPositional, call.ArgumentsSpan,
-                $"слишком много позиционных аргументов: {positional}, а обязательных параметров {function.RequiredCount}",
-                $"необязательные параметры передаются только по имени\nсигнатура: {function.Signature}");
+                $"слишком много позиционных аргументов: {positional}, а параметров {function.Parameters.Count}",
+                $"сигнатура: {function.Signature}");
         }
 
         int cursor = 0;
@@ -1168,10 +1176,18 @@ public sealed partial class Checker
             slots.Add((parameter, argumentTypes[i], argument.Span));
         }
 
+        bool elementwise = false;
+
         foreach ((ScriptParameter parameter, ScriptType? type, TextSpan span) in slots)
         {
             if (type is not ScriptType actual) continue;
             if (parameter.IsVariadic || TypeRules.Accepts(parameter.Type, actual)) continue;
+
+            if (function.IsElementwise && ReferenceEquals(parameter, function.Parameters[0]) && actual is ScriptType.Vec or ScriptType.List or ScriptType.Range)
+            {
+                elementwise = true;
+                continue;
+            }
 
             _diagnostics.Error(DiagnosticCodes.TypeMismatch, span,
                 $"аргумент '{parameter.Name}' функции '{function.FullName}': ожидался {parameter.Type.ToName()}, передан {actual.ToName()}",
@@ -1187,6 +1203,8 @@ public sealed partial class Checker
                 $"не передан обязательный аргумент '{parameter.Name}' функции '{function.FullName}'",
                 $"{parameter.Description}\nсигнатура: {function.Signature}".Trim());
         }
+
+        return elementwise;
     }
 
     /// <summary>Сверяет аргументы вызова с объявлением <c>fn</c> из этого же файла.</summary>
@@ -1564,6 +1582,11 @@ public sealed partial class Checker
         }
 
         string suffix = asCallee ? string.Empty : "\nобращение к полю записи требует, чтобы слева было связанное имя";
+
+        // Близкого по написанию нет (percent → pct) — перечень имён пространства: из него ответ
+        // виден сразу, без лишнего круга через help.
+        if (names.Count is > 0 and <= MaxListedFunctions)
+            return $"функции {ns}: {string.Join(", ", names.OrderBy(n => n, StringComparer.Ordinal))}\nописания: help(\"{ns}\"){suffix}";
 
         return $"все функции пространства: help(\"{ns}\"){suffix}";
     }

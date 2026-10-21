@@ -123,6 +123,20 @@ public sealed class Lexer
                 continue;
             }
 
+            // Комментарий из C-подобных языков: одна ошибка с советом, а строка пропускается как
+            // комментарий — иначе из одного '//' вырастал каскад из восьми ошибок разбора.
+            if (c == '/' && Peek(1) == '/')
+            {
+                int start = _position;
+                while (_position < _end && Current is not ('\r' or '\n')) _position++;
+
+                _diagnostics.Error(
+                    DiagnosticCodes.InvalidCharacter, TextSpan.FromBounds(start, Math.Min(start + 2, _end)),
+                    "комментарий в AIScript начинается с '#', а не с '//'",
+                    "замени '//' на '#'");
+                continue;
+            }
+
             break;
         }
 
@@ -187,6 +201,17 @@ public sealed class Lexer
 
             case '*':
                 if (Current == '=') { _position++; return Make(TokenKind.StarAssign, start); }
+                if (Current == '*')
+                {
+                    // Степень из Python: ошибка с советом, а разбор идёт дальше как '^'.
+                    _position++;
+                    _diagnostics.Error(
+                        DiagnosticCodes.InvalidCharacter, new TextSpan(start, 2),
+                        "степень в AIScript записывается как '^', а не '**'",
+                        "x ^ 2 вместо x ** 2");
+                    return Make(TokenKind.Caret, start);
+                }
+
                 return Make(TokenKind.Star, start);
 
             case '/':
@@ -384,7 +409,22 @@ public sealed class Lexer
 
         string word = _source.Text.Substring(_position + 1, length);
 
-        if (s_keywords.ContainsKey(word) || !UnitCatalog.TryLiteral(word, out MeasureUnit unit)) return null;
+        if (s_keywords.ContainsKey(word)) return null;
+
+        if (!UnitCatalog.TryLiteral(word, out MeasureUnit unit))
+        {
+            // Время с пробелом (1.5 h, 90 min): одна ошибка с советом, а не каскад разбора — единица
+            // съедается, и дальше скрипт разбирается как с величиной.
+            if (!UnitCatalog.TryGet(word, out unit)) return null;
+
+            int number = _position;
+            while (number > 0 && (char.IsAsciiDigit(_source.Text[number - 1]) || _source.Text[number - 1] is '.' or '_')) number--;
+            string digits = _source.Text[number.._position];
+            _diagnostics.Error(
+                DiagnosticCodes.InvalidNumber, TextSpan.FromBounds(number, _position + 1 + length),
+                $"время с единицей через пробел ('{digits} {word}') не записывается",
+                $"длительность — слитно: {digits}{(word == "min" ? "m" : word)}; величина времени для расчётов — qty.of({digits}, \"{word}\")");
+        }
 
         _position += 1 + length;
 
