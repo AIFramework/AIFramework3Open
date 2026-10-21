@@ -1,5 +1,6 @@
 using AI.DataStructs.Algebraic;
 using AI.Script.Binding;
+using AI.Script.Hosting;
 using AI.Script.Semantics;
 using AI.Script.Syntax;
 using AI.Script.Syntax.Ast;
@@ -750,8 +751,17 @@ public sealed partial class Interpreter
     {
         _depth++;
 
+        // Кадр отладчика — только с отладчиком: без него вызов не платит ни одной лишней выделенной памяти.
+        DebugFrame? caller = _frame;
+
+        if (_context.Debugger != null && caller != null) _frame = new DebugFrame(closure.Name, closure.IsStage, span, caller, scope);
+
         try
         {
+            // У лямбды-выражения (x => x * x) нет инструкций — остановка встаёт на само выражение.
+            if (_context.Debugger != null && closure.Body is not BlockExpr)
+                NotifyDebugger(DebugEventKind.Statement, closure.Body.Span, scope, null);
+
             if (closure.Body is BlockExpr block)
             {
                 Completion completion = await ExecuteBlockAsync(block, scope).ConfigureAwait(false);
@@ -774,6 +784,7 @@ public sealed partial class Interpreter
         finally
         {
             _depth--;
+            _frame = caller;
         }
     }
 
@@ -840,6 +851,7 @@ public sealed partial class Interpreter
         await Parallel.ForAsync(0, items.Count, scheduling, async (index, cancellation) =>
         {
             Interpreter branch = Branch();
+            branch._branchIndex = index;
 
             using (_context.UseBranchRandom(section, index))
                 results[index] = await branch.CallAsync(callable, items[index]).ConfigureAwait(false);

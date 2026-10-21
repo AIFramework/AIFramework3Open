@@ -32,6 +32,7 @@ public sealed class RunContext : IScriptContext
 
     private Random _random;
     private int _calls;
+    private int _debugThreads;
 
     /// <summary>Создаёт состояние прогона.</summary>
     public RunContext(
@@ -49,6 +50,7 @@ public sealed class RunContext : IScriptContext
         Counters = new LimitCounters(options.Limits);
         Cache = options.Cache ?? DisabledStageCache.Instance;
         Progress = options.Progress;
+        Debugger = options.Debugger;
         Journal = options.Journal;
         Pilot = options.Pilot;
         Parallelism = Math.Max(1, options.Parallelism);
@@ -73,6 +75,12 @@ public sealed class RunContext : IScriptContext
 
     /// <summary>Приёмник сообщений о ходе работы; <c>null</c>, если хосту это не нужно.</summary>
     public IProgressSink? Progress { get; }
+
+    /// <summary>Отладчик прогона; <c>null</c> — без отладки.</summary>
+    public IScriptDebugger? Debugger { get; }
+
+    /// <summary>Номер для новой ветви исполнения — отладчик различает по нему потоки параллельного участка.</summary>
+    internal int NextDebugThread() => Interlocked.Increment(ref _debugThreads);
 
     /// <inheritdoc/>
     public IExperimentJournal? Journal { get; }

@@ -84,7 +84,10 @@ public sealed class RunGraph
     private readonly List<StageNode> _nodes = [];
 
     /// <summary>Узлы в порядке начала выполнения.</summary>
-    public IReadOnlyList<StageNode> Nodes => _nodes;
+    public IReadOnlyList<StageNode> Nodes
+    {
+        get { lock (_nodes) return _nodes.ToArray(); }
+    }
 
     /// <summary>Есть ли в графе хоть один узел.</summary>
     public bool IsEmpty => _nodes.Count == 0;
@@ -108,11 +111,15 @@ public sealed class RunGraph
     /// <summary>Заводит узел для нового вызова стадии.</summary>
     public StageNode Add(string name, int? caller)
     {
-        var node = new StageNode { Id = _nodes.Count, Name = name, Caller = caller };
+        // Под замком: стадии зовутся и из ветвей core.map(parallel: true), а номер — это позиция в списке.
+        lock (_nodes)
+        {
+            var node = new StageNode { Id = _nodes.Count, Name = name, Caller = caller };
 
-        _nodes.Add(node);
+            _nodes.Add(node);
 
-        return node;
+            return node;
+        }
     }
 
     /// <summary>Отчёт для человека: список стадий с итогами.</summary>
