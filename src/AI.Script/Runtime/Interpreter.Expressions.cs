@@ -530,6 +530,9 @@ public sealed partial class Interpreter
 
         try
         {
+            if (function.IsElementwise && slots[0].Type is ScriptType.Vec or ScriptType.List or ScriptType.Range)
+                return await InvokeElementwiseAsync(function, slots).ConfigureAwait(false);
+
             return await function.Invoke(slots, _context).ConfigureAwait(false);
         }
         catch (ScriptError error)
@@ -537,6 +540,26 @@ public sealed partial class Interpreter
             error.Span ??= span;
             throw;
         }
+    }
+
+    /// <summary>
+    /// Функция числа от числа над вектором: по вызову на элемент, остальные аргументы общие.
+    /// Проверка типов уже знает, что результат — вектор (<see cref="ScriptFunction.IsElementwise"/>).
+    /// </summary>
+    private async ValueTask<ScriptValue> InvokeElementwiseAsync(ScriptFunction function, ScriptValue[] slots)
+    {
+        Vector source = Binding.Marshaller.ToVector(slots[0], $"аргумент '{function.Parameters[0].Name}' функции '{function.FullName}'");
+        var result = new Vector(source.Count);
+        var element = (ScriptValue[])slots.Clone();
+
+        for (int i = 0; i < source.Count; i++)
+        {
+            element[0] = ScriptValue.Num(source[i]);
+            result[i] = (await function.Invoke(element, _context).ConfigureAwait(false)).AsNumber(function.FullName);
+        }
+
+        _context.CountAllocation(source.Count);
+        return ScriptValue.Vec(result);
     }
 
     private static ScriptValue[] BindNative(

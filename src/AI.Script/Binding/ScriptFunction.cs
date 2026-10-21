@@ -65,6 +65,15 @@ public sealed class ScriptFunction
     /// <summary>Тип результата.</summary>
     public ScriptType ReturnType { get; init; } = ScriptType.Any;
 
+    /// <summary>
+    /// Функция числа от числа — её можно применить к вектору поэлементно: <c>math.sqrt(v)</c>,
+    /// <c>core.round(v, 2)</c>. Вектор (или числовой список) встаёт на место первого параметра,
+    /// остальные аргументы общие для всех элементов, результат — вектор.
+    /// </summary>
+    public bool IsElementwise =>
+        Parameters.Count > 0 && Parameters[0].Type == ScriptType.Num && !Parameters[0].IsVariadic
+        && ReturnType == ScriptType.Num && MethodOf == null;
+
     /// <summary>Тип-тег результата, если возвращается дескриптор.</summary>
     public string? ReturnHandleType { get; init; }
 
