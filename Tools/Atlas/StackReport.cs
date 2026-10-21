@@ -3,6 +3,7 @@ using AI.Script.Chem;
 using AI.Script.Hosting;
 using AI.Script.Llm;
 using AI.Script.Nn;
+using AI.Script.Science;
 using AI.Script.Std;
 using AI.Script.Vision;
 using System.Text;
@@ -23,7 +24,7 @@ public static class StackReport
     /// стека должна видеть те же функции, что и справка <c>script_help</c>.
     /// </summary>
     public static ScriptHost CreateScriptHost() =>
-        StandardLibrary.CreateHost().UseCharts().UseLlm().UseChem().UseNeuralNetworks().UseVision();
+        StandardLibrary.CreateHost().UseCharts().UseLlm().UseChem().UseNeuralNetworks().UseVision().UseScience();
 
     /// <summary>Собирает и проверяет стек.</summary>
     /// <param name="context">Индекс и поиск.</param>

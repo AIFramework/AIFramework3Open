@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\..\src\AI.Script.Data\AI.Script.Data.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Script.Media\AI.Script.Media.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Script.Office\AI.Script.Office.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.Script.Science\AI.Script.Science.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AI.Script.Science</RootNamespace>
+    <AssemblyName>AI.Script.Science</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Естественные науки отдельным пакетом, как и химия: ядру языка незачем тянуть физику и
+       биологию, а биология сама зависит от химического тулкита. Std подключён ради общего
+       разбора аргументов и вызова функций скрипта из численных методов. -->
+  <ItemGroup>
+    <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
+    <ProjectReference Include="..\AI.Physics\AI.Physics.csproj" />
+    <ProjectReference Include="..\AI.Biology\AI.Biology.csproj" />
+    <ProjectReference Include="..\AI.Script\AI.Script.csproj" />
+    <ProjectReference Include="..\AI.Script.Std\AI.Script.Std.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -319,6 +319,22 @@ internal static class ScriptData
         return ScriptRecord.From(built);
     }
 
+    /// <summary>
+    /// Запись чисел по именам: состояние системы, параметры модели.
+    /// </summary>
+    /// <remarks>
+    /// Так функция скрипта получает текущее состояние в <c>sim.stock_flow</c> и <c>ode.solve</c>
+    /// и параметры в <c>fit.curve</c>: <c>s.prey</c>, <c>p.a</c> — по имени, а не по номеру.
+    /// </remarks>
+    public static ScriptRecord Numbers(IReadOnlyList<string> names, IReadOnlyList<double> values)
+    {
+        var fields = new List<KeyValuePair<string, ScriptValue>>(names.Count);
+
+        for (int j = 0; j < names.Count; j++) fields.Add(new(names[j], ScriptValue.Num(values[j])));
+
+        return ScriptRecord.From(fields);
+    }
+
     private static ScriptValue Value(object value) => value switch
     {
         ScriptValue scriptValue => scriptValue,

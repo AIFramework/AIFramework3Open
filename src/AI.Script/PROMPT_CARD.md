@@ -162,3 +162,12 @@ level: 2) |> doc.table(t) |> doc.figure(график) |> doc.save("отчёт.do
 **Сеть по умолчанию запрещена:** проверяй `llm.available()`, расход — `llm.usage()`.
 Ответ по схеме — `llm.json(запрос, schema: { сумма: "dec" })`. Запрос на каждую строку —
 `t |> llm.map(prompt: row => "...${row.name}")`, а не цикл. Не найденное правилами `doc` добирает `llm.extract`.
+
+<!-- ns: ode fit phys bio -->
+**Естественные науки — готовыми блоками, не формулами по памяти:** задачник физики —
+`phys.projectile(50, 45).range`, `phys.orbit(r).period`, `phys.ideal_gas(...)` (числа в СИ, углы
+в градусах); последовательности — `bio.translate`, `bio.align`, `bio.tree`; эпидемия —
+`bio.sir(0.3, 0.1).table`. Систему ОДУ решает `ode.solve((t, s) => { x: s.v, v: -s.x }, { x: 1, v: 0 },
+until: 10, events: { stop: (t, s) => s.x })`: ответ — запись, траектория в `.table`, момент
+события в `.t_event`. Формулу по точкам подгоняет `fit.curve((x, p) => p.a * math.exp(-p.b * x), x, y,
+{ a: 1, b: 0.1 })` — параметры в `.params`, качество в `.r2`.

@@ -9,6 +9,12 @@
     <AssemblyName>AI.Script.Std</AssemblyName>
   </PropertyGroup>
 
+  <!-- Пакет AI.Script.Science пользуется общими разбором аргументов и вызовом функций скрипта
+       (ScriptData, ScriptCallbacks): второй их экземпляр разошёлся бы с этим. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="AI.Script.Science" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />
     <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />

@@ -44,6 +44,7 @@
     <ProjectReference Include="..\..\src\AI.Script.Chem\AI.Script.Chem.csproj" />
     <ProjectReference Include="..\..\src\AI.Script.Nn\AI.Script.Nn.csproj" />
     <ProjectReference Include="..\..\src\AI.Script.Vision\AI.Script.Vision.csproj" />
+    <ProjectReference Include="..\..\src\AI.Script.Science\AI.Script.Science.csproj" />
   </ItemGroup>
 
 </Project>
