@@ -236,6 +236,42 @@ public class NativeToolCallPolicyTests
             m => Assert.Equal(50000, m.Content?.ToString()?.Length));
     }
 
+    [Fact]
+    public async Task NativeToolCallPolicy_DecideAsync_MarksSystemPromptForCacheOnlyWhenAsked()
+    {
+        var plain = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        var cached = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+
+        await new NativeToolCallPolicy(plain).DecideAsync(Context([new FakeReActTool("web_search")]));
+        await new NativeToolCallPolicy(cached, cacheSystemPrompt: true).DecideAsync(Context([new FakeReActTool("web_search")]));
+
+        Assert.Equal("инструкция", plain.SentMessages[0][0].Content);
+        var part = Assert.IsType<AI.LLM.Core.Models.Common.Messages.Content.TextContentItem>(
+            Assert.Single((AI.LLM.Core.Models.Common.Messages.Content.MessageContent)cached.SentMessages[0][0].Content));
+        Assert.Equal("инструкция", part.Text);
+        Assert.Equal("ephemeral", part.CacheControl?.Type);
+        // Метка должна дойти до тела запроса, а не остаться в объекте.
+        string json = System.Text.Json.JsonSerializer.Serialize(cached.SentMessages[0][0]);
+        Assert.Contains("\"cache_control\":{\"type\":\"ephemeral\"}", json);
+    }
+
+    [Fact]
+    public async Task ReActEngine_WithNativeToolCalling_DoesNotRepeatToolDescriptionsInSystemPrompt()
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithSystemPrompt("инструкция")
+            .WithTool(new FakeReActTool("web_search"))
+            .Build();
+
+        await engine.RunAsync("вопрос");
+
+        // Описания уже ушли полем tools — в промпте они оплачивались бы второй раз на каждом шаге.
+        Assert.DoesNotContain("web_search", llm.SentMessages[0][0].Content?.ToString());
+        Assert.Contains(llm.SentSettings[0]!.Tools, t => t.Function.Name == "web_search");
+    }
+
     private static ReActPolicyContext Context(
         IReadOnlyList<IReActTool> tools, ReActTrace? trace = null, int step = 1) =>
         new()

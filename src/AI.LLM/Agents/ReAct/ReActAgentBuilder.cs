@@ -54,8 +54,12 @@ public sealed class ReActAgentBuilder
     /// <summary>Решения через нативные вызовы инструментов.</summary>
     /// <param name="llm">Клиент модели.</param>
     /// <param name="settings">Настройки генерации.</param>
-    public ReActAgentBuilder WithNativeToolCalling(ILLMClient llm, GenerateSettings settings = null) =>
-        WithPolicy(new NativeToolCallPolicy(llm, settings));
+    /// <param name="cacheSystemPrompt">
+    /// Помечать системный промпт для кеша поставщика (<c>cache_control</c>). Нужно Anthropic и Gemini,
+    /// в том числе через OpenRouter; остальные кешируют префикс сами, а не всякий сервер примет метку.
+    /// </param>
+    public ReActAgentBuilder WithNativeToolCalling(ILLMClient llm, GenerateSettings settings = null, bool cacheSystemPrompt = false) =>
+        WithPolicy(new NativeToolCallPolicy(llm, settings, cacheSystemPrompt));
 
     /// <summary>Решения через структурированный текст (работает с любым поставщиком).</summary>
     /// <param name="llm">Клиент модели.</param>

@@ -2,6 +2,7 @@ using System.Text.Json;
 using AI.LLM.Agents.ReAct.Tools;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
+using AI.LLM.Core.Models.Common.Messages.Content;
 using AI.LLM.Core.Models.Common.Requests;
 using AI.LLM.Core.Models.Common.Responses;
 using AI.LLM.Core.Models.Common.ToolCalling;
@@ -34,15 +35,22 @@ public sealed class NativeToolCallPolicy : IReActPolicy
 
     private readonly ILLMClient _llm;
     private readonly GenerateSettings _settings;
+    private readonly bool _cacheSystemPrompt;
 
     /// <summary>Создаёт реализацию.</summary>
     /// <param name="llm">Клиент модели; должен поддерживать вызовы инструментов.</param>
     /// <param name="settings">Настройки генерации; при <c>null</c> берутся умеренные значения.</param>
-    public NativeToolCallPolicy(ILLMClient llm, GenerateSettings settings = null)
+    /// <param name="cacheSystemPrompt">Помечать системный промпт для кеша поставщика (<c>cache_control</c>).</param>
+    public NativeToolCallPolicy(ILLMClient llm, GenerateSettings settings = null, bool cacheSystemPrompt = false)
     {
         _llm = llm ?? throw new ArgumentNullException(nameof(llm));
         _settings = settings;
+        _cacheSystemPrompt = cacheSystemPrompt;
     }
+
+    /// <inheritdoc />
+    /// <remarks>Описания уходят полем <c>tools</c> запроса.</remarks>
+    public bool DescribesTools => true;
 
     /// <inheritdoc />
     public async Task<ReActDecision> DecideAsync(
@@ -50,7 +58,7 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        List<LLMMessage> messages = BuildMessages(context);
+        List<LLMMessage> messages = BuildMessages(context, _cacheSystemPrompt);
 
         // Копия, а не общий экземпляр: набор инструментов считается на каждый прогон, а движок
         // рассчитан на несколько одновременных. Правка общих настроек означала бы, что соседний
@@ -113,9 +121,14 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// идентификатором поставщик отверг бы запрос.
     /// </para>
     /// </summary>
-    private static List<LLMMessage> BuildMessages(ReActPolicyContext context)
+    private static List<LLMMessage> BuildMessages(ReActPolicyContext context, bool cacheSystemPrompt)
     {
-        var messages = new List<LLMMessage> { LLMMessage.CreateMessage(Roles.System, context.SystemPrompt) };
+        // Метка кеша — на системном промпте: вместе с инструментами перед ним это постоянный
+        // префикс каждого шага, и поставщик дальше считает его по цене чтения кеша.
+        LLMMessage system = cacheSystemPrompt
+            ? new LLMMessage(LLMMessage.SystemRole, new MessageContent { new TextContentItem(context.SystemPrompt) { CacheControl = CacheControl.Ephemeral } })
+            : LLMMessage.CreateMessage(Roles.System, context.SystemPrompt);
+        var messages = new List<LLMMessage> { system };
 
         foreach (LLMMessage message in context.Query?.History ?? [])
             messages.Add(message);

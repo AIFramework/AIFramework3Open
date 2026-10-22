@@ -175,7 +175,8 @@ public sealed partial class ReActEngine
         ReActRunContext toolContext = run.Query.ToRunContext();
         run.Tools = CollectTools(toolContext);
         run.Skills = SelectSkills(toolContext);
-        run.SystemPrompt = _template.BuildSystemPrompt(_basePrompt, run.Tools, run.Skills, toolContext);
+        // Способ, который сам отдаёт описания инструментов модели, не должен получить их ещё и в промпте.
+        run.SystemPrompt = _template.BuildSystemPrompt(_basePrompt, _policy.DescribesTools ? [] : run.Tools, run.Skills, toolContext);
 
         // Сводка прежнего диалога и воспоминания памяти — в конец промпта: постоянное начало
         // промпта остаётся одинаковым от хода к ходу, и поставщик берёт его из кеша.

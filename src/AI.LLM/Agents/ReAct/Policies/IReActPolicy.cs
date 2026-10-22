@@ -16,4 +16,11 @@ public interface IReActPolicy
     /// <see cref="ReActDecision.Malformed"/>, и только цикл решает, что с этим делать.
     /// </returns>
     Task<ReActDecision> DecideAsync(ReActPolicyContext context, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Передаёт ли способ описания инструментов модели сам — полем <c>tools</c> запроса. Тогда
+    /// системный промпт их не перечисляет: те же описания ушли бы дважды и оплачивались бы на
+    /// каждом шаге.
+    /// </summary>
+    bool DescribesTools => false;
 }

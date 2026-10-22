@@ -18,6 +18,12 @@ public sealed class AgentUsage
     /// <summary>Суммарное число токенов reasoning.</summary>
     public int ReasoningTokens { get; private set; }
 
+    /// <summary>
+    /// Сколько токенов промпта поставщик взял из кеша (входят в <see cref="PromptTokens"/>):
+    /// они дешевле, и по их доле видно, работает ли кеширование.
+    /// </summary>
+    public int CachedTokens { get; private set; }
+
     /// <summary>Суммарное число токенов (prompt + completion).</summary>
     public int TotalTokens { get; private set; }
 
@@ -61,6 +67,7 @@ public sealed class AgentUsage
         LastPromptTokens = usage.PromptTokens;
         CompletionTokens += usage.CompletionTokens;
         ReasoningTokens += usage.ReasoningTokens;
+        CachedTokens += usage.CachedTokens;
         TotalTokens += usage.TotalTokens;
 
         var cost = CostExtractor.TryExtract(usage.Cost);
