@@ -210,9 +210,12 @@ public partial class ChatLLMApi
     {
         var sendData = BuildStreamingSendData(context, generateSettings);
 
-        const int maxAttempts = 2;
+        // Повторяется только то, что повтор может вылечить: перегрузка, лимит частоты, сбой
+        // сервера, сеть. Неверный ключ, пустой счёт и переполнение окна сразу уходят наверх —
+        // раньше они повторялись вслепую, а Retry-After не учитывался.
+        const int maxAttempts = 3;
         const int initialDelaySeconds = 1;
-        Exception lastException = new Exception("Базовая ошибка");
+        LlmRequestException lastException = null;
 
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
@@ -227,11 +230,15 @@ public partial class ChatLLMApi
                         attempt,
                         response,
                         context,
-                        cancellationToken);
+                        cancellationToken,
+                        maxAttempts);
+                    Log.Warning(lastException.InnerException, "ChatLLMApi: {Message}", lastException.Message);
 
-                    // Задержка перед следующей попыткой
+                    if (!lastException.IsRetryable)
+                        throw lastException;
+
                     if (attempt < maxAttempts - 1)
-                        await DelayWithExponentialBackoff(attempt, initialDelaySeconds, cancellationToken);
+                        await DelayAsync(lastException.RetryAfter, attempt, initialDelaySeconds, cancellationToken);
 
                     continue;
                 }
@@ -240,28 +247,30 @@ public partial class ChatLLMApi
                 // BuildStreamingSendData ради раннего обнаружения зависших запросов.
                 return await ProcessStreamResponseInternal(response, cancellationToken);
             }
+            catch (LlmRequestException)
+            {
+                throw;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 var sendDataRaw = JsonConvert.SerializeObject(sendData).TruncateForLogging();
                 Log.Error(ex, $"ChatLLMApi SendWithContext Exception, ApiUrl={ApiUrl}, ModelName={ModelName}, SendData={sendDataRaw}");
 
-                lastException = await CreateProcessingErrorException(
+                lastException = LlmRequestException.NoResponse(ex, await CreateProcessingErrorException(
                     attempt,
                     ex,
                     context,
                     sendData,
-                    cancellationToken);
+                    cancellationToken));
 
-                // Проверяем на ошибку превышения лимита контекста - это не ретрится
-                var exceptionMessage = lastException.ToString();
-                if (exceptionMessage.Contains("maximum context length", StringComparison.OrdinalIgnoreCase) ||
-                    exceptionMessage.Contains("Please reduce the length", StringComparison.OrdinalIgnoreCase))
-                {
-                    Log.Warning("Context length limit exceeded - no retries will be attempted");
+                // Переполнение окна повтором не лечится.
+                if (!lastException.IsRetryable)
                     throw lastException;
-                }
 
-                // Задержка для обработки исключений
                 if (attempt < maxAttempts - 1)
                     await DelayWithExponentialBackoff(attempt, initialDelaySeconds, cancellationToken);
             }
@@ -269,6 +278,12 @@ public partial class ChatLLMApi
 
         throw lastException;
     }
+
+    /// <summary>Пауза перед повтором: сколько сказал сервер (<c>Retry-After</c>), иначе экспоненциально.</summary>
+    private static Task DelayAsync(TimeSpan? retryAfter, int attempt, int initialDelaySeconds, CancellationToken cancellationToken) =>
+        retryAfter is TimeSpan wait
+            ? Task.Delay(wait, cancellationToken)
+            : DelayWithExponentialBackoff(attempt, initialDelaySeconds, cancellationToken);
 
     /// <summary>
     /// Выполняет задержку с экспоненциальным увеличением времени ожидания

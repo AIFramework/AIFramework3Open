@@ -11,9 +11,10 @@ namespace AI.LLM.Clients.Base;
 public partial class ChatLLMApi
 {
     /// <summary>
-    /// Создает исключение для ошибки HTTP-запроса
+    /// Создает исключение для ошибки HTTP-запроса: понятное сообщение и признак, поможет ли повтор;
+    /// запрос и попытка — во внутреннем исключении для журнала.
     /// </summary>
-    private async Task<Exception> CreateHttpErrorException(
+    private async Task<LlmRequestException> CreateHttpErrorException(
         int attempt,
         HttpResponseMessage response,
         IEnumerable<LLMMessage> context,
@@ -23,15 +24,18 @@ public partial class ChatLLMApi
         string lastMessage = context.Any() ? (context.Last().Content?.ToString() ?? "") : "";
         string truncatedMessage = lastMessage.Substring(0, Math.Min(lastMessage.Length, 512));
 
-        var content = (await response.Content.ReadAsStringAsync(cancellationToken) ?? "").TruncateForLogging();
+        string body = await response.Content.ReadAsStringAsync(cancellationToken) ?? "";
 
-        return new Exception(
+        return LlmRequestException.FromResponse(
+            response.StatusCode,
+            body,
+            response.Headers.RetryAfter,
             $"Attempt #{attempt + 1}/{maxAttempts}\n" +
             $"Query: {truncatedMessage}\n" +
             $"###\n" +
             $"StatusCode: {response.StatusCode}\n" +
             $"IsCancellationRequested: {cancellationToken.IsCancellationRequested}\n" +
-            $"Content: {content}\n" +
+            $"Content: {body.TruncateForLogging()}\n" +
             $"###");
     }
 

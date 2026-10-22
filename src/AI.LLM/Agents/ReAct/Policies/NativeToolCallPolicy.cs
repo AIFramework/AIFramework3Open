@@ -76,6 +76,12 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         {
             throw;
         }
+        catch (AI.LLM.Clients.Base.LlmRequestException)
+        {
+            // Отказ сервера (ключ, баланс, окно, недоступность после повторов) — не «неверный формат»:
+            // подсказка формата модели не поможет, а человек должен увидеть причину как есть.
+            throw;
+        }
         catch (Exception ex)
         {
             Serilog.Log.Warning(ex, "ReAct: обращение к модели на шаге {Step} не удалось", context.StepNumber);
