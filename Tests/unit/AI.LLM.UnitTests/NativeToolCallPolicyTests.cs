@@ -272,6 +272,33 @@ public class NativeToolCallPolicyTests
         Assert.Contains(llm.SentSettings[0]!.Tools, t => t.Function.Name == "web_search");
     }
 
+    [Fact]
+    public async Task ReActEngine_StreamAsync_ReportsSpendingOfEveryCallIncludingSynthesis()
+    {
+        var llm = new FakeLLMClient()
+            .EnqueueFull(FakeLLMClient.WithToolCalls(("call_a", "web_search", """{"input":"погода"}""")))
+            .EnqueueFull(FakeLLMClient.WithText("итог"));
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithTool(new FakeReActTool("web_search"))
+            .WithMaxIterations(1)
+            .WithLlmSynthesis(llm)
+            .Build();
+
+        var events = new List<ReActEvent>();
+        await foreach (ReActEvent e in engine.StreamAsync(new ReActQuery("вопрос")))
+            events.Add(e);
+
+        ReActResult result = Assert.IsType<ReActEvent.Completed>(events[^1]).Result;
+        // Решение (10 токенов входа) и синтез ответа (7): синтез раньше в учёт не попадал вовсе.
+        Assert.Equal("итог", result.Answer);
+        Assert.Equal([10, 7], events.OfType<ReActEvent.Spent>().Select(s => s.Usage.PromptTokens));
+        Assert.Equal(17, result.Usage.PromptTokens);
+        Assert.Equal(2, result.Usage.LlmCalls);
+        // Окно модели — по переписке цикла, а не по короткому запросу синтеза.
+        Assert.Equal(10, result.Usage.LastPromptTokens);
+    }
+
     private static ReActPolicyContext Context(
         IReadOnlyList<IReActTool> tools, ReActTrace? trace = null, int step = 1) =>
         new()

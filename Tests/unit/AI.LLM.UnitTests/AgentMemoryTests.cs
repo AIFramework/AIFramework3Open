@@ -188,6 +188,21 @@ public class AgentMemoryTests
     }
 
     [Fact]
+    public async Task SummarizationMemory_SaveInteractionAsync_ReportsSpendingOfCompaction()
+    {
+        var llm = new FakeLLMClient().EnqueueText("сводка");
+        var memory = new SummarizationMemory(llm, maxMessages: 4);
+        var spent = new List<AI.LLM.Core.Models.Common.Responses.Usage>();
+        memory.Spent += spent.Add;
+
+        for (int i = 0; i < 3; i++)
+            await memory.SaveInteractionAsync($"вопрос {i}", $"ответ {i}", null);
+
+        // Сжатие — отдельный оплачиваемый вызов модели: без события он выпадал из суммы диалога.
+        Assert.Equal(7, Assert.Single(spent).PromptTokens);
+    }
+
+    [Fact]
     public async Task ReActEngine_WithMemory_PassesMemoryAdditionToSystemPrompt()
     {
         var policy = new FakeReActPolicy(ReActDecision.Final("готово"));

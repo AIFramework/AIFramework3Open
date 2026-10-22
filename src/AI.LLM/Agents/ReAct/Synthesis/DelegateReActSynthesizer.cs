@@ -4,6 +4,7 @@ using AI.LLM.Agents.ReAct.Policies;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
 using AI.LLM.Core.Models.Common.Requests;
+using AI.LLM.Core.Models.Common.Responses;
 
 namespace AI.LLM.Agents.ReAct.Synthesis;
 
@@ -59,20 +60,7 @@ public sealed class DelegateReActSynthesizer : IReActSynthesizer
     {
         ArgumentNullException.ThrowIfNull(llm);
 
-        return FromCompletion(
-            async (system, user, ct) =>
-            {
-                var messages = new List<LLMMessage>
-                {
-                    LLMMessage.CreateMessage(Roles.System, system),
-                    LLMMessage.CreateMessage(Roles.User, user),
-                };
-
-                return await llm
-                    .SendAsync(messages, settings ?? new GenerateSettings(temperature: 0.3, maxTokens: 2048), ct)
-                    .ConfigureAwait(false);
-            },
-            instruction);
+        return new DelegateReActSynthesizer((system, user, ct) => FullAsync(llm, settings, system, user, ct), instruction);
     }
 
     /// <summary>Собирает запрос синтеза из наблюдений, черновика и причины остановки.</summary>
@@ -96,6 +84,28 @@ public sealed class DelegateReActSynthesizer : IReActSynthesizer
                       + "и честно отметь, чего не хватает.\n");
 
         return sb.ToString();
+    }
+
+    /// <summary>Ответ модели одним фрагментом вместе с расходом — его движок добавит к учёту прогона.</summary>
+    private static async IAsyncEnumerable<ReActTextChunk> FullAsync(
+        ILLMClient llm,
+        GenerateSettings settings,
+        string system,
+        string user,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var messages = new List<LLMMessage>
+        {
+            LLMMessage.CreateMessage(Roles.System, system),
+            LLMMessage.CreateMessage(Roles.User, user),
+        };
+
+        ChatCompletionsResponse response = await llm
+            .SendFullAsync(messages, settings ?? new GenerateSettings(temperature: 0.3, maxTokens: 2048), cancellationToken)
+            .ConfigureAwait(false);
+
+        string text = response?.Choices is { Count: > 0 } choices ? choices[0].Message?.Content?.ToString() : null;
+        yield return new ReActTextChunk(text ?? string.Empty, null) { Usage = response?.Usage };
     }
 
     private static async IAsyncEnumerable<ReActTextChunk> OnceAsync(

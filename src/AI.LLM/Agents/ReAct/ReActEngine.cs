@@ -205,6 +205,14 @@ public sealed partial class ReActEngine
                 .SynthesizeAsync(synthesis, cancellationToken)
                 .ConfigureAwait(false))
             {
+                // Синтез — такое же обращение к модели и оплачивается так же. Окно контекста он не
+                // показывает: его запрос короче переписки цикла.
+                if (chunk.Usage != null)
+                {
+                    run.Usage.AddLlmUsage(chunk.Usage, updatesContext: false);
+                    yield return new ReActEvent.Spent(chunk.Usage);
+                }
+
                 if (!string.IsNullOrEmpty(chunk.Reasoning))
                     yield return new ReActEvent.ReasoningChunk(chunk.Reasoning);
 

@@ -58,13 +58,19 @@ public sealed class AgentUsage
     private readonly Dictionary<string, int> _toolIndex = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Аккумулирует usage из одного LLM-ответа.</summary>
-    internal void AddLlmUsage(Usage usage)
+    /// <param name="usage">Расход ответа; <c>null</c> — поставщик его не сообщил.</param>
+    /// <param name="updatesContext">
+    /// Отражает ли запрос занятое окно модели (<see cref="LastPromptTokens"/>): у побочных
+    /// обращений вроде синтеза ответа запрос короче переписки, и окно по нему занижалось бы.
+    /// </param>
+    internal void AddLlmUsage(Usage usage, bool updatesContext = true)
     {
         LlmCalls++;
         if (usage == null) return;
 
         PromptTokens += usage.PromptTokens;
-        LastPromptTokens = usage.PromptTokens;
+        if (updatesContext)
+            LastPromptTokens = usage.PromptTokens;
         CompletionTokens += usage.CompletionTokens;
         ReasoningTokens += usage.ReasoningTokens;
         CachedTokens += usage.CachedTokens;

@@ -6,4 +6,11 @@ namespace AI.LLM.Agents.ReAct;
 /// </summary>
 /// <param name="Content">Видимый текст ответа; может быть пустым.</param>
 /// <param name="Reasoning">Фрагмент рассуждений модели; может быть пустым.</param>
-public readonly record struct ReActTextChunk(string Content, string Reasoning);
+public readonly record struct ReActTextChunk(string Content, string Reasoning)
+{
+    /// <summary>
+    /// Расход обращения к модели, если фрагмент его несёт (обычно последний); <c>null</c> — нет.
+    /// Без него синтез ответа не попадал в учёт прогона.
+    /// </summary>
+    public AI.LLM.Core.Models.Common.Responses.Usage Usage { get; init; }
+}

@@ -62,6 +62,8 @@ public sealed partial class ReActEngine
             ReActDecision decision = await _policy.DecideAsync(context, cancellationToken).ConfigureAwait(false);
             decision ??= ReActDecision.Malformed(null);
             run.Usage.AddLlmUsage(decision.Usage);
+            if (decision.Usage != null)
+                yield return new ReActEvent.Spent(decision.Usage);
 
             if (_config.EmitThoughts && !string.IsNullOrWhiteSpace(decision.Thought))
                 yield return new ReActEvent.Thought(step, decision.Thought);
