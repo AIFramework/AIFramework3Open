@@ -54,6 +54,7 @@ public sealed partial class ReActEngine
                 SystemPrompt = run.SystemPrompt,
                 StepNumber = step,
                 MaxSteps = _config.MaxIterations,
+                MaxTraceChars = _config.MaxScratchpadChars,
                 CorrectiveNote = note,
             };
             note = null;

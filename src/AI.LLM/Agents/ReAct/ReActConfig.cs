@@ -30,7 +30,10 @@ public sealed class ReActConfig
     /// <summary>Предел длины одного наблюдения в следе.</summary>
     public int MaxObservationChars { get; set; } = 4000;
 
-    /// <summary>Предел длины всего следа, отдаваемого модели.</summary>
+    /// <summary>
+    /// Предел длины всего следа, отдаваемого модели, при любом способе решений: свежие шаги идут
+    /// целиком, старые сверх предела сокращаются.
+    /// </summary>
     public int MaxScratchpadChars { get; set; } = 12000;
 
     /// <summary>

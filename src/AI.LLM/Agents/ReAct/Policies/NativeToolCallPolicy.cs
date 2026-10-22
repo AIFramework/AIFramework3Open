@@ -26,6 +26,12 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// <summary>Имя единственного параметра у инструментов без собственной схемы.</summary>
     internal const string PlainArgumentName = "input";
 
+    /// <summary>Длиннее этого рассуждение, аргументы и результат старого шага сверх предела следа заменяются пометкой.</summary>
+    private const int ElidedChars = 300;
+
+    /// <summary>Аргументы старого вызова сверх предела следа: остаются корректным JSON, иначе часть поставщиков отвергает запрос.</summary>
+    private const string ElidedArguments = "{\"опущено\":\"аргументы старого шага не пересылаются ради места\"}";
+
     private readonly ILLMClient _llm;
     private readonly GenerateSettings _settings;
 
@@ -100,6 +106,12 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// <summary>
     /// Восстанавливает переписку из следа: системная инструкция, история, запрос, затем на
     /// каждый шаг — сообщение ассистента с вызовами и по одному ответу на каждый вызов.
+    /// <para>
+    /// След пересылается на каждом шаге целиком, поэтому соблюдает <see cref="ReActPolicyContext.MaxTraceChars"/>:
+    /// свежие шаги идут полностью, у более старых результат, длинные аргументы и рассуждение
+    /// заменяются пометкой. Сами вызовы и ответы на них остаются — без пары с тем же
+    /// идентификатором поставщик отверг бы запрос.
+    /// </para>
     /// </summary>
     private static List<LLMMessage> BuildMessages(ReActPolicyContext context)
     {
@@ -110,8 +122,12 @@ public sealed class NativeToolCallPolicy : IReActPolicy
 
         messages.Add(LLMMessage.CreateMessage(Roles.User, context.Query?.Text ?? string.Empty));
 
-        foreach (ReActStep step in context.Trace?.Steps ?? [])
+        IReadOnlyList<ReActStep> steps = context.Trace?.Steps ?? [];
+        int firstFull = FirstFullStep(steps, context.MaxTraceChars);
+        for (int index = 0; index < steps.Count; index++)
         {
+            ReActStep step = steps[index];
+            bool full = index >= firstFull;
             if (step.Observations.Count == 0)
                 continue;
 
@@ -127,7 +143,9 @@ public sealed class NativeToolCallPolicy : IReActPolicy
                     Function = new FunctionCall
                     {
                         Name = observation.Action.ToolName,
-                        Arguments = observation.Action.Arguments,
+                        Arguments = full || (observation.Action.Arguments?.Length ?? 0) <= ElidedChars
+                            ? observation.Action.Arguments
+                            : ElidedArguments,
                     },
                 });
             }
@@ -135,7 +153,11 @@ public sealed class NativeToolCallPolicy : IReActPolicy
             if (toolCalls.Count == 0)
                 continue;
 
-            var assistant = new LLMMessage(LLMMessage.AssistantRole, step.Thought ?? string.Empty)
+            string thought = step.Thought ?? string.Empty;
+            if (!full && thought.Length > ElidedChars)
+                thought = thought[..ElidedChars] + "…";
+
+            var assistant = new LLMMessage(LLMMessage.AssistantRole, thought)
             {
                 ToolCalls = toolCalls,
             };
@@ -148,7 +170,11 @@ public sealed class NativeToolCallPolicy : IReActPolicy
                 if (observation.Action == null)
                     continue;
 
-                messages.Add(LLMMessage.CreateToolResult(observation.Action.Id, observation.Text ?? string.Empty));
+                string text = observation.Text ?? string.Empty;
+                if (!full && text.Length > ElidedChars)
+                    text = $"[Результат старого шага опущен ради места: {text.Length} знаков.]";
+
+                messages.Add(LLMMessage.CreateToolResult(observation.Action.Id, text));
             }
 
             if (!string.IsNullOrWhiteSpace(step.Note))
@@ -174,6 +200,41 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         }
 
         return definitions;
+    }
+
+    /// <summary>
+    /// С какого шага след идёт полностью: шаги набираются от последнего к первому, пока хватает
+    /// <paramref name="maxChars"/>. Последний шаг идёт всегда — без своего свежего наблюдения
+    /// модель повторила бы действие. 0 и меньше — все шаги полностью.
+    /// </summary>
+    private static int FirstFullStep(IReadOnlyList<ReActStep> steps, int maxChars)
+    {
+        if (maxChars <= 0)
+            return 0;
+
+        int used = 0;
+        bool any = false;
+        for (int i = steps.Count - 1; i >= 0; i--)
+        {
+            int size = StepChars(steps[i]);
+            if (any && used + size > maxChars)
+                return i + 1;
+
+            used += size;
+            any |= size > 0;
+        }
+
+        return 0;
+    }
+
+    /// <summary>Сколько знаков шаг занимает в переписке: рассуждение, аргументы вызовов и их результаты.</summary>
+    private static int StepChars(ReActStep step)
+    {
+        int size = step.Thought?.Length ?? 0;
+        foreach (ReActObservation observation in step.Observations)
+            size += (observation.Action?.Arguments?.Length ?? 0) + (observation.Text?.Length ?? 0);
+
+        return size;
     }
 
     /// <summary>Схема для инструмента с одним свободным строковым аргументом.</summary>

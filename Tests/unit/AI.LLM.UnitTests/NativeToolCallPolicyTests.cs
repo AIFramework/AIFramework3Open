@@ -167,6 +167,75 @@ public class NativeToolCallPolicyTests
         Assert.Equal("что там с погодой", sent[2].Content?.ToString());
     }
 
+    [Fact]
+    public async Task NativeToolCallPolicy_DecideAsync_ElidesOldStepsBeyondTraceBudget()
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        var policy = new NativeToolCallPolicy(llm);
+
+        // Десять чтений по 5000 знаков при пределе 12000: целиком уходят только два свежих шага.
+        var trace = new ReActTrace();
+        for (int i = 1; i <= 10; i++)
+        {
+            var action = new ReActAction("read_file", "{\"path\":\"" + new string('п', 400) + i + "\"}", "call_" + i);
+            trace.Add(new ReActStep
+            {
+                Number = i,
+                Thought = new string('м', 500),
+                Actions = [action],
+                Observations = [new ReActObservation { Action = action, Ok = true, Text = i + ":" + new string('т', 5000) }],
+            });
+        }
+
+        await policy.DecideAsync(new ReActPolicyContext
+        {
+            Query = new ReActQuery("вопрос"),
+            Tools = [new FakeReActTool("read_file")],
+            Trace = trace,
+            SystemPrompt = "инструкция",
+            StepNumber = 11,
+            MaxSteps = 20,
+            MaxTraceChars = 12000,
+        });
+
+        List<LLMMessage> sent = llm.SentMessages[0];
+        List<LLMMessage> results = sent.Where(m => m.Role == LLMMessage.ToolRole).ToList();
+        int total = sent.Sum(m => (m.Content?.ToString()?.Length ?? 0) + (m.ToolCalls?.Sum(c => c.Function.Arguments.Length) ?? 0));
+
+        // Пары «вызов — ответ» сохранены все: иначе поставщик отверг бы запрос.
+        Assert.Equal(10, results.Count);
+        Assert.Equal(Enumerable.Range(1, 10).Select(i => "call_" + i), results.Select(m => m.ToolCallId));
+        Assert.StartsWith("10:", results[9].Content?.ToString());
+        Assert.StartsWith("9:", results[8].Content?.ToString());
+        Assert.StartsWith("[Результат старого шага опущен", results[0].Content?.ToString());
+        Assert.True(total < 20000, $"ушло {total} знаков");
+        Assert.All(sent.Where(m => m.ToolCalls is { Count: > 0 }).SelectMany(m => m.ToolCalls),
+            c => System.Text.Json.JsonDocument.Parse(c.Function.Arguments).Dispose());
+    }
+
+    [Fact]
+    public async Task NativeToolCallPolicy_DecideAsync_KeepsWholeTraceWithoutBudget()
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        var policy = new NativeToolCallPolicy(llm);
+        var trace = new ReActTrace();
+        for (int i = 1; i <= 3; i++)
+        {
+            var action = new ReActAction("read_file", "{}", "call_" + i);
+            trace.Add(new ReActStep
+            {
+                Number = i,
+                Actions = [action],
+                Observations = [new ReActObservation { Action = action, Ok = true, Text = new string('т', 50000) }],
+            });
+        }
+
+        await policy.DecideAsync(Context([new FakeReActTool("read_file")], trace, step: 4));
+
+        Assert.All(llm.SentMessages[0].Where(m => m.Role == LLMMessage.ToolRole),
+            m => Assert.Equal(50000, m.Content?.ToString()?.Length));
+    }
+
     private static ReActPolicyContext Context(
         IReadOnlyList<IReActTool> tools, ReActTrace? trace = null, int step = 1) =>
         new()
