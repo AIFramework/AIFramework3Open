@@ -20,6 +20,9 @@ namespace AI.LLM.Agents.Memory;
 /// </remarks>
 public sealed class SummarizationMemory : IAgentMemory
 {
+    /// <summary>Сколько последних сообщений (вопрос и ответ) сжатие не трогает.</summary>
+    private const int KeptMessages = 2;
+
     private readonly ILLMClient _llm;
     private readonly int _maxMessages;
     private readonly List<LLMMessage> _history = [];
@@ -81,7 +84,9 @@ public sealed class SummarizationMemory : IAgentMemory
             if (_history.Count > _maxMessages && !_compacting)
             {
                 _compacting = true;
-                pending = [.. _history];
+                // Последняя реплика остаётся дословно: следующий вопрос чаще всего о ней
+                // («поправь то, что ты предложил»), а в сводке от неё осталась бы одна фраза.
+                pending = _history.GetRange(0, _history.Count - KeptMessages);
                 previous = _summary;
                 generation = _generation;
             }

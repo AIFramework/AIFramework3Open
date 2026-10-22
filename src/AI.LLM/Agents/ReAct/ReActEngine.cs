@@ -161,10 +161,11 @@ public sealed partial class ReActEngine
     private async IAsyncEnumerable<ReActEvent> StreamCoreAsync(
         RunState run, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        string memoryAddition = string.Empty;
         if (_memory != null)
         {
-            IReadOnlyList<LLMMessage> history = await ReActMemoryBridge
-                .BuildHistoryAsync(_memory, _basePrompt, run.Query.Text)
+            (IReadOnlyList<LLMMessage> history, memoryAddition) = await ReActMemoryBridge
+                .BuildAsync(_memory, _basePrompt, run.Query.Text)
                 .ConfigureAwait(false);
 
             run.Query = new ReActQuery(
@@ -175,6 +176,11 @@ public sealed partial class ReActEngine
         run.Tools = CollectTools(toolContext);
         run.Skills = SelectSkills(toolContext);
         run.SystemPrompt = _template.BuildSystemPrompt(_basePrompt, run.Tools, run.Skills, toolContext);
+
+        // Сводка прежнего диалога и воспоминания памяти — в конец промпта: постоянное начало
+        // промпта остаётся одинаковым от хода к ходу, и поставщик берёт его из кеша.
+        if (memoryAddition.Length > 0)
+            run.SystemPrompt = run.SystemPrompt.TrimEnd() + "\n\n" + memoryAddition;
 
         if (run.Tools.Count == 0 && run.Query.ForcedFirstAction == null)
         {

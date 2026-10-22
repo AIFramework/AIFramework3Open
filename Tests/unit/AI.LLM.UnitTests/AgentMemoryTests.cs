@@ -1,4 +1,5 @@
 using AI.LLM.Agents.Memory;
+using AI.LLM.Agents.ReAct;
 using AI.LLM.Core.Models.Common.Messages;
 using AI.LLM.UnitTests.Fakes;
 using Xunit;
@@ -168,6 +169,47 @@ public class AgentMemoryTests
 
         public Task ClearAsync() => Task.CompletedTask;
     }
+
+    [Fact]
+    public async Task SummarizationMemory_SaveInteractionAsync_KeepsLastExchangeVerbatim()
+    {
+        var llm = new FakeLLMClient().EnqueueText("сводка");
+        var memory = new SummarizationMemory(llm, maxMessages: 4);
+
+        for (int i = 0; i < 3; i++)
+            await memory.SaveInteractionAsync($"вопрос {i}", $"ответ {i}", null);
+
+        List<LLMMessage> context = await memory.BuildContextAsync("что дальше", "ты ассистент");
+
+        // Следующий вопрос обычно о последнем ответе — он не должен уйти в сводку.
+        Assert.Contains("сводка", context[0].Content!.ToString());
+        Assert.Equal(["вопрос 2", "ответ 2", "что дальше"], context.Skip(1).Select(m => m.Content!.ToString()));
+        Assert.DoesNotContain("ответ 2", llm.SentPrompts[0]);
+    }
+
+    [Fact]
+    public async Task ReActEngine_WithMemory_PassesMemoryAdditionToSystemPrompt()
+    {
+        var policy = new FakeReActPolicy(ReActDecision.Final("готово"));
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithPolicy(policy)
+            .WithTool(new FakeReActTool("search"))
+            .WithSystemPrompt("ты ассистент")
+            .WithMemory(new PromptAugmentingMemory())
+            .Build();
+
+        await engine.RunAsync("вопрос");
+
+        // Сводка и воспоминания живут в системном сообщении памяти: потерять его — потерять их.
+        string prompt = policy.Calls[0].SystemPrompt;
+        Assert.StartsWith("ты ассистент", prompt);
+        Assert.EndsWith("дописано долгосрочной памятью", prompt);
+        Assert.Equal(1, CountOf(prompt, "ты ассистент"));
+        Assert.Empty(policy.Calls[0].Query.History);
+    }
+
+    private static int CountOf(string text, string part) =>
+        (text.Length - text.Replace(part, string.Empty).Length) / part.Length;
 
     /// <summary>Долгосрочная память старого образца: вклад виден только в системном промпте.</summary>
     private sealed class PromptAugmentingMemory : IAgentMemory
