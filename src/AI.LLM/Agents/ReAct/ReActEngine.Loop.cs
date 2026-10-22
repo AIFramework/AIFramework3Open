@@ -24,7 +24,7 @@ public sealed partial class ReActEngine
         if (run.Query.ForcedFirstAction is { } forced)
         {
             step++;
-            await foreach (ReActEvent evt in PerformAsync(run, step, [forced], null, cancellationToken)
+            await foreach (ReActEvent evt in PerformAsync(run, step, [forced], null, null, cancellationToken)
                 .ConfigureAwait(false))
                 yield return evt;
 
@@ -114,7 +114,7 @@ public sealed partial class ReActEngine
                 }
             }
 
-            await foreach (ReActEvent evt in PerformAsync(run, step, decision.Actions, decision.Thought, cancellationToken)
+            await foreach (ReActEvent evt in PerformAsync(run, step, decision.Actions, decision.Thought, decision.RawResponse, cancellationToken)
                 .ConfigureAwait(false))
                 yield return evt;
 

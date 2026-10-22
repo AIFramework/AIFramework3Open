@@ -181,7 +181,7 @@ public class NativeToolCallPolicyTests
             trace.Add(new ReActStep
             {
                 Number = i,
-                Thought = new string('м', 500),
+                Reply = new string('м', 500),
                 Actions = [action],
                 Observations = [new ReActObservation { Action = action, Ok = true, Text = i + ":" + new string('т', 5000) }],
             });
@@ -211,6 +211,26 @@ public class NativeToolCallPolicyTests
         Assert.True(total < 20000, $"ушло {total} знаков");
         Assert.All(sent.Where(m => m.ToolCalls is { Count: > 0 }).SelectMany(m => m.ToolCalls),
             c => System.Text.Json.JsonDocument.Parse(c.Function.Arguments).Dispose());
+    }
+
+    [Fact]
+    public async Task ReActEngine_WithNativeToolCalling_DoesNotSendReasoningBackToModel()
+    {
+        var reasoned = FakeLLMClient.WithToolCalls(("call_a", "web_search", """{"input":"погода"}"""));
+        reasoned.Choices[0].Message.Content = "ищу погоду";
+        reasoned.Choices[0].Message.Reasoning = new string('р', 5000);
+        var llm = new FakeLLMClient().EnqueueFull(reasoned).EnqueueFull(FakeLLMClient.WithText("готово"));
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithTool(new FakeReActTool("web_search"))
+            .Build();
+
+        await engine.RunAsync("вопрос");
+
+        // Рассуждения показаны пользователю, но во втором запросе их нет: иначе они оплачивались бы заново.
+        LLMMessage assistant = Assert.Single(llm.SentMessages[1], m => m.ToolCalls is { Count: > 0 });
+        Assert.Equal("ищу погоду", assistant.Content?.ToString());
+        Assert.DoesNotContain(llm.SentMessages[1], m => m.Content?.ToString()?.Contains("ррррр") == true);
     }
 
     [Fact]

@@ -122,6 +122,7 @@ public sealed partial class ReActEngine
         int step,
         IReadOnlyList<ReActAction> actions,
         string thought,
+        string reply,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var slots = new ReActObservation[actions.Count];
@@ -197,6 +198,7 @@ public sealed partial class ReActEngine
         {
             Number = step,
             Thought = thought,
+            Reply = reply,
             Actions = canonical,
             Observations = observations,
             Note = note,

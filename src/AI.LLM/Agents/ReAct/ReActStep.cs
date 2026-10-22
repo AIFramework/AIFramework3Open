@@ -16,6 +16,13 @@ public sealed class ReActStep
     /// <summary>Рассуждение модели перед действиями. Может быть <c>null</c>.</summary>
     public string Thought { get; init; }
 
+    /// <summary>
+    /// Сообщение модели на шаге так, как она его прислала, без рассуждений (<see cref="ReActDecision.RawResponse"/>).
+    /// Нативные вызовы инструментов возвращают модели именно его: рассуждения в истории
+    /// оплачивались бы заново на каждом шаге. Может быть <c>null</c>.
+    /// </summary>
+    public string Reply { get; init; }
+
     /// <summary>Запрошенные действия. Никогда не <c>null</c>; пусто на шаге без действий.</summary>
     public IReadOnlyList<ReActAction> Actions { get; init; } = [];
 

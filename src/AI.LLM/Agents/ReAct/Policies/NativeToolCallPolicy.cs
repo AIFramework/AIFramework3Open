@@ -27,7 +27,7 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// <summary>Имя единственного параметра у инструментов без собственной схемы.</summary>
     internal const string PlainArgumentName = "input";
 
-    /// <summary>Длиннее этого рассуждение, аргументы и результат старого шага сверх предела следа заменяются пометкой.</summary>
+    /// <summary>Длиннее этого сообщение модели, аргументы и результат старого шага сверх предела следа заменяются пометкой.</summary>
     private const int ElidedChars = 300;
 
     /// <summary>Аргументы старого вызова сверх предела следа: остаются корректным JSON, иначе часть поставщиков отвергает запрос.</summary>
@@ -116,7 +116,7 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// каждый шаг — сообщение ассистента с вызовами и по одному ответу на каждый вызов.
     /// <para>
     /// След пересылается на каждом шаге целиком, поэтому соблюдает <see cref="ReActPolicyContext.MaxTraceChars"/>:
-    /// свежие шаги идут полностью, у более старых результат, длинные аргументы и рассуждение
+    /// свежие шаги идут полностью, у более старых результат, длинные аргументы и сообщение модели
     /// заменяются пометкой. Сами вызовы и ответы на них остаются — без пары с тем же
     /// идентификатором поставщик отверг бы запрос.
     /// </para>
@@ -166,7 +166,9 @@ public sealed class NativeToolCallPolicy : IReActPolicy
             if (toolCalls.Count == 0)
                 continue;
 
-            string thought = step.Thought ?? string.Empty;
+            // Модели возвращается её сообщение, а не рассуждения: они уже сделали своё дело и на
+            // каждом следующем шаге оплачивались бы как вход заново.
+            string thought = step.Reply ?? string.Empty;
             if (!full && thought.Length > ElidedChars)
                 thought = thought[..ElidedChars] + "…";
 
@@ -240,10 +242,10 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         return 0;
     }
 
-    /// <summary>Сколько знаков шаг занимает в переписке: рассуждение, аргументы вызовов и их результаты.</summary>
+    /// <summary>Сколько знаков шаг занимает в переписке: сообщение модели, аргументы вызовов и их результаты.</summary>
     private static int StepChars(ReActStep step)
     {
-        int size = step.Thought?.Length ?? 0;
+        int size = step.Reply?.Length ?? 0;
         foreach (ReActObservation observation in step.Observations)
             size += (observation.Action?.Arguments?.Length ?? 0) + (observation.Text?.Length ?? 0);
 
