@@ -70,7 +70,10 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         ChatCompletionsResponse response;
         try
         {
-            response = await _llm.SendFullAsync(messages, settings, cancellationToken).ConfigureAwait(false);
+            Action<LLMStreamChunk> onChunk = context.OnText == null
+                ? null
+                : chunk => context.OnText(new ReActTextChunk(chunk.Content, chunk.Reasoning));
+            response = await _llm.SendFullAsync(messages, settings, onChunk, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

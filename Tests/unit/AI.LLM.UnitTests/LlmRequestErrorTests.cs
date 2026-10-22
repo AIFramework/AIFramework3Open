@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using AI.LLM.Agents.ReAct;
 using AI.LLM.API.LLMAPI;
 using AI.LLM.Clients.Base;
+using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
 using AI.LLM.Core.Models.Common.Requests;
 using AI.LLM.Infrastructure.Http;
@@ -81,6 +82,22 @@ public class LlmRequestErrorTests
         Assert.Equal(1, web.Calls);
         Assert.Equal(ReActStopReason.EngineFailure, result.StopReason);
         Assert.Contains("Не хватает средств", result.Error);
+    }
+
+    [Fact]
+    public async Task LLMBase_SendFullAsync_PassesStreamChunksWhileCollectingAnswer()
+    {
+        const string sse = "data: {\"choices\":[{\"delta\":{\"content\":\"При\"}}]}\n\n"
+            + "data: {\"choices\":[{\"delta\":{\"content\":\"вет\"}}]}\n\n"
+            + "data: [DONE]\n\n";
+        var web = new ScriptedWebClient(Response(HttpStatusCode.OK, sse));
+        ILLMClient llm = new LLMBase(new ChatLLMApi(web, "модель"), new LLMOptions { ModelName = "модель" });
+        var chunks = new List<string>();
+
+        var response = await llm.SendFullAsync([LLMMessage.CreateMessage(Roles.User, "вопрос")], null, c => chunks.Add(c.Content));
+
+        Assert.Equal(["При", "вет"], chunks.Where(c => c != null));
+        Assert.Equal("Привет", response.Choices[0].Message.Content?.ToString());
     }
 
     private static HttpResponseMessage Response(HttpStatusCode code, string body, TimeSpan? retryAfter = null)

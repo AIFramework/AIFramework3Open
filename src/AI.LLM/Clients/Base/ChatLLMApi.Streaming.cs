@@ -88,8 +88,12 @@ public partial class ChatLLMApi
     /// Собирает кадры <see cref="ReadStreamChunksAsync"/> в полный ответ.
     /// Используется для автоматического streaming в <see cref="SendWithContextAsync"/>.
     /// </summary>
+    /// <param name="response">Ответ сервера с потоком.</param>
+    /// <param name="onChunk">Каждый кадр ещё и наружу, по мере прихода; <c>null</c> — не нужно.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
     private async Task<ChatCompletionsResponse> ProcessStreamResponseInternal(
         HttpResponseMessage response,
+        Action<LLMStreamChunk> onChunk,
         CancellationToken cancellationToken)
     {
         var fullContent = new StringBuilder();
@@ -114,6 +118,8 @@ public partial class ChatLLMApi
         {
             await foreach (var chunk in ReadStreamChunksAsync(response, cancellationToken))
             {
+                onChunk?.Invoke(chunk);
+
                 // Сквозные поля кадра «липкие»: провайдер присылает их не в каждом,
                 // и последнее известное значение остаётся в силе.
                 if (!string.IsNullOrEmpty(chunk.Provider)) provider = chunk.Provider;

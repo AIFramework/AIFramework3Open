@@ -37,6 +37,21 @@ public interface ILLMClient
     Task<ChatCompletionsResponse> SendFullAsync(IEnumerable<LLMMessage> messages, GenerateSettings generateSettings = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Полный ответ, как у <see cref="SendFullAsync(IEnumerable{LLMMessage}, GenerateSettings, CancellationToken)"/>,
+    /// и фрагменты по мере генерации — чтобы человек видел ответ, пока модель пишет. Клиент без
+    /// потока фрагментов не отдаёт: по умолчанию это обычный полный запрос.
+    /// </summary>
+    /// <param name="messages">Последовательность сообщений LLM</param>
+    /// <param name="generateSettings">Настройки генерации</param>
+    /// <param name="onChunk">Фрагмент ответа по мере прихода; <c>null</c> — не нужны.</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>Полный ответ от LLM</returns>
+    Task<ChatCompletionsResponse> SendFullAsync(
+        IEnumerable<LLMMessage> messages, GenerateSettings generateSettings, Action<LLMStreamChunk> onChunk,
+        CancellationToken cancellationToken = default) =>
+        SendFullAsync(messages, generateSettings, cancellationToken);
+
+    /// <summary>
     /// Определяет число токенов в запросе.
     /// </summary>
     /// <param name="messages">Последовательность сообщений LLM</param>

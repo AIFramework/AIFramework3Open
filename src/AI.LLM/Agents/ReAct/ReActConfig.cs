@@ -56,4 +56,11 @@ public sealed class ReActConfig
 
     /// <summary>Отдавать ли рассуждения шагов в поток событий.</summary>
     public bool EmitThoughts { get; set; } = true;
+
+    /// <summary>
+    /// Отдавать текст модели по мере генерации (<see cref="ReActEvent.AnswerChunk"/>), если способ решений
+    /// это умеет. Выключено по умолчанию: фрагменты идут до того, как известно, чем кончится шаг, и текст
+    /// перед вызовом инструментов тоже придёт фрагментами — потребитель должен быть к этому готов.
+    /// </summary>
+    public bool StreamAnswers { get; set; }
 }

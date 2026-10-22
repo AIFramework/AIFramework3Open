@@ -250,6 +250,17 @@ public sealed class ReActAgentBuilder
     }
 
     /// <summary>
+    /// Текст модели — по мере генерации, событиями <see cref="ReActEvent.AnswerChunk"/>: первые слова ответа
+    /// видны через секунду, а не когда модель допишет всё. Текст перед вызовом инструментов тоже придёт
+    /// фрагментами — потребитель убирает его, когда начинается инструмент (<see cref="ReActEvent.ToolStarted"/>).
+    /// </summary>
+    public ReActAgentBuilder WithAnswerStreaming()
+    {
+        _config.StreamAnswers = true;
+        return this;
+    }
+
+    /// <summary>
     /// Разрешает исполнять несколько инструментов одновременно. По умолчанию один:
     /// инструменты не обязаны быть потокобезопасными.
     /// </summary>

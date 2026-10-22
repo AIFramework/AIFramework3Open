@@ -117,6 +117,20 @@ internal sealed class FakeLLMClient : ILLMClient
         return WithText(_text.Count > 0 ? _text.Dequeue() : string.Empty);
     }
 
+    /// <summary>Как поток: текст ответа уходит фрагментами по словам, затем возвращается целиком.</summary>
+    public async Task<ChatCompletionsResponse> SendFullAsync(
+        IEnumerable<LLMMessage> messages,
+        GenerateSettings? generateSettings,
+        Action<LLMStreamChunk>? onChunk,
+        CancellationToken cancellationToken = default)
+    {
+        ChatCompletionsResponse response = await SendFullAsync(messages, generateSettings, cancellationToken).ConfigureAwait(false);
+        string text = response.Choices.FirstOrDefault()?.Message?.Content?.ToString() ?? string.Empty;
+        foreach (string word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            onChunk?.Invoke(new LLMStreamChunk { Content = word + " " });
+        return response;
+    }
+
     public Task<int> TokenizeAsync(IEnumerable<LLMMessage> messages, CancellationToken cancellationToken = default) =>
         Task.FromResult(0);
 }

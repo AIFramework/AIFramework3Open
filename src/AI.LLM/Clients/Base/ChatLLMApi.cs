@@ -203,9 +203,27 @@ public partial class ChatLLMApi
     /// <param name="generateSettings">Настройки генерации</param>
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Возвращает ChatCompletionsResponse с дополнительной информацией </returns>
-    public async Task<ChatCompletionsResponse> SendWithContextAsync(
+    public Task<ChatCompletionsResponse> SendWithContextAsync(
     IEnumerable<LLMMessage> context,
     GenerateSettings generateSettings = null,
+    CancellationToken cancellationToken = default) =>
+        SendWithContextAsync(context, generateSettings, null, cancellationToken);
+
+    /// <summary>
+    /// То же, что <see cref="SendWithContextAsync(IEnumerable{LLMMessage}, GenerateSettings, CancellationToken)"/>,
+    /// но фрагменты ответа отдаются ещё и по мере прихода — чтобы человек видел ответ, пока модель пишет.
+    /// </summary>
+    /// <param name="context">Контекст сообщений.</param>
+    /// <param name="generateSettings">Настройки генерации.</param>
+    /// <param name="onChunk">
+    /// Фрагмент потока; <c>null</c> — не нужны. Если запрос оборвался посреди ответа и повторился,
+    /// фрагменты придут заново с начала.
+    /// </param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    public async Task<ChatCompletionsResponse> SendWithContextAsync(
+    IEnumerable<LLMMessage> context,
+    GenerateSettings generateSettings,
+    Action<LLMStreamChunk> onChunk,
     CancellationToken cancellationToken = default)
     {
         var sendData = BuildStreamingSendData(context, generateSettings);
@@ -245,7 +263,7 @@ public partial class ChatLLMApi
 
                 // ВСЕГДА обрабатываем как streaming: он включён принудительно в
                 // BuildStreamingSendData ради раннего обнаружения зависших запросов.
-                return await ProcessStreamResponseInternal(response, cancellationToken);
+                return await ProcessStreamResponseInternal(response, onChunk, cancellationToken);
             }
             catch (LlmRequestException)
             {

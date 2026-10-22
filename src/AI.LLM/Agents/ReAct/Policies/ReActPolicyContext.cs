@@ -41,6 +41,12 @@ public sealed class ReActPolicyContext
     public int MaxTraceChars { get; init; }
 
     /// <summary>
+    /// Фрагменты ответа модели по мере генерации, если способ решений умеет их отдавать; <c>null</c> —
+    /// не нужны. Движок показывает их как <see cref="ReActEvent.AnswerChunk"/>, пока модель пишет.
+    /// </summary>
+    public Action<ReActTextChunk> OnText { get; init; }
+
+    /// <summary>
     /// Замечание движка к предыдущему шагу: неизвестный инструмент, повтор действия,
     /// неразобранный ответ. Может быть <c>null</c>.
     /// </summary>

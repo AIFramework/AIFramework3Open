@@ -233,6 +233,31 @@ public class NativeToolCallPolicyTests
         Assert.DoesNotContain(llm.SentMessages[1], m => m.Content?.ToString()?.Contains("ррррр") == true);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ReActEngine_WithAnswerStreaming_SendsAnswerWhileModelWrites(bool streaming)
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("вот и весь ответ"));
+        ReActAgentBuilder builder = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithTool(new FakeReActTool("web_search"));
+        if (streaming)
+            builder.WithAnswerStreaming();
+
+        var events = new List<ReActEvent>();
+        await foreach (ReActEvent e in builder.Build().StreamAsync(new ReActQuery("вопрос")))
+            events.Add(e);
+
+        List<string> chunks = events.OfType<ReActEvent.AnswerChunk>().Select(c => c.Text).ToList();
+        Assert.Equal("вот и весь ответ", Assert.IsType<ReActEvent.Completed>(events[^1]).Result.Answer);
+        if (streaming)
+            // Фрагменты — до итога, по мере генерации: человек видит начало ответа сразу.
+            Assert.Equal(["вот ", "и ", "весь ", "ответ "], chunks);
+        else
+            Assert.Empty(chunks);
+    }
+
     [Fact]
     public async Task NativeToolCallPolicy_DecideAsync_KeepsWholeTraceWithoutBudget()
     {
