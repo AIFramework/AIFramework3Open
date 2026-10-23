@@ -472,6 +472,97 @@ public class GraphAlgorithmsTests
         }
     }
 
+    [Fact]
+    public void PageRank_RandomGraphs_AgreeWithDenseMatrixReference()
+    {
+        for (int seed = 0; seed < 20; seed++)
+        {
+            var random = new Random(seed);
+            int n = random.Next(2, 30);
+            var graph = new GraphW<Edge>(n);
+            var weights = new double[n, n];
+            for (int i = 0; i < n; i++)
+            {
+                // Часть вершин — тупики; дуги с весами, иногда повторные — их веса складываются.
+                if (random.NextDouble() < 0.2)
+                    continue;
+                for (int k = random.Next(1, 6); k > 0; k--)
+                {
+                    int j = random.Next(n);
+                    double w = random.Next(1, 4);
+                    graph.AddArce(i, j, w);
+                    weights[i, j] += w;
+                }
+            }
+            double[] personalization = Enumerable.Range(0, n).Select(_ => random.NextDouble()).ToArray();
+
+            PageRank rank = PageRank.Weighted(graph, personalization: personalization);
+            double[] expected = DensePageRank(weights, 0.85, personalization);
+
+            Assert.True(rank.Converged, $"Зерно {seed}: не сошлось за {rank.Iterations} итераций");
+            Assert.Equal(1.0, rank.Scores.Sum(), 9);
+            for (int i = 0; i < n; i++)
+                Assert.True(Math.Abs(expected[i] - rank.Scores[i]) < 1e-7, $"Зерно {seed}, вершина {i}: {rank.Scores[i]} вместо {expected[i]}");
+        }
+    }
+
+    [Fact]
+    public void PageRank_StarCycleAndPersonalization_BehaveAsExpected()
+    {
+        // Звезда: все ссылаются на центр.
+        var star = new Graph(5);
+        for (int i = 1; i < 5; i++)
+            star.AddArc(i, 0);
+        // Цикл: все равны.
+        var cycle = new Graph(4);
+        for (int i = 0; i < 4; i++)
+            cycle.AddArc(i, (i + 1) % 4);
+        // Два несвязанных цикла: персонализация на вершине 0 уводит важность в её цикл.
+        var two = new Graph(4);
+        two.AddArc(0, 1);
+        two.AddArc(1, 0);
+        two.AddArc(2, 3);
+        two.AddArc(3, 2);
+
+        double[] starScores = new PageRank(star).Scores;
+        double[] cycleScores = new PageRank(cycle).Scores;
+        double[] focused = new PageRank(two, personalization: new[] { 1.0, 0, 0, 0 }).Scores;
+
+        Assert.All(Enumerable.Range(1, 4), i => Assert.True(starScores[0] > starScores[i] * 3));
+        Assert.All(cycleScores, s => Assert.Equal(0.25, s, 9));
+        Assert.Equal(1.0, focused[0] + focused[1], 9);
+        Assert.Equal(0.0, focused[2] + focused[3], 9);
+    }
+
+    /// <summary>
+    /// Эталон PageRank — плотная матрица Google: из вершины с весами дуг w — по дуге пропорционально весу,
+    /// иначе (и из тупика целиком) — по вектору персонализации; 2000 шагов степенного метода.
+    /// </summary>
+    private static double[] DensePageRank(double[,] weights, double damping, double[] personalization)
+    {
+        int n = weights.GetLength(0);
+        double total = personalization.Sum();
+        double[] teleport = personalization.Select(p => p / total).ToArray();
+        double[] rank = (double[])teleport.Clone();
+        for (int step = 0; step < 2000; step++)
+        {
+            var next = new double[n];
+            for (int i = 0; i < n; i++)
+            {
+                double outWeight = 0;
+                for (int j = 0; j < n; j++)
+                    outWeight += weights[i, j];
+                for (int j = 0; j < n; j++)
+                {
+                    double follow = outWeight > 0 ? weights[i, j] / outWeight : teleport[j];
+                    next[j] += rank[i] * (damping * follow + (1 - damping) * teleport[j]);
+                }
+            }
+            rank = next;
+        }
+        return rank;
+    }
+
     #endregion
 
     #region Инкрементальный поиск
