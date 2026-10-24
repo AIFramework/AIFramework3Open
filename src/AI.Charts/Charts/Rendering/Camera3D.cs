@@ -40,8 +40,14 @@ public sealed class Camera3D
     public double CenterY { get; set; }
     public double CenterZ { get; set; }
 
-    /// <summary>Half-extent of the bounding box (set during auto-fit).</summary>
-    internal double Extent { get; set; } = 1;
+    /// <summary>
+    /// Half-extents of the bounding box per axis (set during auto-fit). Each axis is scaled to the same cube, as Plotly
+    /// does by default: with one common extent an axis in small units (a learning rate of 0.01..1 next to a depth of
+    /// 1..4) collapsed the surface into a sliver.
+    /// </summary>
+    internal double ExtentX { get; set; } = 1;
+    internal double ExtentY { get; set; } = 1;
+    internal double ExtentZ { get; set; } = 1;
 
     /// <summary>
     /// Project a 3D world point to 2D screen pixel coordinates within the given plot rectangle.
@@ -49,9 +55,9 @@ public sealed class Camera3D
     /// </summary>
     public SKPoint ProjectToScreen(double wx, double wy, double wz, SKRect plotRect, out double depth)
     {
-        double dx = wx - CenterX;
-        double dy = wy - CenterY;
-        double dz = wz - CenterZ;
+        double dx = (wx - CenterX) / ExtentX;
+        double dy = (wy - CenterY) / ExtentY;
+        double dz = (wz - CenterZ) / ExtentZ;
 
         double az = _azimuth * Math.PI / 180.0;
         double el = _elevation * Math.PI / 180.0;
@@ -64,14 +70,16 @@ public sealed class Camera3D
         double ry = dx * sinA + dy * cosA;
         double rz = dz;
 
-        // Rotate around X (elevation)
+        // Tilt by elevation: the camera looks down at the scene from above, Z stays up on screen. Screen up is Z (and,
+        // seen from above, the far side rises); depth grows away from the camera, so higher points are nearer to it.
+        // Before, screen up was taken from the horizontal axis and Z went into depth: a surface was seen flat from above.
         double ex = rx;
-        double ey = ry * cosE - rz * sinE;
-        double ez = ry * sinE + rz * cosE;
+        double ey = rz * cosE + ry * sinE;
+        double ez = ry * cosE - rz * sinE;
 
         depth = ez;
 
-        double ext = Math.Max(Extent, 1e-12) * _distance;
+        double ext = _distance;
         double sx = ex / ext;
         double sy = ey / ext;
 
@@ -101,9 +109,15 @@ public sealed class Camera3D
         CenterX = (xMin + xMax) * 0.5;
         CenterY = (yMin + yMax) * 0.5;
         CenterZ = (zMin + zMax) * 0.5;
-        double ex = (xMax - xMin) * 0.5;
-        double ey = (yMax - yMin) * 0.5;
-        double ez = (zMax - zMin) * 0.5;
-        Extent = Math.Max(Math.Max(ex, ey), Math.Max(ez, 1e-12));
+        ExtentX = Half(xMin, xMax);
+        ExtentY = Half(yMin, yMax);
+        ExtentZ = Half(zMin, zMax);
+    }
+
+    /// <summary>Half of the range; a flat axis (all values equal) gets 1 so that the projection does not blow up.</summary>
+    private static double Half(double min, double max)
+    {
+        double half = (max - min) * 0.5;
+        return half > 1e-12 ? half : 1;
     }
 }

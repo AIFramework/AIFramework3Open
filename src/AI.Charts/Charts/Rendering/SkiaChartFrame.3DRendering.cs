@@ -25,12 +25,12 @@ internal static partial class SkiaChartFrame
         canvas.Clear(vp.Background);
         SKRect pr = vp.PlotRect;
 
-        double x0 = cam.CenterX - cam.Extent;
-        double x1 = cam.CenterX + cam.Extent;
-        double y0 = cam.CenterY - cam.Extent;
-        double y1 = cam.CenterY + cam.Extent;
-        double z0 = cam.CenterZ - cam.Extent;
-        double z1 = cam.CenterZ + cam.Extent;
+        double x0 = cam.CenterX - cam.ExtentX;
+        double x1 = cam.CenterX + cam.ExtentX;
+        double y0 = cam.CenterY - cam.ExtentY;
+        double y1 = cam.CenterY + cam.ExtentY;
+        double z0 = cam.CenterZ - cam.ExtentZ;
+        double z1 = cam.CenterZ + cam.ExtentZ;
 
         SKPoint[] corners = new SKPoint[8];
         corners[0] = cam.ProjectToScreen(x0, y0, z0, pr);
@@ -80,7 +80,13 @@ internal static partial class SkiaChartFrame
         PickBottomEdgeY(corners, out yEdgeA, out yEdgeB);
         DrawAxisTicksAlong(canvas, cam, pr, textPaint, y0, y1, x0, x1, z0, ticks, 1, yEdgeA);
 
-        DrawAxisTicksZ(canvas, cam, pr, textPaint, z0, z1, x0, y0, ticks);
+        // Z scale on the vertical edge of the leftmost bottom corner: the front corner already carries the X and Y ticks.
+        int zCorner = 0;
+        for (int i = 1; i < 4; i++)
+            if (corners[i].X < corners[zCorner].X) zCorner = i;
+        double zEdgeX = zCorner == 0 || zCorner == 3 ? x0 : x1;
+        double zEdgeY = zCorner == 0 || zCorner == 1 ? y0 : y1;
+        DrawAxisTicksZ(canvas, cam, pr, textPaint, z0, z1, zEdgeX, zEdgeY, ticks);
 
         textPaint.TextSize = 11;
         textPaint.FakeBoldText = true;
@@ -101,9 +107,9 @@ internal static partial class SkiaChartFrame
 
         if (!string.IsNullOrEmpty(axisZ))
         {
-            SKPoint lz = cam.ProjectToScreen(x0, y0, (z0 + z1) * 0.5, pr);
+            SKPoint lz = cam.ProjectToScreen(zEdgeX, zEdgeY, (z0 + z1) * 0.5, pr);
             textPaint.TextAlign = SKTextAlign.Right;
-            canvas.DrawText(axisZ, lz.X - 20, lz.Y + 4, textPaint);
+            canvas.DrawText(axisZ, lz.X - 44, lz.Y + 4, textPaint);
         }
         textPaint.FakeBoldText = false;
 
@@ -190,8 +196,8 @@ internal static partial class SkiaChartFrame
         float barL = totalW - 52f;
         float barT = vp.PlotRect.MidY - barH * 0.5f;
 
-        double zMin = cam.CenterZ - cam.Extent;
-        double zMax = cam.CenterZ + cam.Extent;
+        double zMin = cam.CenterZ - cam.ExtentZ;
+        double zMax = cam.CenterZ + cam.ExtentZ;
 
         int steps = Math.Max(2, (int)barH);
         for (int i = 0; i < steps; i++)
