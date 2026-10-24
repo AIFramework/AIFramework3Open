@@ -15,7 +15,7 @@ namespace AI.Script.Charts;
 /// браузере, и в отчёте, и в консоли (где остаётся текстовая строка), а модуль не тянет за
 /// собой ни одного графического движка.
 /// </remarks>
-[ScriptModule("plot", "Графики: линии, точки, столбцы, гистограммы, тепловые карты", Version = "0.1", Group = "данные")]
+[ScriptModule("plot", "Графики: линии, точки, столбцы, тепловые карты, поверхности", Version = "0.1", Group = "данные")]
 public static class PlotModule
 {
     /// <summary>Тип-тег дескриптора графика.</summary>
@@ -210,6 +210,44 @@ public static class PlotModule
         return draft.Handle($"тепловая карта {m.Height}×{m.Width}");
     }
 
+    /// <summary>
+    /// Поверхность z(x, y) в трёх измерениях.
+    /// </summary>
+    /// <remarks>
+    /// Матрица — как у тепловой карты: строки идут по оси Y, столбцы — по оси X. Тепловая карта
+    /// той же матрицы показывает, где высоко, поверхность — насколько и как круто: на ней видны
+    /// хребты и седла, которые цвет смазывает.
+    /// </remarks>
+    [ScriptFn("surface", "Поверхность z(x, y) в трёх измерениях", Returns = PlotHandle,
+        Example = "show plot.surface(z, x: lr, y: depth, title: \"Точность\", zlabel: \"accuracy\")")]
+    public static ScriptHandle Surface(
+        [ScriptParam("матрица высот: строки по Y, столбцы по X")] Matrix z,
+        [ScriptParam("сетка по оси X (по столбцам); пусто — номера")] Vector? x = null,
+        [ScriptParam("сетка по оси Y (по строкам); пусто — номера")] Vector? y = null,
+        [ScriptParam("заголовок")] string title = "",
+        [ScriptParam("подпись оси X")] string xlabel = "",
+        [ScriptParam("подпись оси Y")] string ylabel = "",
+        [ScriptParam("подпись оси Z")] string zlabel = "",
+        [ScriptParam("цветовая шкала")] string colors = "viridis")
+    {
+        if (z.Height < 2 || z.Width < 2)
+            throw new ScriptError(DiagnosticCodes.SizeMismatch, "plot.surface: нужна матрица хотя бы 2×2");
+
+        double[] columns = Grid(x, z.Width, "x");
+        double[] rows = Grid(y, z.Height, "y");
+        var heights = new double[z.Height, z.Width];
+
+        for (int i = 0; i < z.Height; i++)
+            for (int j = 0; j < z.Width; j++) heights[i, j] = z[i, j];
+
+        var draft = new PlotDraft(title, xlabel, ylabel);
+        draft.Builder.AxisZ = string.IsNullOrWhiteSpace(zlabel) ? null : zlabel;
+        // У построителя первая сетка — строки матрицы (в описании она станет осью Y), вторая — столбцы.
+        draft.Builder.AddSurface(rows, columns, heights, colorscale: PlotlyBuilder.MapColorscale(colors));
+
+        return draft.Handle($"поверхность {z.Height}×{z.Width}");
+    }
+
     [ScriptFn("spectrum", "График спектра по записи с полями freq и power либо amp", Returns = PlotHandle,
         Example = "show plot.spectrum(dsp.welch(signal, fs: 8000))")]
     public static ScriptHandle Spectrum(
@@ -284,6 +322,17 @@ public static class PlotModule
         RequireSameLength(abscissa, series, what);
 
         return (abscissa, series);
+    }
+
+    /// <summary>Сетка оси поверхности: заданная — той же длины, что сторона матрицы; не заданная — номера.</summary>
+    private static double[] Grid(Vector? axis, int count, string name)
+    {
+        if (axis == null || axis.Count == 0) return Enumerable.Range(0, count).Select(i => (double)i).ToArray();
+
+        if (axis.Count != count)
+            throw new ScriptError(DiagnosticCodes.SizeMismatch, $"plot.surface: в сетке {name} {axis.Count} значений, а у матрицы {count}");
+
+        return axis.ToArray();
     }
 
     private static Vector Field(ScriptRecord record, string name, string what)

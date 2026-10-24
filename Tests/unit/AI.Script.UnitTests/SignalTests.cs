@@ -242,6 +242,36 @@ public sealed class SignalTests
     }
 
     [Fact]
+    public void Plot_Surface_GivesThreeDimensionalTrace()
+    {
+        RunResult result = Script.RunOk("""
+            let z = mat.from_rows([<1, 2, 3>, <4, 5, 6>])
+            show plot.surface(z, x: <10, 20, 30>, y: <0.1, 0.2>, title: "Точность", zlabel: "acc")
+            """);
+
+        using JsonDocument document = JsonDocument.Parse(Assert.IsType<string>(result.Artifacts[0].Value));
+        JsonElement root = document.RootElement;
+        JsonElement trace = root.GetProperty("traces")[0];
+
+        Assert.Equal("surface", trace.GetProperty("type").GetString());
+        Assert.True(root.GetProperty("is3d").GetBoolean());
+        Assert.Equal("acc", root.GetProperty("axisZ").GetString());
+        Assert.Equal(30, trace.GetProperty("x")[2].GetDouble());
+        Assert.Equal(0.2, trace.GetProperty("y")[1].GetDouble());
+        Assert.Equal(6, trace.GetProperty("z")[1][2].GetDouble());
+    }
+
+    [Fact]
+    public void Plot_Surface_RejectsGridOfWrongLength()
+    {
+        Diagnostic error = Script.FailsWith("""
+            show plot.surface(mat.from_rows([<1, 2>, <3, 4>]), x: <1, 2, 3>)
+            """);
+
+        Assert.Contains("plot.surface", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Plot_Grid_CombinesFigures()
     {
         RunResult result = Script.RunOk("""
