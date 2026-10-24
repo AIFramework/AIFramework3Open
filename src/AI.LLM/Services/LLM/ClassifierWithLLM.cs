@@ -26,6 +26,12 @@ public class ClassifierWithLLM
     public bool CleanTokens { get; set; } = true; // Флаг для очистки токенов от пунктуации
 
     /// <summary>
+    /// Предел ответа в токенах; <c>null</c> — ровно до токена класса. Рассуждающим моделям (gpt-oss, qwen3,
+    /// DeepSeek-R1) нужен запас: рассуждение расходует тот же предел, и с одним токеном ответ приходит пустым.
+    /// </summary>
+    public int? AnswerTokens { get; set; }
+
+    /// <summary>
     /// Конструктор по умолчанию.
     /// </summary>
     public ClassifierWithLLM() { }
@@ -67,40 +73,40 @@ public class ClassifierWithLLM
         GenerateSettings generateSettings = new GenerateSettings()
         {
             Temperature = genTemperature,
-            MinTokens = ClTokenPosition + 1,
-            MaxTokens = ClTokenPosition + 1,
+            MinTokens = AnswerTokens == null ? ClTokenPosition + 1 : null,
+            MaxTokens = AnswerTokens ?? ClTokenPosition + 1,
             LogProbs = true,
             TopLogprobs = topk
         };
 
         try
         {
-            var llmAnswer = await ChatLLMApi.SendWithoutContextWithStartAsync(inputWithPrompt, AnswerStart, generateSettings, cancellationToken);
+            // Пустое начало ответа не отправляется: часть поставщиков отвергает пустое сообщение ассистента.
+            var llmAnswer = string.IsNullOrEmpty(AnswerStart)
+                ? await ChatLLMApi.SendWithoutContextAsync(inputWithPrompt, generateSettings, cancellationToken)
+                : await ChatLLMApi.SendWithoutContextWithStartAsync(inputWithPrompt, AnswerStart, generateSettings, cancellationToken);
             
             if (llmAnswer.Choices == null || llmAnswer.Choices.Count == 0)
                 throw new InvalidOperationException("LLM returned no choices.");
             
             var llmAnswerText = llmAnswer.Choices[0];
             
-            List<TopLogprob> logProbs = new List<TopLogprob>();
-
-            if (llmAnswerText.Logprobs?.Content != null && ClTokenPosition < llmAnswerText.Logprobs.Content.Count)
-            {
-                logProbs = llmAnswerText.Logprobs.Content[ClTokenPosition].TopLogprobs;
-            }
-            else
-            {
-                TopLogprob topLogprob = new TopLogprob
-                {
-                    Token = llmAnswerText.Message?.Content?.ToString()?.Trim() ?? string.Empty,
-                    Logprob = 0
-                };
-
-                logProbs.Add(topLogprob);
-            }
+            List<TopLogprob> logProbs = llmAnswerText.Logprobs?.Content != null && ClTokenPosition < llmAnswerText.Logprobs.Content.Count
+                ? llmAnswerText.Logprobs.Content[ClTokenPosition].TopLogprobs ?? []
+                : [];
 
             // Вычисление softmax
             var classifyDatas = Softmax(logProbs, softmaxTemperature);
+
+            // Вероятностей нет (сервер их не отдаёт) или на позиции класса не он — класс по тексту ответа:
+            // первое разрешённое слово, так что «2», «2.» и «Ответ: 2» дают один класс.
+            if (classifyDatas.Count == 0)
+            {
+                string content = llmAnswerText.Message?.Content?.ToString() ?? string.Empty;
+                string token = Regex.Matches(content, @"[a-zA-Zа-яА-ЯёЁ0-9]+").Select(m => m.Value)
+                    .FirstOrDefault(word => TokenValues.Contains(word)) ?? content.Trim();
+                classifyDatas = Softmax([new TopLogprob { Token = token, Logprob = 0 }], softmaxTemperature);
+            }
 
             // Сортировка по вероятности descending
             classifyDatas.Sort((a, b) => b.Prob.CompareTo(a.Prob));
