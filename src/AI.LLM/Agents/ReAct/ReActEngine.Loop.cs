@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using AI.LLM.Agents.ReAct.Policies;
 using AI.LLM.Agents.ReAct.Tools;
 
@@ -24,7 +25,7 @@ public sealed partial class ReActEngine
         if (run.Query.ForcedFirstAction is { } forced)
         {
             step++;
-            await foreach (ReActEvent evt in PerformAsync(run, step, [forced], null, cancellationToken)
+            await foreach (ReActEvent evt in PerformAsync(run, step, [forced], null, null, cancellationToken)
                 .ConfigureAwait(false))
                 yield return evt;
 
@@ -45,6 +46,10 @@ public sealed partial class ReActEngine
             step++;
             yield return new ReActEvent.Phase(PhaseStep, step + "/" + _config.MaxIterations);
 
+            // Текст модели по мере генерации: решение ещё идёт, а его фрагменты уже уходят наружу.
+            Channel<ReActTextChunk> text = _config.StreamAnswers
+                ? Channel.CreateUnbounded<ReActTextChunk>(new UnboundedChannelOptions { SingleReader = true })
+                : null;
             var context = new ReActPolicyContext
             {
                 Query = run.Query,
@@ -54,13 +59,29 @@ public sealed partial class ReActEngine
                 SystemPrompt = run.SystemPrompt,
                 StepNumber = step,
                 MaxSteps = _config.MaxIterations,
+                MaxTraceChars = _config.MaxScratchpadChars,
                 CorrectiveNote = note,
+                OnText = text == null ? null : chunk => text.Writer.TryWrite(chunk),
             };
             note = null;
 
-            ReActDecision decision = await _policy.DecideAsync(context, cancellationToken).ConfigureAwait(false);
+            Task<ReActDecision> deciding = _policy.DecideAsync(context, cancellationToken);
+            if (text != null)
+            {
+                _ = deciding.ContinueWith(
+                    _ => text.Writer.TryComplete(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                await foreach (ReActTextChunk chunk in text.Reader.ReadAllAsync(CancellationToken.None).ConfigureAwait(false))
+                {
+                    if (!string.IsNullOrEmpty(chunk.Content))
+                        yield return new ReActEvent.AnswerChunk(chunk.Content);
+                }
+            }
+
+            ReActDecision decision = await deciding.ConfigureAwait(false);
             decision ??= ReActDecision.Malformed(null);
             run.Usage.AddLlmUsage(decision.Usage);
+            if (decision.Usage != null)
+                yield return new ReActEvent.Spent(decision.Usage);
 
             if (_config.EmitThoughts && !string.IsNullOrWhiteSpace(decision.Thought))
                 yield return new ReActEvent.Thought(step, decision.Thought);
@@ -111,7 +132,7 @@ public sealed partial class ReActEngine
                 }
             }
 
-            await foreach (ReActEvent evt in PerformAsync(run, step, decision.Actions, decision.Thought, cancellationToken)
+            await foreach (ReActEvent evt in PerformAsync(run, step, decision.Actions, decision.Thought, decision.RawResponse, cancellationToken)
                 .ConfigureAwait(false))
                 yield return evt;
 

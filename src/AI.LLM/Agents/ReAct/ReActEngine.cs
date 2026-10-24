@@ -161,10 +161,11 @@ public sealed partial class ReActEngine
     private async IAsyncEnumerable<ReActEvent> StreamCoreAsync(
         RunState run, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        string memoryAddition = string.Empty;
         if (_memory != null)
         {
-            IReadOnlyList<LLMMessage> history = await ReActMemoryBridge
-                .BuildHistoryAsync(_memory, _basePrompt, run.Query.Text)
+            (IReadOnlyList<LLMMessage> history, memoryAddition) = await ReActMemoryBridge
+                .BuildAsync(_memory, _basePrompt, run.Query.Text)
                 .ConfigureAwait(false);
 
             run.Query = new ReActQuery(
@@ -174,7 +175,13 @@ public sealed partial class ReActEngine
         ReActRunContext toolContext = run.Query.ToRunContext();
         run.Tools = CollectTools(toolContext);
         run.Skills = SelectSkills(toolContext);
-        run.SystemPrompt = _template.BuildSystemPrompt(_basePrompt, run.Tools, run.Skills, toolContext);
+        // Способ, который сам отдаёт описания инструментов модели, не должен получить их ещё и в промпте.
+        run.SystemPrompt = _template.BuildSystemPrompt(_basePrompt, _policy.DescribesTools ? [] : run.Tools, run.Skills, toolContext);
+
+        // Сводка прежнего диалога и воспоминания памяти — в конец промпта: постоянное начало
+        // промпта остаётся одинаковым от хода к ходу, и поставщик берёт его из кеша.
+        if (memoryAddition.Length > 0)
+            run.SystemPrompt = run.SystemPrompt.TrimEnd() + "\n\n" + memoryAddition;
 
         if (run.Tools.Count == 0 && run.Query.ForcedFirstAction == null)
         {
@@ -198,6 +205,14 @@ public sealed partial class ReActEngine
                 .SynthesizeAsync(synthesis, cancellationToken)
                 .ConfigureAwait(false))
             {
+                // Синтез — такое же обращение к модели и оплачивается так же. Окно контекста он не
+                // показывает: его запрос короче переписки цикла.
+                if (chunk.Usage != null)
+                {
+                    run.Usage.AddLlmUsage(chunk.Usage, updatesContext: false);
+                    yield return new ReActEvent.Spent(chunk.Usage);
+                }
+
                 if (!string.IsNullOrEmpty(chunk.Reasoning))
                     yield return new ReActEvent.ReasoningChunk(chunk.Reasoning);
 

@@ -22,6 +22,7 @@
          через ModelContextProtocol.AspNetCore, и общему быстрому проекту юнит-тестов
          это ни к чему. -->
     <ProjectReference Include="..\..\..\src\AI.LLM\AI.LLM.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.ONNX\AI.ONNX.csproj" />
   </ItemGroup>
 
 </Project>

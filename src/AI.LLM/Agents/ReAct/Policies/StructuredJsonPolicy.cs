@@ -109,6 +109,11 @@ public sealed class StructuredJsonPolicy : IReActPolicy
         {
             throw;
         }
+        catch (AI.LLM.Clients.Base.LlmRequestException)
+        {
+            // Отказ сервера — не «неверный формат»: человек должен увидеть причину как есть.
+            throw;
+        }
         catch (Exception ex)
         {
             Serilog.Log.Warning(ex, "ReAct: обращение к модели на шаге {Step} не удалось", context.StepNumber);

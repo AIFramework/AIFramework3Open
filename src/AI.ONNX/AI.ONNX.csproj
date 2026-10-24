@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AI.DataPrepaire\AI.DataPrepaire.csproj" />
     <ProjectReference Include="..\AI.Fuzzy\AI.Fuzzy.csproj" />
+    <ProjectReference Include="..\AI.LLM\AI.LLM.csproj" />
   </ItemGroup>
 
   <ItemGroup>

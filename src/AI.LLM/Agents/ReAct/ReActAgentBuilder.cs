@@ -54,8 +54,12 @@ public sealed class ReActAgentBuilder
     /// <summary>Решения через нативные вызовы инструментов.</summary>
     /// <param name="llm">Клиент модели.</param>
     /// <param name="settings">Настройки генерации.</param>
-    public ReActAgentBuilder WithNativeToolCalling(ILLMClient llm, GenerateSettings settings = null) =>
-        WithPolicy(new NativeToolCallPolicy(llm, settings));
+    /// <param name="cacheSystemPrompt">
+    /// Помечать системный промпт для кеша поставщика (<c>cache_control</c>). Нужно Anthropic и Gemini,
+    /// в том числе через OpenRouter; остальные кешируют префикс сами, а не всякий сервер примет метку.
+    /// </param>
+    public ReActAgentBuilder WithNativeToolCalling(ILLMClient llm, GenerateSettings settings = null, bool cacheSystemPrompt = false) =>
+        WithPolicy(new NativeToolCallPolicy(llm, settings, cacheSystemPrompt));
 
     /// <summary>Решения через структурированный текст (работает с любым поставщиком).</summary>
     /// <param name="llm">Клиент модели.</param>
@@ -242,6 +246,17 @@ public sealed class ReActAgentBuilder
     public ReActAgentBuilder WithToolTimeout(TimeSpan timeout)
     {
         _config.ToolTimeout = timeout;
+        return this;
+    }
+
+    /// <summary>
+    /// Текст модели — по мере генерации, событиями <see cref="ReActEvent.AnswerChunk"/>: первые слова ответа
+    /// видны через секунду, а не когда модель допишет всё. Текст перед вызовом инструментов тоже придёт
+    /// фрагментами — потребитель убирает его, когда начинается инструмент (<see cref="ReActEvent.ToolStarted"/>).
+    /// </summary>
+    public ReActAgentBuilder WithAnswerStreaming()
+    {
+        _config.StreamAnswers = true;
         return this;
     }
 

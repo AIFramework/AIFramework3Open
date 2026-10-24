@@ -1,5 +1,6 @@
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
+using AI.LLM.Core.Models.Common.Responses;
 using Serilog;
 
 namespace AI.LLM.Agents.Memory;
@@ -20,6 +21,9 @@ namespace AI.LLM.Agents.Memory;
 /// </remarks>
 public sealed class SummarizationMemory : IAgentMemory
 {
+    /// <summary>Сколько последних сообщений (вопрос и ответ) сжатие не трогает.</summary>
+    private const int KeptMessages = 2;
+
     private readonly ILLMClient _llm;
     private readonly int _maxMessages;
     private readonly List<LLMMessage> _history = [];
@@ -35,6 +39,12 @@ public sealed class SummarizationMemory : IAgentMemory
     /// очистки, не должно записывать свой результат в уже очищенную память.
     /// </summary>
     private int _generation;
+
+    /// <summary>
+    /// Расход сжатия: оно идёт отдельным обращением к модели, мимо учёта прогона агента, и
+    /// без этого события не попадало бы в сумму. Вызывается в потоке сжатия.
+    /// </summary>
+    public event Action<Usage> Spent;
 
     /// <param name="llm">LLM-клиент для суммаризации.</param>
     /// <param name="maxMessages">Порог, после которого происходит сжатие.</param>
@@ -81,7 +91,9 @@ public sealed class SummarizationMemory : IAgentMemory
             if (_history.Count > _maxMessages && !_compacting)
             {
                 _compacting = true;
-                pending = [.. _history];
+                // Последняя реплика остаётся дословно: следующий вопрос чаще всего о ней
+                // («поправь то, что ты предложил»), а в сводке от неё осталась бы одна фраза.
+                pending = _history.GetRange(0, _history.Count - KeptMessages);
                 previous = _summary;
                 generation = _generation;
             }
@@ -183,6 +195,13 @@ public sealed class SummarizationMemory : IAgentMemory
             "Сожми всё нижеследующее в ОДНО краткое содержание (3-5 предложений), сохранив ключевые " +
             "факты и решения. Ответь только текстом содержания, без пояснений.\n\n" + sb;
 
-        return await _llm.SendAsync(prompt).ConfigureAwait(false);
+        ChatCompletionsResponse response = await _llm
+            .SendFullAsync([LLMMessage.CreateMessage(Roles.User, prompt)])
+            .ConfigureAwait(false);
+
+        if (response?.Usage != null)
+            Spent?.Invoke(response.Usage);
+
+        return response?.Choices is { Count: > 0 } choices ? choices[0].Message?.Content?.ToString() : null;
     }
 }

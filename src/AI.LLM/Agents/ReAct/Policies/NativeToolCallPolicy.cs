@@ -2,6 +2,7 @@ using System.Text.Json;
 using AI.LLM.Agents.ReAct.Tools;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
+using AI.LLM.Core.Models.Common.Messages.Content;
 using AI.LLM.Core.Models.Common.Requests;
 using AI.LLM.Core.Models.Common.Responses;
 using AI.LLM.Core.Models.Common.ToolCalling;
@@ -26,17 +27,30 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// <summary>Имя единственного параметра у инструментов без собственной схемы.</summary>
     internal const string PlainArgumentName = "input";
 
+    /// <summary>Длиннее этого сообщение модели, аргументы и результат старого шага сверх предела следа заменяются пометкой.</summary>
+    private const int ElidedChars = 300;
+
+    /// <summary>Аргументы старого вызова сверх предела следа: остаются корректным JSON, иначе часть поставщиков отвергает запрос.</summary>
+    private const string ElidedArguments = "{\"опущено\":\"аргументы старого шага не пересылаются ради места\"}";
+
     private readonly ILLMClient _llm;
     private readonly GenerateSettings _settings;
+    private readonly bool _cacheSystemPrompt;
 
     /// <summary>Создаёт реализацию.</summary>
     /// <param name="llm">Клиент модели; должен поддерживать вызовы инструментов.</param>
     /// <param name="settings">Настройки генерации; при <c>null</c> берутся умеренные значения.</param>
-    public NativeToolCallPolicy(ILLMClient llm, GenerateSettings settings = null)
+    /// <param name="cacheSystemPrompt">Помечать системный промпт для кеша поставщика (<c>cache_control</c>).</param>
+    public NativeToolCallPolicy(ILLMClient llm, GenerateSettings settings = null, bool cacheSystemPrompt = false)
     {
         _llm = llm ?? throw new ArgumentNullException(nameof(llm));
         _settings = settings;
+        _cacheSystemPrompt = cacheSystemPrompt;
     }
+
+    /// <inheritdoc />
+    /// <remarks>Описания уходят полем <c>tools</c> запроса.</remarks>
+    public bool DescribesTools => true;
 
     /// <inheritdoc />
     public async Task<ReActDecision> DecideAsync(
@@ -44,7 +58,7 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        List<LLMMessage> messages = BuildMessages(context);
+        List<LLMMessage> messages = BuildMessages(context, _cacheSystemPrompt);
 
         // Копия, а не общий экземпляр: набор инструментов считается на каждый прогон, а движок
         // рассчитан на несколько одновременных. Правка общих настроек означала бы, что соседний
@@ -56,10 +70,19 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         ChatCompletionsResponse response;
         try
         {
-            response = await _llm.SendFullAsync(messages, settings, cancellationToken).ConfigureAwait(false);
+            Action<LLMStreamChunk> onChunk = context.OnText == null
+                ? null
+                : chunk => context.OnText(new ReActTextChunk(chunk.Content, chunk.Reasoning));
+            response = await _llm.SendFullAsync(messages, settings, onChunk, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            throw;
+        }
+        catch (AI.LLM.Clients.Base.LlmRequestException)
+        {
+            // Отказ сервера (ключ, баланс, окно, недоступность после повторов) — не «неверный формат»:
+            // подсказка формата модели не поможет, а человек должен увидеть причину как есть.
             throw;
         }
         catch (Exception ex)
@@ -100,18 +123,33 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// <summary>
     /// Восстанавливает переписку из следа: системная инструкция, история, запрос, затем на
     /// каждый шаг — сообщение ассистента с вызовами и по одному ответу на каждый вызов.
+    /// <para>
+    /// След пересылается на каждом шаге целиком, поэтому соблюдает <see cref="ReActPolicyContext.MaxTraceChars"/>:
+    /// свежие шаги идут полностью, у более старых результат, длинные аргументы и сообщение модели
+    /// заменяются пометкой. Сами вызовы и ответы на них остаются — без пары с тем же
+    /// идентификатором поставщик отверг бы запрос.
+    /// </para>
     /// </summary>
-    private static List<LLMMessage> BuildMessages(ReActPolicyContext context)
+    private static List<LLMMessage> BuildMessages(ReActPolicyContext context, bool cacheSystemPrompt)
     {
-        var messages = new List<LLMMessage> { LLMMessage.CreateMessage(Roles.System, context.SystemPrompt) };
+        // Метка кеша — на системном промпте: вместе с инструментами перед ним это постоянный
+        // префикс каждого шага, и поставщик дальше считает его по цене чтения кеша.
+        LLMMessage system = cacheSystemPrompt
+            ? new LLMMessage(LLMMessage.SystemRole, new MessageContent { new TextContentItem(context.SystemPrompt) { CacheControl = CacheControl.Ephemeral } })
+            : LLMMessage.CreateMessage(Roles.System, context.SystemPrompt);
+        var messages = new List<LLMMessage> { system };
 
         foreach (LLMMessage message in context.Query?.History ?? [])
             messages.Add(message);
 
         messages.Add(LLMMessage.CreateMessage(Roles.User, context.Query?.Text ?? string.Empty));
 
-        foreach (ReActStep step in context.Trace?.Steps ?? [])
+        IReadOnlyList<ReActStep> steps = context.Trace?.Steps ?? [];
+        int firstFull = FirstFullStep(steps, context.MaxTraceChars);
+        for (int index = 0; index < steps.Count; index++)
         {
+            ReActStep step = steps[index];
+            bool full = index >= firstFull;
             if (step.Observations.Count == 0)
                 continue;
 
@@ -127,7 +165,9 @@ public sealed class NativeToolCallPolicy : IReActPolicy
                     Function = new FunctionCall
                     {
                         Name = observation.Action.ToolName,
-                        Arguments = observation.Action.Arguments,
+                        Arguments = full || (observation.Action.Arguments?.Length ?? 0) <= ElidedChars
+                            ? observation.Action.Arguments
+                            : ElidedArguments,
                     },
                 });
             }
@@ -135,7 +175,13 @@ public sealed class NativeToolCallPolicy : IReActPolicy
             if (toolCalls.Count == 0)
                 continue;
 
-            var assistant = new LLMMessage(LLMMessage.AssistantRole, step.Thought ?? string.Empty)
+            // Модели возвращается её сообщение, а не рассуждения: они уже сделали своё дело и на
+            // каждом следующем шаге оплачивались бы как вход заново.
+            string thought = step.Reply ?? string.Empty;
+            if (!full && thought.Length > ElidedChars)
+                thought = thought[..ElidedChars] + "…";
+
+            var assistant = new LLMMessage(LLMMessage.AssistantRole, thought)
             {
                 ToolCalls = toolCalls,
             };
@@ -148,7 +194,11 @@ public sealed class NativeToolCallPolicy : IReActPolicy
                 if (observation.Action == null)
                     continue;
 
-                messages.Add(LLMMessage.CreateToolResult(observation.Action.Id, observation.Text ?? string.Empty));
+                string text = observation.Text ?? string.Empty;
+                if (!full && text.Length > ElidedChars)
+                    text = $"[Результат старого шага опущен ради места: {text.Length} знаков.]";
+
+                messages.Add(LLMMessage.CreateToolResult(observation.Action.Id, text));
             }
 
             if (!string.IsNullOrWhiteSpace(step.Note))
@@ -174,6 +224,41 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         }
 
         return definitions;
+    }
+
+    /// <summary>
+    /// С какого шага след идёт полностью: шаги набираются от последнего к первому, пока хватает
+    /// <paramref name="maxChars"/>. Последний шаг идёт всегда — без своего свежего наблюдения
+    /// модель повторила бы действие. 0 и меньше — все шаги полностью.
+    /// </summary>
+    private static int FirstFullStep(IReadOnlyList<ReActStep> steps, int maxChars)
+    {
+        if (maxChars <= 0)
+            return 0;
+
+        int used = 0;
+        bool any = false;
+        for (int i = steps.Count - 1; i >= 0; i--)
+        {
+            int size = StepChars(steps[i]);
+            if (any && used + size > maxChars)
+                return i + 1;
+
+            used += size;
+            any |= size > 0;
+        }
+
+        return 0;
+    }
+
+    /// <summary>Сколько знаков шаг занимает в переписке: сообщение модели, аргументы вызовов и их результаты.</summary>
+    private static int StepChars(ReActStep step)
+    {
+        int size = step.Reply?.Length ?? 0;
+        foreach (ReActObservation observation in step.Observations)
+            size += (observation.Action?.Arguments?.Length ?? 0) + (observation.Text?.Length ?? 0);
+
+        return size;
     }
 
     /// <summary>Схема для инструмента с одним свободным строковым аргументом.</summary>

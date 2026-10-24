@@ -167,6 +167,183 @@ public class NativeToolCallPolicyTests
         Assert.Equal("что там с погодой", sent[2].Content?.ToString());
     }
 
+    [Fact]
+    public async Task NativeToolCallPolicy_DecideAsync_ElidesOldStepsBeyondTraceBudget()
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        var policy = new NativeToolCallPolicy(llm);
+
+        // Десять чтений по 5000 знаков при пределе 12000: целиком уходят только два свежих шага.
+        var trace = new ReActTrace();
+        for (int i = 1; i <= 10; i++)
+        {
+            var action = new ReActAction("read_file", "{\"path\":\"" + new string('п', 400) + i + "\"}", "call_" + i);
+            trace.Add(new ReActStep
+            {
+                Number = i,
+                Reply = new string('м', 500),
+                Actions = [action],
+                Observations = [new ReActObservation { Action = action, Ok = true, Text = i + ":" + new string('т', 5000) }],
+            });
+        }
+
+        await policy.DecideAsync(new ReActPolicyContext
+        {
+            Query = new ReActQuery("вопрос"),
+            Tools = [new FakeReActTool("read_file")],
+            Trace = trace,
+            SystemPrompt = "инструкция",
+            StepNumber = 11,
+            MaxSteps = 20,
+            MaxTraceChars = 12000,
+        });
+
+        List<LLMMessage> sent = llm.SentMessages[0];
+        List<LLMMessage> results = sent.Where(m => m.Role == LLMMessage.ToolRole).ToList();
+        int total = sent.Sum(m => (m.Content?.ToString()?.Length ?? 0) + (m.ToolCalls?.Sum(c => c.Function.Arguments.Length) ?? 0));
+
+        // Пары «вызов — ответ» сохранены все: иначе поставщик отверг бы запрос.
+        Assert.Equal(10, results.Count);
+        Assert.Equal(Enumerable.Range(1, 10).Select(i => "call_" + i), results.Select(m => m.ToolCallId));
+        Assert.StartsWith("10:", results[9].Content?.ToString());
+        Assert.StartsWith("9:", results[8].Content?.ToString());
+        Assert.StartsWith("[Результат старого шага опущен", results[0].Content?.ToString());
+        Assert.True(total < 20000, $"ушло {total} знаков");
+        Assert.All(sent.Where(m => m.ToolCalls is { Count: > 0 }).SelectMany(m => m.ToolCalls),
+            c => System.Text.Json.JsonDocument.Parse(c.Function.Arguments).Dispose());
+    }
+
+    [Fact]
+    public async Task ReActEngine_WithNativeToolCalling_DoesNotSendReasoningBackToModel()
+    {
+        var reasoned = FakeLLMClient.WithToolCalls(("call_a", "web_search", """{"input":"погода"}"""));
+        reasoned.Choices[0].Message.Content = "ищу погоду";
+        reasoned.Choices[0].Message.Reasoning = new string('р', 5000);
+        var llm = new FakeLLMClient().EnqueueFull(reasoned).EnqueueFull(FakeLLMClient.WithText("готово"));
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithTool(new FakeReActTool("web_search"))
+            .Build();
+
+        await engine.RunAsync("вопрос");
+
+        // Рассуждения показаны пользователю, но во втором запросе их нет: иначе они оплачивались бы заново.
+        LLMMessage assistant = Assert.Single(llm.SentMessages[1], m => m.ToolCalls is { Count: > 0 });
+        Assert.Equal("ищу погоду", assistant.Content?.ToString());
+        Assert.DoesNotContain(llm.SentMessages[1], m => m.Content?.ToString()?.Contains("ррррр") == true);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ReActEngine_WithAnswerStreaming_SendsAnswerWhileModelWrites(bool streaming)
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("вот и весь ответ"));
+        ReActAgentBuilder builder = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithTool(new FakeReActTool("web_search"));
+        if (streaming)
+            builder.WithAnswerStreaming();
+
+        var events = new List<ReActEvent>();
+        await foreach (ReActEvent e in builder.Build().StreamAsync(new ReActQuery("вопрос")))
+            events.Add(e);
+
+        List<string> chunks = events.OfType<ReActEvent.AnswerChunk>().Select(c => c.Text).ToList();
+        Assert.Equal("вот и весь ответ", Assert.IsType<ReActEvent.Completed>(events[^1]).Result.Answer);
+        if (streaming)
+            // Фрагменты — до итога, по мере генерации: человек видит начало ответа сразу.
+            Assert.Equal(["вот ", "и ", "весь ", "ответ "], chunks);
+        else
+            Assert.Empty(chunks);
+    }
+
+    [Fact]
+    public async Task NativeToolCallPolicy_DecideAsync_KeepsWholeTraceWithoutBudget()
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        var policy = new NativeToolCallPolicy(llm);
+        var trace = new ReActTrace();
+        for (int i = 1; i <= 3; i++)
+        {
+            var action = new ReActAction("read_file", "{}", "call_" + i);
+            trace.Add(new ReActStep
+            {
+                Number = i,
+                Actions = [action],
+                Observations = [new ReActObservation { Action = action, Ok = true, Text = new string('т', 50000) }],
+            });
+        }
+
+        await policy.DecideAsync(Context([new FakeReActTool("read_file")], trace, step: 4));
+
+        Assert.All(llm.SentMessages[0].Where(m => m.Role == LLMMessage.ToolRole),
+            m => Assert.Equal(50000, m.Content?.ToString()?.Length));
+    }
+
+    [Fact]
+    public async Task NativeToolCallPolicy_DecideAsync_MarksSystemPromptForCacheOnlyWhenAsked()
+    {
+        var plain = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        var cached = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+
+        await new NativeToolCallPolicy(plain).DecideAsync(Context([new FakeReActTool("web_search")]));
+        await new NativeToolCallPolicy(cached, cacheSystemPrompt: true).DecideAsync(Context([new FakeReActTool("web_search")]));
+
+        Assert.Equal("инструкция", plain.SentMessages[0][0].Content);
+        var part = Assert.IsType<AI.LLM.Core.Models.Common.Messages.Content.TextContentItem>(
+            Assert.Single((AI.LLM.Core.Models.Common.Messages.Content.MessageContent)cached.SentMessages[0][0].Content));
+        Assert.Equal("инструкция", part.Text);
+        Assert.Equal("ephemeral", part.CacheControl?.Type);
+        // Метка должна дойти до тела запроса, а не остаться в объекте.
+        string json = System.Text.Json.JsonSerializer.Serialize(cached.SentMessages[0][0]);
+        Assert.Contains("\"cache_control\":{\"type\":\"ephemeral\"}", json);
+    }
+
+    [Fact]
+    public async Task ReActEngine_WithNativeToolCalling_DoesNotRepeatToolDescriptionsInSystemPrompt()
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithSystemPrompt("инструкция")
+            .WithTool(new FakeReActTool("web_search"))
+            .Build();
+
+        await engine.RunAsync("вопрос");
+
+        // Описания уже ушли полем tools — в промпте они оплачивались бы второй раз на каждом шаге.
+        Assert.DoesNotContain("web_search", llm.SentMessages[0][0].Content?.ToString());
+        Assert.Contains(llm.SentSettings[0]!.Tools, t => t.Function.Name == "web_search");
+    }
+
+    [Fact]
+    public async Task ReActEngine_StreamAsync_ReportsSpendingOfEveryCallIncludingSynthesis()
+    {
+        var llm = new FakeLLMClient()
+            .EnqueueFull(FakeLLMClient.WithToolCalls(("call_a", "web_search", """{"input":"погода"}""")))
+            .EnqueueFull(FakeLLMClient.WithText("итог"));
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithTool(new FakeReActTool("web_search"))
+            .WithMaxIterations(1)
+            .WithLlmSynthesis(llm)
+            .Build();
+
+        var events = new List<ReActEvent>();
+        await foreach (ReActEvent e in engine.StreamAsync(new ReActQuery("вопрос")))
+            events.Add(e);
+
+        ReActResult result = Assert.IsType<ReActEvent.Completed>(events[^1]).Result;
+        // Решение (10 токенов входа) и синтез ответа (7): синтез раньше в учёт не попадал вовсе.
+        Assert.Equal("итог", result.Answer);
+        Assert.Equal([10, 7], events.OfType<ReActEvent.Spent>().Select(s => s.Usage.PromptTokens));
+        Assert.Equal(17, result.Usage.PromptTokens);
+        Assert.Equal(2, result.Usage.LlmCalls);
+        // Окно модели — по переписке цикла, а не по короткому запросу синтеза.
+        Assert.Equal(10, result.Usage.LastPromptTokens);
+    }
+
     private static ReActPolicyContext Context(
         IReadOnlyList<IReActTool> tools, ReActTrace? trace = null, int step = 1) =>
         new()

@@ -93,14 +93,42 @@ internal sealed class FakeLLMClient : ILLMClient
         return _text.Count > 0 ? _text.Dequeue() : string.Empty;
     }
 
-    public Task<ChatCompletionsResponse> SendFullAsync(
+    /// <remarks>
+    /// Разовый промпт одним сообщением пользователя — то же, что <see cref="SendAsync(string, GenerateSettings?, CancellationToken)"/>:
+    /// он попадает и в <see cref="SentPrompts"/>, а ответ без заготовленного полного берётся из текстовых.
+    /// </remarks>
+    public async Task<ChatCompletionsResponse> SendFullAsync(
         IEnumerable<LLMMessage> messages,
         GenerateSettings? generateSettings = null,
         CancellationToken cancellationToken = default)
     {
-        SentMessages.Add(messages.ToList());
+        List<LLMMessage> sent = messages.ToList();
+        SentMessages.Add(sent);
         SentSettings.Add(generateSettings);
-        return Task.FromResult(_full.Count > 0 ? _full.Dequeue() : WithText(string.Empty));
+        if (sent.Count == 1 && sent[0].Role == LLMMessage.UserRole)
+            SentPrompts.Add(sent[0].Content?.ToString() ?? string.Empty);
+
+        if (BeforeSend != null)
+            await BeforeSend().ConfigureAwait(false);
+
+        if (_full.Count > 0)
+            return _full.Dequeue();
+
+        return WithText(_text.Count > 0 ? _text.Dequeue() : string.Empty);
+    }
+
+    /// <summary>Как поток: текст ответа уходит фрагментами по словам, затем возвращается целиком.</summary>
+    public async Task<ChatCompletionsResponse> SendFullAsync(
+        IEnumerable<LLMMessage> messages,
+        GenerateSettings? generateSettings,
+        Action<LLMStreamChunk>? onChunk,
+        CancellationToken cancellationToken = default)
+    {
+        ChatCompletionsResponse response = await SendFullAsync(messages, generateSettings, cancellationToken).ConfigureAwait(false);
+        string text = response.Choices.FirstOrDefault()?.Message?.Content?.ToString() ?? string.Empty;
+        foreach (string word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            onChunk?.Invoke(new LLMStreamChunk { Content = word + " " });
+        return response;
     }
 
     public Task<int> TokenizeAsync(IEnumerable<LLMMessage> messages, CancellationToken cancellationToken = default) =>

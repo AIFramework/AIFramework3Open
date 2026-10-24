@@ -98,14 +98,23 @@ public class LLMBase : ILLMClient
     /// Отправка запроса к LLM с возвратом полного ответа (включая tool_calls, usage, finish_reason).
     /// Используйте этот метод для Function Calling.
     /// </summary>
-    public async Task<ChatCompletionsResponse> SendToLLMFull(IEnumerable<LLMMessage> messages, GenerateSettings generateSettings = null, CancellationToken cancellationToken = default)
+    public Task<ChatCompletionsResponse> SendToLLMFull(IEnumerable<LLMMessage> messages, GenerateSettings generateSettings = null, CancellationToken cancellationToken = default)
+        => SendToLLMFull(messages, generateSettings, null, cancellationToken);
+
+    /// <summary>
+    /// Полный ответ и фрагменты по мере генерации (<paramref name="onChunk"/>): запрос и так идёт
+    /// потоком, кадры просто отдаются наружу, пока собирается ответ.
+    /// </summary>
+    public async Task<ChatCompletionsResponse> SendToLLMFull(
+        IEnumerable<LLMMessage> messages, GenerateSettings generateSettings, Action<LLMStreamChunk> onChunk,
+        CancellationToken cancellationToken = default)
     {
         if (messages == null)
             throw new ArgumentNullException(nameof(messages));
 
         generateSettings = ApplyReasoningSettings(generateSettings);
 
-        return await _chatLLMApi.SendWithContextAsync(messages, generateSettings, cancellationToken).ConfigureAwait(false);
+        return await _chatLLMApi.SendWithContextAsync(messages, generateSettings, onChunk, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<int> TokenizeAsync(IEnumerable<LLMMessage> messages, CancellationToken cancellationToken = default)
@@ -129,6 +138,11 @@ public class LLMBase : ILLMClient
     /// <inheritdoc />
     Task<ChatCompletionsResponse> ILLMClient.SendFullAsync(IEnumerable<LLMMessage> messages, GenerateSettings generateSettings, CancellationToken cancellationToken)
         => SendToLLMFull(messages, generateSettings, cancellationToken);
+
+    /// <inheritdoc />
+    Task<ChatCompletionsResponse> ILLMClient.SendFullAsync(
+        IEnumerable<LLMMessage> messages, GenerateSettings generateSettings, Action<LLMStreamChunk> onChunk, CancellationToken cancellationToken)
+        => SendToLLMFull(messages, generateSettings, onChunk, cancellationToken);
 
     #endregion
 }

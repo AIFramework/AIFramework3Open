@@ -64,6 +64,14 @@ public abstract record ReActEvent
     /// <param name="Text">Фрагмент текста.</param>
     public sealed record ReasoningChunk(string Text) : ReActEvent;
 
+    /// <summary>
+    /// Расход одного обращения к модели — сразу после ответа. Итог прогона суммирует то же
+    /// самое, но приходит только в конце: по этим событиям расход виден и у прогона, который
+    /// отменили на середине.
+    /// </summary>
+    /// <param name="Usage">Токены и стоимость обращения.</param>
+    public sealed record Spent(AI.LLM.Core.Models.Common.Responses.Usage Usage) : ReActEvent;
+
     /// <summary>Терминальное событие: прогон завершён. Всегда последнее в потоке.</summary>
     /// <param name="Result">Итог прогона.</param>
     public sealed record Completed(ReActResult Result) : ReActEvent;
