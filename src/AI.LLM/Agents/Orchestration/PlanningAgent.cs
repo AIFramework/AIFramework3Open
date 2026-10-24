@@ -30,6 +30,11 @@ public sealed class PlanningAgent
     private readonly IStepValidator _validator;
     private readonly IAsyncStepValidator _asyncValidator;
     private readonly PlanningAgentConfig _config;
+    private readonly Func<PlanStep, string, CancellationToken, Task<AgentResult>> _stepExecutor;
+    private readonly Func<PlanTree, CancellationToken, Task<PlanTree>> _planApproval;
+
+    /// <summary>Сколько знаков итога принятого шага попадает в запрос следующего шага своему исполнителю.</summary>
+    private const int MaxPriorResultChars = 600;
 
     /// <summary>
     /// Контекст одной задачи: исполняющий агент, реестр инструментов для планировщика и память шагов.
@@ -53,11 +58,16 @@ public sealed class PlanningAgent
     /// <summary>Вызывается при перепланировании (после исчерпания попыток шага).</summary>
     public event EventHandler<PlanTree> OnReplanned;
 
+    /// <summary>Попытка шага не принята, и он пойдёт снова: в результате — отклонённый ответ и номер попытки.</summary>
+    public event EventHandler<StepExecutionResult> OnStepRetry;
+
     internal PlanningAgent(
         Agent agent, Func<ToolRegistry, StepMemory, Agent> agentFactory,
         PlanGenerator planner, StepMemory memory,
         IStepValidator validator, IAsyncStepValidator asyncValidator,
-        PlanningAgentConfig config)
+        PlanningAgentConfig config,
+        Func<PlanStep, string, CancellationToken, Task<AgentResult>> stepExecutor = null,
+        Func<PlanTree, CancellationToken, Task<PlanTree>> planApproval = null)
     {
         _agent          = agent;
         _agentFactory   = agentFactory;
@@ -66,6 +76,8 @@ public sealed class PlanningAgent
         _validator      = validator;
         _asyncValidator = asyncValidator;
         _config         = config;
+        _stepExecutor   = stepExecutor;
+        _planApproval   = planApproval;
     }
 
     /// <summary>
@@ -182,8 +194,9 @@ public sealed class PlanningAgent
         Log.Information("[PlanningAgent] Plan generated: {Count} steps", plan.Steps.Count);
         OnPlanGenerated?.Invoke(this, plan);
         PrintPlan(plan, replanCount);
+        (plan, var rejected) = await ApproveAsync(plan, ct).ConfigureAwait(false);
 
-        while (replanCount <= _config.MaxReplanAttempts)
+        while (!rejected && replanCount <= _config.MaxReplanAttempts)
         {
             ct.ThrowIfCancellationRequested();
 
@@ -231,11 +244,26 @@ public sealed class PlanningAgent
 
             OnReplanned?.Invoke(this, plan);
             PrintPlan(plan, replanCount);
+            (plan, rejected) = await ApproveAsync(plan, ct).ConfigureAwait(false);
         }
 
         sw.Stop();
         return new PlanningAgentResult(
-            goal, allSteps, plan, replanCount, success, sw.Elapsed, scope.Memory.Cells);
+            goal, allSteps, plan, replanCount, success, sw.Elapsed, scope.Memory.Cells, rejected);
+    }
+
+    /// <summary>
+    /// План на утверждение (<see cref="PlanningAgentBuilder.WithPlanApproval"/>): утверждённый — возможно
+    /// поправленный, Rejected — не утверждён. Пустой и циклический план не показывается: он не выполнится и
+    /// уйдёт на перепланирование сам.
+    /// </summary>
+    private async Task<(PlanTree Plan, bool Rejected)> ApproveAsync(PlanTree plan, CancellationToken ct)
+    {
+        if (_planApproval is null || plan.HasCycle || plan.Steps.Count == 0)
+            return (plan, false);
+
+        var approved = await _planApproval(plan, ct).ConfigureAwait(false);
+        return approved is null ? (plan, true) : (approved, false);
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
@@ -294,8 +322,9 @@ public sealed class PlanningAgent
 
             try
             {
-                var query = BuildStepQuery(step, goal, attempt);
-                lastResult = await scope.Agent.RunAsync(query, ct).ConfigureAwait(false);
+                lastResult = _stepExecutor is null
+                    ? await scope.Agent.RunAsync(BuildStepQuery(step, goal, attempt), ct).ConfigureAwait(false)
+                    : await _stepExecutor(step, BuildExecutorQuery(step, goal, attempt, scope.Memory.Cells, lastResult), ct).ConfigureAwait(false);
                 lastError = null;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -321,6 +350,8 @@ public sealed class PlanningAgent
 
             Log.Warning("[PlanningAgent] Step {StepId} attempt {Attempt}/{Max} failed",
                 step.Id, attempt, maxAttempts);
+            if (attempt < maxAttempts)
+                OnStepRetry?.Invoke(this, new StepExecutionResult(step, lastResult, false, false, attempt));
         }
 
         var failedCell = new StepMemoryEntry(
@@ -338,6 +369,38 @@ public sealed class PlanningAgent
     {
         var retry = attempt > 1 ? $" — retry {attempt - 1}" : "";
         return $"Overall goal: {goal}\n\nExecute this step{retry}: {step.Description}";
+    }
+
+    /// <summary>
+    /// Запрос своему исполнителю (<see cref="PlanningAgentBuilder.WithStepExecutor"/>): памяти шагов у него нет,
+    /// поэтому итоги принятых шагов идут в запрос. Критерий готовности — чтобы исполнитель знал, по чему шаг
+    /// примут; на повторе — отклонённый ответ прошлой попытки.
+    /// </summary>
+    private static string BuildExecutorQuery(
+        PlanStep step, string goal, int attempt, IReadOnlyList<StepMemoryEntry> done, AgentResult rejected)
+    {
+        var query = new System.Text.StringBuilder();
+        query.Append("Общая задача: ").Append(goal).Append("\n\n");
+        var accepted = done.Where(c => c.Success).ToList();
+        if (accepted.Count > 0)
+        {
+            query.Append("Уже сделано:\n");
+            foreach (var cell in accepted)
+            {
+                var result = cell.Result.Length > MaxPriorResultChars ? cell.Result[..MaxPriorResultChars] + "…" : cell.Result;
+                query.Append("- ").Append(cell.Description).Append(" → ").Append(result.Replace("\n", " ")).Append('\n');
+            }
+            query.Append('\n');
+        }
+        query.Append("Сделай этот шаг: ").Append(step.Description).Append('\n');
+        if (!string.IsNullOrWhiteSpace(step.DoneWhen))
+            query.Append("Шаг примут, когда: ").Append(step.DoneWhen.Trim()).Append('\n');
+        if (attempt > 1 && !string.IsNullOrWhiteSpace(rejected?.Answer))
+        {
+            var answer = rejected.Answer.Length > MaxPriorResultChars ? rejected.Answer[..MaxPriorResultChars] + "…" : rejected.Answer;
+            query.Append("\nПрошлая попытка не принята (критерий не выполнен). Её ответ: ").Append(answer).Append('\n');
+        }
+        return query.ToString();
     }
 
     private static void PrintPlan(PlanTree plan, int replanIndex)

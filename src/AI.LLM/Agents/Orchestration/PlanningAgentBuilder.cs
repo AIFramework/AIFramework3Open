@@ -39,6 +39,8 @@ public sealed class PlanningAgentBuilder
     private GenerateSettings _llmValidatorSettings;
     private IAgentGuard _guard;
     private IObservationProvider _observer;
+    private Func<PlanStep, string, CancellationToken, Task<AgentResult>> _stepExecutor;
+    private Func<PlanTree, CancellationToken, Task<PlanTree>> _planApproval;
     private readonly PlanningAgentConfig _config = new();
 
     private PlanningAgentBuilder() { }
@@ -106,6 +108,33 @@ public sealed class PlanningAgentBuilder
     /// <summary>Параллельное выполнение шагов одного яруса (default: false).</summary>
     public PlanningAgentBuilder WithParallelTiers(bool enable = true) { _config.ExecuteParallelTiers = enable; return this; }
 
+    /// <summary>
+    /// Свой исполнитель шага вместо встроенного <see cref="Agent"/> — например агент приложения со своими
+    /// инструментами, проверками и показом правок. Получает шаг и запрос: цель, итоги принятых шагов, сам
+    /// шаг с критерием готовности и, на повторе, отклонённый ответ прошлой попытки.
+    /// </summary>
+    /// <remarks>
+    /// С параллельными ярусами (<see cref="WithParallelTiers"/>) исполнитель зовётся одновременно для
+    /// шагов яруса и должен быть к этому готов. Инструменты сборки (<see cref="WithTools"/>) в этом
+    /// режиме видит только планировщик.
+    /// </remarks>
+    public PlanningAgentBuilder WithStepExecutor(Func<PlanStep, string, CancellationToken, Task<AgentResult>> executor)
+    {
+        _stepExecutor = executor ?? throw new ArgumentNullException(nameof(executor));
+        return this;
+    }
+
+    /// <summary>
+    /// Утверждение плана перед выполнением — первого и каждого перепланированного: вернуть план (можно
+    /// поправленный, см. <see cref="PlanGenerator.Arrange"/>) или <c>null</c> — задача останавливается
+    /// (<see cref="PlanningAgentResult.Rejected"/>).
+    /// </summary>
+    public PlanningAgentBuilder WithPlanApproval(Func<PlanTree, CancellationToken, Task<PlanTree>> approve)
+    {
+        _planApproval = approve ?? throw new ArgumentNullException(nameof(approve));
+        return this;
+    }
+
     /// <summary>Строит <see cref="PlanningAgent"/>.</summary>
     public PlanningAgent Build()
     {
@@ -134,7 +163,7 @@ public sealed class PlanningAgentBuilder
             agent, agentFactory, planner, memory,
             _validator ?? new DefaultStepValidator(),
             asyncValidator,
-            _config);
+            _config, _stepExecutor, _planApproval);
     }
 
     /// <summary>Собирает исполняющий агент с готовым реестром инструментов и памятью шагов.</summary>

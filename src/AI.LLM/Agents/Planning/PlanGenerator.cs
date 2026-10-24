@@ -91,6 +91,23 @@ public sealed class PlanGenerator
         return new PlanTree(goal, steps, tiers, hasCycle, usage);
     }
 
+    /// <summary>
+    /// Дерево из готовых шагов — например плана, поправленного пользователем перед утверждением:
+    /// ярусы заново по зависимостям. Зависимость от удалённого шага не учитывается.
+    /// </summary>
+    /// <param name="goal">Задача плана.</param>
+    /// <param name="steps">Шаги; их ярусы (<see cref="PlanStep.Tier"/>) пересчитываются.</param>
+    /// <param name="usage">Расход генерации исходного плана; <c>null</c> — пустой.</param>
+    public static PlanTree Arrange(string goal, IReadOnlyList<PlanStep> steps, AgentUsage usage = null)
+    {
+        ArgumentNullException.ThrowIfNull(steps);
+        var list = steps.ToList();
+        if (list.Count == 0)
+            return new PlanTree(goal, [], [], false, usage ?? new AgentUsage());
+        var (tiers, hasCycle) = BuildTiers(list);
+        return new PlanTree(goal, list, tiers, hasCycle, usage ?? new AgentUsage());
+    }
+
     /// <summary>Один вопрос модели и разбор шагов; пусто — ответа нет или он непригоден.</summary>
     private async Task<List<PlanStep>> AskAsync(
         string goal, List<Skill> skills, ToolRegistry tools, bool strict, AgentUsage usage, CancellationToken ct)

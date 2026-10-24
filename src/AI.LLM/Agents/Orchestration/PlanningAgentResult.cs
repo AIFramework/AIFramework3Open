@@ -28,6 +28,12 @@ public sealed class PlanningAgentResult
     /// <summary>Ячейки памяти — все выполненные шаги с результатами.</summary>
     public IReadOnlyList<StepMemoryEntry> MemoryCells { get; }
 
+    /// <summary>
+    /// План не утверждён (<see cref="PlanningAgentBuilder.WithPlanApproval"/> вернул <c>null</c>):
+    /// задача остановлена до выполнения этого плана, а не провалена.
+    /// </summary>
+    public bool Rejected { get; }
+
     public PlanningAgentResult(
         string goal,
         IReadOnlyList<StepExecutionResult> steps,
@@ -35,7 +41,8 @@ public sealed class PlanningAgentResult
         int replanCount,
         bool success,
         TimeSpan elapsed,
-        IReadOnlyList<StepMemoryEntry> memoryCells)
+        IReadOnlyList<StepMemoryEntry> memoryCells,
+        bool rejected = false)
     {
         Goal        = goal;
         Steps       = steps;
@@ -44,5 +51,6 @@ public sealed class PlanningAgentResult
         Success     = success;
         Elapsed     = elapsed;
         MemoryCells = memoryCells;
+        Rejected    = rejected;
     }
 }
