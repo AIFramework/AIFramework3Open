@@ -129,14 +129,21 @@ public sealed class FimClient : IDisposable
         return JsonSerializer.Serialize(payload);
     }
 
-    /// <summary><c>choices[0].text</c>; нет его — пустая строка.</summary>
+    /// <summary>
+    /// <c>choices[0].text</c>, а у Mistral Codestral (<c>/v1/fim/completions</c>) — <c>choices[0].message.content</c>;
+    /// нет ни того, ни другого — пустая строка.
+    /// </summary>
     private static string Text(string body)
     {
         using JsonDocument json = JsonDocument.Parse(body);
-        return json.RootElement.TryGetProperty("choices", out JsonElement choices)
-            && choices.ValueKind == JsonValueKind.Array && choices.GetArrayLength() > 0
-            && choices[0].TryGetProperty("text", out JsonElement text) && text.ValueKind == JsonValueKind.String
-            ? text.GetString()
+        if (!json.RootElement.TryGetProperty("choices", out JsonElement choices) || choices.ValueKind != JsonValueKind.Array || choices.GetArrayLength() == 0)
+            return "";
+        JsonElement choice = choices[0];
+        if (choice.TryGetProperty("text", out JsonElement text) && text.ValueKind == JsonValueKind.String)
+            return text.GetString();
+        return choice.TryGetProperty("message", out JsonElement message) && message.TryGetProperty("content", out JsonElement content)
+            && content.ValueKind == JsonValueKind.String
+            ? content.GetString()
             : "";
     }
 }

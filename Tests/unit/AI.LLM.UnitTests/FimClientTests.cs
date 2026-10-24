@@ -74,6 +74,14 @@ public class FimClientTests
     }
 
     [Fact]
+    public async Task CompleteAsync_CodestralMessageContent_IsRead()
+    {
+        var (client, _) = Create("""{"choices":[{"index":0,"message":{"role":"assistant","content":"a + b"}}]}""");
+
+        Assert.Equal("a + b", await client.CompleteAsync("return ", ";"));
+    }
+
+    [Fact]
     public async Task CompleteAsync_NoChoices_ReturnsEmpty()
     {
         var (client, _) = Create("""{"choices":[]}""");
