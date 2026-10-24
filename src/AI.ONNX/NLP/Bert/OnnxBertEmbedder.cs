@@ -39,6 +39,8 @@ public sealed class OnnxBertEmbedder : EmbedderServiceBase, IDisposable
             throw new FileNotFoundException($"В папке модели нет {missing}", Path.Combine(modelFolder ?? "", missing));
 
         _embedder = BertEmbedder.FromPretrained(modelFolder);
+        // Блок — сколько влезает в окно модели (не меньше двух знаков на токен): усреднение многих блоков размывает смысл.
+        _embedder.BlockSize = Math.Max(_embedder.BlockSize, _embedder.Config.MaxPositionEmbeddings * 2);
         ModelName = Path.GetFileName(Path.TrimEndingDirectorySeparator(modelFolder));
     }
 
