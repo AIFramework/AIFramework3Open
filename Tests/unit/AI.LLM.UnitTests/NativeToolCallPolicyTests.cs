@@ -282,6 +282,48 @@ public class NativeToolCallPolicyTests
     }
 
     [Fact]
+    public async Task NativeToolCallPolicy_DecideAsync_SendsQueryImagesAndOnlyLatestToolImages()
+    {
+        var llm = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));
+        var policy = new NativeToolCallPolicy(llm);
+        byte[] png = [0x89, 0x50, 0x4E, 0x47, 1, 2, 3];
+        var trace = new ReActTrace();
+        for (int i = 1; i <= 2; i++)
+        {
+            var action = new ReActAction("render_preview", "{}", "call_" + i);
+            trace.Add(new ReActStep
+            {
+                Number = i,
+                Actions = [action],
+                Observations = [new ReActObservation { Action = action, Ok = true, Text = "снимок " + i,
+                    Images = [new AI.LLM.Agents.Multimodal.AgentImage(png, "image/png", "form")] }],
+            });
+        }
+
+        await policy.DecideAsync(new ReActPolicyContext
+        {
+            Query = new ReActQuery("сделай как на картинке", images: [new AI.LLM.Agents.Multimodal.AgentImage(png, "image/png")]),
+            Tools = [new FakeReActTool("render_preview")],
+            Trace = trace,
+            SystemPrompt = "инструкция",
+            StepNumber = 3,
+            MaxSteps = 5,
+        });
+
+        List<LLMMessage> sent = llm.SentMessages[0];
+        static int Images(LLMMessage m) => m.Content is AI.LLM.Core.Models.Common.Messages.Content.MessageContent c
+            ? c.OfType<AI.LLM.Core.Models.Common.Messages.Content.ImageContent>().Count() : 0;
+
+        // Картинка запроса — в его сообщении; снимок инструмента — один раз, после ответа последнего шага.
+        Assert.Equal(1, Images(sent[1]));
+        Assert.Equal(2, sent.Sum(Images));
+        Assert.Equal(1, Images(sent[^1]));
+        Assert.Equal("call_2", sent[^2].ToolCallId);
+        Assert.StartsWith("data:image/png;base64,",
+            ((AI.LLM.Core.Models.Common.Messages.Content.MessageContent)sent[^1].Content).OfType<AI.LLM.Core.Models.Common.Messages.Content.ImageContent>().Single().ImageUrl.Url);
+    }
+
+    [Fact]
     public async Task NativeToolCallPolicy_DecideAsync_MarksSystemPromptForCacheOnlyWhenAsked()
     {
         var plain = new FakeLLMClient().EnqueueFull(FakeLLMClient.WithText("готово"));

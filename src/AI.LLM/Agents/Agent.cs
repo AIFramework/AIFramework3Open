@@ -223,7 +223,7 @@ public sealed partial class Agent
                     && messages[^1] is { Role: LLMMessage.UserRole } last
                     && last.Content is string text)
                 {
-                    messages[^1] = BuildUserMessage(text, query.Images);
+                    messages[^1] = AgentImage.UserMessage(text, query.Images);
                 }
                 else
                 {
@@ -237,23 +237,8 @@ public sealed partial class Agent
         return
         [
             LLMMessage.CreateMessage(Roles.System, _config.SystemPrompt),
-            BuildUserMessage(query.Text, query.Images)
+            AgentImage.UserMessage(query.Text, query.Images)
         ];
-    }
-
-    /// <summary>
-    /// Создаёт user-сообщение: если есть изображения — через MessageContent (multimodal),
-    /// иначе обычный текст.
-    /// </summary>
-    private static LLMMessage BuildUserMessage(string text, IReadOnlyList<AgentImage> images)
-    {
-        if (images is not { Count: > 0 })
-            return LLMMessage.CreateMessage(Roles.User, text);
-
-        var mc = new MessageContent(text);
-        foreach (var img in images)
-            mc.AddImage(img.Data);
-        return new LLMMessage(LLMMessage.UserRole, mc);
     }
 
     /// <summary>

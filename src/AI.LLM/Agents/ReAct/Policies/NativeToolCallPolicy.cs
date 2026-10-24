@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AI.LLM.Agents.Multimodal;
 using AI.LLM.Agents.ReAct.Tools;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
@@ -129,6 +130,12 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// заменяются пометкой. Сами вызовы и ответы на них остаются — без пары с тем же
     /// идентификатором поставщик отверг бы запрос.
     /// </para>
+    /// <para>
+    /// Картинки запроса идут вместе с его текстом. Картинки инструментов (снимок формы, кадр камеры)
+    /// ответ роли <c>tool</c> у большинства поставщиков не несёт, поэтому они идут следом сообщением
+    /// пользователя — и только у последнего шага, где они были: прежние снимки модель уже видела, а
+    /// пересылка на каждом шаге стоила бы как новые.
+    /// </para>
     /// </summary>
     private static List<LLMMessage> BuildMessages(ReActPolicyContext context, bool cacheSystemPrompt)
     {
@@ -142,10 +149,11 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         foreach (LLMMessage message in context.Query?.History ?? [])
             messages.Add(message);
 
-        messages.Add(LLMMessage.CreateMessage(Roles.User, context.Query?.Text ?? string.Empty));
+        messages.Add(AgentImage.UserMessage(context.Query?.Text ?? string.Empty, context.Query?.Images));
 
         IReadOnlyList<ReActStep> steps = context.Trace?.Steps ?? [];
         int firstFull = FirstFullStep(steps, context.MaxTraceChars);
+        int imageStep = LastStepWithImages(steps);
         for (int index = 0; index < steps.Count; index++)
         {
             ReActStep step = steps[index];
@@ -201,6 +209,13 @@ public sealed class NativeToolCallPolicy : IReActPolicy
                 messages.Add(LLMMessage.CreateToolResult(observation.Action.Id, text));
             }
 
+            if (index == imageStep)
+            {
+                List<ReActObservation> pictured = step.Observations.Where(o => o.Images is { Count: > 0 }).ToList();
+                string names = string.Join(", ", pictured.Select(o => o.Action?.ToolName).Where(n => n != null).Distinct());
+                messages.Add(AgentImage.UserMessage($"[Изображения из ответа инструмента {names}]", pictured.SelectMany(o => o.Images).ToList()));
+            }
+
             if (!string.IsNullOrWhiteSpace(step.Note))
                 messages.Add(LLMMessage.CreateMessage(Roles.User, step.Note));
         }
@@ -224,6 +239,15 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         }
 
         return definitions;
+    }
+
+    /// <summary>Последний шаг, где инструмент вернул картинки; −1 — таких нет.</summary>
+    private static int LastStepWithImages(IReadOnlyList<ReActStep> steps)
+    {
+        for (int i = steps.Count - 1; i >= 0; i--)
+            if (steps[i].Observations.Any(o => o.Action != null && o.Images is { Count: > 0 }))
+                return i;
+        return -1;
     }
 
     /// <summary>
