@@ -29,22 +29,18 @@ public class SynthesisDatabaseManager
     {
         try
         {
-            if (File.Exists(_databasePath))
+            var options = new JsonSerializerOptions
             {
-                var json = File.ReadAllText(_databasePath);
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    WriteIndented = true
-                };
-                _database = JsonSerializer.Deserialize<SynthesisDatabase>(json, options) 
-                    ?? new SynthesisDatabase();
-            }
-            else
-            {
-                // Создаём пустую базу данных
-                _database = new SynthesisDatabase();
-            }
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+            // Файла рядом с программой нет (сборка из пакета NuGet) — встроенная в сборку база.
+            using var stream = File.Exists(_databasePath)
+                ? File.OpenRead(_databasePath)
+                : typeof(SynthesisDatabaseManager).Assembly.GetManifestResourceStream("AI.Solvers.Chem.synthesis_database.json");
+            _database = stream == null
+                ? new SynthesisDatabase()
+                : JsonSerializer.Deserialize<SynthesisDatabase>(stream, options) ?? new SynthesisDatabase();
         }
         catch (Exception ex)
         {

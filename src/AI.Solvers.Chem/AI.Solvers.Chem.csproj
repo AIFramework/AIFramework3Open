@@ -22,6 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- База и файлом в Data (его можно править), и ресурсом сборки: пакет NuGet не копирует файл транзитивным потребителям. -->
+    <EmbeddedResource Include="Data\synthesis_database.json" LogicalName="AI.Solvers.Chem.synthesis_database.json" />
     <None Update="Data\synthesis_database.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
