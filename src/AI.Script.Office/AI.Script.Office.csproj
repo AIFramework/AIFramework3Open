@@ -13,12 +13,11 @@
        документы Word и PDF тянут три чужих пакета, а скрипту, которому нужны только таблицы и
        статистика, платить за них ни размером поставки, ни временем запуска незачем. -->
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.102.3" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
+    <!-- Версии те же, что у исполнителей MASAgents. OpenXml 3.x тянет System.IO.Packaging 8.0.1+, где
+         исправлены CVE-2024-43483 и CVE-2024-43484 версии 6.0.0 из OpenXml 2.x: отдельной ссылки не нужно. -->
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageReference Include="PdfPig" Version="0.1.15" />
-    <!-- OpenXml 2.20 тянет System.IO.Packaging 6.0.0 (CVE-2024-43483, CVE-2024-43484, обе high), а
-         разбираются присланные пользователем документы. Версия та же, что у хостов MAS. -->
-    <PackageReference Include="System.IO.Packaging" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>
