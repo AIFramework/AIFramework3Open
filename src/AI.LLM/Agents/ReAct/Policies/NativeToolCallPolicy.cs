@@ -80,6 +80,13 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         {
             throw;
         }
+        catch (AI.LLM.Clients.Base.LlmRequestException ex) when (ex.IsEmptyAnswer)
+        {
+            // Модель закончила ответ молча (бывает после результата инструмента): это не отказ сервера, а пустое
+            // решение — цикл напомнит, что нужен ответ или вызов инструмента, и спросит снова.
+            Serilog.Log.Warning("ReAct: пустой ответ модели на шаге {Step}", context.StepNumber);
+            return ReActDecision.Malformed(null);
+        }
         catch (AI.LLM.Clients.Base.LlmRequestException)
         {
             // Отказ сервера (ключ, баланс, окно, недоступность после повторов) — не «неверный формат»:

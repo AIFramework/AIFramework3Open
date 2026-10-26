@@ -33,6 +33,12 @@ public sealed class LlmRequestException : Exception
     /// <summary>Запрос не поместился в окно модели.</summary>
     public bool IsContextOverflow { get; }
 
+    /// <summary>
+    /// Сервер ответил, но модель ничего не сказала (<see cref="EmptyModelAnswerException"/>): цикл агента лечит это
+    /// подсказкой и новым шагом, а не показывает человеку как отказ сервера.
+    /// </summary>
+    public bool IsEmptyAnswer => GetBaseException() is EmptyModelAnswerException;
+
     private LlmRequestException(
         string message, HttpStatusCode? statusCode, bool retryable, TimeSpan? retryAfter, bool contextOverflow, Exception inner)
         : base(message, inner)

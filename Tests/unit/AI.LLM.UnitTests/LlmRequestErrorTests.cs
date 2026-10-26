@@ -85,6 +85,28 @@ public class LlmRequestErrorTests
     }
 
     [Fact]
+    public async Task ReActEngine_WithNativeToolCalling_EmptyAnswerGetsAnotherStepInsteadOfFailure()
+    {
+        // Модель закончила ответ молча (finish_reason=stop без текста): клиент повторяет запрос, а цикл после этого
+        // не сдаётся с «нет связи», а подсказывает модели и спрашивает снова.
+        const string empty = "data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n";
+        const string answer = "data: {\"choices\":[{\"delta\":{\"content\":\"Готово\"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n";
+        var web = new ScriptedWebClient(Response(HttpStatusCode.OK, empty), Response(HttpStatusCode.OK, empty), Response(HttpStatusCode.OK, empty),
+            Response(HttpStatusCode.OK, answer));
+        var llm = new LLMBase(new ChatLLMApi(web, "модель"), new LLMOptions { ModelName = "модель" });
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithNativeToolCalling(llm)
+            .WithTool(new FakeReActTool("web_search"))
+            .Build();
+
+        ReActResult result = await engine.RunAsync("вопрос");
+
+        Assert.Equal(4, web.Calls);
+        Assert.Equal(ReActStopReason.FinalAnswer, result.StopReason);
+        Assert.Equal("Готово", result.Answer);
+    }
+
+    [Fact]
     public async Task LLMBase_SendFullAsync_PassesStreamChunksWhileCollectingAnswer()
     {
         const string sse = "data: {\"choices\":[{\"delta\":{\"content\":\"При\"}}]}\n\n"

@@ -234,7 +234,7 @@ public partial class ChatLLMApi
 
         if (!hasText && !hasReasoning && !hasImages && !hasToolCalls)
         {
-            throw new InvalidOperationException("Потоковый ответ пуст - не получено ни текста, ни reasoning, ни изображений, ни tool_calls.");
+            throw new EmptyModelAnswerException();
         }
 
         // Формируем ответ
