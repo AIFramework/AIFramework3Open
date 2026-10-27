@@ -25,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Промпты движка файлами: ресурс Prompts.имя.md читает PromptFiles. Файлы помечены -text в .gitattributes:
+         подстановка CRLF меняла бы сам промпт. -->
+    <EmbeddedResource Include="Resources\Prompts\*.md" LogicalName="Prompts.%(Filename).md" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Состояние прогона ReAct (ReActTrace) намеренно закрыто от потребителей: им владеет
          движок. Тестам нужно собирать след вручную, поэтому открываем его только им. -->
     <InternalsVisibleTo Include="AI.LLM.UnitTests" />

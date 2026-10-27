@@ -3,6 +3,7 @@ using System.Text.Json;
 using AI.Algorithms.EWG;
 using AI.Algorithms.GraphStructure;
 using AI.LLM.Agents.Tools;
+using AI.LLM.Core;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
 using AI.LLM.Core.Models.Common.Messages.Content;
@@ -175,71 +176,26 @@ public sealed class PlanGenerator
     private static string Map(bool strict, string key, string value) =>
         strict ? $"[{{\"key\": \"{key}\", \"value\": \"{value}\"}}]" : $"{{\"{key}\": \"{value}\"}}";
 
+    /// <summary>
+    /// Правила плана из файла <c>Resources/Prompts/plan-rules.md</c>: от строгой схемы зависят форма карт портов и пустого
+    /// инструмента, от настроек потолок шагов и справочник портов.
+    /// </summary>
     private string BuildRules(bool strict)
     {
-        var sb = new StringBuilder();
-        sb.AppendLine("Ты — планировщик задач. Разбей задачу пользователя на конкретные шаги.");
-        sb.AppendLine("Каждый шаг может зависеть от других шагов (выполняться после них).");
-        sb.AppendLine("Если шаги независимы друг от друга — НЕ указывай зависимости, они будут выполнены параллельно.");
-        sb.AppendLine();
-        sb.AppendLine("ПРАВИЛА:");
-        sb.AppendLine($"- Максимум {_config.MaxSteps} шагов");
-        sb.AppendLine("- Каждый шаг имеет уникальный id (step_0, step_1, ...)");
-        sb.AppendLine("- depends_on — массив id шагов, которые ДОЛЖНЫ быть выполнены ДО этого шага");
-        sb.AppendLine("- Если для шага есть подходящий инструмент — укажи его в поле tool");
-        sb.AppendLine("- tool — имя ДОСЛОВНО из списка ниже. Придуманного имени не существует:");
-        sb.AppendLine("  шаг с ним исполнять нечем, и он выродится в обычный текстовый ответ.");
-        sb.AppendLine(strict
-            ? "- Если подходящего инструмента нет — оставь tool пустой строкой \"\""
-            : "- Если подходящего инструмента нет — оставь tool = null");
-        sb.AppendLine("- Меньше шагов лучше. Один шаг = одна ответственность; не дроби ради дробления");
-        sb.AppendLine("  и не заводи служебных шагов («разобрать запрос», «уточнить у пользователя»,");
-        sb.AppendLine("  «проверить результат», «собрать итог») — это делает сам движок.");
-        sb.AppendLine("- description — задание ЭТОГО шага в повелительном наклонении, а не пересказ");
-        sb.AppendLine("  всего запроса: исполнитель получает только его и сделает ровно написанное.");
-        sb.AppendLine("  Всё, что нужно шагу для работы (тема, объём, стиль, формат), пиши прямо в нём.");
-        sb.AppendLine("- Явные ограничения формата и объёма из запроса («одним предложением», «кратко»,");
-        sb.AppendLine("  «не более N слов», «только списком») переноси ДОСЛОВНО в description каждого");
-        sb.AppendLine("  шага, чьего результата они касаются: исполнитель самого запроса не видит, и");
-        sb.AppendLine("  без переноса ограничение теряется. Не превращай их в нижнюю границу объёма");
-        sb.AppendLine("  в done_when: «не более 50 слов» — это потолок, а не заказ пятидесяти слов.");
-        sb.AppendLine("- done_when — КРИТЕРИЙ ГОТОВНОСТИ шага: по чему видно, что он СДЕЛАН, а не начат.");
-        sb.AppendLine("  Пиши проверяемый признак РЕЗУЛЬТАТА, а не пересказ задачи:");
-        sb.AppendLine("  плохо: «эссе написано»; хорошо: «в ответе есть готовый текст эссе не короче 2000 знаков».");
-        sb.AppendLine("  План работы, «приступаю» и обещания сделать позже критерию НЕ удовлетворяют.");
-        sb.AppendLine("  done_when обязателен для КАЖДОГО шага.");
-        sb.AppendLine($"- outputs — что шаг передаёт дальше: {Map(strict, "имя_порта_инструмента", "идентификатор_артефакта")}");
-        sb.AppendLine($"- input_mapping — откуда шаг берёт данные: {Map(strict, "имя_порта_инструмента", "источник")}");
-        sb.AppendLine("- Источник — либо \"step_X.outputs.порт\" (шаг step_X ОБЯЗАН быть в depends_on), либо \"user_context.ключ\"");
-        sb.AppendLine("- ДАННЫЕ передаются ТОЛЬКО через input_mapping. В args — лишь литеральные");
-        sb.AppendLine("  константы самого шага (формат, язык, число); копировать туда текст запроса");
-        sb.AppendLine("  или результат предыдущего шага не нужно — он придёт портом.");
-
-        if (!string.IsNullOrWhiteSpace(_config.PortsPrompt))
-        {
-            sb.AppendLine();
-            sb.AppendLine("### Порты инструментов и правила соединения");
-            sb.AppendLine(_config.PortsPrompt.Trim());
-        }
-
-        sb.AppendLine();
-        sb.AppendLine("Ответь СТРОГО в JSON-формате:");
-        sb.AppendLine("```json");
-        sb.AppendLine("{");
-        sb.AppendLine("  \"steps\": [");
         var noArgs = strict ? "[]" : "{}";
-        sb.AppendLine($"    {{\"id\": \"step_0\", \"description\": \"...\", \"tool\": \"essay_writer\", \"args\": {noArgs},");
-        sb.AppendLine("     \"done_when\": \"в ответе есть готовый текст эссе, а не план и не обещание\",");
-        sb.AppendLine($"     \"depends_on\": [], \"outputs\": {Map(strict, "essay", "artifact_essay_1")}, \"input_mapping\": {Map(strict, "task", "user_context.message")}}},");
-        sb.AppendLine($"    {{\"id\": \"step_1\", \"description\": \"...\", \"tool\": \"publisher\", \"args\": {noArgs},");
-        sb.AppendLine("     \"done_when\": \"в ответе есть подтверждение отправки в канал\",");
-        sb.AppendLine($"     \"depends_on\": [\"step_0\"], \"outputs\": {noArgs},");
-        sb.AppendLine($"     \"input_mapping\": {Map(strict, "content", "step_0.outputs.essay")}}}");
-        sb.AppendLine("  ]");
-        sb.AppendLine("}");
-        sb.AppendLine("```");
-
-        return sb.ToString();
+        var ports = string.IsNullOrWhiteSpace(_config.PortsPrompt)
+            ? ""
+            : "\n### Порты инструментов и правила соединения\n" + _config.PortsPrompt.Trim() + "\n";
+        return PromptFiles.Format("plan-rules",
+            ("max_steps", _config.MaxSteps.ToString()),
+            ("tool_empty", strict ? "оставь tool пустой строкой \"\"" : "оставь tool = null"),
+            ("outputs_map", Map(strict, "имя_порта_инструмента", "идентификатор_артефакта")),
+            ("input_map", Map(strict, "имя_порта_инструмента", "источник")),
+            ("ports", ports),
+            ("no_args", noArgs),
+            ("essay_outputs", Map(strict, "essay", "artifact_essay_1")),
+            ("task_input", Map(strict, "task", "user_context.message")),
+            ("content_input", Map(strict, "content", "step_0.outputs.essay")));
     }
 
     /// <summary>Перечень инструментов и навыков под эту задачу; <c>null</c>, перечислять нечего.</summary>
