@@ -76,9 +76,7 @@ dotnet test AIFramework.sln -c Release --no-build
 
 Версия задается в [Directory.Build.props](Directory.Build.props), описания, иконка и README пакетов находятся в [build/NuGet.props](build/NuGet.props) и [build/nuget/](build/nuget/). Для SDK-проектов в каталоге `src/` включено `IsPackable`, `PackageId` совпадает с именем сборки. Исключения: `AI.SignalLabs` (сборка называется `AI.SignalLab`) и `AI.Faiss`, который не публикуется, потому что содержит библиотеки Intel MKL и Faiss без текстов их лицензий.
 
-**Публикация.** Для новой версии поменяйте `Version` в `Directory.Build.props` и запустите рабочий процесс [Publish NuGet](.github/workflows/publish-nuget.yml) вручную с галочкой `publish`. Ключи не нужны: nuget.org выдает временный ключ по политике Trusted Publishing. Опубликованную версию нельзя удалить, только скрыть, поэтому сначала стоит сделать запуск без галочки.
-
-Запасной путь без GitHub Actions: создайте на nuget.org ключ с областью «Push» и шаблоном `AI*`, запишите его в переменную окружения `NUGET_API_KEY` и выполните `.\build\nuget-push.ps1`. Сохранять ключ в файлах репозитория нельзя.
+**Публикация.** Для новой версии поменяйте `Version` в `Directory.Build.props` и запустите рабочий процесс [Publish NuGet](.github/workflows/publish-nuget.yml) вручную с галочкой `publish`. Ключи не нужны: nuget.org выдает временный ключ по политике Trusted Publishing. Опубликованную версию нельзя удалить, только скрыть, поэтому сначала стоит сделать запуск без галочки. Подробности, запасной путь с ключом и частые проблемы описаны в [Docs/NuGet.md](Docs/NuGet.md).
 
 ## Git hooks и стиль (AI.ML)
 

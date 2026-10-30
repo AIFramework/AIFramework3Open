@@ -4,6 +4,9 @@
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)
 ![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet?style=flat-square)
 [![Docs lint](https://img.shields.io/github/actions/workflow/status/AIFramework/AIFramework3Open/docs-lint.yml?branch=main&label=docs%20lint&style=flat-square)](https://github.com/AIFramework/AIFramework3Open/actions/workflows/docs-lint.yml)
+[![NuGet](https://img.shields.io/nuget/v/AI?style=flat-square&label=NuGet)](https://www.nuget.org/packages/AI)
+[![Downloads](https://img.shields.io/nuget/dt/AI?style=flat-square&label=downloads)](https://www.nuget.org/profiles/ZaharPonimash)
+[![Publish NuGet](https://img.shields.io/github/actions/workflow/status/AIFramework/AIFramework3Open/publish-nuget.yml?branch=main&label=publish&style=flat-square)](https://github.com/AIFramework/AIFramework3Open/actions/workflows/publish-nuget.yml)
 
 <img src="https://github.com/AIFramework/AIFramework3Open/blob/main/Docs/img/ai3_0_logo.png?raw=true" width="450" alt="AIFramework 3.0 Open" />
 
@@ -103,7 +106,7 @@ dotnet add package AI.NeuralNetworks
 dotnet add MyApp.csproj reference path/to/AIFramework3Open/src/AI.LLM/AI.LLM.csproj
 ```
 
-Сборка и публикация пакетов описаны в [CONTRIBUTING.md](CONTRIBUTING.md#пакеты-nuget).
+Состав пакетов, сборка и публикация описаны в [Docs/NuGet.md](Docs/NuGet.md).
 
 ---
 
@@ -524,6 +527,7 @@ dotnet test Tests/unit/AI.LLM.UnitTests/AI.LLM.UnitTests.csproj -c Release
 |--------|------------|
 | [CODING_STANDARD.md](CODING_STANDARD.md) | Единый стандарт API и кода. |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Сборка, тесты, CI, NuGet, состав модулей. |
+| [Docs/NuGet.md](Docs/NuGet.md) | Публикация пакетов на nuget.org: выпуск версии, настройка, безопасность, частые проблемы. |
 | [Docs/Architecture/](Docs/Architecture/) | Архитектурные описания всех модулей. |
 | [Docs/Tutorials/](Docs/Tutorials/) | Туториалы (Markdown + LaTeX). |
 | [Docs/Tutorials/STRUCTURE.md](Docs/Tutorials/STRUCTURE.md) | Канон оформления теоретической документации. |
