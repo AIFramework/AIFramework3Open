@@ -46,6 +46,13 @@ public sealed class SummarizationMemory : IAgentMemory
     /// </summary>
     public event Action<Usage> Spent;
 
+    /// <summary>
+    /// Порог по объёму: история длиннее стольких знаков сжимается, даже если сообщений меньше
+    /// <c>maxMessages</c> — длинные ответы с кодом заполняют окно модели раньше, чем набирается
+    /// число реплик. <see cref="int.MaxValue"/> — только порог по числу сообщений.
+    /// </summary>
+    public int MaxChars { get; set; } = int.MaxValue;
+
     /// <param name="llm">LLM-клиент для суммаризации.</param>
     /// <param name="maxMessages">Порог, после которого происходит сжатие.</param>
     public SummarizationMemory(ILLMClient llm, int maxMessages = 20)
@@ -88,7 +95,8 @@ public sealed class SummarizationMemory : IAgentMemory
             _history.Add(LLMMessage.CreateMessage(Roles.User, query));
             _history.Add(LLMMessage.CreateMessage(Roles.Assistant, answer));
 
-            if (_history.Count > _maxMessages && !_compacting)
+            bool tooLong = _history.Count > KeptMessages && _history.Sum(m => (long)(m.Content?.ToString()?.Length ?? 0)) > MaxChars;
+            if ((_history.Count > _maxMessages || tooLong) && !_compacting)
             {
                 _compacting = true;
                 // Последняя реплика остаётся дословно: следующий вопрос чаще всего о ней
