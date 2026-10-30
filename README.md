@@ -90,14 +90,17 @@ dotnet run -c Release
 
 ### Подключение к своему проекту
 
-Публичных пакетов на nuget.org пока нет — подключайте проекты напрямую или собирайте пакеты локально:
+Пакеты опубликованы на [nuget.org](https://www.nuget.org/packages/AI), подключайте только нужные:
 
 ```bash
-# вариант 1: ссылка на проект
-dotnet add MyApp.csproj reference path/to/AIFramework3Open/src/AI.LLM/AI.LLM.csproj
+dotnet add package AI.LLM
+dotnet add package AI.NeuralNetworks
+```
 
-# вариант 2: локальный NuGet-пакет
-dotnet pack src/AI/AI.csproj -c Release -o ./artifacts
+Можно подключить и проект напрямую:
+
+```bash
+dotnet add MyApp.csproj reference path/to/AIFramework3Open/src/AI.LLM/AI.LLM.csproj
 ```
 
 Сборка и публикация пакетов описаны в [CONTRIBUTING.md](CONTRIBUTING.md#пакеты-nuget).

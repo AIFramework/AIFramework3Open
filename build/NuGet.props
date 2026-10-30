@@ -24,7 +24,8 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(IsPackable)' == 'true'">
-    <Description Condition="'$(MSBuildProjectName)' == 'AI'">AIFramework core: Vector, Matrix and Tensor types, linear algebra, statistics, physical quantities and units.</Description>
+    <!-- Страница пакета AI: те, кто обновляется со старой версии 2.x, где все лежало в одном пакете -->
+    <Description Condition="'$(MSBuildProjectName)' == 'AI'">AIFramework core: Vector, Matrix and Tensor types, linear algebra, statistics, physical quantities and units. The framework is now split into separate AI.* packages: AI.ML, AI.NeuralNetworks, AI.LLM, AI.DSP, AI.NLP and more, see https://github.com/AIFramework/AIFramework3Open</Description>
     <Description Condition="'$(MSBuildProjectName)' == 'AI.Algorithms'">Graph algorithms: BFS/DFS, Dijkstra, A*, MST, max flow, matching, multi-agent path finding (CBS, PIBT, LaCAM), VRP and TSP.</Description>
     <Description Condition="'$(MSBuildProjectName)' == 'AI.Biology'">Computational biology: sequences and alignment, population genetics, population and epidemic models, metabolic flux analysis.</Description>
     <Description Condition="'$(MSBuildProjectName)' == 'AI.Charts'">SkiaSharp charts: scatter, line, bar, polar, power spectrum and 3D plots.</Description>
