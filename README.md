@@ -100,7 +100,7 @@ dotnet add MyApp.csproj reference path/to/AIFramework3Open/src/AI.LLM/AI.LLM.csp
 dotnet pack src/AI/AI.csproj -c Release -o ./artifacts
 ```
 
-Версия и метаданные пакетов задаются в [Directory.Build.props](Directory.Build.props); для всех проектов из `src/` включён `IsPackable`, `PackageId` совпадает с именем сборки.
+Сборка и публикация пакетов описаны в [CONTRIBUTING.md](CONTRIBUTING.md#пакеты-nuget).
 
 ---
 

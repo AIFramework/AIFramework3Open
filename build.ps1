@@ -21,6 +21,10 @@
 .PARAMETER Clean
     Удалить каталоги сборки обоих вариантов (bin, obj, bin-light, obj-light) и выйти.
 
+.PARAMETER Pack
+    Собрать пакеты NuGet библиотек из src в artifacts/nuget и выйти. Каталог очищается перед сборкой.
+    Выкладывает их build/nuget-push.ps1.
+
 .PARAMETER Configuration
     Конфигурация: Release (по умолчанию) или Debug.
 
@@ -35,12 +39,17 @@
 .EXAMPLE
     .\build.ps1 -Clean
     Удалить все каталоги сборки.
+
+.EXAMPLE
+    .\build.ps1 -Pack
+    Собрать пакеты NuGet.
 #>
 [CmdletBinding()]
 param(
     [switch]$Light,
     [switch]$Test,
     [switch]$Clean,
+    [switch]$Pack,
     [ValidateSet('Release', 'Debug')]
     [string]$Configuration = 'Release'
 )
@@ -99,6 +108,16 @@ if ($Clean) {
 
     Write-Host "Удалено каталогов сборки: $removed"
     exit 0
+}
+
+if ($Pack) {
+    # Каталог очищается: выкладка берет из него все пакеты, и старая версия ушла бы вместе с новой
+    $packages = Join-Path $PSScriptRoot 'artifacts/nuget'
+
+    if (Test-Path -LiteralPath $packages) { Remove-Item -LiteralPath $packages -Recurse -Force }
+
+    dotnet pack AIFramework.Full.sln -c $Configuration -nologo -o $packages
+    exit $LASTEXITCODE
 }
 
 $solution = if ($Light) { 'AIFramework.Light.sln' } else { 'AIFramework.Full.sln' }

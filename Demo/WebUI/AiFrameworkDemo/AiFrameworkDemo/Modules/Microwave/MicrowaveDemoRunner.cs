@@ -47,6 +47,9 @@ public static partial class MicrowaveDemoRunner
             "penetration_uniformity" => PenetrationUniformity(p, s),
             "cavity_modes" => CavityModes(p, s),
             "applicator_balance" => ApplicatorBalance(p, s),
+            "street_multipath" => StreetMultipath(p, s),
+            "tr38901_channel" => Tr38901Demo(p, s),
+            "network_coverage" => NetworkCoverage(p, s),
             _ => new DemoResult { Error = $"Неизвестный ключ алгоритма: {algoKey}" },
         };
 

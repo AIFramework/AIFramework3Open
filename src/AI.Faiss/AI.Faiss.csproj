@@ -5,6 +5,10 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <LangVersion>Latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <!-- Не публикуется: пакет вез бы библиотеки Intel MKL и Faiss, условия их лицензий требуют
+         приложить тексты лицензий, а в Docs/INFO.md их нет. От этого проекта не зависит ни одна
+         другая библиотека из src. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

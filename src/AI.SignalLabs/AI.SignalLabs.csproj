@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>12</LangVersion>
     <AssemblyName>AI.SignalLab</AssemblyName>
+    <!-- Пакет называется как проект и как в документации, сборка исторически без s на конце -->
+    <PackageId>AI.SignalLabs</PackageId>
     <RootNamespace>AI.SignalLab</RootNamespace>
   </PropertyGroup>
 

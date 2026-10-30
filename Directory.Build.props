@@ -5,7 +5,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <!-- Сборка библиотек и CI: общие метаданные для NuGet (dotnet pack при необходимости) -->
     <Version>4.0.0</Version>
-    <Authors>AIFramework</Authors>
+    <Authors>Zahar A. Ponimash</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/AIFramework/AIFramework3Open</RepositoryUrl>
@@ -27,6 +27,8 @@
          они есть. Пропущенные комментарии (CS1591) не шумят: .editorconfig понижает их до suggestion. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+  <!-- Описания, иконка и README пакетов -->
+  <Import Project="$(MSBuildThisFileDirectory)build/NuGet.props" />
   <!-- Лёгкая сборка: правила в отдельном файле, их подключает и Tests/Directory.Build.props -->
   <Import Project="$(MSBuildThisFileDirectory)build/Light.props" />
 </Project>

@@ -63,13 +63,22 @@ dotnet build AIFramework.sln -c Release
 dotnet test AIFramework.sln -c Release --no-build
 ```
 
-Локальная упаковка NuGet (пример — ядро `AI`):
+### Пакеты NuGet
 
-```bash
-dotnet pack src/AI/AI.csproj -c Release -o ./artifacts
+Пакеты всех библиотек собираются в каталог `artifacts/nuget`:
+
+```powershell
+.\build.ps1 -Pack
+.\build\nuget-push.ps1 -DryRun
 ```
 
-Версия и метаданные пакетов задаются в [Directory.Build.props](Directory.Build.props). Для SDK-проектов в каталоге `src/` включено `IsPackable` и `PackageId` по имени сборки.
+Вторая команда проверяет зависимости между пакетами и показывает порядок выкладки, ничего не публикуя.
+
+Версия задается в [Directory.Build.props](Directory.Build.props), описания, иконка и README пакетов находятся в [build/NuGet.props](build/NuGet.props) и [build/nuget/](build/nuget/). Для SDK-проектов в каталоге `src/` включено `IsPackable`, `PackageId` совпадает с именем сборки. Исключения: `AI.SignalLabs` (сборка называется `AI.SignalLab`) и `AI.Faiss`, который не публикуется, потому что содержит библиотеки Intel MKL и Faiss без текстов их лицензий.
+
+**Публикация.** Для новой версии поменяйте `Version` в `Directory.Build.props` и запустите рабочий процесс [Publish NuGet](.github/workflows/publish-nuget.yml) вручную с галочкой `publish`. Ключи не нужны: nuget.org выдает временный ключ по политике Trusted Publishing. Опубликованную версию нельзя удалить, только скрыть, поэтому сначала стоит сделать запуск без галочки.
+
+Запасной путь без GitHub Actions: создайте на nuget.org ключ с областью «Push» и шаблоном `AI*`, запишите его в переменную окружения `NUGET_API_KEY` и выполните `.\build\nuget-push.ps1`. Сохранять ключ в файлах репозитория нельзя.
 
 ## Git hooks и стиль (AI.ML)
 
@@ -85,7 +94,9 @@ dotnet pack src/AI/AI.csproj -c Release -o ./artifacts
 
 ## CI
 
-В репозитории настроен один workflow — [`.github/workflows/docs-lint.yml`](.github/workflows/docs-lint.yml) («Docs lint»):
+Выкладку пакетов выполняет отдельный рабочий процесс [`.github/workflows/publish-nuget.yml`](.github/workflows/publish-nuget.yml), он запускается только вручную (см. [Пакеты NuGet](#пакеты-nuget)).
+
+Проверку документации выполняет [`.github/workflows/docs-lint.yml`](.github/workflows/docs-lint.yml) («Docs lint»):
 
 - **Что проверяет:** соответствие теоретической документации канону [Docs/Tutorials/STRUCTURE.md](Docs/Tutorials/STRUCTURE.md) через линтер [Tools/DocsLint](Tools/DocsLint/) (`dotnet run --project Tools/DocsLint -- --strict`).
 - **Когда запускается:** push в `main` и pull request, если затронуты `Docs/Tutorials/**`, `Demo/WebUI/AiFrameworkDemo/AiFrameworkDemo/Modules/**`, `Tools/DocsLint/**` или сам workflow; плюс `workflow_dispatch` вручную.

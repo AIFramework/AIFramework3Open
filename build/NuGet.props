@@ -1,0 +1,78 @@
+<Project>
+  <!--
+    Метаданные пакетов NuGet: подключается из корневого Directory.Build.props, действует для всех
+    проектов с IsPackable=true. Содержимое опубликованной версии изменить нельзя, поэтому описания
+    и иконка проверяются до выкладки (.\build.ps1 -Pack и build/nuget-push.ps1 -DryRun).
+
+    Описания на английском: по ним ищет nuget.org. Новая библиотека без строки здесь получит
+    общее описание из Directory.Build.props.
+  -->
+  <PropertyGroup Condition="'$(IsPackable)' == 'true'">
+    <Copyright>Copyright (c) Zahar A. Ponimash</Copyright>
+    <PackageTags>ai;machine-learning;neural-networks;llm;agents;nlp;dsp;statistics;dotnet</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Воспроизводимая сборка: пути в отладочной информации не зависят от машины -->
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)nuget/icon.png" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)nuget/README.md" Pack="true" PackagePath="" Visible="false" />
+    <!-- Лицензии MIT на заимствованный код требуют передавать уведомления вместе со сборками -->
+    <None Include="$(MSBuildThisFileDirectory)../Docs/INFO.md" Pack="true" PackagePath="THIRD-PARTY-NOTICES.md" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(IsPackable)' == 'true'">
+    <Description Condition="'$(MSBuildProjectName)' == 'AI'">AIFramework core: Vector, Matrix and Tensor types, linear algebra, statistics, physical quantities and units.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Algorithms'">Graph algorithms: BFS/DFS, Dijkstra, A*, MST, max flow, matching, multi-agent path finding (CBS, PIBT, LaCAM), VRP and TSP.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Biology'">Computational biology: sequences and alignment, population genetics, population and epidemic models, metabolic flux analysis.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Charts'">SkiaSharp charts: scatter, line, bar, polar, power spectrum and 3D plots.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Charts.Avalonia'">Avalonia chart viewer for AI.Charts.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Charts.JS'">Plotly.js charts for Blazor Server.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Charts.WinForms'">WinForms chart viewer for AI.Charts.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.ClassicMath'">Numerical methods: integration, interpolation, ODE solvers, matrix decompositions, eigenvalues, expression calculator.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.ComputerVision'">Computer vision: 2D FFT, Sobel, HOG, histogram equalization, color processing.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.ControlSystems'">Control theory: PID, LQR, LQG, Kalman filters, MPC, sliding mode, MRAC, RLS, pole placement.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.DataPrepaire'">Data preparation: normalizers, tokenizers, DataTable, CSV.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.DSP'">Digital signal processing: IIR and FIR filters, FFT, Welch spectral analysis, processing pipelines.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Earth'">Earth sciences: geodesy, map projections, spatial index, astronomical time, Sun position, Moon phases.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Econometrics'">Econometrics: robust OLS, IV and GMM, panel data, causal inference (DiD, RDD, PSM), VAR and VECM, GARCH, state space models.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Economics'">Business and financial analytics: unit economics, pricing, forecasting, credit risk, valuation (DCF, LBO), VaR, portfolio optimization.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.ExplainitALL'">Interpretability metrics and RAG tools.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Faiss'">FAISS vector search: KNN, batch search, L2 and inner product, cluster assignment.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Fuzzy'">Fuzzy logic: Mamdani, Larsen, Sugeno and Tsukamoto inference, fuzzy PID.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Geometry'">Geometry: affine transforms, homography, quaternions, RANSAC, Bezier and Hermite curves.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.ImageEditor'">Cross-platform image editing core on SkiaSharp: filters, brushes, command history, sessions.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.KNN'">k-nearest neighbors: classification, regression, multi-output regression.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.LLM'">AI agents (ReAct, function calling), LLM clients (OpenAI, OpenRouter, DeepSeek, Google AI), MCP server, Semantic Kernel integration, memory, guards, billing.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Logic'">Logic structures used by AI.Fuzzy.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Microwave'">Microwave engineering: horn, reflector and lens antenna synthesis, waveguides, RF exposure limits, dielectric heating.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.ML'">Machine learning: classifiers, clustering, regression, PCA, genetic algorithms.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.NeuralNetworks'">Tensor engine with autograd: Linear, Conv, RNN, LSTM, GRU and Attention layers, normalizations, losses, DataLoader, OpenBLAS acceleration.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.NeuralNetworks.Gpu'">GPU acceleration for AI.NeuralNetworks through ILGPU: matrix multiplication and recurrent layer kernels.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.NeuralNetworks.Onnx'">ONNX format support for the AI.NeuralNetworks tensor engine.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.NLP'">Natural language processing: stemming, Russian morphology and lemmatization, BoW, TF-IDF, BM25, tokenizers, NER, summarization.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.ONNX'">ONNX model loading and inference: Dense, Softmax, BERT embeddings.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Physics'">Classical physics on typed quantities: mechanics, thermodynamics, electricity, optics, fluids.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Psychology'">Computational psychology: psychometrics, psychophysics, memory, learning, decision making, emotion and social models.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script'">AIScript, a scripting language for data processing pipelines: parser, runtime and hosting API.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Charts'">Plotting module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Chem'">Chemistry module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Data'">Parquet and read-only SQLite module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Llm'">LLM, embeddings and search module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Media'">Audio, video, speech and OCR module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Nn'">Neural network module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Office'">Excel, Word and PDF module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Science'">Physics and biology module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Std'">AIScript standard library: tables, statistics, math, signals, text, economics, control and optimization.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Script.Vision'">Image processing module for AIScript.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.SignalLabs'">Signal generators, modulation and demodulation, modulation recognition, automatic gain control.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Simulation'">Simulation: discrete events, queueing theory, system dynamics, Markov decision processes, agent-based models.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Solvers.Chem'">Chemistry toolkit: structures, kinetics, QSAR, crystallography, quantum chemistry, polymers, process safety.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Solvers.Constraints'">Constraint solving: SAT with CDCL, SMT, finite domain constraint programming.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Solvers.Math'">Math expression parser, computer algebra simplification, equation solvers.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Solvers.Optimization'">Mathematical optimization: linear, mixed integer and quadratic programming, Nelder-Mead.</Description>
+    <Description Condition="'$(MSBuildProjectName)' == 'AI.Solvers.Pde'">Partial differential equations: heat, wave and Poisson solvers, finite element method, sparse matrices, conjugate gradients.</Description>
+  </PropertyGroup>
+</Project>

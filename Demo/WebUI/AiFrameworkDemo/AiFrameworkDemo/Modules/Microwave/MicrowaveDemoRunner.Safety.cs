@@ -81,7 +81,7 @@ public static partial class MicrowaveDemoRunner
     }
 
     private static string Fmt(double value)
-        => value <= 0 ? "-" : value.ToString(value < 10 ? "F2" : "F0",
+        => value <= 0 || double.IsInfinity(value) ? "-" : value.ToString(value < 10 ? "F2" : "F0",
             System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>Собирает источник из значений ползунков.</summary>

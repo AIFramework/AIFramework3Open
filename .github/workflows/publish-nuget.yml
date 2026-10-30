@@ -1,0 +1,75 @@
+name: Publish NuGet
+
+# Сборка пакетов всех библиотек из src и выкладка на nuget.org.
+#
+# Запускается только вручную (Actions, Publish NuGet, Run workflow), потому что выложенную версию
+# нельзя удалить, только скрыть. Без галочки publish рабочий процесс собирает пакеты и показывает
+# порядок выкладки, но ничего не публикует. Версия задается в Directory.Build.props; уже
+# опубликованные версии пропускаются, поэтому после сбоя запуск можно повторить.
+#
+# Ключи в репозитории не хранятся: nuget.org выдает временный ключ на час по политике Trusted
+# Publishing учетной записи ZaharPonimash. Политика привязана к владельцу, репозитории и имени этого
+# файла, поэтому при переименовании файла ее нужно обновить.
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Выложить на nuget.org'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  pack:
+    # AI.Charts.WinForms нацелен на net9.0-windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Сборка пакетов
+        shell: pwsh
+        run: ./build.ps1 -Pack
+
+      - name: Проверка зависимостей и порядок выкладки
+        shell: pwsh
+        run: ./build/nuget-push.ps1 -DryRun
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nuget-packages
+          path: artifacts/nuget/*.nupkg
+          if-no-files-found: error
+
+  publish:
+    needs: pack
+    if: inputs.publish
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: nuget-packages
+          path: artifacts/nuget
+
+      - name: Временный ключ nuget.org
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ZaharPonimash
+
+      - name: Выкладка
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: ./build/nuget-push.ps1

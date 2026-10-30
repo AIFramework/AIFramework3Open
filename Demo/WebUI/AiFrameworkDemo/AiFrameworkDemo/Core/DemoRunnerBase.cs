@@ -77,6 +77,17 @@ public static class DemoRunnerBase
             Report      = report,
         };
 
+    /// <summary>Цвет шкалы Viridis для значения от 0 до 1 — для тепловых карт на фоне графика.</summary>
+    public static SKColor ViridisColor(double t, byte alpha = 255)
+    {
+        (double t, byte r, byte g, byte b)[] stops = [(0.00, 0x44, 0x01, 0x54), (0.25, 0x3B, 0x52, 0x8B), (0.50, 0x20, 0x90, 0x8C), (0.75, 0x5E, 0xC9, 0x62), (1.00, 0xFD, 0xE7, 0x25)];
+        for (int i = 0; i < stops.Length - 1; i++)
+        {
+            if (t <= stops[i + 1].t) { double k = (t - stops[i].t) / (stops[i + 1].t - stops[i].t); return new SKColor((byte)(stops[i].r + k * (stops[i + 1].r - stops[i].r)), (byte)(stops[i].g + k * (stops[i + 1].g - stops[i].g)), (byte)(stops[i].b + k * (stops[i + 1].b - stops[i].b)), alpha); }
+        }
+        return new SKColor(stops[^1].r, stops[^1].g, stops[^1].b, alpha);
+    }
+
     // -- Параметры -------------------------------------------------------------
 
     /// <summary>Безопасно читает числовой параметр из словаря.</summary>
