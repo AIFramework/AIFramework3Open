@@ -7,6 +7,11 @@
     <LangVersion>12.0</LangVersion>
     <RootNamespace>AI.Script</RootNamespace>
     <AssemblyName>AI.Script</AssemblyName>
+    <!-- Пакет для открытых приложений: без стандартной библиотеки и без libopenblas, поставка около 0,5 МБ. -->
+    <PackageId>AI.Script</PackageId>
+    <Version>0.1.0</Version>
+    <Description>AIScript: язык конвейеров с проверкой до запуска и функциями хоста.</Description>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
