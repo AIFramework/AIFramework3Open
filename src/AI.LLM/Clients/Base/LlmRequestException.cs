@@ -75,7 +75,49 @@ public sealed class LlmRequestException : Exception
 
         string message = $"{what} ({code})" + (string.IsNullOrWhiteSpace(provider) ? "." : ": " + provider);
         Exception inner = details == null ? null : new Exception(details);
-        return new LlmRequestException(message, statusCode, retryable, wait, overflow, inner);
+        var error = new LlmRequestException(message, statusCode, retryable, wait, overflow, inner);
+        // Настоящая причина отказа поставщика лежит глубже «Provider returned error»: человеку она ни к чему,
+        // а журналу без нее нечего разбирать. В Data, а не во внутреннем исключении: там текст запроса.
+        if (UpstreamCause(body) is { } upstream)
+            error.Data[UpstreamKey] = upstream;
+        return error;
+    }
+
+    /// <summary>Ключ <see cref="Exception.Data"/> с отказом поставщика за посредником.</summary>
+    public const string UpstreamKey = "Upstream";
+
+    /// <summary>
+    /// Отказ поставщика за посредником (OpenRouter): <c>error.metadata.provider_name</c> и
+    /// <c>error.metadata.raw</c>; <c>null</c>, если посредник его не передал.
+    /// </summary>
+    public static string UpstreamCause(string body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return null;
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(body);
+            if (document.RootElement.ValueKind != JsonValueKind.Object
+                || !document.RootElement.TryGetProperty("error", out JsonElement error)
+                || error.ValueKind != JsonValueKind.Object
+                || !error.TryGetProperty("metadata", out JsonElement metadata)
+                || metadata.ValueKind != JsonValueKind.Object
+                || !metadata.TryGetProperty("raw", out JsonElement raw))
+                return null;
+
+            string name = metadata.TryGetProperty("provider_name", out JsonElement p) && p.ValueKind == JsonValueKind.String
+                ? p.GetString()
+                : "поставщик";
+            string text = (raw.ValueKind == JsonValueKind.String ? raw.GetString() : raw.GetRawText())?.Trim() ?? "";
+            if (text.Length == 0)
+                return null;
+            return $"{name}: " + (text.Length <= 1000 ? text : text[..1000] + "…");
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     /// <summary>Ответа не было: сеть, тайм-аут, оборванный поток.</summary>

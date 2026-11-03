@@ -34,6 +34,19 @@ public class LlmRequestErrorTests
     }
 
     [Fact]
+    public void LlmRequestException_FromResponse_KeepsUpstreamCauseForJournalOnly()
+    {
+        const string body = """{"error":{"message":"Provider returned error","code":400,"metadata":{"raw":"{\"error\":\"tools are not supported\"}","provider_name":"DeepInfra"}}}""";
+
+        var error = LlmRequestException.FromResponse(HttpStatusCode.BadRequest, body, null, "запрос к модели X");
+
+        Assert.Equal("Сервер модели отклонил запрос (400): Provider returned error", error.Message);
+        Assert.Equal("DeepInfra: {\"error\":\"tools are not supported\"}", error.Data[LlmRequestException.UpstreamKey]);
+        Assert.Equal("запрос к модели X", error.InnerException?.Message);
+        Assert.Null(LlmRequestException.UpstreamCause("""{"error":{"message":"No auth credentials found"}}"""));
+    }
+
+    [Fact]
     public async Task ChatLLMApi_SendWithContextAsync_RetriesOverloadAsServerSays()
     {
         var web = new ScriptedWebClient(
