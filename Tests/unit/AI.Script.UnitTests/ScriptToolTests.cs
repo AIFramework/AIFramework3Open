@@ -1,3 +1,4 @@
+using AI.LLM.Agents.Multimodal;
 using AI.LLM.Agents.Tools;
 using AI.Script.Charts;
 using AI.Script.Hosting;
@@ -20,8 +21,10 @@ public sealed class ScriptToolTests
     [Fact]
     public async Task Tool_Run_ReturnsEmittedValues()
     {
-        string report = await Tool().RunAsync("emit сумма = 2 + 2\nprint(\"считаю\")");
+        ToolResult result = await Tool().RunAsync("emit сумма = 2 + 2\nprint(\"считаю\")");
+        string report = result.Text;
 
+        Assert.True(result.IsSuccess);
         Assert.Contains("Скрипт выполнен.", report, StringComparison.Ordinal);
         Assert.Contains("\"сумма\": 4", report, StringComparison.Ordinal);
         Assert.Contains("считаю", report, StringComparison.Ordinal);
@@ -31,8 +34,10 @@ public sealed class ScriptToolTests
     [Fact]
     public async Task Tool_Run_DoesNotExecuteBadScript()
     {
-        string report = await Tool().RunAsync("emit r = stat.срееднее(<1, 2>)");
+        ToolResult result = await Tool().RunAsync("emit r = stat.срееднее(<1, 2>)");
+        string report = result.Text;
 
+        Assert.False(result.IsSuccess);
         Assert.Contains("не прошёл проверку", report, StringComparison.Ordinal);
         Assert.Contains("AIS1101", report, StringComparison.Ordinal);
     }
@@ -42,8 +47,10 @@ public sealed class ScriptToolTests
     {
         var tool = Tool();
 
-        string report = await tool.RunAsync("assert 1 == 2, \"не сходится\"");
+        ToolResult result = await tool.RunAsync("assert 1 == 2, \"не сходится\"");
+        string report = result.Text;
 
+        Assert.False(result.IsSuccess);
         Assert.Contains("Скрипт сорвался.", report, StringComparison.Ordinal);
         Assert.Contains("не сходится", report, StringComparison.Ordinal);
         Assert.False(tool.Last!.Success);
@@ -57,13 +64,14 @@ public sealed class ScriptToolTests
     {
         var tool = Tool();
 
-        string report = await tool.RunAsync("""
+        ToolResult result = await tool.RunAsync("""
             let t = signal.time(0.01, fs: 1000)
 
             show plot.line(signal.sine(t, freq: 100), title: "Сигнал")
 
             emit точек = len(t)
             """);
+        string report = result.Text;
 
         Assert.Contains("Показано пользователю: plot «Сигнал»", report, StringComparison.Ordinal);
         Assert.DoesNotContain("traces", report, StringComparison.Ordinal);
@@ -74,11 +82,12 @@ public sealed class ScriptToolTests
     [Fact]
     public async Task Tool_Run_TruncatesLongTranscriptFromTheStart()
     {
-        string report = await Tool().RunAsync("""
+        ToolResult result = await Tool().RunAsync("""
             for i in 0..200 { print("строка ${i}") }
 
             emit r = 1
             """);
+        string report = result.Text;
 
         Assert.Contains("пропущено строк:", report, StringComparison.Ordinal);
         Assert.Contains("строка 199", report, StringComparison.Ordinal);
@@ -88,8 +97,12 @@ public sealed class ScriptToolTests
     [Fact]
     public void Tool_Check_DoesNotRun()
     {
-        Assert.Contains("Проверка пройдена", Tool().Check("emit r = 1"), StringComparison.Ordinal);
-        Assert.Contains("AIS1101", Tool().Check("emit r = math.квадрат(2)"), StringComparison.Ordinal);
+        ToolResult good = Tool().Check("emit r = 1"), bad = Tool().Check("emit r = math.квадрат(2)");
+
+        Assert.True(good.IsSuccess);
+        Assert.Contains("Проверка пройдена", good.Text, StringComparison.Ordinal);
+        Assert.False(bad.IsSuccess);
+        Assert.Contains("AIS1101", bad.Text, StringComparison.Ordinal);
     }
 
     [Fact]

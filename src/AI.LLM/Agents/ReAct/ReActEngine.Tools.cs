@@ -114,8 +114,8 @@ public sealed partial class ReActEngine
     }
 
     /// <summary>
-    /// Исполняет действия шага и записывает шаг в след. Повторные действия не исполняются —
-    /// вместо этого возвращается ранее полученное наблюдение.
+    /// Исполняет действия шага и записывает шаг в след. Повтор действия из последнего исполнявшего шага не
+    /// исполняется — возвращается ранее полученное наблюдение; после исполнения других вызовов повтор исполняется заново.
     /// </summary>
     private async IAsyncEnumerable<ReActEvent> PerformAsync(
         RunState run,
@@ -182,6 +182,11 @@ public sealed partial class ReActEngine
 
         if (pending.Count > 0)
         {
+            // Повтор отдаётся из памяти, только пока между вызовами ничего не исполнялось: движок не знает,
+            // какой инструмент меняет мир, а после правки прежнее чтение или снимок уже неверны.
+            lock (run.Sync)
+                run.Trace.Forget();
+
             await foreach (ReActEvent evt in ExecuteAsync(run, step, pending, slots, cancellationToken)
                 .ConfigureAwait(false))
                 yield return evt;

@@ -53,6 +53,37 @@ public class ReActEngineTests
     }
 
     [Fact]
+    public async Task ReActEngine_RunAsync_ReexecutesRepeatAfterAnotherCall()
+    {
+        // Чтение после правки должно видеть правку: между повторами исполнялся другой инструмент.
+        string content = "старый";
+        var read = new FakeReActTool("read", (_, _) => Task.FromResult(ReActToolOutcome.Success(content)));
+        var edit = new FakeReActTool("edit", (invocation, _) =>
+        {
+            content = invocation.Arguments;
+            return Task.FromResult(ReActToolOutcome.Success("записано"));
+        });
+        var policy = new FakeReActPolicy(
+            ReActDecision.Act(new ReActAction("read", "a.txt")),
+            ReActDecision.Act(new ReActAction("edit", "новый")),
+            ReActDecision.Act(new ReActAction("read", "a.txt")),
+            ReActDecision.Final("ответ"));
+
+        ReActEngine engine = ReActAgentBuilder.Create()
+            .WithPolicy(policy)
+            .WithTool(read)
+            .WithTool(edit)
+            .WithRepeatedActionPolicy(maxRepeats: 2, maxConsecutiveFailures: 2)
+            .Build();
+
+        ReActResult result = await engine.RunAsync("вопрос");
+
+        Assert.Equal(2, read.Invocations.Count);
+        Assert.Equal("новый", result.Steps[2].Observations.Single().Text);
+        Assert.Equal(ReActStopReason.FinalAnswer, result.StopReason);
+    }
+
+    [Fact]
     public async Task ReActEngine_RunAsync_FeedsUnknownToolNameBackToPolicy()
     {
         var tool = new FakeReActTool("search");

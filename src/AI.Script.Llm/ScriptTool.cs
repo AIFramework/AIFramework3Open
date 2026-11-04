@@ -1,4 +1,5 @@
-﻿using AI.LLM.Agents.Tools;
+﻿using AI.LLM.Agents.Multimodal;
+using AI.LLM.Agents.Tools;
 using AI.Script.Docs;
 using AI.Script.Hosting;
 using AI.Script.Semantics;
@@ -64,7 +65,7 @@ public sealed class ScriptTool
 
     [AgentTool("run_script", "Выполнить конвейер обработки данных на языке AIScript. " +
         "Скрипт сначала проверяется: при ошибках вернутся диагностики, и прогон не начнётся.")]
-    public async Task<string> RunAsync(
+    public async Task<ToolResult> RunAsync(
         [ToolParameter("исходный текст скрипта на языке AIScript")] string script,
         CancellationToken cancellationToken = default)
     {
@@ -75,7 +76,7 @@ public sealed class ScriptTool
         {
             Last = null;
 
-            return "Скрипт не прошёл проверку и не выполнялся. Исправьте ровно указанное:\n\n" + check.Render();
+            return ToolResult.Failure("Скрипт не прошёл проверку и не выполнялся. Исправьте ровно указанное:\n\n" + check.Render());
         }
 
         RunOptions options = _options();
@@ -87,16 +88,17 @@ public sealed class ScriptTool
 
         Last = result;
 
-        return Report(result);
+        // Сорвавшийся прогон — неудачный шаг: иначе ход показал бы его успешным.
+        return result.Success ? ToolResult.Success(Report(result)) : ToolResult.Failure(Report(result));
     }
 
     [AgentTool("check_script", "Проверить скрипт AIScript, не выполняя его: имена, аргументы и типы.")]
-    public string Check(
+    public ToolResult Check(
         [ToolParameter("исходный текст скрипта на языке AIScript")] string script)
     {
         CheckResult check = _host.Check(script ?? string.Empty);
 
-        return check.Success ? "Проверка пройдена: замечаний нет." : check.Render();
+        return check.Success ? ToolResult.Success("Проверка пройдена: замечаний нет.") : ToolResult.Failure(check.Render());
     }
 
     [AgentTool("script_help", "Справка по языку AIScript: задача (например «данные»), пространство имён, " +

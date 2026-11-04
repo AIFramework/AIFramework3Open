@@ -56,6 +56,12 @@ public sealed class ReActTrace
             _byActionKey[key] = observation;
     }
 
+    /// <summary>
+    /// Забывает запомненные наблюдения: исполняемые дальше вызовы могут изменить то, что видели прежние
+    /// (правка файла после чтения, снимок после правки), и повтор старого вызова должен исполниться заново.
+    /// </summary>
+    internal void Forget() => _byActionKey.Clear();
+
     /// <summary>Ранее полученное наблюдение для того же действия; <c>null</c>, если такого не было.</summary>
     /// <param name="key">Канонизированный ключ действия.</param>
     internal ReActObservation Recall(string key) =>
