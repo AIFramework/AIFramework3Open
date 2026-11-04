@@ -74,6 +74,12 @@ public static class DiagnosticCodes
     /// <summary>Хост не подал вход, объявленный скриптом.</summary>
     public const string MissingInput = "AIS1130";
 
+    /// <summary>Конструкция, которую профиль хоста не разрешает (<see cref="Hosting.ScriptProfile"/>).</summary>
+    public const string ProfileForbidden = "AIS1140";
+
+    /// <summary>Скрипт длиннее, чем разрешает профиль хоста.</summary>
+    public const string ProfileTooLong = "AIS1141";
+
     // --- AIS12xx: области видимости ---
 
     /// <summary>Повторный <c>let</c> для уже связанного имени.</summary>
@@ -169,8 +175,14 @@ public static class DiagnosticCodes
     /// <summary>Пробный прогон опыта остановлен после первого испытания: оценка записана.</summary>
     public const string PilotStopped = "AIS3211";
 
+    /// <summary>Скрипт читает значение, которое станет известно только после исполнения шага (<see cref="Runtime.ScriptHandle.Deferred"/>).</summary>
+    public const string DeferredValue = "AIS3212";
+
     /// <summary>Превышен потолок расходов на внешние вызовы.</summary>
     public const string CostLimit = "AIS3205";
+
+    /// <summary>Цикл сделал больше проходов, чем разрешено.</summary>
+    public const string LoopLimit = "AIS3206";
 
     // --- AIS34xx: ресурсы и политика ---
 

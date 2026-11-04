@@ -171,11 +171,17 @@ public readonly struct ScriptValue : IEquatable<ScriptValue>
         : throw Mismatch(what, ScriptType.Handle);
 
     private ScriptError Mismatch(string what, ScriptType expected) =>
-        new(DiagnosticCodes.TypeMismatch,
+        Type == ScriptType.Handle && AsHandle().IsDeferred ? Deferred(what) :
+        new ScriptError(DiagnosticCodes.TypeMismatch,
             $"{what}: ожидался тип {expected.ToName()}, получен {Type.ToName()}",
             expected == ScriptType.Bool && Type == ScriptType.Num
                 ? "неявного приведения числа к логическому значению нет: напишите явное сравнение, например 'x > 0'"
                 : null);
+
+    /// <summary>Чтение значения шага, который еще не исполнен: прерывает прогон мимо <c>try</c> (<see cref="ScriptHandle.Deferred"/>).</summary>
+    internal static ScriptAbort Deferred(string what) =>
+        new(DiagnosticCodes.DeferredValue, $"{what} станет известно только после исполнения шага",
+            "хост исполнит показанные шаги и покажет остаток плана");
 
     /// <inheritdoc/>
     public bool Equals(ScriptValue other)

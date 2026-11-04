@@ -39,6 +39,15 @@ public sealed class ScriptLimits
     public TimeSpan? Timeout { get; set; }
 
     /// <summary>
+    /// Потолок проходов одного цикла <c>for</c>; ноль и меньше — без потолка.
+    /// </summary>
+    /// <remarks>
+    /// Нужен хосту, который показывает человеку план до исполнения: план из тысячи шагов
+    /// никто не прочтет, а потолок шагов интерпретатора такой цикл пропустит.
+    /// </remarks>
+    public int LoopPasses { get; set; }
+
+    /// <summary>
     /// Потолок числа платных внешних вызовов за прогон; ноль и меньше — без потолка.
     /// </summary>
     /// <remarks>
@@ -62,6 +71,7 @@ public sealed class ScriptLimits
         CallDepth = CallDepth,
         Allocations = Allocations,
         Timeout = Timeout,
+        LoopPasses = LoopPasses,
         ExternalCalls = ExternalCalls,
         ExternalTokens = ExternalTokens,
         ExternalCost = ExternalCost,

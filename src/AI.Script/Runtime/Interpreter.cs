@@ -426,10 +426,21 @@ public sealed partial class Interpreter
             }
         }
 
+        int passes = 0;
+        int ceiling = _context.Options.Limits.LoopPasses;
+
         foreach (ScriptValue item in Iterate(iterable, step))
         {
             _context.Cancellation.ThrowIfCancellationRequested();
             _context.CountStep();
+
+            if (ceiling > 0 && ++passes > ceiling)
+            {
+                throw new ScriptError(
+                    DiagnosticCodes.LoopLimit,
+                    $"цикл сделал больше {ceiling} проходов",
+                    "сократите перебор: возьмите первые элементы или разбейте задачу на несколько");
+            }
 
             var iterationScope = new Scope(scope);
             BindLoopVariables(loop, item, iterationScope);

@@ -11,6 +11,9 @@ namespace AI.Script.Runtime;
 /// </remarks>
 public sealed class ScriptHandle
 {
+    /// <summary>Тип-тег значения, которого еще нет: шаг только запланирован (<see cref="Deferred"/>).</summary>
+    public const string DeferredType = "deferred";
+
     private static long s_counter;
 
     /// <summary>Тип-тег вида <c>ml.kmeans</c>; по нему разрешаются методы дескриптора.</summary>
@@ -25,6 +28,9 @@ public sealed class ScriptHandle
     /// <summary>Номер дескриптора в пределах процесса; попадает в печать.</summary>
     public long Id { get; }
 
+    /// <summary>Значение, которого еще нет; чтение его поля прерывает прогон, и <c>try</c> это не перехватит.</summary>
+    public bool IsDeferred => TypeName == DeferredType;
+
     /// <summary>Создаёт дескриптор.</summary>
     public ScriptHandle(string typeName, object target, string? summary = null)
     {
@@ -33,6 +39,15 @@ public sealed class ScriptHandle
         Summary = summary;
         Id = Interlocked.Increment(ref s_counter);
     }
+
+    /// <summary>
+    /// Значение шага, который только запланирован: хост показывает план человеку до исполнения.
+    /// </summary>
+    /// <remarks>
+    /// Скрипт, которому нужен итог такого шага, дальше не предсказать: хост останавливает показ
+    /// плана на этом месте, исполняет показанное и показывает остаток отдельно.
+    /// </remarks>
+    public static ScriptValue Deferred(object step) => ScriptValue.Handle(new ScriptHandle(DeferredType, step, "станет известно после исполнения"));
 
     /// <inheritdoc/>
     public override string ToString() =>

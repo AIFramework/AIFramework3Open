@@ -136,6 +136,8 @@ public sealed partial class Interpreter
             }
 
             ScriptValue value = await EvaluateAsync(part.Expression, scope).ConfigureAwait(false);
+            if (value.Type == ScriptType.Handle && value.AsHandle().IsDeferred) throw ScriptValue.Deferred("значение в строке");
+
             _ = builder.Append(ScriptFormatter.Format(value));
         }
 
@@ -329,6 +331,8 @@ public sealed partial class Interpreter
         if (target.Type == ScriptType.Handle)
         {
             ScriptHandle handle = target.AsHandle();
+
+            if (handle.IsDeferred) throw ScriptValue.Deferred($"поле '{member.Name}'");
 
             if (_registry.TryGetMethod(handle.TypeName, member.Name, out ScriptFunction method))
                 return ScriptValue.Fn(new NativeFunction(method));
