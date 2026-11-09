@@ -19,7 +19,7 @@ namespace AI.Script.Office;
 /// </para>
 /// </remarks>
 [ScriptModule("xls", "Книги Excel: листы, диапазоны, шапки в две строки", Version = "0.1", Group = "данные")]
-public static class XlsModule
+public static partial class XlsModule
 {
     /// <summary>Разделитель уровней в шапке из нескольких строк.</summary>
     private const string HeaderSeparator = " / ";
@@ -91,16 +91,51 @@ public static class XlsModule
 
         IXLWorksheet worksheet = workbook.Worksheets.Add(string.IsNullOrWhiteSpace(sheet) ? "Лист1" : sheet);
 
+        Fill(worksheet, t, 1);
+
+        // Ширина по первым двумстам строкам: подбор по всей выгрузке в сотни тысяч строк
+        // занимал больше времени, чем сама запись, а ширину задает шапка и начало данных.
+        if (t.ColumnCount > 0) worksheet.Columns().AdjustToContents(1, Math.Min(t.RowCount + 1, 200));
+
+        return await Save(context, workbook, path).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Пишет таблицу на лист начиная со строки <paramref name="top"/>: шапка жирным, данные под ней.
+    /// </summary>
+    /// <remarks>
+    /// Денежный формат ставится на диапазон колонки один раз, а не на каждую ячейку: стиль на
+    /// ячейку в ClosedXML дорог, и выгрузка денег в сто тысяч строк писалась минутами.
+    /// </remarks>
+    private static void Fill(IXLWorksheet worksheet, ScriptTable t, int top)
+    {
         for (int j = 0; j < t.ColumnCount; j++)
         {
-            worksheet.Cell(1, j + 1).Value = t[j].Name;
-            worksheet.Cell(1, j + 1).Style.Font.Bold = true;
+            ScriptColumn column = t[j];
+            IXLCell head = worksheet.Cell(top, j + 1);
 
-            for (int i = 0; i < t.RowCount; i++) Write(worksheet.Cell(i + 2, j + 1), t[j][i]);
+            head.Value = column.Name;
+            head.Style.Font.Bold = true;
+
+            bool money = IsExact(column);
+
+            for (int i = 0; i < column.Count; i++)
+            {
+                ScriptValue value = column[i];
+                IXLCell cell = worksheet.Cell(top + 1 + i, j + 1);
+
+                Write(cell, value);
+
+                // Смешанная колонка: деньги помечаются поштучно, чтобы обычное число не стало рублями.
+                if (!money && value.Type == ScriptType.Dec) cell.Style.NumberFormat.Format = MoneyFormat;
+            }
+
+            if (money) worksheet.Range(top + 1, j + 1, top + column.Count, j + 1).Style.NumberFormat.Format = MoneyFormat;
         }
+    }
 
-        if (t.ColumnCount > 0) worksheet.Columns().AdjustToContents();
-
+    private static async Task<string> Save(IScriptContext context, XLWorkbook workbook, string path)
+    {
         using var stream = new MemoryStream();
 
         workbook.SaveAs(stream);
@@ -283,7 +318,6 @@ public static class XlsModule
 
             case ScriptType.Dec:
                 cell.Value = value.AsDecimal();
-                cell.Style.NumberFormat.Format = "# ##0.00 ₽";
                 break;
 
             case ScriptType.Bool:

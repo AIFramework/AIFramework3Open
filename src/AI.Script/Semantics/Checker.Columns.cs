@@ -34,20 +34,22 @@ public sealed partial class Checker
         "filter", "sort", "head", "tail", "shuffle", "drop_na", "fill_na", "distinct", "rows",
     };
 
-    /// <summary>Параметр функции <c>table</c>, который называет уже существующие колонки входа.</summary>
-    private static readonly Dictionary<string, string> s_columnParameters = new(StringComparer.Ordinal)
+    /// <summary>Параметры функции, которые называют уже существующие колонки таблицы-входа.</summary>
+    private static readonly Dictionary<string, string[]> s_columnParameters = new(StringComparer.Ordinal)
     {
-        ["select"] = "cols",
-        ["drop"] = "cols",
-        ["one_hot"] = "cols",
-        ["encode"] = "cols",
-        ["drop_na"] = "cols",
-        ["fill_na"] = "cols",
-        ["distinct"] = "by",
-        ["sort"] = "by",
-        ["group_by"] = "by",
-        ["column"] = "name",
-        ["rename"] = "from",
+        ["table.select"] = ["cols"],
+        ["table.drop"] = ["cols"],
+        ["table.one_hot"] = ["cols"],
+        ["table.encode"] = ["cols"],
+        ["table.drop_na"] = ["cols"],
+        ["table.fill_na"] = ["cols"],
+        ["table.distinct"] = ["by"],
+        ["table.sort"] = ["by"],
+        ["table.group_by"] = ["by"],
+        ["table.column"] = ["name"],
+        ["table.rename"] = ["from"],
+        ["table.pivot"] = ["rows", "cols", "value"],
+        ["xls.pivot"] = ["rows", "cols", "values", "filters"],
     };
 
     private readonly Dictionary<Dictionary<string, ScriptType?>, Dictionary<string, IReadOnlyList<string>>> _columns = new();
@@ -189,22 +191,22 @@ public sealed partial class Checker
     /// <summary>Имена колонок в аргументах: <c>table.select(["x"])</c>, <c>table.sort(by: "x")</c>.</summary>
     private void CheckColumnArguments(CallExpr call, ScriptFunction function, Expr? pipedSource)
     {
-        if (!string.Equals(function.Namespace, "table", StringComparison.Ordinal)) return;
-        if (!s_columnParameters.TryGetValue(function.Name, out string? parameter)) return;
+        if (!s_columnParameters.TryGetValue($"{function.Namespace}.{function.Name}", out string[]? parameters)) return;
         if (ColumnsOf(Argument(call, function, 0, pipedSource)) is not { } columns) return;
-
-        int position = -1;
 
         for (int i = 0; i < function.Parameters.Count; i++)
         {
-            if (string.Equals(function.Parameters[i].Name, parameter, StringComparison.Ordinal)) position = i;
+            if (Array.IndexOf(parameters, function.Parameters[i].Name) >= 0)
+                RequireColumns(Argument(call, function, i, pipedSource), columns);
         }
+    }
 
-        Expr? value = Argument(call, function, position, pipedSource);
-
+    /// <summary>Колонка либо список колонок в одном аргументе; пустое имя значит «нет поля».</summary>
+    private void RequireColumns(Expr? value, IReadOnlyList<string> columns)
+    {
         if (StringLiteral(value) is { } single)
         {
-            RequireColumn(single, value!.Span, columns);
+            if (single.Length > 0) RequireColumn(single, value!.Span, columns);
             return;
         }
 
@@ -212,7 +214,7 @@ public sealed partial class Checker
 
         foreach (Expr item in list.Items)
         {
-            if (StringLiteral(item) is { } name) RequireColumn(name, item.Span, columns);
+            if (StringLiteral(item) is { Length: > 0 } name) RequireColumn(name, item.Span, columns);
         }
     }
 

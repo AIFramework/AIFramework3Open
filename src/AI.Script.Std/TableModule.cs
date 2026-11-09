@@ -728,7 +728,7 @@ public static partial class TableModule
             $"колонка '{name}': ожидался вектор либо список, получен {values.Type.ToName()}"),
     };
 
-    private static IReadOnlyList<string> ColumnNames(ScriptValue value, string what)
+    internal static IReadOnlyList<string> ColumnNames(ScriptValue value, string what)
     {
         if (value.Type == ScriptType.Str) return [value.AsString()];
 

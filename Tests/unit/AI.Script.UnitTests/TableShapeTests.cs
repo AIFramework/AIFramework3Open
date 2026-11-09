@@ -77,6 +77,104 @@ public sealed class TableShapeTests
     }
 
     [Fact]
+    public void Pivot_Totals_AddRowAndColumn()
+    {
+        RunResult result = Script.RunOk($"""
+            {Sales}
+            let p = t |> table.pivot(rows: "город", cols: "месяц", value: "сумма", totals: true)
+            emit rows = len(p)
+            emit москва = p[0]["Итого"]
+            emit итог_фев = p[2]["фев"]
+            emit всего = p[2]["Итого"]
+            emit подпись = p[2]["город"]
+            """);
+
+        Assert.Equal(3.0, result.Emitted["rows"]);
+        Assert.Equal(30.0, result.Emitted["москва"]);
+        Assert.Equal(65.0, result.Emitted["итог_фев"]);
+        Assert.Equal(105.0, result.Emitted["всего"]);
+        Assert.Equal("Итого", result.Emitted["подпись"]);
+    }
+
+    /// <summary>Итог среднего считается по строкам, а не средним средних: так считает Excel.</summary>
+    [Fact]
+    public void Pivot_MeanTotal_IsMeanOfRows()
+    {
+        Assert.Equal(25.0, Script.Number(
+            "(t |> table.pivot(rows: \"город\", cols: \"месяц\", value: \"сумма\", kind: \"mean\", totals: true))[1][\"Итого\"]",
+            prelude: Sales));
+    }
+
+    [Fact]
+    public void Pivot_ManyRowFields_WithoutColumns()
+    {
+        RunResult result = Script.RunOk($"""
+            {Sales}
+            let p = t |> table.pivot(rows: ["город", "месяц"], cols: [], value: "сумма")
+            emit rows = len(p)
+            emit names = table.columns(p)
+            emit пермь_фев = p[3]["сумма"]
+            """);
+
+        Assert.Equal(4.0, result.Emitted["rows"]);
+        Assert.Equal(new object?[] { "город", "месяц", "сумма" }, (IEnumerable<object?>)result.Emitted["names"]!);
+        Assert.Equal(45.0, result.Emitted["пермь_фев"]);
+    }
+
+    /// <summary>Месяцы по календарю, как в Excel, а не по алфавиту.</summary>
+    [Fact]
+    public void Pivot_Sort_MonthsByCalendar()
+    {
+        RunResult result = Script.RunOk("""
+            let p = table.of({ m: ["дек", "апр", "мар"], s: <1, 2, 3> }) |> table.pivot(rows: "m", cols: [], value: "s", sort: true)
+            emit a = p[0]["m"]
+            emit b = p[1]["m"]
+            emit c = p[2]["m"]
+            """);
+
+        Assert.Equal(["мар", "апр", "дек"], new[] { result.Emitted["a"], result.Emitted["b"], result.Emitted["c"] });
+    }
+
+    [Fact]
+    public void Pivot_Sort_OrdersRowsAndColumns()
+    {
+        RunResult result = Script.RunOk($"""
+            {Sales}
+            emit names = table.columns(t |> table.pivot(rows: "город", cols: "месяц", value: "сумма", sort: true))
+            """);
+
+        Assert.Equal(new object?[] { "город", "янв", "фев" }, (IEnumerable<object?>)result.Emitted["names"]!);
+    }
+
+    /// <summary>Опечатка в поле сводной ловится проверкой, до прогона по выгрузке.</summary>
+    [Fact]
+    public void Pivot_UnknownField_CaughtByCheck()
+    {
+        Assert.Contains(DiagnosticCodes.UnknownColumn,
+            Script.CheckCodes($"{Sales}\nemit p = t |> table.pivot(rows: \"горд\", cols: \"месяц\", value: \"сумма\")"));
+    }
+
+    /// <summary>Свод большой выгрузки идет за один проход: сто тысяч строк укладываются в секунды.</summary>
+    [Fact]
+    public void Pivot_LargeTable_IsFast()
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+
+        RunResult result = Script.RunOk("""
+            let n = 100000
+            let t = table.of({
+                г: range(n) |> core.map(i => "город" + core.to_str(i % 50)),
+                м: range(n) |> core.map(i => i % 12),
+                s: vec.of(range(n) |> core.map(i => i * 1.0))
+            })
+            emit rows = len(t |> table.pivot(rows: "г", cols: "м", value: "s", totals: true))
+            """);
+
+        Assert.Equal(51.0, result.Emitted["rows"]);
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(20), $"свод шел {watch.Elapsed}");
+    }
+
+    [Fact]
     public void Melt_TurnsColumnsIntoPairs()
     {
         RunResult result = Script.RunOk("""

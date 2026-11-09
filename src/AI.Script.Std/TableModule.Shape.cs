@@ -5,7 +5,7 @@ using AI.Script.Semantics;
 namespace AI.Script.Std;
 
 /// <summary>
-/// Развороты и окна: сводная таблица, длинный вид, скользящие и накопленные итоги.
+/// Развороты и окна: длинный вид, скользящие и накопленные итоги (сводная в <c>TableModule.Pivot.cs</c>).
 /// </summary>
 /// <remarks>
 /// «Выручка по месяцам в разрезе городов» и «рост к прошлому месяцу» — два самых частых
@@ -19,61 +19,6 @@ namespace AI.Script.Std;
 /// </remarks>
 public static partial class TableModule
 {
-    [ScriptFn("pivot", "Сводная таблица: строки, колонки и значение в пересечении",
-        Example = "t |> table.pivot(rows: \"город\", cols: \"месяц\", value: \"сумма\")")]
-    public static ScriptTable Pivot(
-        [ScriptParam("таблица")] ScriptTable t,
-        [ScriptParam("колонка, чьи значения станут строками")] string rows,
-        [ScriptParam("колонка, чьи значения станут колонками")] string cols,
-        [ScriptParam("колонка со значениями")] string value,
-        [ScriptParam("свёртка: \"sum\", \"mean\", \"count\", \"min\", \"max\", \"first\"")] string kind = "sum")
-    {
-        ScriptColumn rowKeys = t.Column(rows);
-        ScriptColumn colKeys = t.Column(cols);
-        ScriptColumn values = t.Column(value);
-
-        var rowOrder = new List<ScriptValue>();
-        var colOrder = new List<ScriptValue>();
-        var rowIndex = new Dictionary<string, int>(StringComparer.Ordinal);
-        var colIndex = new Dictionary<string, int>(StringComparer.Ordinal);
-        var cells = new Dictionary<(int Row, int Column), List<ScriptValue>>();
-
-        for (int i = 0; i < t.RowCount; i++)
-        {
-            int row = Slot(rowIndex, rowOrder, rowKeys[i]);
-            int column = Slot(colIndex, colOrder, colKeys[i]);
-
-            if (!cells.TryGetValue((row, column), out List<ScriptValue>? bucket))
-            {
-                bucket = [];
-                cells[(row, column)] = bucket;
-            }
-
-            bucket.Add(values[i]);
-        }
-
-        var built = new List<ScriptColumn>(colOrder.Count + 1)
-        {
-            ScriptColumn.Own(rows, [.. rowOrder]),
-        };
-
-        for (int column = 0; column < colOrder.Count; column++)
-        {
-            var cell = new ScriptValue[rowOrder.Count];
-
-            for (int row = 0; row < rowOrder.Count; row++)
-            {
-                cell[row] = cells.TryGetValue((row, column), out List<ScriptValue>? bucket)
-                    ? Aggregate(kind, bucket, "table.pivot")
-                    : ScriptValue.None;
-            }
-
-            built.Add(ScriptColumn.Own(ScriptFormatter.Format(colOrder[column]), cell));
-        }
-
-        return ScriptTable.Create(built);
-    }
-
     /// <summary>
     /// Разворачивает широкие колонки в пары «показатель, значение».
     /// </summary>
@@ -333,20 +278,6 @@ public static partial class TableModule
         new(DiagnosticCodes.UnknownArgument,
             $"{what}: неизвестная свёртка «{kind}»",
             "известны: sum, mean, count, min, max, first");
-
-    /// <summary>Место значения в порядке появления: одинаковые ключи попадают в одну строку.</summary>
-    private static int Slot(Dictionary<string, int> index, List<ScriptValue> order, ScriptValue key)
-    {
-        string text = ScriptFormatter.Format(key, quoteStrings: false);
-
-        if (index.TryGetValue(text, out int slot)) return slot;
-
-        slot = order.Count;
-        index[text] = slot;
-        order.Add(key);
-
-        return slot;
-    }
 
     private static string Named(string to, string by, string suffix) =>
         string.IsNullOrWhiteSpace(to) ? $"{by}_{suffix}" : to;
