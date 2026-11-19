@@ -29,6 +29,16 @@ internal static class ContractSamples
             "порты IToolSet, IModelPort, IRunBudget, IStepRunner; данные входа — EngineTask, EngineContext, State, Options",
     };
 
+    /// <summary>
+    /// Взаимоисключающие свойства: заполнить их все в одном образце нельзя по правилу типа. Первый образец
+    /// заполняет одно из группы, остальные свойства группы должны быть заполнены в следующих образцах.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<Type, string[]> Exclusive = new Dictionary<Type, string[]>
+    {
+        [typeof(AgentInstructions)] = [nameof(AgentInstructions.Key), nameof(AgentInstructions.Text)],
+        [typeof(MessagePart.Audio)] = [nameof(MessagePart.Audio.Data), nameof(MessagePart.Audio.Uri)],
+    };
+
     /// <summary>Образцы по типам.</summary>
     public static IReadOnlyDictionary<Type, Func<object>[]> All { get; } = new Dictionary<Type, Func<object>[]>
     {
@@ -57,6 +67,29 @@ internal static class ContractSamples
 
         // Citations
         [typeof(Citation)] = [() => FullCitation()],
+        [typeof(SourceLocation)] =
+        [
+            () => FullLocation(),
+            () => new SourceLocation { Path = [FullSegment()], Page = 1 },
+            () => new SourceLocation { Path = [], Lines = new LineRange { Start = 5, End = 5 } },
+            () => new SourceLocation { Time = new TimeInterval { Start = TimeSpan.Zero, End = TimeSpan.Zero } },
+        ],
+        [typeof(LocationSegment)] =
+        [
+            () => FullSegment(),
+            () => new LocationSegment { Kind = LocationSegment.Kinds.Slide, Index = 3 },
+            () => new LocationSegment { Kind = LocationSegment.Kinds.Sheet, Id = "Итоги" },
+        ],
+        [typeof(LineRange)] = [() => new LineRange { Start = 10, End = 12 }],
+        [typeof(TimeInterval)] =
+        [
+            () => new TimeInterval { Start = TimeSpan.FromSeconds(83.5), End = TimeSpan.FromMinutes(2) },
+        ],
+        [typeof(RelativeRect)] =
+        [
+            () => FullRect(),
+            () => new RelativeRect { X = 0, Y = 0, Width = 1, Height = 1 },
+        ],
 
         // Engines
         [typeof(StepPath)] = [() => FullPath(), () => new StepPath { Tier = 1 }],
@@ -65,6 +98,22 @@ internal static class ContractSamples
         [
             () => new AgentRef { Id = "writer", Version = 3 },
             () => new AgentRef { Id = "writer" },
+        ],
+        [typeof(AgentDefinition)] = [() => FullAgent(), () => MinimalAgent()],
+        [typeof(AgentInstructions)] =
+        [
+            () => AgentInstructions.FromKey("prompts/contract-analyst"),
+            () => AgentInstructions.FromText("Отвечай по договору, цитируй пункты"),
+        ],
+        [typeof(EngineChoice)] =
+        [
+            () => new EngineChoice { Key = "react", Options = Obj("""{"maxThoughts":3}""") },
+            () => new EngineChoice { Key = "direct" },
+        ],
+        [typeof(AgentLimits)] =
+        [
+            () => FullLimits(),
+            () => new AgentLimits { Steps = 5 },
         ],
         [typeof(InputField)] = [() => FullField()],
         [typeof(Question)] = [() => FullQuestion()],
@@ -92,10 +141,15 @@ internal static class ContractSamples
         [typeof(ModelRole)] = [() => ModelRole.Decide, () => new ModelRole("extract")],
         [typeof(ModelCapabilities)] =
         [
-            () => new ModelCapabilities { ToolCalling = true, Images = true, StructuredOutput = true, ContextTokens = 128000 },
+            () => new ModelCapabilities
+            {
+                ToolCalling = true, Images = true, Audio = true, StructuredOutput = true, Streaming = true,
+                ContextTokens = 128000,
+            },
         ],
         [typeof(MessagePart.Text)] = [() => FullTextPart()],
         [typeof(MessagePart.Image)] = [() => FullImagePart()],
+        [typeof(MessagePart.Audio)] = [() => AudioWithData(), () => AudioWithUri()],
         [typeof(ModelMessage)] = [() => FullMessage()],
         [typeof(ModelAsk)] = [() => FullAsk()],
         [typeof(ModelUsage)] = [() => FullUsage()],
@@ -104,6 +158,9 @@ internal static class ContractSamples
             () => FullAnswerOfModel(),
             () => new LlmAnswer { Status = LlmStatus.Failed, Failure = LlmFailure.ContextOverflow },
         ],
+        [typeof(LlmChunk.Text)] = [() => new LlmChunk.Text { Chunk = "Курс " }],
+        [typeof(LlmChunk.Reasoning)] = [() => new LlmChunk.Reasoning { Chunk = "Сначала поиск" }],
+        [typeof(LlmChunk.Final)] = [() => new LlmChunk.Final { Answer = FullAnswerOfModel() }],
     };
 
     /// <summary>JSON-элемент, не зависящий от документа.</summary>
@@ -162,6 +219,7 @@ internal static class ContractSamples
         Verified = true,
         Prefix = "курс ",
         Suffix = " руб.",
+        Location = FullLocation(),
         At = 42,
         Start = 10,
         End = 30,
@@ -169,6 +227,65 @@ internal static class ContractSamples
         Step = 2,
         Taken = new DateTimeOffset(2026, 11, 19, 10, 0, 0, TimeSpan.FromHours(3)),
         Basis = [new Citation { Kind = CitationKind.Calculation, Title = "Расчет", Quote = "a + b" }],
+    };
+
+    /// <summary>Место из двух сегментов пути со всеми частями.</summary>
+    public static SourceLocation FullLocation() => new()
+    {
+        Path =
+        [
+            new LocationSegment { Kind = LocationSegment.Kinds.Slide, Index = 3 },
+            FullSegment(),
+        ],
+        Page = 2,
+        Lines = new LineRange { Start = 10, End = 12 },
+        Time = new TimeInterval { Start = TimeSpan.FromSeconds(5), End = TimeSpan.FromSeconds(9.25) },
+        Rect = FullRect(),
+    };
+
+    private static LocationSegment FullSegment() => new()
+    {
+        Kind = LocationSegment.Kinds.Image,
+        Index = 2,
+        Id = "shape-17",
+    };
+
+    private static RelativeRect FullRect() => new() { X = 0.1, Y = 0.25, Width = 0.9, Height = 0.5 };
+
+    private static AgentLimits FullLimits() => new()
+    {
+        Steps = 20,
+        Cost = 1.5m,
+        Duration = TimeSpan.FromMinutes(10),
+    };
+
+    /// <summary>Запись агента со всеми полями.</summary>
+    public static AgentDefinition FullAgent() => new()
+    {
+        Id = "contract-analyst",
+        Version = 4,
+        Name = "Аналитик договоров",
+        Role = "Разбирает договоры поставки и находит риски",
+        About = FullAbout(),
+        Tools = ["get_rate", "finance"],
+        Engine = new EngineChoice { Key = "react", Options = Obj("""{"maxThoughts":3}""") },
+        Model = ModelRole.Judge,
+        Limits = FullLimits(),
+        Instructions = AgentInstructions.FromKey("prompts/contract-analyst"),
+        Inputs = [FullField()],
+        Agents = [new AgentRef { Id = "writer", Version = 3 }],
+        Output = ["text", "table"],
+        Acceptance = "contract-checks",
+    };
+
+    /// <summary>Запись агента только с обязательными полями.</summary>
+    public static AgentDefinition MinimalAgent() => new()
+    {
+        Id = "echo",
+        Version = 1,
+        Name = "Эхо",
+        Role = "Повторяет задачу своими словами",
+        Instructions = AgentInstructions.FromText("Перескажи задачу"),
     };
 
     private static InputField FullField() => new()
@@ -249,10 +366,26 @@ internal static class ContractSamples
         Uri = "https://example.org/a.png",
     };
 
+    /// <summary>Звук байтами.</summary>
+    public static MessagePart.Audio AudioWithData() => new()
+    {
+        Origin = new Origin { Kind = OriginKind.Trusted, Address = "microphone" },
+        ContentType = "audio/wav",
+        Data = [0x52, 0x49, 0x46, 0x46],
+    };
+
+    /// <summary>Звук по адресу.</summary>
+    public static MessagePart.Audio AudioWithUri() => new()
+    {
+        Origin = new Origin { Kind = OriginKind.External, Address = "https://example.org/call.mp3" },
+        ContentType = "audio/mpeg",
+        Uri = "https://example.org/call.mp3",
+    };
+
     private static ModelMessage FullMessage() => new()
     {
         Role = MessageRole.Assistant,
-        Parts = [FullTextPart(), FullImagePart()],
+        Parts = [FullTextPart(), FullImagePart(), AudioWithData()],
         ToolCalls = [FullCall()],
         ToolCallId = "call_0",
         Cache = true,

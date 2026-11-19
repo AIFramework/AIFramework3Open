@@ -2,7 +2,7 @@ namespace AI.Agents.Contracts.Tools;
 
 /// <summary>
 /// Подробное описание исполнителя по блокам: что делает, чего не делает, как к нему обращаться, примеры.
-/// Сейчас его несет <see cref="ToolSpec.About"/>; тот же тип возьмет запись агента.
+/// Его несут <see cref="ToolSpec.About"/> и <see cref="Engines.AgentDefinition.About"/>.
 /// </summary>
 /// <remarks>
 /// Одна строка описания плохо отвечает на вопрос «мой ли это случай», поэтому описание разбито на блоки с
@@ -20,7 +20,10 @@ public sealed record About
     /// <summary>Как составлять обращение: формат аргументов, обязательные сведения; <see langword="null"/>: не указано.</summary>
     public string? Rules { get; init; }
 
-    /// <summary>Образцы обращений; <see langword="null"/>: образцов нет.</summary>
+    /// <summary>
+    /// Примеры задач, для которых подходит этот агент или инструмент; по ним выбирают исполнителя.
+    /// Примеры готовых работ для витрины сюда не относятся. <see langword="null"/>: примеров нет.
+    /// </summary>
     public IReadOnlyList<string>? Examples { get; init; }
 
     /// <summary>

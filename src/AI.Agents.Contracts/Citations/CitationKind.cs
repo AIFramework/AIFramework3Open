@@ -11,7 +11,7 @@ public enum CitationKind
     /// <summary>Вид не задан.</summary>
     Unknown = 0,
 
-    /// <summary>Документ или файл; <see cref="Citation.Url"/> указывает на место внутри него.</summary>
+    /// <summary>Документ или файл; <see cref="Citation.Url"/>: сам файл, <see cref="Citation.Location"/>: место внутри него.</summary>
     File,
 
     /// <summary>Веб-страница; <see cref="Citation.Site"/>: сама страница, <see cref="Citation.Url"/>: ее сохраненная копия, если есть.</summary>

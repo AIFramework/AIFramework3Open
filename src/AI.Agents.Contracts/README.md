@@ -1,6 +1,6 @@
 # AI.Agents.Contracts
 
-Общие контракты агентного слоя: инструмент, движок, порт модели и подтверждение. Сборка содержит только типы и чистые помощники без поведения хоста. Реализации (циклы, клиенты моделей, наборы инструментов) живут в других сборках и ссылаются сюда.
+Общие контракты агентного слоя: инструмент, движок, запись агента, порт модели и подтверждение. Сборка содержит только типы и чистые помощники без поведения хоста. Реализации (циклы, клиенты моделей, наборы инструментов) живут в других сборках и ссылаются сюда.
 
 Статус предварительный. Пакет NuGet не выпускается (`IsPackable=false`), публичный API меняется по решению владельца без мажорной версии, пока стабильность не объявлена. Снимок API проверяется наравне с остальными сборками: `Tests/unit/PublicApi.Tests/Snapshots/AI.Agents.Contracts.txt`.
 
@@ -9,9 +9,9 @@
 | Пространство | Что внутри |
 |---|---|
 | `AI.Agents.Contracts.Tools` | `ITool`, `IToolSet`, `ToolSpec`, `About`, `ToolAction` и помощник `ToolActions.Effective`, `ToolCall`, `ToolResult`, `ToolStatus`, `ToolUpdate` (`Progress`, `Final`), `ToolContext`, `ToolFile`, `Origin`, `OriginKind` |
-| `AI.Agents.Contracts.Engines` | `IEngine`, `EngineInput`, `EngineTask`, `EngineContext`, `EngineEvent` (девять видов), `EngineResult`, `EngineStatus`, `StopCode`, `StepPath`, `IRunBudget`, `IStepRunner`, `Question`, `QuestionKind`, `Answer`, `InputField`, `AgentRef` |
-| `AI.Agents.Contracts.Models` | `IModelPort`, `ModelAsk`, `ModelRole`, `ModelCapabilities`, `ModelMessage`, `MessageRole`, `MessagePart` (`Text`, `Image`), `ToolMode`, `LlmAnswer`, `LlmStatus`, `LlmFailure`, `ModelUsage` |
-| `AI.Agents.Contracts.Citations` | `Citation`, `CitationKind` |
+| `AI.Agents.Contracts.Engines` | `IEngine`, `EngineInput`, `EngineTask`, `EngineContext`, `EngineEvent` (девять видов), `EngineResult`, `EngineStatus`, `StopCode`, `StepPath`, `IRunBudget`, `IStepRunner`, `Question`, `QuestionKind`, `Answer`, `InputField`, `AgentRef`, `AgentDefinition`, `AgentInstructions`, `EngineChoice`, `AgentLimits` |
+| `AI.Agents.Contracts.Models` | `IModelPort`, `ModelAsk`, `ModelRole`, `ModelCapabilities`, `ModelMessage`, `MessageRole`, `MessagePart` (`Text`, `Image`, `Audio`), `ToolMode`, `LlmAnswer`, `LlmChunk` (`Text`, `Reasoning`, `Final`), `LlmStatus`, `LlmFailure`, `ModelUsage` |
+| `AI.Agents.Contracts.Citations` | `Citation`, `CitationKind`, `SourceLocation`, `LocationSegment`, `LineRange`, `TimeInterval`, `RelativeRect` |
 
 ## Правила
 
@@ -23,8 +23,74 @@
 6. **Имя инструмента проверяется при создании `ToolSpec`.** Шаблон `^[a-zA-Z0-9_-]{1,64}$`, сравнение с учетом регистра (`ToolSpec.NameComparer`). Схема параметров обязана быть объектом JSON.
 7. **Итог движка один.** `IEngine.RunAsync` возвращает только поток событий, последним всегда идет `EngineEvent.Finished` с `EngineResult`. Сбой, исчерпание бюджета и вопрос человеку приходят итогом со статусом, а не исключением. `Incomplete` отличается и от `Failed`, и от `Done`.
 8. **Одно понятие хранится в одном месте.** Срок живет только в `IRunBudget`, у `EngineInput` поля срока нет. Код причины остановки (`StopCode`) общий для бюджета и итога движка. Плательщика в контракте движка нет, он приходит в реализацию `IModelPort`.
-9. **Каждый тип объявлен один раз.** Имена верхнеуровневых типов контрактов не повторяются в других сборках `src` и `Tools`. Исключения записаны долгом в `OwnershipTests.NameDebt` (`ToolResult` и `ToolCall` из `AI.LLM`, `LlmAnswer` из Атласа). Список только сокращается, а в адаптерах для этих имен используются псевдонимы `using`.
-10. **Каждый публичный неабстрактный тип проходит круг через JSON.** Образец лежит в `Tests/unit/AI.Agents.Contracts.Tests/ContractSamples.cs`, и первый образец заполняет все свойства. Новый тип без образца роняет тест. Исключение составляет `EngineInput`: он несет порты хоста, а его данные (`EngineTask`, `EngineContext`, состояние) проходят круг отдельно.
+9. **Каждый тип объявлен один раз.** Имена верхнеуровневых типов контрактов не повторяются в других сборках `src` и `Tools`. Исключения записаны долгом в `OwnershipTests.NameDebt` (`ToolResult` и `ToolCall` из `AI.LLM`, `LlmAnswer` из Атласа). Список только сокращается, а в адаптерах для этих имен используются псевдонимы `using`. Совпадение без учета регистра тоже запрещено; похожие имена допустимы: `LLMStreamChunk` из `AI.LLM` и `LlmChunk` контрактов — разные слова.
+10. **Каждый публичный неабстрактный тип проходит круг через JSON.** Образец лежит в `Tests/unit/AI.Agents.Contracts.Tests/ContractSamples.cs`, и первый образец заполняет все свойства. Новый тип без образца роняет тест. Если свойства взаимоисключающие (`AgentInstructions.Key` и `Text`), они записаны в `ContractSamples.Exclusive`: первый образец заполняет одно, следующие — остальные. Исключение составляет `EngineInput`: он несет порты хоста, а его данные (`EngineTask`, `EngineContext`, состояние) проходят круг отдельно.
+
+## Место в источнике
+
+`Citation.Location` (`SourceLocation?`) собирает место цитаты в источнике в одну запись:
+
+| Поле | Тип | Смысл |
+|---|---|---|
+| `Path` | `IReadOnlyList<LocationSegment>?` | путь от документа к вложенному объекту, от внешнего к внутреннему: «слайд 3» → «картинка 2» |
+| `Page` | `int?` | номер страницы, с 1 |
+| `Lines` | `LineRange?` | строки `Start`…`End` включительно, с 1 |
+| `Time` | `TimeInterval?` | отрезок записи `Start`…`End` (`TimeSpan` от начала) |
+| `Rect` | `RelativeRect?` | область `X`, `Y`, `Width`, `Height` в долях 0..1, начало в левом верхнем углу |
+
+Все поля необязательны. **Страница, строки, время и прямоугольник относятся к последнему сегменту пути; без пути — к самому документу.**
+
+Сегмент (`LocationSegment`) — это вид (`Kind`, открытый набор строк; известные значения в `LocationSegment.Kinds`: `slide`, `image`, `sheet`, `table`, `page`, `attachment`), номер `Index` (с 1, как видит человек) и непрозрачный `Id`. Нужно хотя бы одно из `Index` и `Id`.
+
+Проверки идут при создании и при чтении JSON: конец строк или времени раньше начала, отрицательное время, доли вне 0..1 и область за краем (`X + Width > 1`, `Y + Height > 1`) отвергаются в любом порядке полей. Сегмент без адреса отвергается при чтении и при записи в `Path`.
+
+Место дополняет цитату, а не заменяет ее: цитата с `Prefix` и `Suffix` находит фрагмент и после правки источника, место быстро открывает нужный слайд или секунду записи. Поля `At`, `Start` и `End` остались в `Citation`: это позиции в тексте ответа, а не в источнике.
+
+## Поток ответа модели
+
+`IModelPort.StreamAsync(ModelAsk, CancellationToken)` отдает `IAsyncEnumerable<LlmChunk>`:
+
+- `LlmChunk.Text` и `LlmChunk.Reasoning` — фрагменты ответа и рассуждения, только для показа;
+- `LlmChunk.Final` — итог (`LlmAnswer`) с полным текстом, вызовами инструментов, статусом и расходом.
+
+Правило то же, что у `IEngine`: последний кадр всегда `Final`, и он один. Полный ответ берется только из `Final.Answer`, фрагменты склеивать не нужно. Сбой провайдера приходит итогом со статусом `Failed`, отмена токеном прерывает поток исключением `OperationCanceledException`.
+
+Метод имеет реализацию по умолчанию: вызывает `AskAsync` и отдает один кадр `Final`, без имитации потока фрагментами. Поэтому добавление метода не ломает реализующих. Порт с настоящим потоком переопределяет метод и сообщает об этом обязательным признаком `ModelCapabilities.Streaming`; при реализации по умолчанию он `false`.
+
+## Звук на входе
+
+`MessagePart.Audio` — звук в сообщении модели: `ContentType` обязателен, `Origin` обязателен, как у других частей, а звук приходит байтами (`Data`) или адресом (`Uri`), ровно одно из двух. Байты и адрес вместе отвергаются при создании, через `with` и при чтении JSON. Если не задано ни того, ни другого, часть отвергается при чтении JSON и при записи в `ModelMessage.Parts`. Принимает ли модель звук, порт сообщает обязательным признаком `ModelCapabilities.Audio`.
+
+## Запись агента
+
+Агент — это данные, а не класс: `AgentDefinition` описывает его, исполняет запись хост. Интерфейса `IAgent` нет.
+
+| Поле | Обязательно | Смысл |
+|---|---|---|
+| `Id`, `Version` | да | постоянный идентификатор и версия записи с 1; `ToRef()` дает `AgentRef` на эту версию |
+| `Name`, `Role` | да | имя для показа и кто это, одной фразой |
+| `Instructions` | да | `AgentInstructions`: ключ промпта (`Key`) или текст (`Text`), ровно одно из двух |
+| `About` | нет | тот же `About`, что у `ToolSpec`; `About.Examples` — примеры задач, по которым выбирают исполнителя |
+| `Tools` | нет | имена инструментов и групп; `null` — без инструментов |
+| `Engine` | нет | `EngineChoice`: `Key` и `Options` (`JsonObject?`); `null` — движок по умолчанию у хоста |
+| `Model` | нет | `ModelRole`, а не имя модели; `null` — роли по шагам выбирает движок |
+| `Limits` | нет | `AgentLimits`: `Steps`, `Cost` (валюту задает хост, контракт ее не знает), `Duration`; хост сводит их со своими рамками, побеждает меньший |
+| `Inputs` | нет | `InputField[]`, что спросить у человека перед началом |
+| `Agents` | нет | `AgentRef[]`, кого агент может позвать |
+| `Output` | нет | виды итога строками |
+| `Acceptance` | нет | ключ набора проверок приемки |
+
+Неизвестный хосту ключ движка — явный отказ хоста, без подмены другим движком.
+
+Правило «ровно одно» для инструкций проверяется при создании, а не отдельным методом: запись, которую нельзя исполнить, не должна дойти до хоста. Ключ и текст вместе отвергаются сразу, в любом порядке задания. Если не задано ни того, ни другого, запись отвергается при чтении JSON и при присвоении `AgentDefinition.Instructions`. Создавать удобнее через `AgentInstructions.FromKey` и `FromText`.
+
+В запись не входят:
+
+- исполнитель хода, состояние и хранилище запусков: это работа хоста и движка, у одной записи много запусков;
+- публикация (цена, видимость, витрина) и примеры готовых работ: это свойства витрины, а не агента;
+- рамки хоста (тариф, плательщик, разрешенные движки): одна запись исполняется у разных хостов с разными рамками;
+- отдельное поле примеров: примеры задач лежат в `About.Examples`;
+- срок: у агента есть только длительность `AgentLimits.Duration`, момент окончания живет в `IRunBudget.Deadline`.
 
 ## Как добавить член или тип
 
@@ -44,9 +110,8 @@ Remove-Item Env:AI_PUBLIC_API_UPDATE
 Контракты пока никто не использует: существующие сборки на них не ссылаются, и их поведение не изменилось. Следующие шаги идут отдельными изменениями:
 
 1. `[AgentTool]` с видом действия и `ToolRegistry.AsToolSet()` в `AI.LLM`.
-2. Адаптеры в `AI.LLM`: `IReActTool` и `ITool`, `IReActToolSource` и `IToolSet` в обе стороны; `ILLMClient` и `IModelPort` в обе стороны. Если адаптеру понадобится потоковый ответ модели, `IModelPort` получит метод с реализацией по умолчанию, это не ломает реализующих.
+2. Адаптеры в `AI.LLM`: `IReActTool` и `ITool`, `IReActToolSource` и `IToolSet` в обе стороны; `ILLMClient` и `IModelPort` в обе стороны, поток `LLMStreamChunk` в `LlmChunk`.
 3. Порты в `ReActEngine`: `WithModel(IModelPort)`, `WithTools(IToolSet)`, `WithBudget(IRunBudget)`. Умолчания совпадают с нынешним `ReActConfig`.
 4. Продолжение с места: состояние на выходе и входе, адаптер `IEngine` с ключом `react`, обработка `AwaitsUser`, `NeedsInput` и `Denied`.
 5. Готовые реализации для внешнего пользователя: набор инструментов из списка, бюджет по числу шагов, запуск без дочерних агентов. Готовый набор не исполняет `Irreversible` без подтверждения.
 
-Запись агента (`AgentDefinition`) появится отдельным шагом. Интерфейса агента не будет: агент описывается данными, а не классом.

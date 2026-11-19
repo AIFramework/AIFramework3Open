@@ -15,8 +15,17 @@ public sealed record ModelCapabilities
     /// <summary>Картинки на входе (<see cref="MessagePart.Image"/>).</summary>
     public required bool Images { get; init; }
 
+    /// <summary>Звук на входе (<see cref="MessagePart.Audio"/>).</summary>
+    public required bool Audio { get; init; }
+
     /// <summary>Ответ строго по JSON Schema (<see cref="ModelAsk.Schema"/>).</summary>
     public required bool StructuredOutput { get; init; }
+
+    /// <summary>
+    /// Настоящий поток фрагментов в <see cref="IModelPort.StreamAsync(ModelAsk, CancellationToken)"/>.
+    /// <see langword="false"/>: поток из одного итогового кадра, как в реализации по умолчанию.
+    /// </summary>
+    public required bool Streaming { get; init; }
 
     /// <summary>Размер окна в токенах; <see langword="null"/>: неизвестен.</summary>
     public int? ContextTokens { get; init; }

@@ -10,6 +10,7 @@ namespace AI.Agents.Contracts.Citations
         public string? Claim { get; init; }
         public int? End { get; init; }
         public required AI.Agents.Contracts.Citations.CitationKind Kind { get; init; }
+        public AI.Agents.Contracts.Citations.SourceLocation? Location { get; init; }
         public string? Prefix { get; init; }
         public required string Quote { get; init; }
         public string? Site { get; init; }
@@ -32,9 +33,88 @@ namespace AI.Agents.Contracts.Citations
         Memory = 5,
         Integration = 6,
     }
+    public sealed record LineRange : System.IEquatable<AI.Agents.Contracts.Citations.LineRange>
+    {
+        public LineRange() { }
+        public required int End { get; init; }
+        public required int Start { get; init; }
+    }
+    public sealed record LocationSegment : System.IEquatable<AI.Agents.Contracts.Citations.LocationSegment>, System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public LocationSegment() { }
+        public string? Id { get; init; }
+        public int? Index { get; init; }
+        public required string Kind { get; init; }
+        public static class Kinds
+        {
+            public const string Attachment = "attachment";
+            public const string Image = "image";
+            public const string Page = "page";
+            public const string Sheet = "sheet";
+            public const string Slide = "slide";
+            public const string Table = "table";
+        }
+    }
+    public sealed record RelativeRect : System.IEquatable<AI.Agents.Contracts.Citations.RelativeRect>
+    {
+        public RelativeRect() { }
+        public required double Height { get; init; }
+        public required double Width { get; init; }
+        public required double X { get; init; }
+        public required double Y { get; init; }
+    }
+    public sealed record SourceLocation : System.IEquatable<AI.Agents.Contracts.Citations.SourceLocation>
+    {
+        public SourceLocation() { }
+        public AI.Agents.Contracts.Citations.LineRange? Lines { get; init; }
+        public int? Page { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Citations.LocationSegment>? Path { get; init; }
+        public AI.Agents.Contracts.Citations.RelativeRect? Rect { get; init; }
+        public AI.Agents.Contracts.Citations.TimeInterval? Time { get; init; }
+    }
+    public sealed record TimeInterval : System.IEquatable<AI.Agents.Contracts.Citations.TimeInterval>
+    {
+        public TimeInterval() { }
+        public required System.TimeSpan End { get; init; }
+        public required System.TimeSpan Start { get; init; }
+    }
 }
 namespace AI.Agents.Contracts.Engines
 {
+    public sealed record AgentDefinition : System.IEquatable<AI.Agents.Contracts.Engines.AgentDefinition>
+    {
+        public AgentDefinition() { }
+        public AI.Agents.Contracts.Tools.About? About { get; init; }
+        public string? Acceptance { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Engines.AgentRef>? Agents { get; init; }
+        public AI.Agents.Contracts.Engines.EngineChoice? Engine { get; init; }
+        public required string Id { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Engines.InputField>? Inputs { get; init; }
+        public required AI.Agents.Contracts.Engines.AgentInstructions Instructions { get; init; }
+        public AI.Agents.Contracts.Engines.AgentLimits? Limits { get; init; }
+        public AI.Agents.Contracts.Models.ModelRole? Model { get; init; }
+        public required string Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Output { get; init; }
+        public required string Role { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Tools { get; init; }
+        public required int Version { get; init; }
+        public AI.Agents.Contracts.Engines.AgentRef ToRef() { }
+    }
+    public sealed record AgentInstructions : System.IEquatable<AI.Agents.Contracts.Engines.AgentInstructions>, System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public AgentInstructions() { }
+        public string? Key { get; init; }
+        public string? Text { get; init; }
+        public static AI.Agents.Contracts.Engines.AgentInstructions FromKey(string key) { }
+        public static AI.Agents.Contracts.Engines.AgentInstructions FromText(string text) { }
+    }
+    public sealed record AgentLimits : System.IEquatable<AI.Agents.Contracts.Engines.AgentLimits>
+    {
+        public AgentLimits() { }
+        public decimal? Cost { get; init; }
+        public System.TimeSpan? Duration { get; init; }
+        public int? Steps { get; init; }
+    }
     public sealed record AgentRef : System.IEquatable<AI.Agents.Contracts.Engines.AgentRef>
     {
         public AgentRef() { }
@@ -47,6 +127,12 @@ namespace AI.Agents.Contracts.Engines
         public bool? Confirmed { get; init; }
         public required string QuestionId { get; init; }
         public System.Collections.Generic.IReadOnlyDictionary<string, System.Text.Json.JsonElement>? Values { get; init; }
+    }
+    public sealed record EngineChoice : System.IEquatable<AI.Agents.Contracts.Engines.EngineChoice>
+    {
+        public EngineChoice() { }
+        public required string Key { get; init; }
+        public System.Text.Json.Nodes.JsonObject? Options { get; init; }
     }
     public sealed record EngineContext : System.IEquatable<AI.Agents.Contracts.Engines.EngineContext>
     {
@@ -240,6 +326,7 @@ namespace AI.Agents.Contracts.Models
     {
         System.Threading.Tasks.Task<AI.Agents.Contracts.Models.LlmAnswer> AskAsync(AI.Agents.Contracts.Models.ModelAsk ask, System.Threading.CancellationToken cancellationToken = default);
         AI.Agents.Contracts.Models.ModelCapabilities Describe(AI.Agents.Contracts.Models.ModelRole role);
+        System.Collections.Generic.IAsyncEnumerable<AI.Agents.Contracts.Models.LlmChunk> StreamAsync(AI.Agents.Contracts.Models.ModelAsk ask, System.Threading.CancellationToken cancellationToken = default);
     }
     public sealed record LlmAnswer : System.IEquatable<AI.Agents.Contracts.Models.LlmAnswer>
     {
@@ -251,6 +338,29 @@ namespace AI.Agents.Contracts.Models
         public string? Text { get; init; }
         public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Tools.ToolCall>? ToolCalls { get; init; }
         public AI.Agents.Contracts.Models.ModelUsage? Usage { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonDerivedType(typeof(AI.Agents.Contracts.Models.LlmChunk.Final), "Final")]
+    [System.Text.Json.Serialization.JsonDerivedType(typeof(AI.Agents.Contracts.Models.LlmChunk.Reasoning), "Reasoning")]
+    [System.Text.Json.Serialization.JsonDerivedType(typeof(AI.Agents.Contracts.Models.LlmChunk.Text), "Text")]
+    [System.Text.Json.Serialization.JsonPolymorphic]
+    public abstract record LlmChunk : System.IEquatable<AI.Agents.Contracts.Models.LlmChunk>
+    {
+        protected LlmChunk() { }
+        public sealed record Final : AI.Agents.Contracts.Models.LlmChunk, System.IEquatable<AI.Agents.Contracts.Models.LlmChunk.Final>
+        {
+            public Final() { }
+            public required AI.Agents.Contracts.Models.LlmAnswer Answer { get; init; }
+        }
+        public sealed record Reasoning : AI.Agents.Contracts.Models.LlmChunk, System.IEquatable<AI.Agents.Contracts.Models.LlmChunk.Reasoning>
+        {
+            public Reasoning() { }
+            public required string Chunk { get; init; }
+        }
+        public sealed record Text : AI.Agents.Contracts.Models.LlmChunk, System.IEquatable<AI.Agents.Contracts.Models.LlmChunk.Text>
+        {
+            public Text() { }
+            public required string Chunk { get; init; }
+        }
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Models.LlmFailure>))]
     public enum LlmFailure
@@ -273,6 +383,7 @@ namespace AI.Agents.Contracts.Models
         Empty = 3,
         Failed = 4,
     }
+    [System.Text.Json.Serialization.JsonDerivedType(typeof(AI.Agents.Contracts.Models.MessagePart.Audio), "Audio")]
     [System.Text.Json.Serialization.JsonDerivedType(typeof(AI.Agents.Contracts.Models.MessagePart.Image), "Image")]
     [System.Text.Json.Serialization.JsonDerivedType(typeof(AI.Agents.Contracts.Models.MessagePart.Text), "Text")]
     [System.Text.Json.Serialization.JsonPolymorphic]
@@ -280,6 +391,13 @@ namespace AI.Agents.Contracts.Models
     {
         protected MessagePart() { }
         public required AI.Agents.Contracts.Tools.Origin Origin { get; init; }
+        public sealed record Audio : AI.Agents.Contracts.Models.MessagePart, System.IEquatable<AI.Agents.Contracts.Models.MessagePart.Audio>, System.Text.Json.Serialization.IJsonOnDeserialized
+        {
+            public Audio() { }
+            public required string ContentType { get; init; }
+            public byte[]? Data { get; init; }
+            public string? Uri { get; init; }
+        }
         public sealed record Image : AI.Agents.Contracts.Models.MessagePart, System.IEquatable<AI.Agents.Contracts.Models.MessagePart.Image>
         {
             public Image() { }
@@ -316,8 +434,10 @@ namespace AI.Agents.Contracts.Models
     public sealed record ModelCapabilities : System.IEquatable<AI.Agents.Contracts.Models.ModelCapabilities>
     {
         public ModelCapabilities() { }
+        public required bool Audio { get; init; }
         public int? ContextTokens { get; init; }
         public required bool Images { get; init; }
+        public required bool Streaming { get; init; }
         public required bool StructuredOutput { get; init; }
         public required bool ToolCalling { get; init; }
     }

@@ -63,6 +63,30 @@ public sealed partial class OwnershipTests
         Assert.True(problems.Count == 0, string.Join("\n", problems));
     }
 
+    /// <summary>
+    /// Имена контрактов не совпадают с типами src и Tools и без учета регистра: «LLMAnswer» рядом с «LlmAnswer»
+    /// путал бы читателя так же, как точный двойник. Похожие, но другие имена допустимы: например,
+    /// <c>AI.LLM.LLMStreamChunk</c> (кадр потока клиента AI.LLM) и <c>LlmChunk</c> контрактов — разные слова.
+    /// </summary>
+    [Fact]
+    public void ContractTypeNames_DoNotCollideIgnoringCase()
+    {
+        var names = ContractTopLevelNames().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var problems = new List<string>();
+
+        foreach (string file in SourceFiles())
+        {
+            foreach (string name in TopLevelTypeNames(File.ReadAllText(file)))
+            {
+                // Точное совпадение разбирает тест выше вместе с долгом
+                if (names.TryGetValue(name, out string? contract) && contract != name)
+                    problems.Add($"{name} в {Repository.Relative(file)} отличается от контракта {contract} только регистром");
+            }
+        }
+
+        Assert.True(problems.Count == 0, string.Join("\n", problems));
+    }
+
     /// <summary>Внутри самой сборки контрактов каждое имя верхнего уровня встречается один раз.</summary>
     [Fact]
     public void ContractTypeNames_AreUniqueAcrossNamespaces()

@@ -72,9 +72,25 @@ public sealed class JsonRoundTripTests
             if (sample.GetType() != type)
                 problems.Add($"{type.Name}: образец имеет тип {sample.GetType().Name}");
 
-            foreach (string property in ValueComparison.UnfilledProperties(sample))
+            string[] exclusive = ContractSamples.Exclusive.GetValueOrDefault(type, []);
+            List<string> unfilled = ValueComparison.UnfilledProperties(sample);
+
+            foreach (string property in unfilled.Except(exclusive))
                 problems.Add($"{type.Name}.{property}: не заполнено в первом образце");
+
+            if (exclusive.Length > 0 && exclusive.All(unfilled.Contains))
+                problems.Add($"{type.Name}: первый образец не заполняет ни одного из {string.Join(", ", exclusive)}");
+
+            // Каждое взаимоисключающее свойство заполнено хотя бы в одном образце
+            foreach (string property in exclusive)
+            {
+                if (samples.All(next => ValueComparison.UnfilledProperties(next()).Contains(property)))
+                    problems.Add($"{type.Name}.{property}: взаимоисключающее свойство не заполнено ни в одном образце");
+            }
         }
+
+        foreach (Type type in ContractSamples.Exclusive.Keys.Where(type => !ContractSamples.All.ContainsKey(type)))
+            problems.Add($"{type.Name}: записан в Exclusive, но образца нет");
 
         Assert.True(problems.Count == 0, string.Join("\n", problems));
     }
