@@ -1,0 +1,159 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Solvers.Optimization
+{
+    public sealed class Constraint
+    {
+        public AI.DataStructs.Algebraic.Vector Coefficients { get; }
+        public string Name { get; }
+        public double RightHandSide { get; }
+        public AI.Solvers.Optimization.ConstraintSign Sign { get; }
+        public override string ToString() { }
+    }
+    public enum ConstraintSign
+    {
+        LessOrEqual = 0,
+        GreaterOrEqual = 1,
+        Equal = 2,
+    }
+    public sealed class LinearProgram
+    {
+        public LinearProgram(AI.Solvers.Optimization.ObjectiveSense sense = 0, string name = "Задача линейного программирования") { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Optimization.Constraint> Constraints { get; }
+        public bool IsMixedInteger { get; }
+        public string Name { get; }
+        public AI.DataStructs.Algebraic.Vector Objective { get; }
+        public AI.Solvers.Optimization.ObjectiveSense Sense { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Optimization.Variable> Variables { get; }
+        public AI.Solvers.Optimization.Variable AddBinaryVariable(string name) { }
+        public AI.Solvers.Optimization.Constraint AddConstraint(AI.DataStructs.Algebraic.Vector coefficients, AI.Solvers.Optimization.ConstraintSign sign, double rightHandSide, string? name = null) { }
+        public AI.Solvers.Optimization.Variable AddFreeVariable(string name) { }
+        public AI.Solvers.Optimization.Variable AddIntegerVariable(string name, double lowerBound = 0, double upperBound = Infinity) { }
+        public AI.Solvers.Optimization.Variable AddVariable(string name, double lowerBound = 0, double upperBound = Infinity) { }
+        public void SetObjective(AI.DataStructs.Algebraic.Vector coefficients) { }
+        public void SetObjective(AI.Solvers.Optimization.Variable variable, double coefficient) { }
+        public override string ToString() { }
+    }
+    public sealed class LpOptions
+    {
+        public LpOptions() { }
+        public double IntegerTolerance { get; set; }
+        public int MaxIterations { get; set; }
+        public int MaxNodes { get; set; }
+    }
+    public sealed class LpSolution : AI.Insights.IInterpretable
+    {
+        public double? Bound { get; }
+        public double Gap { get; }
+        public bool IsOptimal { get; }
+        public double this[AI.Solvers.Optimization.Variable variable] { get; }
+        public double this[string name] { get; }
+        public int Iterations { get; }
+        public int Nodes { get; }
+        public double Objective { get; }
+        public AI.Solvers.Optimization.SolverStatus Status { get; }
+        public AI.DataStructs.Algebraic.Vector Values { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+    public static class LpSolver
+    {
+        public static AI.Solvers.Optimization.LinearProgram FromMatrix(AI.DataStructs.Algebraic.Vector objective, AI.DataStructs.Algebraic.Matrix constraints, System.Collections.Generic.IReadOnlyList<AI.Solvers.Optimization.ConstraintSign> signs, AI.DataStructs.Algebraic.Vector rightHandSide, AI.Solvers.Optimization.ObjectiveSense sense = 0) { }
+        public static AI.Solvers.Optimization.LpSolution Solve(AI.Solvers.Optimization.LinearProgram program, AI.Solvers.Optimization.LpOptions? options = null) { }
+    }
+    public static class NelderMead
+    {
+        public static AI.Solvers.Optimization.NelderMeadResult Minimize(System.Func<AI.DataStructs.Algebraic.Vector, double> function, AI.DataStructs.Algebraic.Vector start, AI.Solvers.Optimization.NelderMeadOptions? options = null) { }
+        public static AI.Solvers.Optimization.NelderMeadResult MinimizePositive(System.Func<AI.DataStructs.Algebraic.Vector, double> function, AI.DataStructs.Algebraic.Vector start, AI.Solvers.Optimization.NelderMeadOptions? options = null) { }
+    }
+    public sealed class NelderMeadOptions
+    {
+        public NelderMeadOptions() { }
+        public int MaxIterations { get; init; }
+        public double Step { get; init; }
+        public double Tolerance { get; init; }
+    }
+    public sealed class NelderMeadResult : AI.Insights.IInterpretable
+    {
+        public bool Converged { get; }
+        public int Evaluations { get; }
+        public int Iterations { get; }
+        public AI.DataStructs.Algebraic.Vector Point { get; }
+        public double Value { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public enum ObjectiveSense
+    {
+        Minimize = 0,
+        Maximize = 1,
+    }
+    public sealed class QpConstraint
+    {
+        public AI.DataStructs.Algebraic.Vector Coefficients { get; }
+        public bool IsEquality { get; }
+        public string Name { get; }
+        public double RightHandSide { get; }
+        public override string ToString() { }
+    }
+    public sealed class QpOptions
+    {
+        public QpOptions() { }
+        public int MaxIterations { get; init; }
+        public double Tolerance { get; init; }
+    }
+    public sealed class QpSolution : AI.Insights.IInterpretable
+    {
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Optimization.QpConstraint> ActiveConstraints { get; }
+        public bool IsOptimal { get; }
+        public double this[int index] { get; }
+        public int Iterations { get; }
+        public double MaxViolation { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Multipliers { get; }
+        public double Objective { get; }
+        public AI.Solvers.Optimization.SolverStatus Status { get; }
+        public AI.DataStructs.Algebraic.Vector Values { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+    public static class QpSolver
+    {
+        public static AI.Solvers.Optimization.QpSolution Solve(AI.Solvers.Optimization.QuadraticProgram program, AI.Solvers.Optimization.QpOptions? options = null, AI.DataStructs.Algebraic.Vector? start = null) { }
+    }
+    public sealed class QuadraticProgram
+    {
+        public QuadraticProgram(AI.DataStructs.Algebraic.Matrix hessian, AI.DataStructs.Algebraic.Vector linear, string name = "Задача квадратичного программирования") { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Optimization.QpConstraint> Constraints { get; }
+        public AI.DataStructs.Algebraic.Matrix Hessian { get; }
+        public AI.DataStructs.Algebraic.Vector Linear { get; }
+        public string Name { get; }
+        public int VariableCount { get; }
+        public void AddBounds(int variable, double lower, double upper) { }
+        public AI.Solvers.Optimization.QpConstraint AddEquality(AI.DataStructs.Algebraic.Vector coefficients, double rightHandSide, string? name = null) { }
+        public AI.Solvers.Optimization.QpConstraint AddInequality(AI.DataStructs.Algebraic.Vector coefficients, double rightHandSide, string? name = null) { }
+        public double Evaluate(AI.DataStructs.Algebraic.Vector point) { }
+        public override string ToString() { }
+    }
+    public enum SolverStatus
+    {
+        Optimal = 0,
+        Infeasible = 1,
+        Unbounded = 2,
+        LimitReached = 3,
+    }
+    public sealed class Variable
+    {
+        public AI.Solvers.Optimization.VariableDomain Domain { get; }
+        public int Index { get; }
+        public bool IsIntegral { get; }
+        public double LowerBound { get; }
+        public string Name { get; }
+        public double UpperBound { get; }
+        public override string ToString() { }
+    }
+    public enum VariableDomain
+    {
+        Continuous = 0,
+        Integer = 1,
+        Binary = 2,
+    }
+}

@@ -1,0 +1,75 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Media
+{
+    [AI.Script.Binding.ScriptModule("audio", "Звук из файла: отсчеты для dsp, отрезки, громкость, запись WAV", Group="сигналы", Version="0.1")]
+    public sealed class AudioModule
+    {
+        public AudioModule(AI.Script.Hosting.IScriptAudioDecoder? decoder) { }
+        [AI.Script.Binding.ScriptFn("load", "Читает звук: WAV сам, сжатые форматы через декодер хоста", Example="let a = audio.load(\"call.wav\")", Reads="wav,mp3,ogg,m4a,flac,opus,aac")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptRecord> Load(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к звуковому файлу")] string path) { }
+        [AI.Script.Binding.ScriptFn("loudness", "Громкость в dBFS: 0 — полная шкала, тишина — -120", Example="audio.loudness(a)")]
+        public static double Loudness([AI.Script.Binding.ScriptParam("звук")] AI.Script.Runtime.ScriptRecord a) { }
+        [AI.Script.Binding.ScriptFn("save", "Пишет звук в WAV: моно, 16 бит", Example="audio.save(a, \"part.wav\")", Writes="wav")]
+        public static System.Threading.Tasks.Task<string> Save(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("звук: запись audio.load")] AI.Script.Runtime.ScriptRecord a, [AI.Script.Binding.ScriptParam("путь файла .wav")] string path) { }
+        [AI.Script.Binding.ScriptFn("slice", "Отрезок звука по времени", Example="audio.slice(a, start: 5s, end: 10s)")]
+        public static AI.Script.Runtime.ScriptRecord Slice(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("звук")] AI.Script.Runtime.ScriptRecord a, [AI.Script.Binding.ScriptParam("начало")] System.TimeSpan start, [AI.Script.Binding.ScriptParam("конец; 0 — до конца записи")] System.TimeSpan end = default) { }
+    }
+    [AI.Script.Binding.ScriptModule("gen", "Генерация службами хоста: изображение по описанию, озвучка", Group="сигналы", Version="0.1")]
+    public sealed class GenModule : AI.Script.Binding.IScriptAvailability
+    {
+        public GenModule(AI.Script.Hosting.IScriptImageGenerator? images, AI.Script.Hosting.IScriptSpeechSynthesizer? voice) { }
+        [AI.Script.Binding.ScriptFn("image", "Изображение по описанию: изображение cv", Example="gen.image(\"report cover, flat illustration\")", Returns="cv.image")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptHandle> Image(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("описание изображения")] string prompt) { }
+        [AI.Script.Binding.ScriptFn("speech", "Озвучивает текст в звуковой файл и возвращает его путь", Example="gen.speech(\"Hello\", path: \"hello.mp3\")")]
+        public System.Threading.Tasks.Task<string> Speech(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("текст")] string text, [AI.Script.Binding.ScriptParam("путь файла; пусто — имя по тексту")] string path = "") { }
+        public string? Unavailable(string function) { }
+    }
+    public static class MediaLibrary
+    {
+        public static AI.Script.Hosting.ScriptHost UseMedia(this AI.Script.Hosting.ScriptHost host, AI.Script.Hosting.ScriptMediaServices? services = null) { }
+    }
+    [AI.Script.Binding.ScriptModule("ocr", "Текст с изображения службой хоста: документ doc с областями", Group="тексты", Version="0.1")]
+    public sealed class OcrModule : AI.Script.Binding.IScriptAvailability
+    {
+        public OcrModule(AI.Script.Hosting.IScriptTextRecognizer? recognizer) { }
+        [AI.Script.Binding.ScriptFn("read", "Текст изображения документом: строка на блок, адрес области у каждой", Example="doc.text(ocr.read(\"act.jpg\"))", Returns="doc.document")]
+        public System.Threading.Tasks.Task<AI.Script.Office.ScriptDocument> Read(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение cv либо путь к файлу картинки")] AI.Script.Runtime.ScriptValue image) { }
+        public string? Unavailable(string function) { }
+    }
+    public sealed record Scene : System.IEquatable<AI.Script.Media.Scene>
+    {
+        public Scene(int Number, double Start, double End) { }
+        public double End { get; init; }
+        public int Number { get; init; }
+        public double Start { get; init; }
+    }
+    public static class SceneCuts
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Script.Media.Scene> Find(System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ScriptVideoFrame> frames, double threshold) { }
+    }
+    [AI.Script.Binding.ScriptModule("speech", "Расшифровка речи через службу хоста: документ с таймкодами", Group="тексты", Version="0.1")]
+    public sealed class SpeechModule : AI.Script.Binding.IScriptAvailability
+    {
+        public SpeechModule(AI.Script.Hosting.IScriptTranscriber? transcriber) { }
+        [AI.Script.Binding.ScriptFn("transcribe", "Расшифровка записи документом: отрезок речи на блок, время у каждого", Example="doc.blocks(speech.transcribe(\"call.mp3\"))", Returns="doc.document")]
+        public System.Threading.Tasks.Task<AI.Script.Office.ScriptDocument> Transcribe(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к записи либо звук audio")] AI.Script.Runtime.ScriptValue audio) { }
+        public string? Unavailable(string function) { }
+        public static string Stamp(System.TimeSpan time) { }
+    }
+    [AI.Script.Binding.ScriptModule("video", "Видео через декодер хоста: сведения, кадры, смены сцен, звук", Group="сигналы", Version="0.1")]
+    public sealed class VideoModule : AI.Script.Binding.IScriptAvailability
+    {
+        public const int MaxFrames = 600;
+        public VideoModule(AI.Script.Hosting.IScriptVideoDecoder? decoder) { }
+        [AI.Script.Binding.ScriptFn("audio", "Звуковая дорожка ролика записью audio", Example="audio.loudness(video.audio(\"clip.mp4\"))")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptRecord> Audio(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к ролику")] string path) { }
+        [AI.Script.Binding.ScriptFn("frames", "Кадры через равный шаг списком изображений cv", Example="video.frames(\"clip.mp4\", every: 2s)")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptList> Frames(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к ролику")] string path, [AI.Script.Binding.ScriptParam("шаг между кадрами; 0 — каждый кадр")] System.TimeSpan every = default, [AI.Script.Binding.ScriptParam("не больше стольких кадров")] int max = 300) { }
+        [AI.Script.Binding.ScriptFn("info", "Длительность, частота кадров и размер ролика", Example="video.info(\"clip.mp4\").seconds")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptRecord> Info(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к ролику")] string path) { }
+        [AI.Script.Binding.ScriptFn("scenes", "Сцены ролика таблицей: номер, начало и конец в секундах", Columns="scene,start,end", Example="len(video.scenes(\"clip.mp4\", threshold: 0.3))")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptTable> Scenes(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к ролику")] string path, [AI.Script.Binding.ScriptParam("порог разности соседних кадров от 0 до 1")] double threshold = 0.3, [AI.Script.Binding.ScriptParam("шаг между кадрами; 0 — каждый кадр")] System.TimeSpan every = default, [AI.Script.Binding.ScriptParam("не больше стольких кадров")] int max = 600) { }
+        public string? Unavailable(string function) { }
+    }
+}

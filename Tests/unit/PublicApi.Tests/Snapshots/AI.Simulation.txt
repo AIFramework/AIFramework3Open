@@ -1,0 +1,498 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Simulation.Agents
+{
+    public enum ActivationOrder
+    {
+        Sequential = 0,
+        Shuffled = 1,
+    }
+    public sealed class AgentBasedModel<TWorld>
+    {
+        public AgentBasedModel(TWorld world, int? seed = default, AI.Simulation.Agents.ActivationOrder activation = 1) { }
+        public AI.Simulation.Agents.ActivationOrder Activation { get; }
+        public System.Action<AI.Simulation.Agents.AgentBasedModel<TWorld>>? AfterStep { get; set; }
+        public System.Collections.Generic.IReadOnlyList<AI.Simulation.Agents.IAgent<TWorld>> Agents { get; }
+        public System.Random Random { get; }
+        public int Steps { get; }
+        public System.Func<AI.Simulation.Agents.AgentBasedModel<TWorld>, bool>? StopWhen { get; set; }
+        public TWorld World { get; }
+        public void Add(AI.Simulation.Agents.IAgent<TWorld> agent) { }
+        public void AddRange(System.Collections.Generic.IEnumerable<AI.Simulation.Agents.IAgent<TWorld>> agents) { }
+        public int Run(int steps) { }
+        public void Step() { }
+    }
+    public interface IAgent<in TWorld>
+    {
+        void Step(TWorld world, System.Random random);
+    }
+}
+namespace AI.Simulation.DiscreteEvent
+{
+    public enum QueueDiscipline
+    {
+        FirstComeFirstServed = 0,
+        NonPreemptivePriority = 1,
+        PreemptiveResumePriority = 2,
+    }
+    public sealed class ServiceStation
+    {
+        public ServiceStation(AI.Simulation.DiscreteEvent.SimulationEngine engine, int servers = 1, int capacity = 2147483647, AI.Simulation.DiscreteEvent.QueueDiscipline discipline = 0, int classes = 1) { }
+        public int ClassCount { get; }
+        public AI.Simulation.DiscreteEvent.QueueDiscipline Discipline { get; }
+        public int Preemptions { get; }
+        public int QueueLength { get; }
+        public System.Func<double>? ServiceTime { get; init; }
+        public System.Func<int, double>? ServiceTimeOfClass { get; init; }
+        public bool Arrive(int priorityClass = 0) { }
+        public void ResetStatistics() { }
+        public AI.Simulation.DiscreteEvent.ServiceStatistics Statistics() { }
+        public AI.Simulation.DiscreteEvent.ServiceStatistics Statistics(int priorityClass) { }
+    }
+    public readonly struct ServiceStatistics : AI.Insights.IInterpretable, System.IEquatable<AI.Simulation.DiscreteEvent.ServiceStatistics>
+    {
+        public ServiceStatistics(int Arrivals, int Served, int Rejected, double AverageWait, double AverageSystemTime, double AverageQueueLength, double Utilisation, int MaxQueueLength) { }
+        public int Arrivals { get; init; }
+        public double AverageQueueLength { get; init; }
+        public double AverageSystemTime { get; init; }
+        public double AverageWait { get; init; }
+        public int MaxQueueLength { get; init; }
+        public int Rejected { get; init; }
+        public double RejectionRate { get; }
+        public int Served { get; init; }
+        public double Utilisation { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed class SimulationEngine
+    {
+        public SimulationEngine(int? seed = default) { }
+        public bool HasEvents { get; }
+        public double Now { get; }
+        public long ProcessedEvents { get; }
+        public System.Random Random { get; }
+        public double Exponential(double rate) { }
+        public bool Run(double until) { }
+        public void RunToCompletion(long eventLimit = 9223372036854775807) { }
+        public void Schedule(double delay, System.Action action) { }
+        public void ScheduleAt(double time, System.Action action) { }
+        public double Uniform(double low, double high) { }
+    }
+    public sealed class Tally
+    {
+        public Tally() { }
+        public int Count { get; }
+        public double Maximum { get; }
+        public double Mean { get; }
+        public double Minimum { get; }
+        public double StandardDeviation { get; }
+        public void Observe(double value) { }
+        public void Reset() { }
+    }
+    public sealed class TimeWeightedAccumulator
+    {
+        public TimeWeightedAccumulator() { }
+        public double Current { get; }
+        public double Maximum { get; }
+        public double Average(double now) { }
+        public void Reset(double now) { }
+        public void Update(double now, double value) { }
+    }
+}
+namespace AI.Simulation.Experiments
+{
+    public sealed record ReplicationEstimate : AI.Insights.IInterpretable, System.IEquatable<AI.Simulation.Experiments.ReplicationEstimate>
+    {
+        public ReplicationEstimate(string Name, System.Collections.Generic.IReadOnlyList<double> Observations, double Mean, double StandardDeviation, double Lower, double Upper, double Confidence) { }
+        public double Confidence { get; init; }
+        public double HalfWidth { get; }
+        public double Lower { get; init; }
+        public double Mean { get; init; }
+        public string Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Observations { get; init; }
+        public double RelativePrecision { get; }
+        public int Replications { get; }
+        public double StandardDeviation { get; init; }
+        public double Upper { get; init; }
+        public bool Contains(double value) { }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class Replications
+    {
+        public static AI.Simulation.Experiments.ReplicationEstimate Estimate(string name, System.Collections.Generic.IReadOnlyList<double> observations, double confidence = 0.95) { }
+        public static int RequiredReplications(AI.Simulation.Experiments.ReplicationEstimate pilot, double targetHalfWidth) { }
+        public static System.Collections.Generic.IReadOnlyDictionary<string, AI.Simulation.Experiments.ReplicationEstimate> Run(int replications, System.Func<int, System.Collections.Generic.IReadOnlyDictionary<string, double>> model, int firstSeed = 1, double confidence = 0.95) { }
+        public static AI.Simulation.Experiments.ReplicationEstimate Run(string name, int replications, System.Func<int, double> model, int firstSeed = 1, double confidence = 0.95) { }
+    }
+}
+namespace AI.Simulation.Inference
+{
+    public static class ParticleSetExtensions
+    {
+        public static double Mean<TState>(this AI.Simulation.Inference.ParticleSet<TState> particles, System.Func<TState, double> quantity) { }
+        public static double MeanDirection<TState>(this AI.Simulation.Inference.ParticleSet<TState> particles, System.Func<TState, double> angle) { }
+        public static double MeanResultantLength<TState>(this AI.Simulation.Inference.ParticleSet<TState> particles, System.Func<TState, double> angle) { }
+        public static double Probability<TState>(this AI.Simulation.Inference.ParticleSet<TState> particles, System.Func<TState, bool> predicate) { }
+        public static double Quantile<TState>(this AI.Simulation.Inference.ParticleSet<TState> particles, System.Func<TState, double> quantity, double q) { }
+        public static double Variance<TState>(this AI.Simulation.Inference.ParticleSet<TState> particles, System.Func<TState, double> quantity) { }
+    }
+    public sealed class ParticleSet<TState>
+    {
+        public ParticleSet(System.Collections.Generic.IEnumerable<TState> states) { }
+        public int Count { get; }
+        public double EffectiveSampleSize { get; }
+        public TState MostProbable { get; }
+        public System.Collections.Generic.IReadOnlyList<TState> States { get; }
+        public AI.DataStructs.Algebraic.Vector Weights { get; }
+        public System.Collections.Generic.IReadOnlyList<TState> Draw(int count, System.Random random) { }
+        public void Propagate(System.Func<TState, System.Random, TState> transition, System.Random random) { }
+        public double Rejuvenate(System.Func<TState, System.Random, TState> proposal, System.Func<TState, double> logTarget, System.Random random, int steps = 1) { }
+        public void Resample(System.Random random) { }
+        public bool ResampleIfDegenerate(System.Random random, double threshold = 0.5) { }
+        public double Reweight(System.Func<TState, double> logLikelihood) { }
+        public static AI.Simulation.Inference.ParticleSet<TState> FromPrior(int count, System.Func<System.Random, TState> prior, System.Random random) { }
+    }
+}
+namespace AI.Simulation.Learning
+{
+    public interface IDiscreteEnvironment
+    {
+        int StateCount { get; }
+        int ActionCount(int state);
+        int Reset(System.Random random);
+        AI.Simulation.Learning.Transition Step(int state, int action, System.Random random);
+    }
+    public enum LearningMethod
+    {
+        QLearning = 0,
+        Sarsa = 1,
+    }
+    public sealed record LearningResult : AI.Insights.IInterpretable, System.IEquatable<AI.Simulation.Learning.LearningResult>
+    {
+        public LearningResult(AI.Simulation.Learning.LearningMethod Method, System.Collections.Generic.IReadOnlyList<double[]> QValues, System.Collections.Generic.IReadOnlyList<int> Policy, int Episodes, long Steps, double FinalExploration, int UnvisitedPairs) { }
+        public int Episodes { get; init; }
+        public double FinalExploration { get; init; }
+        public AI.Simulation.Learning.LearningMethod Method { get; init; }
+        public System.Collections.Generic.IReadOnlyList<int> Policy { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double[]> QValues { get; init; }
+        public long Steps { get; init; }
+        public int UnvisitedPairs { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+        public double PolicyAgreement(System.Collections.Generic.IReadOnlyList<int> reference) { }
+        public double Value(int state) { }
+    }
+    public sealed class MdpEnvironment : AI.Simulation.Learning.IDiscreteEnvironment
+    {
+        public MdpEnvironment(AI.Simulation.Markov.MarkovDecisionProcess process, int? startState = default) { }
+        public int StateCount { get; }
+        public int ActionCount(int state) { }
+        public int Reset(System.Random random) { }
+        public AI.Simulation.Learning.Transition Step(int state, int action, System.Random random) { }
+    }
+    public sealed class TemporalDifferenceLearner
+    {
+        public TemporalDifferenceLearner() { }
+        public double Discount { get; init; }
+        public double ExplorationDecay { get; init; }
+        public double InitialExploration { get; init; }
+        public double LearningRateExponent { get; init; }
+        public AI.Simulation.Learning.LearningMethod Method { get; init; }
+        public AI.Simulation.Learning.LearningResult Train(AI.Simulation.Learning.IDiscreteEnvironment environment, int episodes, int stepsPerEpisode, int? seed = default) { }
+    }
+    public readonly struct Transition : System.IEquatable<AI.Simulation.Learning.Transition>
+    {
+        public Transition(int NextState, double Reward, bool Terminal) { }
+        public int NextState { get; init; }
+        public double Reward { get; init; }
+        public bool Terminal { get; init; }
+    }
+}
+namespace AI.Simulation.Markov
+{
+    public sealed class MarkovDecisionProcess
+    {
+        public MarkovDecisionProcess(double[][][] transitions, double[][] rewards, double discount = 0.95) { }
+        public double Discount { get; }
+        public int StateCount { get; }
+        public int ActionCount(int state) { }
+        public double ActionValue(int state, int action, System.Collections.Generic.IReadOnlyList<double> values) { }
+        public double[] EvaluatePolicy(System.Collections.Generic.IReadOnlyList<int> policy, double tolerance = 1E-10, int maxIterations = 10000) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Next",
+                "Reward"})]
+        public System.ValueTuple<int, double> Sample(int state, int action, System.Random random) { }
+        public AI.Simulation.Markov.MdpSolution SolveByPolicyIteration(double tolerance = 1E-10, int maxIterations = 1000) { }
+        public AI.Simulation.Markov.MdpSolution SolveByValueIteration(double tolerance = 1E-10, int maxIterations = 10000) { }
+    }
+    public sealed record MdpSolution : AI.Insights.IInterpretable, System.IEquatable<AI.Simulation.Markov.MdpSolution>
+    {
+        public MdpSolution(AI.DataStructs.Algebraic.Vector Values, System.Collections.Generic.IReadOnlyList<int> Policy, int Iterations, double Residual, bool Converged) { }
+        public bool Converged { get; init; }
+        public int Iterations { get; init; }
+        public System.Collections.Generic.IReadOnlyList<int> Policy { get; init; }
+        public double Residual { get; init; }
+        public AI.DataStructs.Algebraic.Vector Values { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Simulation.Planning
+{
+    public sealed class FactState : System.IEquatable<AI.Simulation.Planning.FactState>
+    {
+        public FactState(System.Collections.Generic.IEnumerable<string> facts) { }
+        public System.Collections.Generic.IReadOnlySet<string> Facts { get; }
+        public bool Contains(string fact) { }
+        public bool Equals(AI.Simulation.Planning.FactState? other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+    }
+    public sealed record Plan<TState> : AI.Insights.IInterpretable, System.IEquatable<AI.Simulation.Planning.Plan<TState>>
+    {
+        public Plan(bool Found, System.Collections.Generic.IReadOnlyList<string> Actions, System.Collections.Generic.IReadOnlyList<TState> States, double Cost, int Expanded, bool LimitReached, bool Optimal) { }
+        public System.Collections.Generic.IReadOnlyList<string> Actions { get; init; }
+        public double Cost { get; init; }
+        public int Expanded { get; init; }
+        public bool Found { get; init; }
+        public int Length { get; }
+        public bool LimitReached { get; init; }
+        public bool Optimal { get; init; }
+        public System.Collections.Generic.IReadOnlyList<TState> States { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class StateSpaceSearch
+    {
+        public static AI.Simulation.Planning.Plan<TState> AStar<TState>(TState initial, System.Func<TState, bool> isGoal, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Action",
+                "Next",
+                "Cost"})] System.Func<TState, System.Collections.Generic.IEnumerable<System.ValueTuple<string, TState, double>>> successors, System.Func<TState, double>? heuristic = null, bool admissibleHeuristic = true, System.Collections.Generic.IEqualityComparer<TState>? comparer = null, int maxExpansions = 1000000)
+            where TState :  notnull { }
+    }
+    public sealed class StripsAction
+    {
+        public StripsAction(string name, System.Collections.Generic.IEnumerable<string> preconditions, System.Collections.Generic.IEnumerable<string> add, System.Collections.Generic.IEnumerable<string> delete, double cost = 1) { }
+        public System.Collections.Generic.IReadOnlySet<string> Add { get; }
+        public double Cost { get; }
+        public System.Collections.Generic.IReadOnlySet<string> Delete { get; }
+        public string Name { get; }
+        public System.Collections.Generic.IReadOnlySet<string> Preconditions { get; }
+        public AI.Simulation.Planning.FactState Apply(AI.Simulation.Planning.FactState state) { }
+        public bool IsApplicable(AI.Simulation.Planning.FactState state) { }
+        public override string ToString() { }
+    }
+    public sealed class StripsProblem
+    {
+        public StripsProblem(System.Collections.Generic.IEnumerable<string> initial, System.Collections.Generic.IEnumerable<string> goal, System.Collections.Generic.IEnumerable<AI.Simulation.Planning.StripsAction> actions) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Simulation.Planning.StripsAction> Actions { get; }
+        public System.Collections.Generic.IReadOnlySet<string> Goal { get; }
+        public AI.Simulation.Planning.FactState Initial { get; }
+        public bool IsGoal(AI.Simulation.Planning.FactState state) { }
+        public AI.Simulation.Planning.Plan<AI.Simulation.Planning.FactState> Solve(int maxExpansions = 1000000) { }
+    }
+}
+namespace AI.Simulation.Queueing
+{
+    public readonly struct QueueMetrics : AI.Insights.IInterpretable, System.IEquatable<AI.Simulation.Queueing.QueueMetrics>
+    {
+        public QueueMetrics(double Utilisation, double QueueLength, double SystemLength, double WaitTime, double SystemTime, double IdleProbability) { }
+        public double IdleProbability { get; init; }
+        public double QueueLength { get; init; }
+        public double SystemLength { get; init; }
+        public double SystemTime { get; init; }
+        public double Utilisation { get; init; }
+        public double WaitTime { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class QueueingTheory
+    {
+        public static double ErlangB(double offeredLoad, int servers) { }
+        public static double ErlangC(double arrivalRate, double serviceRate, int servers) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Metrics",
+                "BlockingProbability"})]
+        public static System.ValueTuple<AI.Simulation.Queueing.QueueMetrics, double> LimitedQueue(double arrivalRate, double serviceRate, int capacity) { }
+        public static double LittleLaw(double arrivalRate, double averageTime) { }
+        public static AI.Simulation.Queueing.QueueMetrics MultiServer(double arrivalRate, double serviceRate, int servers) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Simulation.Queueing.QueueMetrics> NonPreemptivePriority(double[] arrivalRates, double[] serviceRates, double[]? serviceSecondMoments = null) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Simulation.Queueing.QueueMetrics> PreemptiveResumePriority(double[] arrivalRates, double[] serviceRates, double[]? serviceSecondMoments = null) { }
+        public static AI.Simulation.Queueing.QueueMetrics SingleServer(double arrivalRate, double serviceRate) { }
+    }
+}
+namespace AI.Simulation.Social
+{
+    public static class BoundedConfidence
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Simulation.Social.OpinionCluster> Clusters(System.Collections.Generic.IReadOnlyList<double> opinions, double tolerance) { }
+        public static AI.Simulation.Social.OpinionDynamicsResult Deffuant(System.Collections.Generic.IReadOnlyList<double> initial, double confidence, double convergence, long interactions, System.Random random, AI.Simulation.Space.ContactNetwork? network = null) { }
+        public static AI.Simulation.Social.OpinionDynamicsResult HegselmannKrause(System.Collections.Generic.IReadOnlyList<double> initial, double confidence, int maxSteps = 10000) { }
+        public static double[] HegselmannKrauseStep(System.Collections.Generic.IReadOnlyList<double> opinions, double confidence) { }
+    }
+    public sealed class DeGrootModel
+    {
+        public DeGrootModel(AI.DataStructs.Algebraic.Matrix influence) { }
+        public bool IsStronglyConnected { get; }
+        public int Period { get; }
+        public bool ReachesConsensus { get; }
+        public double SecondEigenvalueModulus { get; }
+        public int Size { get; }
+        public AI.Simulation.Social.InfluenceAnalysis Analyze() { }
+        public double Consensus(System.Collections.Generic.IReadOnlyList<double> initial) { }
+        public double Influence(int listener, int speaker) { }
+        public double[][] Run(System.Collections.Generic.IReadOnlyList<double> initial, int steps) { }
+        public System.Collections.Generic.IReadOnlyList<double> SocialPower() { }
+        public double[] Step(System.Collections.Generic.IReadOnlyList<double> opinions) { }
+        public static AI.Simulation.Social.DeGrootModel FromNetwork(AI.Simulation.Space.ContactNetwork network, double selfWeight = 0.5) { }
+    }
+    public sealed class FriedkinJohnsenModel
+    {
+        public FriedkinJohnsenModel(AI.DataStructs.Algebraic.Matrix influence, System.Collections.Generic.IReadOnlyList<double> susceptibility) { }
+        public int Size { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Susceptibility { get; }
+        public double[] Equilibrium(System.Collections.Generic.IReadOnlyList<double> prejudices) { }
+        public double[][] Run(System.Collections.Generic.IReadOnlyList<double> prejudices, int steps) { }
+        public double[] Step(System.Collections.Generic.IReadOnlyList<double> opinions, System.Collections.Generic.IReadOnlyList<double> prejudices) { }
+    }
+    public sealed class InfluenceAnalysis : AI.Insights.IInterpretable
+    {
+        public double EffectiveVoices { get; }
+        public bool IsStronglyConnected { get; }
+        public int Period { get; }
+        public bool ReachesConsensus { get; }
+        public double SecondEigenvalueModulus { get; }
+        public int Size { get; }
+        public System.Collections.Generic.IReadOnlyList<double>? SocialPower { get; }
+        public double StepsToHundredfold { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class InfluenceMatrix
+    {
+        public static AI.DataStructs.Algebraic.Matrix FromNetwork(AI.Simulation.Space.ContactNetwork network, double selfWeight = 0.5) { }
+        public static bool IsRowStochastic(AI.DataStructs.Algebraic.Matrix influence, double tolerance = 1E-09) { }
+    }
+    public readonly struct OpinionCluster : System.IEquatable<AI.Simulation.Social.OpinionCluster>
+    {
+        public OpinionCluster(double Position, int Size) { }
+        public double Position { get; init; }
+        public int Size { get; init; }
+    }
+    public sealed class OpinionDynamicsResult : AI.Insights.IInterpretable
+    {
+        public System.Collections.Generic.IReadOnlyList<AI.Simulation.Social.OpinionCluster> Clusters { get; }
+        public double Confidence { get; }
+        public bool Converged { get; }
+        public double FinalMean { get; }
+        public double InitialMean { get; }
+        public bool IsConsensus { get; }
+        public string Model { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Opinions { get; }
+        public long Steps { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public int MajorClusterCount(double share = 0.05) { }
+    }
+    public static class VoterModel
+    {
+        public static double ConsensusProbability(AI.Simulation.Space.ContactNetwork network, System.Collections.Generic.IReadOnlyList<bool> opinions) { }
+        public static AI.Simulation.Social.VoterOutcome Run(AI.Simulation.Space.ContactNetwork network, System.Collections.Generic.IReadOnlyList<bool> opinions, System.Random random, long maxUpdates = 10000000) { }
+    }
+    public readonly struct VoterOutcome : System.IEquatable<AI.Simulation.Social.VoterOutcome>
+    {
+        public VoterOutcome(bool? Consensus, long Updates) { }
+        public bool? Consensus { get; init; }
+        public long Updates { get; init; }
+    }
+}
+namespace AI.Simulation.Space
+{
+    public readonly struct Cell : System.IEquatable<AI.Simulation.Space.Cell>
+    {
+        public Cell(int X, int Y) { }
+        public int X { get; init; }
+        public int Y { get; init; }
+        public override string ToString() { }
+    }
+    public sealed class ContactNetwork
+    {
+        public ContactNetwork(int nodes) { }
+        public int EdgeCount { get; }
+        public AI.Algorithms.EWG.Graph Graph { get; }
+        public double MeanDegree { get; }
+        public int NodeCount { get; }
+        public bool AreConnected(int a, int b) { }
+        public void Connect(int a, int b) { }
+        public int[] Contacts(int node) { }
+        public int Degree(int node) { }
+        public static AI.Simulation.Space.ContactNetwork BarabasiAlbert(int nodes, int linksPerNode, System.Random random) { }
+        public static AI.Simulation.Space.ContactNetwork Complete(int nodes) { }
+        public static AI.Simulation.Space.ContactNetwork ErdosRenyi(int nodes, double probability, System.Random random) { }
+        public static AI.Simulation.Space.ContactNetwork Ring(int nodes, int neighbours) { }
+        public static AI.Simulation.Space.ContactNetwork WattsStrogatz(int nodes, int neighbours, double rewiring, System.Random random) { }
+    }
+    public sealed class GridSpace<TAgent>
+        where TAgent :  notnull
+    {
+        public GridSpace(int width, int height, bool torus = true, AI.Simulation.Space.Neighbourhood neighbourhood = 1, System.Collections.Generic.IEqualityComparer<TAgent>? comparer = null) { }
+        public int Count { get; }
+        public int Height { get; }
+        public AI.Simulation.Space.Neighbourhood Neighbourhood { get; }
+        public bool Torus { get; }
+        public int Width { get; }
+        public System.Collections.Generic.IReadOnlyList<TAgent> AgentsAt(AI.Simulation.Space.Cell cell) { }
+        public AI.Simulation.Space.Cell CellOf(TAgent agent) { }
+        public bool Contains(AI.Simulation.Space.Cell cell) { }
+        public int Distance(AI.Simulation.Space.Cell a, AI.Simulation.Space.Cell b) { }
+        public bool IsEmpty(AI.Simulation.Space.Cell cell) { }
+        public void Move(TAgent agent, AI.Simulation.Space.Cell cell) { }
+        public System.Collections.Generic.IReadOnlyList<TAgent> NeighbourAgents(TAgent agent) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Simulation.Space.Cell> Neighbours(AI.Simulation.Space.Cell cell) { }
+        public void Place(TAgent agent, AI.Simulation.Space.Cell cell) { }
+        public AI.Simulation.Space.Cell? RandomEmptyCell(System.Random random) { }
+        public bool Remove(TAgent agent) { }
+    }
+    public enum Neighbourhood
+    {
+        VonNeumann = 0,
+        Moore = 1,
+    }
+}
+namespace AI.Simulation.Stochastic
+{
+    public sealed class OrnsteinUhlenbeckProcess
+    {
+        public OrnsteinUhlenbeckProcess(double mean, double reversionRate, double volatility) { }
+        public double HalfLife { get; }
+        public double Mean { get; }
+        public double RelaxationTime { get; }
+        public double ReversionRate { get; }
+        public double StationaryDeviation { get; }
+        public double StationaryVariance { get; }
+        public double Volatility { get; }
+        public double Autocorrelation(double lag) { }
+        public double ExpectedValue(double start, double time) { }
+        public double Next(double current, double step, System.Random random) { }
+        public double[] Path(double start, double step, int steps, System.Random random) { }
+        public double TimeToExpected(double start, double level) { }
+        public double Variance(double time) { }
+        public static AI.Simulation.Stochastic.OrnsteinUhlenbeckProcess FromRelaxation(double mean, double relaxationTime, double stationaryDeviation) { }
+    }
+}
+namespace AI.Simulation.SystemDynamics
+{
+    public sealed class StockFlowModel
+    {
+        public StockFlowModel(string name = "Модель системной динамики") { }
+        public bool IsStochastic { get; }
+        public string Name { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Stocks { get; }
+        public AI.Simulation.SystemDynamics.StockFlowModel AddStock(string name, double initial, System.Func<double, System.Collections.Generic.IReadOnlyList<double>, double> netFlow) { }
+        public AI.Simulation.SystemDynamics.StockFlowModel AddStock(string name, double initial, System.Func<double, System.Collections.Generic.IReadOnlyList<double>, double> netFlow, double lower, double upper, System.Func<double, System.Collections.Generic.IReadOnlyList<double>, double>? noise = null) { }
+        public double Final(System.Collections.Generic.IReadOnlyList<AI.Simulation.SystemDynamics.SystemState> states, string stock) { }
+        public int IndexOf(string name) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Simulation.SystemDynamics.SystemState> Run(double finalTime, int points = 100, int stepsPerInterval = 20) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Simulation.SystemDynamics.SystemState> Run(double finalTime, System.Random random, int points = 100, int stepsPerInterval = 20) { }
+    }
+    public readonly struct SystemState : System.IEquatable<AI.Simulation.SystemDynamics.SystemState>
+    {
+        public SystemState(double Time, System.Collections.Generic.IReadOnlyList<double> Levels) { }
+        public System.Collections.Generic.IReadOnlyList<double> Levels { get; init; }
+        public double Time { get; init; }
+    }
+}

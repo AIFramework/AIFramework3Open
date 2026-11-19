@@ -1,0 +1,292 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Solvers.Constraints.Cp
+{
+    public sealed class AllDifferent : AI.Solvers.Constraints.Cp.IConstraint
+    {
+        public AllDifferent(params AI.Solvers.Constraints.Cp.IntVariable[] variables) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Cp.IntVariable> Scope { get; }
+        public string Describe() { }
+        public bool Propagate(AI.Solvers.Constraints.Cp.DomainStore domains) { }
+    }
+    public sealed class CpModel
+    {
+        public CpModel(string name = "Задача удовлетворения ограничений") { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Cp.IConstraint> Constraints { get; }
+        public string Name { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Cp.IntVariable> Variables { get; }
+        public AI.Solvers.Constraints.Cp.CpModel Add(AI.Solvers.Constraints.Cp.IConstraint constraint) { }
+        public AI.Solvers.Constraints.Cp.CpModel AddLinear(AI.Solvers.Constraints.Cp.IntVariable[] variables, int[] coefficients, AI.Solvers.Constraints.Cp.LinearRelation relation, int rightHandSide) { }
+        public AI.Solvers.Constraints.Cp.IntVariable AddVariable(string name, int lower, int upper) { }
+        public AI.Solvers.Constraints.Cp.IntVariable[] AddVariables(string prefix, int count, int lower, int upper) { }
+        public AI.Solvers.Constraints.Cp.CpModel Fix(AI.Solvers.Constraints.Cp.IntVariable variable, int value) { }
+        public override string ToString() { }
+    }
+    public sealed class CpOptions
+    {
+        public CpOptions() { }
+        public int MaxNodes { get; set; }
+        public int SolutionLimit { get; set; }
+    }
+    public sealed class CpSolution : AI.Insights.IInterpretable
+    {
+        public int Count { get; }
+        public bool IsSatisfiable { get; }
+        public int this[AI.Solvers.Constraints.Cp.IntVariable variable] { get; }
+        public int this[string name] { get; }
+        public int Nodes { get; }
+        public int Propagations { get; }
+        public System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<int>> Solutions { get; }
+        public AI.Solvers.Constraints.Cp.CpStatus Status { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+    public static class CpSolver
+    {
+        public static AI.Solvers.Constraints.Cp.CpSolution Solve(AI.Solvers.Constraints.Cp.CpModel model, AI.Solvers.Constraints.Cp.CpOptions? options = null) { }
+        public static AI.Solvers.Constraints.Cp.CpSolution SolveAll(AI.Solvers.Constraints.Cp.CpModel model, int limit = 2147483647) { }
+    }
+    public enum CpStatus
+    {
+        Satisfiable = 0,
+        Infeasible = 1,
+        LimitReached = 2,
+    }
+    public sealed class DomainStore
+    {
+        public bool Assign(AI.Solvers.Constraints.Cp.IntVariable variable, int value) { }
+        public bool Contains(AI.Solvers.Constraints.Cp.IntVariable variable, int value) { }
+        public int Count(AI.Solvers.Constraints.Cp.IntVariable variable) { }
+        public int Maximum(AI.Solvers.Constraints.Cp.IntVariable variable) { }
+        public int Minimum(AI.Solvers.Constraints.Cp.IntVariable variable) { }
+        public bool Remove(AI.Solvers.Constraints.Cp.IntVariable variable, int value) { }
+        public bool RemoveAbove(AI.Solvers.Constraints.Cp.IntVariable variable, int limit) { }
+        public bool RemoveBelow(AI.Solvers.Constraints.Cp.IntVariable variable, int limit) { }
+        public bool TryGetFixed(AI.Solvers.Constraints.Cp.IntVariable variable, out int value) { }
+        public System.Collections.Generic.IEnumerable<int> Values(AI.Solvers.Constraints.Cp.IntVariable variable) { }
+    }
+    public interface IConstraint
+    {
+        System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Cp.IntVariable> Scope { get; }
+        string Describe();
+        bool Propagate(AI.Solvers.Constraints.Cp.DomainStore domains);
+    }
+    public sealed class IntVariable
+    {
+        public int Index { get; }
+        public int Lower { get; }
+        public string Name { get; }
+        public int Size { get; }
+        public int Upper { get; }
+        public override string ToString() { }
+    }
+    public sealed class LinearConstraint : AI.Solvers.Constraints.Cp.IConstraint
+    {
+        public LinearConstraint(AI.Solvers.Constraints.Cp.IntVariable[] variables, int[] coefficients, AI.Solvers.Constraints.Cp.LinearRelation relation, int rightHandSide) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Cp.IntVariable> Scope { get; }
+        public string Describe() { }
+        public bool Propagate(AI.Solvers.Constraints.Cp.DomainStore domains) { }
+    }
+    public enum LinearRelation
+    {
+        LessOrEqual = 0,
+        Equal = 1,
+        GreaterOrEqual = 2,
+    }
+    public sealed class NotEqual : AI.Solvers.Constraints.Cp.IConstraint
+    {
+        public NotEqual(AI.Solvers.Constraints.Cp.IntVariable left, AI.Solvers.Constraints.Cp.IntVariable right, int offset = 0) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Cp.IntVariable> Scope { get; }
+        public string Describe() { }
+        public bool Propagate(AI.Solvers.Constraints.Cp.DomainStore domains) { }
+    }
+}
+namespace AI.Solvers.Constraints.Sat
+{
+    public sealed class CnfFormula
+    {
+        public CnfFormula() { }
+        public int ClauseCount { get; }
+        public System.Collections.Generic.IReadOnlyList<int[]> Clauses { get; }
+        public int VariableCount { get; }
+        public AI.Solvers.Constraints.Sat.CnfFormula AddClause(System.Collections.Generic.IEnumerable<int> literals) { }
+        public AI.Solvers.Constraints.Sat.CnfFormula AddClause(params int[] literals) { }
+        public int AddVariable() { }
+        public int[] AddVariables(int count) { }
+        public AI.Solvers.Constraints.Sat.CnfFormula Assert(int literal) { }
+        public AI.Solvers.Constraints.Sat.CnfFormula AtLeastOne(params int[] literals) { }
+        public AI.Solvers.Constraints.Sat.CnfFormula AtMostOne(params int[] literals) { }
+        public AI.Solvers.Constraints.Sat.CnfFormula ExactlyOne(params int[] literals) { }
+        public AI.Solvers.Constraints.Sat.CnfFormula Implies(int premise, int conclusion) { }
+        public string ToDimacs() { }
+        public override string ToString() { }
+    }
+    public sealed class SatOptions
+    {
+        public SatOptions() { }
+        public int MaxConflicts { get; set; }
+        public int RestartBase { get; set; }
+        public double VariableDecay { get; set; }
+    }
+    public sealed class SatSolution : AI.Insights.IInterpretable
+    {
+        public int Conflicts { get; }
+        public int Decisions { get; }
+        public bool IsSatisfiable { get; }
+        public bool this[int variable] { get; }
+        public int LearnedClauses { get; }
+        public System.Collections.Generic.IReadOnlyList<bool> Model { get; }
+        public int Propagations { get; }
+        public AI.Solvers.Constraints.Sat.SatStatus Status { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+        public bool Verify(AI.Solvers.Constraints.Sat.CnfFormula formula) { }
+    }
+    public sealed class SatSolver
+    {
+        public SatSolver(AI.Solvers.Constraints.Sat.SatOptions? options = null) { }
+        public static AI.Solvers.Constraints.Sat.SatSolution Solve(AI.Solvers.Constraints.Sat.CnfFormula formula, AI.Solvers.Constraints.Sat.SatOptions? options = null) { }
+    }
+    public enum SatStatus
+    {
+        Satisfiable = 0,
+        Unsatisfiable = 1,
+        Unknown = 2,
+    }
+}
+namespace AI.Solvers.Constraints.Smt
+{
+    public sealed class ArithmeticAtom
+    {
+        public double Bound { get; }
+        public bool IsStrict { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Variable",
+                "Coefficient"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<AI.Solvers.Constraints.Smt.NumericVariable, double>> Terms { get; }
+        public bool IsSatisfiedBy(System.Func<AI.Solvers.Constraints.Smt.NumericVariable, double> value, double tolerance = 1E-07) { }
+        public override string ToString() { }
+    }
+    public sealed class BooleanVariable
+    {
+        public int Index { get; }
+        public string Name { get; }
+        public override string ToString() { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula op_Implicit(AI.Solvers.Constraints.Smt.BooleanVariable variable) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator !(AI.Solvers.Constraints.Smt.BooleanVariable variable) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator &(AI.Solvers.Constraints.Smt.BooleanVariable left, AI.Solvers.Constraints.Smt.BooleanVariable right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator |(AI.Solvers.Constraints.Smt.BooleanVariable left, AI.Solvers.Constraints.Smt.BooleanVariable right) { }
+    }
+    public enum FormulaKind
+    {
+        Constant = 0,
+        Variable = 1,
+        Atom = 2,
+        Not = 3,
+        And = 4,
+        Or = 5,
+        Iff = 6,
+    }
+    public class LinearExpression
+    {
+        public double Constant { get; }
+        public virtual System.Collections.Generic.IReadOnlyDictionary<AI.Solvers.Constraints.Smt.NumericVariable, double> Terms { get; }
+        public override string ToString() { }
+        public static AI.Solvers.Constraints.Smt.LinearExpression Sum(System.Collections.Generic.IEnumerable<AI.Solvers.Constraints.Smt.LinearExpression> items) { }
+        public static AI.Solvers.Constraints.Smt.LinearExpression op_Implicit(double value) { }
+        public static AI.Solvers.Constraints.Smt.LinearExpression operator *(AI.Solvers.Constraints.Smt.LinearExpression value, double factor) { }
+        public static AI.Solvers.Constraints.Smt.LinearExpression operator *(double factor, AI.Solvers.Constraints.Smt.LinearExpression value) { }
+        public static AI.Solvers.Constraints.Smt.LinearExpression operator +(AI.Solvers.Constraints.Smt.LinearExpression left, AI.Solvers.Constraints.Smt.LinearExpression right) { }
+        public static AI.Solvers.Constraints.Smt.LinearExpression operator -(AI.Solvers.Constraints.Smt.LinearExpression value) { }
+        public static AI.Solvers.Constraints.Smt.LinearExpression operator -(AI.Solvers.Constraints.Smt.LinearExpression left, AI.Solvers.Constraints.Smt.LinearExpression right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator <(AI.Solvers.Constraints.Smt.LinearExpression left, AI.Solvers.Constraints.Smt.LinearExpression right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator <=(AI.Solvers.Constraints.Smt.LinearExpression left, AI.Solvers.Constraints.Smt.LinearExpression right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator >(AI.Solvers.Constraints.Smt.LinearExpression left, AI.Solvers.Constraints.Smt.LinearExpression right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator >=(AI.Solvers.Constraints.Smt.LinearExpression left, AI.Solvers.Constraints.Smt.LinearExpression right) { }
+    }
+    public sealed class NumericVariable : AI.Solvers.Constraints.Smt.LinearExpression
+    {
+        public int Index { get; }
+        public double LowerBound { get; }
+        public string Name { get; }
+        public AI.Solvers.Constraints.Smt.SmtSort Sort { get; }
+        public override System.Collections.Generic.IReadOnlyDictionary<AI.Solvers.Constraints.Smt.NumericVariable, double> Terms { get; }
+        public double UpperBound { get; }
+        public override string ToString() { }
+    }
+    public sealed class SmtFormula
+    {
+        public AI.Solvers.Constraints.Smt.ArithmeticAtom? Atom { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Smt.SmtFormula> Children { get; }
+        public bool ConstantValue { get; }
+        public AI.Solvers.Constraints.Smt.FormulaKind Kind { get; }
+        public AI.Solvers.Constraints.Smt.BooleanVariable? Variable { get; }
+        public static AI.Solvers.Constraints.Smt.SmtFormula False { get; }
+        public static AI.Solvers.Constraints.Smt.SmtFormula True { get; }
+        public override string ToString() { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula And(params AI.Solvers.Constraints.Smt.SmtFormula[] items) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula Distinct(AI.Solvers.Constraints.Smt.LinearExpression left, AI.Solvers.Constraints.Smt.LinearExpression right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula Equal(AI.Solvers.Constraints.Smt.LinearExpression left, AI.Solvers.Constraints.Smt.LinearExpression right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula Iff(AI.Solvers.Constraints.Smt.SmtFormula left, AI.Solvers.Constraints.Smt.SmtFormula right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula Implies(AI.Solvers.Constraints.Smt.SmtFormula premise, AI.Solvers.Constraints.Smt.SmtFormula conclusion) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula Not(AI.Solvers.Constraints.Smt.SmtFormula formula) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula Or(params AI.Solvers.Constraints.Smt.SmtFormula[] items) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator !(AI.Solvers.Constraints.Smt.SmtFormula formula) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator &(AI.Solvers.Constraints.Smt.SmtFormula left, AI.Solvers.Constraints.Smt.SmtFormula right) { }
+        public static AI.Solvers.Constraints.Smt.SmtFormula operator |(AI.Solvers.Constraints.Smt.SmtFormula left, AI.Solvers.Constraints.Smt.SmtFormula right) { }
+    }
+    public sealed class SmtModel
+    {
+        public SmtModel(string name = "Задача SMT") { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Smt.SmtFormula> Assertions { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Smt.BooleanVariable> BooleanVariables { get; }
+        public bool HasIntegers { get; }
+        public string Name { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Constraints.Smt.NumericVariable> NumericVariables { get; }
+        public AI.Solvers.Constraints.Smt.SmtModel Assert(AI.Solvers.Constraints.Smt.SmtFormula formula) { }
+        public AI.Solvers.Constraints.Smt.BooleanVariable Bool(string name) { }
+        public AI.Solvers.Constraints.Smt.NumericVariable Int(string name, double lowerBound = -Infinity, double upperBound = Infinity) { }
+        public AI.Solvers.Constraints.Smt.NumericVariable Real(string name, double lowerBound = -Infinity, double upperBound = Infinity) { }
+        public override string ToString() { }
+    }
+    public sealed class SmtOptions
+    {
+        public SmtOptions() { }
+        public AI.Solvers.Optimization.LpOptions Lp { get; set; }
+        public int MaxLemmas { get; set; }
+        public AI.Solvers.Constraints.Sat.SatOptions Sat { get; set; }
+        public double StrictMargin { get; set; }
+        public double Tolerance { get; set; }
+    }
+    public sealed class SmtSolution : AI.Insights.IInterpretable
+    {
+        public bool IsSatisfiable { get; }
+        public bool this[AI.Solvers.Constraints.Smt.BooleanVariable variable] { get; }
+        public double this[AI.Solvers.Constraints.Smt.NumericVariable variable] { get; }
+        public AI.Solvers.Constraints.Smt.SmtModel Model { get; }
+        public int SatCalls { get; }
+        public AI.Solvers.Constraints.Smt.SmtStatus Status { get; }
+        public int TheoryChecks { get; }
+        public int TheoryLemmas { get; }
+        public string? UnknownReason { get; }
+        public bool Verified { get; }
+        public double Evaluate(AI.Solvers.Constraints.Smt.LinearExpression expression) { }
+        public bool Evaluate(AI.Solvers.Constraints.Smt.SmtFormula formula, double tolerance = 1E-07) { }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class SmtSolver
+    {
+        public static AI.Solvers.Constraints.Smt.SmtSolution Solve(AI.Solvers.Constraints.Smt.SmtModel model, AI.Solvers.Constraints.Smt.SmtOptions? options = null) { }
+    }
+    public enum SmtSort
+    {
+        Integer = 0,
+        Real = 1,
+    }
+    public enum SmtStatus
+    {
+        Satisfiable = 0,
+        Unsatisfiable = 1,
+        Unknown = 2,
+    }
+}

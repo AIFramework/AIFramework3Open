@@ -1,0 +1,3222 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Economics.Clv
+{
+    public sealed class BgNbdModel : AI.Economics.Clv.ITransactionModel, AI.Insights.IInterpretable
+    {
+        public BgNbdModel() { }
+        public double A { get; }
+        public double Alpha { get; }
+        public double B { get; }
+        public double LogLikelihood { get; }
+        public double R { get; }
+        public int SampleSize { get; }
+        public double ExpectedTransactions(AI.Economics.Clv.CustomerSummary customer, double horizon) { }
+        public double ExpectedTransactionsPopulation(double t) { }
+        public void Fit(System.Collections.Generic.IReadOnlyList<AI.Economics.Clv.CustomerSummary> customers) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public double ProbabilityAlive(AI.Economics.Clv.CustomerSummary customer) { }
+    }
+    public static class ClvCalculator
+    {
+        public static AI.Economics.Clv.ClvPortfolio Compute(AI.Economics.Clv.ITransactionModel transactions, AI.Economics.Clv.GammaGammaModel monetary, System.Collections.Generic.IReadOnlyList<AI.Economics.Clv.CustomerSummary> customers, double horizon, int steps = 12, double discountRatePerStep = 0, double marginRate = 1) { }
+    }
+    public sealed record ClvPortfolio : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Clv.ClvPortfolio>
+    {
+        public ClvPortfolio() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Clv.CustomerClv> Customers { get; init; }
+        public double MeanClv { get; init; }
+        public double MeanProbabilityAlive { get; init; }
+        public double Top10PercentShare { get; init; }
+        public double TotalClv { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record CustomerClv : System.IEquatable<AI.Economics.Clv.CustomerClv>
+    {
+        public CustomerClv() { }
+        public double Clv { get; init; }
+        public double ExpectedTransactions { get; init; }
+        public double ExpectedValue { get; init; }
+        public string Id { get; init; }
+        public double ProbabilityAlive { get; init; }
+        public double UndiscountedClv { get; init; }
+    }
+    public sealed record CustomerSummary : System.IEquatable<AI.Economics.Clv.CustomerSummary>
+    {
+        public CustomerSummary() { }
+        public double Age { get; init; }
+        public double Frequency { get; init; }
+        public string Id { get; init; }
+        public double MonetaryValue { get; init; }
+        public double Recency { get; init; }
+    }
+    public sealed class GammaGammaModel : AI.Insights.IInterpretable
+    {
+        public GammaGammaModel() { }
+        public double Gamma { get; }
+        public double LogLikelihood { get; }
+        public double P { get; }
+        public double PopulationMean { get; }
+        public double Q { get; }
+        public int SampleSize { get; }
+        public double ConditionalExpectedValue(AI.Economics.Clv.CustomerSummary customer) { }
+        public void Fit(System.Collections.Generic.IReadOnlyList<AI.Economics.Clv.CustomerSummary> customers) { }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public interface ITransactionModel
+    {
+        double ExpectedTransactions(AI.Economics.Clv.CustomerSummary customer, double horizon);
+        double ProbabilityAlive(AI.Economics.Clv.CustomerSummary customer);
+    }
+    public sealed class ParetoNbdModel : AI.Economics.Clv.ITransactionModel, AI.Insights.IInterpretable
+    {
+        public ParetoNbdModel() { }
+        public double Alpha { get; }
+        public double Beta { get; }
+        public double LogLikelihood { get; }
+        public double R { get; }
+        public double S { get; }
+        public int SampleSize { get; }
+        public double ExpectedTransactions(AI.Economics.Clv.CustomerSummary customer, double horizon) { }
+        public void Fit(System.Collections.Generic.IReadOnlyList<AI.Economics.Clv.CustomerSummary> customers) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public double ProbabilityAlive(AI.Economics.Clv.CustomerSummary customer) { }
+    }
+}
+namespace AI.Economics.Cohorts
+{
+    public sealed class CohortMatrix : AI.Insights.IInterpretable
+    {
+        public CohortMatrix(AI.DataStructs.Algebraic.Matrix values) { }
+        public int CohortCount { get; }
+        public double this[int cohort, int age] { get; }
+        public int MaxAge { get; }
+        public AI.DataStructs.Algebraic.Vector CohortSizes() { }
+        public double EffectiveCohortSize() { }
+        public AI.Insights.Interpretation Interpret() { }
+        public bool IsObserved(int cohort, int age) { }
+        public int LastObservedAge() { }
+        public AI.DataStructs.Algebraic.Vector ObservationBase() { }
+        public AI.DataStructs.Algebraic.Vector PooledRetention() { }
+        public AI.DataStructs.Algebraic.Matrix RetentionMatrix() { }
+        public AI.DataStructs.Algebraic.Vector RetentionOf(int cohort) { }
+        public static AI.Economics.Cohorts.CohortMatrix Triangular(AI.DataStructs.Algebraic.Matrix counts) { }
+    }
+    public sealed record RetentionFitResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Cohorts.RetentionFitResult>
+    {
+        public RetentionFitResult() { }
+        public double Aic { get; init; }
+        public double ConfidenceLevel { get; init; }
+        public double ExpectedLifetime { get; init; }
+        public double ExpectedLifetimeLower { get; init; }
+        public double ExpectedLifetimeUpper { get; init; }
+        public double LogLikelihood { get; init; }
+        public AI.Economics.Cohorts.RetentionModel Model { get; init; }
+        public AI.DataStructs.Algebraic.Vector Observed { get; init; }
+        public int ObservedPeriods { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> ParameterNames { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Parameters { get; init; }
+        public AI.DataStructs.Algebraic.Vector RetentionRates { get; init; }
+        public double Rmse { get; init; }
+        public AI.DataStructs.Algebraic.Vector Survival { get; init; }
+        public AI.DataStructs.Algebraic.Vector SurvivalLower { get; init; }
+        public AI.DataStructs.Algebraic.Vector SurvivalUpper { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class RetentionFitter
+    {
+        public const int DefaultBootstrapSamples = 200;
+        public static AI.Economics.Cohorts.RetentionFitResult Fit(AI.DataStructs.Algebraic.Vector observedSurvival, double cohortSize, AI.Economics.Cohorts.RetentionModel model, int horizon = 36, double confidenceLevel = 0.9, int bootstrapSamples = 200, int seed = 42) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Cohorts.RetentionFitResult> FitAll(AI.DataStructs.Algebraic.Vector observedSurvival, double cohortSize, int horizon = 36, double confidenceLevel = 0.9, int bootstrapSamples = 200, int seed = 42) { }
+    }
+    public enum RetentionModel
+    {
+        Exponential = 0,
+        PowerLaw = 1,
+        Weibull = 2,
+        ShiftedBetaGeometric = 3,
+    }
+}
+namespace AI.Economics.Corporate
+{
+    public sealed record BusinessUnit : System.IEquatable<AI.Economics.Corporate.BusinessUnit>
+    {
+        public BusinessUnit() { }
+        public double CostOfCapital { get; init; }
+        public double InvestedCapital { get; init; }
+        public string Name { get; init; }
+        public double OperatingProfit { get; init; }
+        public double Revenue { get; init; }
+        public double TaxRate { get; init; }
+    }
+    public static class Comparables
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Peer",
+                "Distance"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double>> Rank(AI.Economics.Corporate.Peer target, System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.Peer> peers) { }
+        public static AI.Economics.Corporate.ComparablesResult Value(AI.Economics.Corporate.Peer target, System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.Peer> peers, int peerCount = 0) { }
+    }
+    public sealed record ComparablesResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Corporate.ComparablesResult>
+    {
+        public ComparablesResult() { }
+        public double MedianValue { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.MultipleStatistic> Multiples { get; init; }
+        public AI.Econometrics.RegressionResult? Regression { get; init; }
+        public double RegressionValue { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Peer",
+                "Distance"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double>> SelectedPeers { get; init; }
+        public string Target { get; init; }
+        public double ValuationSpread { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class CostOfCapital
+    {
+        public static AI.Economics.Corporate.CostOfCapitalResult Compute(AI.Economics.Corporate.CostOfCapitalInput input) { }
+        public static double Unlever(double leveredBeta, double debtToEquity, double taxRate, double debtBeta = 0) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "DebtShare",
+                "Wacc"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> WaccCurve(AI.Economics.Corporate.CostOfCapitalInput input, int steps = 19, double creditSpreadSlope = 0.12, double distressSlope = 0.2) { }
+    }
+    public sealed record CostOfCapitalInput : System.IEquatable<AI.Economics.Corporate.CostOfCapitalInput>
+    {
+        public CostOfCapitalInput() { }
+        public double CostOfDebt { get; init; }
+        public double CountryRiskPremium { get; init; }
+        public double DebtValue { get; init; }
+        public double EquityRiskPremium { get; init; }
+        public double EquityValue { get; init; }
+        public string Name { get; init; }
+        public double RiskFreeRate { get; init; }
+        public double SizePremium { get; init; }
+        public double SpecificPremium { get; init; }
+        public double TaxRate { get; init; }
+        public double UnleveredBeta { get; init; }
+    }
+    public sealed record CostOfCapitalResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Corporate.CostOfCapitalResult>
+    {
+        public CostOfCapitalResult() { }
+        public double AfterTaxCostOfDebt { get; init; }
+        public double CostOfEquity { get; init; }
+        public double DebtWeight { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Component",
+                "Value"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double>> EquityBuildUp { get; init; }
+        public double EquityWeight { get; init; }
+        public double LeveredBeta { get; init; }
+        public string Name { get; init; }
+        public double TaxShieldBenefit { get; init; }
+        public double Wacc { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record CovenantBreach : System.IEquatable<AI.Economics.Corporate.CovenantBreach>
+    {
+        public CovenantBreach(int Year, string Covenant, double Value, double Limit) { }
+        public string Covenant { get; init; }
+        public double Limit { get; init; }
+        public double Value { get; init; }
+        public int Year { get; init; }
+    }
+    public sealed record DcfInput : System.IEquatable<AI.Economics.Corporate.DcfInput>
+    {
+        public DcfInput() { }
+        public double DiscountRate { get; init; }
+        public double ExitMultiple { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.ForecastYear> Forecast { get; init; }
+        public bool MidYearConvention { get; init; }
+        public string Name { get; init; }
+        public double NetDebt { get; init; }
+        public double NonOperatingAssets { get; init; }
+        public double TerminalGrowth { get; init; }
+        public AI.Economics.Corporate.TerminalValueMethod TerminalMethod { get; init; }
+    }
+    public sealed record DcfResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Corporate.DcfResult>
+    {
+        public DcfResult() { }
+        public AI.DataStructs.Algebraic.Vector CashFlows { get; init; }
+        public double DiscountRate { get; init; }
+        public AI.DataStructs.Algebraic.Vector DiscountedCashFlows { get; init; }
+        public double DiscountedTerminalValue { get; init; }
+        public double EnterpriseValue { get; init; }
+        public double EquityValue { get; init; }
+        public double ImpliedExitMultiple { get; init; }
+        public double ImpliedGrowth { get; init; }
+        public string Name { get; init; }
+        public AI.Economics.Corporate.TerminalValueMethod TerminalMethod { get; init; }
+        public double TerminalShare { get; }
+        public double TerminalValue { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.SensitivityBar> Tornado { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record DcfSimulationResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Corporate.DcfSimulationResult>
+    {
+        public DcfSimulationResult() { }
+        public double BaseCase { get; init; }
+        public AI.DataStructs.Algebraic.Vector Distribution { get; init; }
+        public double LowerPercentile { get; init; }
+        public double MeanEquityValue { get; init; }
+        public double MedianEquityValue { get; init; }
+        public string Name { get; init; }
+        public double ProbabilityOfLoss { get; init; }
+        public int Simulations { get; init; }
+        public double StandardDeviation { get; init; }
+        public double UpperPercentile { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record DebtTranche : System.IEquatable<AI.Economics.Corporate.DebtTranche>
+    {
+        public DebtTranche(string Name, double Amount, double Rate, double AmortizationRate, int Seniority, bool CashSweep = true) { }
+        public double AmortizationRate { get; init; }
+        public double Amount { get; init; }
+        public bool CashSweep { get; init; }
+        public string Name { get; init; }
+        public double Rate { get; init; }
+        public int Seniority { get; init; }
+    }
+    public static class DiscountedCashFlow
+    {
+        public static AI.Economics.Corporate.DcfSimulationResult Simulate(AI.Economics.Corporate.DcfInput input, double revenueVolatility = 0.12, double marginVolatility = 0.02, double rateVolatility = 0.015, int simulations = 5000, int seed = 42) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.SensitivityBar> Tornado(AI.Economics.Corporate.DcfInput input, double baseValue) { }
+        public static AI.Economics.Corporate.DcfResult Value(AI.Economics.Corporate.DcfInput input) { }
+    }
+    public sealed record EconomicProfitResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Corporate.EconomicProfitResult>
+    {
+        public EconomicProfitResult() { }
+        public double CapitalDestroying { get; }
+        public string Company { get; init; }
+        public double ReallocationUpside { get; init; }
+        public double Roic { get; }
+        public double Spread { get; }
+        public double TotalCapital { get; init; }
+        public double TotalEconomicProfit { get; init; }
+        public double TotalNopat { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.UnitEconomicProfit> Units { get; init; }
+        public double Wacc { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class EconomicValueAdded
+    {
+        public static AI.Economics.Corporate.EconomicProfitResult Compute(string company, System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.BusinessUnit> units, double wacc) { }
+        public static double MarketValueAdded(double currentEconomicProfit, double growth, double wacc, int horizon = 0) { }
+    }
+    public sealed record ForecastYear : System.IEquatable<AI.Economics.Corporate.ForecastYear>
+    {
+        public ForecastYear(double Revenue, double EbitMargin, double TaxRate, double Depreciation, double CapitalExpenditures, double WorkingCapitalChange) { }
+        public double CapitalExpenditures { get; init; }
+        public double Depreciation { get; init; }
+        public double Ebit { get; }
+        public double EbitMargin { get; init; }
+        public double Ebitda { get; }
+        public double FreeCashFlow { get; }
+        public double Nopat { get; }
+        public double Revenue { get; init; }
+        public double TaxRate { get; init; }
+        public double WorkingCapitalChange { get; init; }
+    }
+    public sealed record LboInput : System.IEquatable<AI.Economics.Corporate.LboInput>
+    {
+        public LboInput() { }
+        public double CashConversionDrag { get; init; }
+        public double EbitdaGrowth { get; init; }
+        public double EntryEbitda { get; init; }
+        public double EntryMultiple { get; init; }
+        public double ExitMultiple { get; init; }
+        public int HoldingPeriod { get; init; }
+        public double MaxLeverage { get; init; }
+        public double MinInterestCoverage { get; init; }
+        public string Name { get; init; }
+        public double TaxRate { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.DebtTranche> Tranches { get; init; }
+    }
+    public sealed record LboResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Corporate.LboResult>
+    {
+        public LboResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.CovenantBreach> Breaches { get; init; }
+        public double DeleveragingContribution { get; init; }
+        public double EntryLeverage { get; init; }
+        public double EntryValue { get; init; }
+        public double EquityInvested { get; init; }
+        public double EquityProceeds { get; init; }
+        public double ExitValue { get; init; }
+        public double GrowthContribution { get; init; }
+        public double Irr { get; init; }
+        public double MoneyMultiple { get; }
+        public double MultipleContribution { get; init; }
+        public string Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Corporate.LboYear> Schedule { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record LboYear : System.IEquatable<AI.Economics.Corporate.LboYear>
+    {
+        public LboYear(int Year, double Ebitda, double Interest, double Amortization, double CashSweep, double ClosingDebt, double Leverage, double InterestCoverage) { }
+        public double Amortization { get; init; }
+        public double CashSweep { get; init; }
+        public double ClosingDebt { get; init; }
+        public double Ebitda { get; init; }
+        public double Interest { get; init; }
+        public double InterestCoverage { get; init; }
+        public double Leverage { get; init; }
+        public int Year { get; init; }
+    }
+    public static class LeveragedBuyout
+    {
+        public static double MaximumEntryMultiple(AI.Economics.Corporate.LboInput input, double targetIrr = 0.2, double maxMultiple = 20) { }
+        public static AI.Economics.Corporate.LboResult Run(AI.Economics.Corporate.LboInput input) { }
+        public static AI.DataStructs.Algebraic.Matrix Sensitivity(AI.Economics.Corporate.LboInput input, System.Collections.Generic.IReadOnlyList<double> entryMultiples, System.Collections.Generic.IReadOnlyList<double> exitMultiples) { }
+    }
+    public static class LongstaffSchwartz
+    {
+        public static AI.Economics.Corporate.ProjectOptionResult Value(AI.Economics.Corporate.ProjectOptionInput input) { }
+    }
+    public sealed record MultipleStatistic : System.IEquatable<AI.Economics.Corporate.MultipleStatistic>
+    {
+        public MultipleStatistic(string Name, double Median, double LowerQuartile, double UpperQuartile, int Observations, double ImpliedValue) { }
+        public double ImpliedValue { get; init; }
+        public double LowerQuartile { get; init; }
+        public double Median { get; init; }
+        public string Name { get; init; }
+        public int Observations { get; init; }
+        public double UpperQuartile { get; init; }
+    }
+    public sealed record Peer : System.IEquatable<AI.Economics.Corporate.Peer>
+    {
+        public Peer() { }
+        public double Ebitda { get; init; }
+        public double EnterpriseValue { get; init; }
+        public double EvToEbitda { get; }
+        public double EvToRevenue { get; }
+        public double Growth { get; init; }
+        public double Margin { get; }
+        public double MarketCapitalization { get; init; }
+        public string Name { get; init; }
+        public double NetIncome { get; init; }
+        public double PriceToEarnings { get; }
+        public double Revenue { get; init; }
+    }
+    public enum ProjectOption
+    {
+        Defer = 0,
+        Expand = 1,
+        Abandon = 2,
+    }
+    public sealed record ProjectOptionInput : System.IEquatable<AI.Economics.Corporate.ProjectOptionInput>
+    {
+        public ProjectOptionInput() { }
+        public double ConvenienceYield { get; init; }
+        public double ExpansionFactor { get; init; }
+        public double Horizon { get; init; }
+        public double InvestmentCost { get; init; }
+        public string Name { get; init; }
+        public AI.Economics.Corporate.ProjectOption Option { get; init; }
+        public int Paths { get; init; }
+        public double ProjectValue { get; init; }
+        public double RiskFreeRate { get; init; }
+        public double SalvageValue { get; init; }
+        public int Seed { get; init; }
+        public int Steps { get; init; }
+        public double Volatility { get; init; }
+    }
+    public sealed record ProjectOptionResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Corporate.ProjectOptionResult>
+    {
+        public ProjectOptionResult() { }
+        public AI.DataStructs.Algebraic.Vector ExerciseBoundary { get; init; }
+        public double ExerciseProbability { get; init; }
+        public double ExpectedExerciseTime { get; init; }
+        public string Name { get; init; }
+        public AI.Economics.Corporate.ProjectOption Option { get; init; }
+        public double OptionValue { get; }
+        public int Paths { get; init; }
+        public double StandardError { get; init; }
+        public double StaticNpv { get; init; }
+        public double TotalValue { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record SensitivityBar : System.IEquatable<AI.Economics.Corporate.SensitivityBar>
+    {
+        public SensitivityBar(string Factor, double LowValue, double HighValue, double Swing) { }
+        public string Factor { get; init; }
+        public double HighValue { get; init; }
+        public double LowValue { get; init; }
+        public double Swing { get; init; }
+    }
+    public enum TerminalValueMethod
+    {
+        Gordon = 0,
+        ExitMultiple = 1,
+    }
+    public sealed record UnitEconomicProfit : System.IEquatable<AI.Economics.Corporate.UnitEconomicProfit>
+    {
+        public UnitEconomicProfit(string Name, double Nopat, double InvestedCapital, double Roic, double CostOfCapital, double Spread, double EconomicProfit, double CapitalShare) { }
+        public double CapitalShare { get; init; }
+        public double CostOfCapital { get; init; }
+        public double EconomicProfit { get; init; }
+        public double InvestedCapital { get; init; }
+        public string Name { get; init; }
+        public double Nopat { get; init; }
+        public double Roic { get; init; }
+        public double Spread { get; init; }
+    }
+}
+namespace AI.Economics.Credit
+{
+    public sealed record CounterpartyFactor : System.IEquatable<AI.Economics.Credit.CounterpartyFactor>
+    {
+        public CounterpartyFactor(string Name, double Value, double Score, double Weight, double Contribution, string Comment) { }
+        public string Comment { get; init; }
+        public double Contribution { get; init; }
+        public string Name { get; init; }
+        public double Score { get; init; }
+        public double Value { get; init; }
+        public double Weight { get; init; }
+    }
+    public sealed record CounterpartyOptions : System.IEquatable<AI.Economics.Credit.CounterpartyOptions>
+    {
+        public CounterpartyOptions() { }
+        public double ApprovalScore { get; init; }
+        public double EquityShareCap { get; init; }
+        public double LossGivenDefault { get; init; }
+        public double RevenueMonthsCap { get; init; }
+    }
+    public sealed record CounterpartyProfile : System.IEquatable<AI.Economics.Credit.CounterpartyProfile>
+    {
+        public CounterpartyProfile() { }
+        public double AveragePaymentDelayDays { get; init; }
+        public double BuyerConcentration { get; init; }
+        public double CurrentAssets { get; init; }
+        public double CurrentLiabilities { get; init; }
+        public double DisputeRate { get; init; }
+        public double Ebitda { get; init; }
+        public double Equity { get; init; }
+        public bool HasLitigation { get; init; }
+        public bool HasTaxArrears { get; init; }
+        public string Name { get; init; }
+        public double RequestedLimit { get; init; }
+        public double Revenue { get; init; }
+        public double RevenueGrowth { get; init; }
+        public double TotalDebt { get; init; }
+        public double YearsInBusiness { get; init; }
+    }
+    public sealed record CounterpartyScore : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.CounterpartyScore>
+    {
+        public CounterpartyScore() { }
+        public double AdvanceRate { get; init; }
+        public string Decision { get; init; }
+        public double ExpectedLoss { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.CounterpartyFactor> Factors { get; init; }
+        public string Grade { get; init; }
+        public string Name { get; init; }
+        public double ProbabilityOfDefault { get; init; }
+        public double RecommendedLimit { get; init; }
+        public double RequestedLimit { get; init; }
+        public double Score { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> StopFactors { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class CounterpartyScoring
+    {
+        public static AI.Economics.Credit.CounterpartyScore Score(AI.Economics.Credit.CounterpartyProfile profile, AI.Economics.Credit.CounterpartyOptions? options = null) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.CounterpartyScore> ScoreAll(System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.CounterpartyProfile> profiles, AI.Economics.Credit.CounterpartyOptions? options = null) { }
+    }
+    public sealed record CreditExposure : System.IEquatable<AI.Economics.Credit.CreditExposure>
+    {
+        public CreditExposure() { }
+        public int DaysPastDue { get; init; }
+        public double EffectiveInterestRate { get; init; }
+        public double ExposureAtDefault { get; init; }
+        public string Id { get; init; }
+        public bool IsCreditImpaired { get; init; }
+        public double LossGivenDefault { get; init; }
+        public double ProbabilityOfDefault { get; init; }
+        public double ProbabilityOfDefaultAtOrigination { get; init; }
+        public int RemainingMonths { get; init; }
+        public string Segment { get; init; }
+    }
+    public enum CreditStage
+    {
+        Performing = 1,
+        UnderPerforming = 2,
+        NonPerforming = 3,
+    }
+    public sealed record EclResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.EclResult>
+    {
+        public EclResult() { }
+        public double CoverageRatio { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.ExposureEcl> Exposures { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.ScenarioEcl> Scenarios { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.StageSummary> Stages { get; init; }
+        public double StagingEffect { get; }
+        public double TotalEcl { get; init; }
+        public double TotalEcl12Month { get; init; }
+        public double TotalEclLifetime { get; init; }
+        public double TotalExposure { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record ExposureEcl : System.IEquatable<AI.Economics.Credit.ExposureEcl>
+    {
+        public ExposureEcl() { }
+        public double CoverageRatio { get; }
+        public double Ecl { get; init; }
+        public double Ecl12Month { get; init; }
+        public double EclLifetime { get; init; }
+        public double ExposureAtDefault { get; init; }
+        public string Id { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> MarginalDefaultCurve { get; init; }
+        public string Segment { get; init; }
+        public AI.Economics.Credit.CreditStage Stage { get; init; }
+        public string StageReason { get; init; }
+    }
+    public static class Ifrs9
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Stage",
+                "Reason"})]
+        public static System.ValueTuple<AI.Economics.Credit.CreditStage, string> AssignStage(AI.Economics.Credit.CreditExposure exposure, AI.Economics.Credit.Ifrs9Options? options = null) { }
+        public static AI.Economics.Credit.EclResult Compute(System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.CreditExposure> exposures, System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.MacroScenario>? scenarios = null, AI.Economics.Credit.Ifrs9Options? options = null) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.MacroScenario> DefaultScenarios() { }
+    }
+    public sealed record Ifrs9Options : System.IEquatable<AI.Economics.Credit.Ifrs9Options>
+    {
+        public Ifrs9Options() { }
+        public int DaysPastDueStage2 { get; init; }
+        public int DaysPastDueStage3 { get; init; }
+        public double SicrAbsoluteThreshold { get; init; }
+        public double SicrRelativeThreshold { get; init; }
+    }
+    public sealed record MacroScenario : System.IEquatable<AI.Economics.Credit.MacroScenario>
+    {
+        public MacroScenario(string Name, double Probability, double PdMultiplier, double LgdMultiplier = 1) { }
+        public double LgdMultiplier { get; init; }
+        public string Name { get; init; }
+        public double PdMultiplier { get; init; }
+        public double Probability { get; init; }
+    }
+    public sealed record MertonInput : System.IEquatable<AI.Economics.Credit.MertonInput>
+    {
+        public MertonInput() { }
+        public double? AssetDrift { get; init; }
+        public string Company { get; init; }
+        public double EquityValue { get; init; }
+        public double EquityVolatility { get; init; }
+        public double Horizon { get; init; }
+        public double LongTermDebt { get; init; }
+        public double RiskFreeRate { get; init; }
+        public double ShortTermDebt { get; init; }
+    }
+    public static class MertonModel
+    {
+        public static AI.Economics.Credit.MertonResult Estimate(AI.Economics.Credit.MertonInput input) { }
+    }
+    public sealed record MertonResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.MertonResult>
+    {
+        public MertonResult() { }
+        public double AssetValue { get; init; }
+        public double AssetVolatility { get; init; }
+        public string Company { get; init; }
+        public bool Converged { get; init; }
+        public double DebtValue { get; init; }
+        public double DefaultPoint { get; init; }
+        public double DistanceToDefault { get; init; }
+        public double EquityVolatilityImplied { get; init; }
+        public double Horizon { get; init; }
+        public double ImpliedCreditSpread { get; init; }
+        public int Iterations { get; init; }
+        public double Leverage { get; init; }
+        public double ProbabilityOfDefault { get; init; }
+        public double RiskNeutralProbability { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class MigrationMatrix
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> CumulativeDefault(AI.Economics.Credit.MigrationMatrixResult result, int horizon) { }
+        public static AI.Economics.Credit.MigrationMatrixResult Estimate(System.Collections.Generic.IReadOnlyList<string> ratings, System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.RatingTransition> transitions, int periods = 1) { }
+        public static AI.DataStructs.Algebraic.Matrix MultiPeriod(AI.Economics.Credit.MigrationMatrixResult result, int periods) { }
+        public static AI.DataStructs.Algebraic.Vector StationaryDistribution(AI.Economics.Credit.MigrationMatrixResult result, int iterations = 500) { }
+    }
+    public sealed record MigrationMatrixResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.MigrationMatrixResult>
+    {
+        public MigrationMatrixResult() { }
+        public double AverageStability { get; }
+        public AI.DataStructs.Algebraic.Matrix Counts { get; init; }
+        public int DefaultIndex { get; init; }
+        public double NetDowngradeDrift { get; }
+        public int Periods { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.RatingProfile> Profiles { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Ratings { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Transitions { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record PsiResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.PsiResult>
+    {
+        public PsiResult() { }
+        public int ActualCount { get; init; }
+        public AI.DataStructs.Algebraic.Vector ActualShares { get; init; }
+        public AI.DataStructs.Algebraic.Vector Boundaries { get; init; }
+        public AI.DataStructs.Algebraic.Vector Contributions { get; init; }
+        public int ExpectedCount { get; init; }
+        public AI.DataStructs.Algebraic.Vector ExpectedShares { get; init; }
+        public double Psi { get; init; }
+        public string Variable { get; init; }
+        public string Verdict { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record RatingProfile : System.IEquatable<AI.Economics.Credit.RatingProfile>
+    {
+        public RatingProfile(string Rating, double Observations, double Stability, double UpgradeRate, double DowngradeRate, double DefaultRate) { }
+        public double DefaultRate { get; init; }
+        public double DowngradeRate { get; init; }
+        public double Observations { get; init; }
+        public string Rating { get; init; }
+        public double Stability { get; init; }
+        public double UpgradeRate { get; init; }
+    }
+    public sealed record RatingTransition : System.IEquatable<AI.Economics.Credit.RatingTransition>
+    {
+        public RatingTransition(string From, string To, double Weight = 1) { }
+        public string From { get; init; }
+        public string To { get; init; }
+        public double Weight { get; init; }
+    }
+    public static class RollRate
+    {
+        public static AI.Economics.Credit.RollRateResult Analyze(System.Collections.Generic.IReadOnlyList<string> buckets, AI.DataStructs.Algebraic.Matrix balances) { }
+        public static System.Collections.Generic.IReadOnlyList<string> DefaultBuckets() { }
+    }
+    public sealed record RollRateResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.RollRateResult>
+    {
+        public RollRateResult() { }
+        public System.Collections.Generic.IReadOnlyList<string> Buckets { get; init; }
+        public double ImpliedLoss { get; init; }
+        public double ImpliedLossRate { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> LatestBalances { get; init; }
+        public int Periods { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> RollToLoss { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.RollRateStep> Steps { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record RollRateStep : System.IEquatable<AI.Economics.Credit.RollRateStep>
+    {
+        public RollRateStep(string FromBucket, string ToBucket, double AverageRollRate, double StandardDeviation, int Observations, double LatestRollRate) { }
+        public double AverageRollRate { get; init; }
+        public string FromBucket { get; init; }
+        public double LatestRollRate { get; init; }
+        public int Observations { get; init; }
+        public double StandardDeviation { get; init; }
+        public string ToBucket { get; init; }
+    }
+    public sealed record ScenarioEcl : System.IEquatable<AI.Economics.Credit.ScenarioEcl>
+    {
+        public ScenarioEcl(string Name, double Probability, double Ecl, double CoverageRatio) { }
+        public double CoverageRatio { get; init; }
+        public double Ecl { get; init; }
+        public string Name { get; init; }
+        public double Probability { get; init; }
+    }
+    public sealed record ScoreBin : System.IEquatable<AI.Economics.Credit.ScoreBin>
+    {
+        public ScoreBin() { }
+        public int Bad { get; init; }
+        public double BadRate { get; }
+        public int Good { get; }
+        public double IvContribution { get; init; }
+        public string Label { get; init; }
+        public double Lower { get; init; }
+        public double Share { get; init; }
+        public int Total { get; init; }
+        public double Upper { get; init; }
+        public double Woe { get; init; }
+    }
+    public static class ScoreMetrics
+    {
+        public static AI.Economics.Credit.ScoreQuality Evaluate(AI.DataStructs.Algebraic.Vector probabilities, System.Collections.Generic.IReadOnlyList<bool> defaults, int calibrationBins = 10) { }
+        public static AI.Economics.Credit.PsiResult PopulationStability(AI.DataStructs.Algebraic.Vector expected, AI.DataStructs.Algebraic.Vector actual, int bins = 10, string variable = "балл") { }
+    }
+    public sealed record ScoreQuality : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.ScoreQuality>
+    {
+        public ScoreQuality() { }
+        public double Auc { get; init; }
+        public double Brier { get; init; }
+        public double CalibrationIntercept { get; init; }
+        public AI.DataStructs.Algebraic.Vector CalibrationObserved { get; init; }
+        public AI.DataStructs.Algebraic.Vector CalibrationPredicted { get; init; }
+        public double CalibrationSlope { get; init; }
+        public int Defaults { get; init; }
+        public double Gini { get; }
+        public double Ks { get; init; }
+        public double KsThreshold { get; init; }
+        public double MeanObserved { get; init; }
+        public double MeanPredicted { get; init; }
+        public int Observations { get; init; }
+        public AI.DataStructs.Algebraic.Vector RocFalsePositive { get; init; }
+        public AI.DataStructs.Algebraic.Vector RocTruePositive { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed class Scorecard
+    {
+        public Scorecard() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.VariableBinning> Variables { get; }
+        public AI.Economics.Credit.ScorecardResult Fit(System.Collections.Generic.IReadOnlyList<string> variableNames, AI.DataStructs.Algebraic.Matrix values, System.Collections.Generic.IReadOnlyList<bool> defaults, AI.Economics.Credit.ScorecardOptions? options = null) { }
+        public double ProbabilityOfDefault(double score) { }
+        public double Score(System.Collections.Generic.IReadOnlyDictionary<string, double> applicant) { }
+    }
+    public sealed record ScorecardOptions : System.IEquatable<AI.Economics.Credit.ScorecardOptions>
+    {
+        public ScorecardOptions() { }
+        public double BaseOdds { get; init; }
+        public double BaseScore { get; init; }
+        public int MaxBins { get; init; }
+        public double MaxInformationValue { get; init; }
+        public double MinBinShare { get; init; }
+        public double MinInformationValue { get; init; }
+        public double PointsToDoubleOdds { get; init; }
+        public double Ridge { get; init; }
+    }
+    public sealed record ScorecardPoint : System.IEquatable<AI.Economics.Credit.ScorecardPoint>
+    {
+        public ScorecardPoint(string Variable, string Bin, double Woe, double Coefficient, double Points) { }
+        public string Bin { get; init; }
+        public double Coefficient { get; init; }
+        public double Points { get; init; }
+        public string Variable { get; init; }
+        public double Woe { get; init; }
+    }
+    public sealed record ScorecardResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.ScorecardResult>
+    {
+        public ScorecardResult() { }
+        public double BasePoints { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Coefficients { get; init; }
+        public double Intercept { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.ScorecardPoint> Points { get; init; }
+        public double PointsToDoubleOdds { get; init; }
+        public AI.Economics.Credit.ScoreQuality Quality { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Variable",
+                "InformationValue",
+                "Reason"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double, string>> Rejected { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Min",
+                "Max"})]
+        public System.ValueTuple<double, double> ScoreRange { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.VariableBinning> Variables { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record StageSummary : System.IEquatable<AI.Economics.Credit.StageSummary>
+    {
+        public StageSummary(AI.Economics.Credit.CreditStage Stage, int Count, double ExposureAtDefault, double Ecl, double CoverageRatio) { }
+        public int Count { get; init; }
+        public double CoverageRatio { get; init; }
+        public double Ecl { get; init; }
+        public double ExposureAtDefault { get; init; }
+        public AI.Economics.Credit.CreditStage Stage { get; init; }
+    }
+    public sealed record VariableBinning : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.VariableBinning>
+    {
+        public VariableBinning() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.ScoreBin> Bins { get; init; }
+        public double InformationValue { get; init; }
+        public bool IsMonotone { get; init; }
+        public int Observations { get; init; }
+        public double OverallBadRate { get; init; }
+        public string Predictiveness { get; }
+        public string Variable { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+        public double Transform(double value) { }
+    }
+    public static class VintageAnalysis
+    {
+        public static AI.Economics.Credit.VintageResult Analyze(System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.VintageCohort> cohorts) { }
+        public static AI.DataStructs.Algebraic.Matrix Triangle(System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.VintageCohort> cohorts) { }
+    }
+    public sealed record VintageCohort : System.IEquatable<AI.Economics.Credit.VintageCohort>
+    {
+        public VintageCohort(string Name, double OriginationAmount, System.Collections.Generic.IReadOnlyList<double> CumulativeLossRate) { }
+        public System.Collections.Generic.IReadOnlyList<double> CumulativeLossRate { get; init; }
+        public string Name { get; init; }
+        public double OriginationAmount { get; init; }
+    }
+    public sealed record VintageProfile : System.IEquatable<AI.Economics.Credit.VintageProfile>
+    {
+        public VintageProfile(string Name, double OriginationAmount, int Age, double LossAtCommonAge, double LatestLoss, double ProjectedLifetimeLoss, double RelativeToAverage) { }
+        public int Age { get; init; }
+        public double LatestLoss { get; init; }
+        public double LossAtCommonAge { get; init; }
+        public string Name { get; init; }
+        public double OriginationAmount { get; init; }
+        public double ProjectedLifetimeLoss { get; init; }
+        public double RelativeToAverage { get; init; }
+    }
+    public sealed record VintageResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Credit.VintageResult>
+    {
+        public VintageResult() { }
+        public int CommonAge { get; init; }
+        public int HalfLossAge { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> MarginalCurve { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> MaturityCurve { get; init; }
+        public int MaxAge { get; init; }
+        public double ProjectedPortfolioLoss { get; init; }
+        public double QualityTrend { get; init; }
+        public double TrendPValue { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.VintageProfile> Vintages { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class WoeBinning
+    {
+        public static AI.Economics.Credit.VariableBinning Fit(string variable, AI.DataStructs.Algebraic.Vector values, System.Collections.Generic.IReadOnlyList<bool> defaults, int maxBins = 6, double minShare = 0.05, bool enforceMonotonic = true) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Credit.VariableBinning> FitAll(System.Collections.Generic.IReadOnlyList<string> variableNames, AI.DataStructs.Algebraic.Matrix values, System.Collections.Generic.IReadOnlyList<bool> defaults, int maxBins = 6, double minShare = 0.05) { }
+    }
+}
+namespace AI.Economics.Equity
+{
+    public sealed class CapTable
+    {
+        public const string CommonClassName = "Common";
+        public CapTable() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Equity.ShareClass> Classes { get; }
+        public double FullyDilutedShares { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Equity.Holding> Holdings { get; }
+        public double IssuedShares { get; }
+        public double UnallocatedPool { get; set; }
+        public AI.Economics.Equity.CapTable AddClass(AI.Economics.Equity.ShareClass shareClass) { }
+        public AI.Economics.Equity.CapTable AddHolding(string holder, double shares, string? shareClass = null, double invested = 0) { }
+        public AI.Economics.Equity.CapTable Clone() { }
+        public AI.Economics.Equity.ShareClass? FindClass(string name) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Equity.OwnershipRow> Ownership() { }
+        public double OwnershipOf(string holder) { }
+        public double SharesOf(string holder) { }
+    }
+    public sealed record ClassOutcome : System.IEquatable<AI.Economics.Equity.ClassOutcome>
+    {
+        public ClassOutcome() { }
+        public string ClassName { get; init; }
+        public bool Converted { get; init; }
+        public string Decision { get; init; }
+        public double MultipleOnInvested { get; init; }
+        public double ParticipationPaid { get; init; }
+        public double PreferencePaid { get; init; }
+        public double TotalPaid { get; init; }
+    }
+    public sealed record DilutionRow : System.IEquatable<AI.Economics.Equity.DilutionRow>
+    {
+        public DilutionRow(string Holder, double Before, double After) { }
+        public double After { get; init; }
+        public double Before { get; init; }
+        public double Delta { get; }
+        public string Holder { get; init; }
+        public double RelativeDilution { get; }
+    }
+    public static class ExitWaterfall
+    {
+        public static AI.Economics.Equity.ExitWaterfallResult Distribute(AI.Economics.Equity.CapTable table, double exitValue) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Exits",
+                "Payouts"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, System.Collections.Generic.IReadOnlyDictionary<string, AI.DataStructs.Algebraic.Vector>> PayoutCurve(AI.Economics.Equity.CapTable table, double maxExit, int points = 60) { }
+    }
+    public sealed record ExitWaterfallResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Equity.ExitWaterfallResult>
+    {
+        public ExitWaterfallResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Equity.ClassOutcome> Classes { get; init; }
+        public double CommonPerShare { get; init; }
+        public double ExitValue { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Equity.HolderPayout> Payouts { get; init; }
+        public double Residual { get; init; }
+        public double TotalPreferences { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class FundingRound
+    {
+        public static AI.Economics.Equity.RoundResult Execute(AI.Economics.Equity.CapTable table, AI.Economics.Equity.RoundInput round) { }
+    }
+    public sealed record HolderPayout : System.IEquatable<AI.Economics.Equity.HolderPayout>
+    {
+        public HolderPayout() { }
+        public string Holder { get; init; }
+        public double Invested { get; init; }
+        public double MultipleOnInvested { get; init; }
+        public double Ownership { get; init; }
+        public double Payout { get; init; }
+        public string ShareClass { get; init; }
+        public double ShareOfExit { get; init; }
+        public double Shares { get; init; }
+    }
+    public sealed record Holding : System.IEquatable<AI.Economics.Equity.Holding>
+    {
+        public Holding() { }
+        public string Holder { get; init; }
+        public double Invested { get; init; }
+        public string ShareClass { get; init; }
+        public double Shares { get; init; }
+    }
+    public sealed record NoteConversion : System.IEquatable<AI.Economics.Equity.NoteConversion>
+    {
+        public NoteConversion() { }
+        public double Amount { get; init; }
+        public double ConversionPrice { get; init; }
+        public double EffectiveValuation { get; init; }
+        public string Holder { get; init; }
+        public double OwnershipAfter { get; init; }
+        public string PriceDriver { get; init; }
+        public double Shares { get; init; }
+    }
+    public sealed record OwnershipRow : System.IEquatable<AI.Economics.Equity.OwnershipRow>
+    {
+        public OwnershipRow(string Holder, double Shares, double Ownership, double Invested) { }
+        public string Holder { get; init; }
+        public double Invested { get; init; }
+        public double Ownership { get; init; }
+        public double Shares { get; init; }
+    }
+    public enum PreferenceType
+    {
+        NonParticipating = 0,
+        Participating = 1,
+    }
+    public sealed record RoundInput : System.IEquatable<AI.Economics.Equity.RoundInput>
+    {
+        public RoundInput() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Equity.SafeNote>? ConvertingNotes { get; init; }
+        public double Investment { get; init; }
+        public string InvestorName { get; init; }
+        public double LiquidationMultiple { get; init; }
+        public double ParticipationCap { get; init; }
+        public double PreMoneyValuation { get; init; }
+        public AI.Economics.Equity.PreferenceType Preference { get; init; }
+        public string RoundName { get; init; }
+        public int Seniority { get; init; }
+        public double TargetOptionPoolPost { get; init; }
+    }
+    public sealed record RoundResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Equity.RoundResult>
+    {
+        public RoundResult() { }
+        public AI.Economics.Equity.CapTable CapTable { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Equity.NoteConversion> Conversions { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Equity.DilutionRow> Dilution { get; init; }
+        public double EffectivePreMoneyForFounders { get; init; }
+        public double InvestorOwnership { get; init; }
+        public double InvestorShares { get; init; }
+        public double NewPoolShares { get; init; }
+        public double PostMoneyValuation { get; init; }
+        public double PricePerShare { get; init; }
+        public double TotalSharesAfter { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record SafeNote : System.IEquatable<AI.Economics.Equity.SafeNote>
+    {
+        public SafeNote() { }
+        public double Amount { get; init; }
+        public double AmountWithInterest { get; }
+        public double Discount { get; init; }
+        public string Holder { get; init; }
+        public double InterestRate { get; init; }
+        public bool MostFavoredNation { get; init; }
+        public bool PostMoney { get; init; }
+        public double ValuationCap { get; init; }
+        public double YearsAccrued { get; init; }
+    }
+    public sealed record ShareClass : System.IEquatable<AI.Economics.Equity.ShareClass>
+    {
+        public ShareClass() { }
+        public bool IsCommon { get; init; }
+        public double LiquidationMultiple { get; init; }
+        public string Name { get; init; }
+        public double ParticipationCap { get; init; }
+        public AI.Economics.Equity.PreferenceType Preference { get; init; }
+        public int Seniority { get; init; }
+    }
+}
+namespace AI.Economics.Experiments
+{
+    public sealed record BanditArmResult : System.IEquatable<AI.Economics.Experiments.BanditArmResult>
+    {
+        public BanditArmResult() { }
+        public string Name { get; init; }
+        public double ObservedRate { get; }
+        public int Pulls { get; init; }
+        public int Rewards { get; init; }
+        public double TrafficShare { get; init; }
+        public double TrueRate { get; init; }
+    }
+    public enum BanditPolicy
+    {
+        EqualSplit = 0,
+        EpsilonGreedy = 1,
+        UpperConfidenceBound = 2,
+        ThompsonSampling = 3,
+    }
+    public sealed record BanditSimulationResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Experiments.BanditSimulationResult>
+    {
+        public BanditSimulationResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Experiments.BanditArmResult> Arms { get; init; }
+        public double BestArmShare { get; init; }
+        public bool IdentifiedBestArm { get; init; }
+        public double OracleReward { get; init; }
+        public AI.Economics.Experiments.BanditPolicy Policy { get; init; }
+        public double Regret { get; }
+        public AI.DataStructs.Algebraic.Vector RegretPath { get; init; }
+        public double RegretPerRound { get; init; }
+        public int Rounds { get; init; }
+        public double TotalReward { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class Bandits
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Experiments.BanditSimulationResult> CompareAll(System.Collections.Generic.IReadOnlyList<string> names, AI.DataStructs.Algebraic.Vector trueRates, int rounds = 10000, double epsilon = 0.1, int seed = 42) { }
+        public static AI.Economics.Experiments.BanditSimulationResult Simulate(System.Collections.Generic.IReadOnlyList<string> names, AI.DataStructs.Algebraic.Vector trueRates, AI.Economics.Experiments.BanditPolicy policy, int rounds = 10000, double epsilon = 0.1, int seed = 42) { }
+    }
+    public sealed record BayesianAbResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Experiments.BayesianAbResult>
+    {
+        public BayesianAbResult() { }
+        public double CredibleHigh { get; init; }
+        public double CredibleLow { get; init; }
+        public double ExpectedLossChoosingA { get; init; }
+        public double ExpectedLossChoosingB { get; init; }
+        public double LossThreshold { get; init; }
+        public double PosteriorMeanA { get; init; }
+        public double PosteriorMeanB { get; init; }
+        public double ProbabilityBetter { get; init; }
+        public int TrialsA { get; init; }
+        public int TrialsB { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class Cuped
+    {
+        public static AI.Economics.Experiments.CupedResult Apply(AI.DataStructs.Algebraic.Vector controlPre, AI.DataStructs.Algebraic.Vector controlPost, AI.DataStructs.Algebraic.Vector treatmentPre, AI.DataStructs.Algebraic.Vector treatmentPost) { }
+    }
+    public sealed record CupedResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Experiments.CupedResult>
+    {
+        public CupedResult() { }
+        public double AdjustedEffect { get; init; }
+        public double AdjustedPValue { get; init; }
+        public double AdjustedStandardError { get; init; }
+        public int ControlSize { get; init; }
+        public double Correlation { get; init; }
+        public double EffectiveSampleGain { get; }
+        public double RawEffect { get; init; }
+        public double RawPValue { get; init; }
+        public double RawStandardError { get; init; }
+        public double Theta { get; init; }
+        public int TreatmentSize { get; init; }
+        public double VarianceReduction { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class ExperimentDesign
+    {
+        public static AI.Economics.Experiments.SampleSizeResult ForMeans(double baselineMean, double standardDeviation, double relativeEffect, double alpha = 0.05, double power = 0.8, int variants = 2, double dailyTraffic = 0) { }
+        public static AI.Economics.Experiments.SampleSizeResult ForProportions(double baselineRate, double relativeEffect, double alpha = 0.05, double power = 0.8, int variants = 2, double dailyTraffic = 0) { }
+        public static double MinimumDetectableEffect(double baselineRate, int perVariant, double alpha = 0.05, double power = 0.8) { }
+    }
+    public sealed record SampleSizeResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Experiments.SampleSizeResult>
+    {
+        public SampleSizeResult() { }
+        public double AdjustedAlpha { get; init; }
+        public double Alpha { get; init; }
+        public double Baseline { get; init; }
+        public double DailyTraffic { get; init; }
+        public double DaysRequired { get; init; }
+        public bool IsContinuous { get; init; }
+        public double MinimumDetectableEffect { get; init; }
+        public int PerVariant { get; init; }
+        public double Power { get; init; }
+        public int Total { get; init; }
+        public int Variants { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class SequentialTest
+    {
+        public static AI.Economics.Experiments.BayesianAbResult Bayesian(int successesA, int trialsA, int successesB, int trialsB, double lossThreshold = 0.001, int draws = 50000, int seed = 42) { }
+        public static AI.Economics.Experiments.SequentialTestResult Run(AI.DataStructs.Algebraic.Vector control, AI.DataStructs.Algebraic.Vector treatment, double tau = 0.05, double alpha = 0.05) { }
+    }
+    public sealed record SequentialTestResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Experiments.SequentialTestResult>
+    {
+        public SequentialTestResult() { }
+        public double Alpha { get; init; }
+        public AI.DataStructs.Algebraic.Vector EffectPath { get; init; }
+        public double FinalEffect { get; init; }
+        public double FinalPValue { get; init; }
+        public double FixedHorizonPValue { get; init; }
+        public AI.DataStructs.Algebraic.Vector LowerBound { get; init; }
+        public double ObservationsSaved { get; init; }
+        public AI.DataStructs.Algebraic.Vector PValues { get; init; }
+        public int SampleSize { get; init; }
+        public int StoppingPoint { get; init; }
+        public AI.DataStructs.Algebraic.Vector UpperBound { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Economics.Forecasting
+{
+    public sealed class Arima
+    {
+        public Arima() { }
+        public AI.DataStructs.Algebraic.Vector AutoRegressive { get; }
+        public AI.DataStructs.Algebraic.Vector ExogenousCoefficients { get; }
+        public AI.DataStructs.Algebraic.Vector MovingAverage { get; }
+        public AI.Economics.Forecasting.ArimaOrder Order { get; }
+        public double Sigma { get; }
+        public AI.Economics.Forecasting.ForecastResult Fit(AI.DataStructs.Algebraic.Vector series, AI.Economics.Forecasting.ArimaOrder order, int horizon, AI.DataStructs.Algebraic.Matrix? exogenous = null, double confidenceLevel = 0.9) { }
+        public static AI.Economics.Forecasting.ForecastResult AutoFit(AI.DataStructs.Algebraic.Vector series, int horizon, int season = 1, int maxOrder = 2, double confidenceLevel = 0.9) { }
+    }
+    public sealed record ArimaOrder : System.IEquatable<AI.Economics.Forecasting.ArimaOrder>
+    {
+        public ArimaOrder() { }
+        public int D { get; init; }
+        public int P { get; init; }
+        public int ParameterCount { get; }
+        public int Q { get; init; }
+        public int Season { get; init; }
+        public int SeasonalD { get; init; }
+        public int SeasonalP { get; init; }
+        public int SeasonalQ { get; init; }
+        public override string ToString() { }
+    }
+    public sealed record BacktestResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Forecasting.BacktestResult>
+    {
+        public BacktestResult() { }
+        public int Folds { get; init; }
+        public int Horizon { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Forecasting.BacktestSummary> Models { get; init; }
+        public AI.Economics.Forecasting.BacktestSummary Naive { get; init; }
+        public int SeasonalPeriod { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record BacktestSummary : System.IEquatable<AI.Economics.Forecasting.BacktestSummary>
+    {
+        public BacktestSummary() { }
+        public double Coverage { get; init; }
+        public int Folds { get; init; }
+        public double Mae { get; init; }
+        public AI.DataStructs.Algebraic.Vector MaeByHorizon { get; init; }
+        public double Mase { get; init; }
+        public string Model { get; init; }
+        public double PinballLower { get; init; }
+        public double PinballUpper { get; init; }
+        public double Rmse { get; init; }
+        public double SMape { get; init; }
+    }
+    public static class CalendarFeatures
+    {
+        public static AI.Economics.Forecasting.CalendarMatrix Build(System.DateTime start, int periods, System.TimeSpan step, bool dayOfWeek = false, bool monthOfYear = false, int fourierTerms = 0, int fourierPeriod = 52, System.Collections.Generic.IReadOnlyCollection<System.DateTime>? holidays = null, int holidayWindow = 0) { }
+        public static System.Collections.Generic.IReadOnlyList<System.DateTime> RussianHolidays(int fromYear, int toYear) { }
+    }
+    public sealed record CalendarMatrix : System.IEquatable<AI.Economics.Forecasting.CalendarMatrix>
+    {
+        public CalendarMatrix() { }
+        public System.Collections.Generic.IReadOnlyList<System.DateTime> Dates { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Features { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Names { get; init; }
+    }
+    public sealed record ConformalForecast : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Forecasting.ConformalForecast>
+    {
+        public ConformalForecast() { }
+        public double CalibrationCoverage { get; init; }
+        public int CalibrationSize { get; init; }
+        public double ConfidenceLevel { get; init; }
+        public bool HorizonAware { get; init; }
+        public AI.DataStructs.Algebraic.Vector Lower { get; init; }
+        public double ModelCoverage { get; init; }
+        public AI.DataStructs.Algebraic.Vector PointForecast { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<double, AI.DataStructs.Algebraic.Vector> Quantiles { get; init; }
+        public AI.DataStructs.Algebraic.Vector Upper { get; init; }
+        public AI.DataStructs.Algebraic.Vector Width { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class ConformalPrediction
+    {
+        public static AI.Economics.Forecasting.ConformalForecast Calibrate(AI.DataStructs.Algebraic.Vector series, System.Func<AI.DataStructs.Algebraic.Vector, int, AI.Economics.Forecasting.ForecastResult> forecaster, int horizon = 6, double confidenceLevel = 0.9, int calibrationFolds = 20, System.Collections.Generic.IReadOnlyList<double>? quantiles = null) { }
+    }
+    public sealed class ExponentialSmoothing
+    {
+        public ExponentialSmoothing() { }
+        public double Alpha { get; }
+        public double Beta { get; }
+        public double Gamma { get; }
+        public double Phi { get; }
+        public AI.Economics.Forecasting.ForecastResult Fit(AI.DataStructs.Algebraic.Vector series, int horizon, int season = 1, AI.Economics.Forecasting.SeasonalityType seasonality = 0, bool damped = true, bool withTrend = true, double confidenceLevel = 0.9) { }
+        public static AI.Economics.Forecasting.ForecastResult AutoFit(AI.DataStructs.Algebraic.Vector series, int horizon, int season = 1, double confidenceLevel = 0.9) { }
+    }
+    public static class ForecastBacktest
+    {
+        public static AI.Economics.Forecasting.BacktestResult Run(AI.DataStructs.Algebraic.Vector series, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Name",
+                "Forecaster"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, System.Func<AI.DataStructs.Algebraic.Vector, int, AI.Economics.Forecasting.ForecastResult>>> models, int horizon = 6, int folds = 5, int minimumTrain = 0, int seasonalPeriod = 1) { }
+    }
+    public static class ForecastMetrics
+    {
+        public static double Coverage(AI.DataStructs.Algebraic.Vector actual, AI.DataStructs.Algebraic.Vector lower, AI.DataStructs.Algebraic.Vector upper) { }
+        public static double Mae(AI.DataStructs.Algebraic.Vector actual, AI.DataStructs.Algebraic.Vector forecast) { }
+        public static double Mase(AI.DataStructs.Algebraic.Vector actual, AI.DataStructs.Algebraic.Vector forecast, AI.DataStructs.Algebraic.Vector trainingSeries, int seasonalPeriod = 1) { }
+        public static AI.DataStructs.Algebraic.Vector Naive(AI.DataStructs.Algebraic.Vector series, int horizon, int seasonalPeriod = 1) { }
+        public static double PinballLoss(AI.DataStructs.Algebraic.Vector actual, AI.DataStructs.Algebraic.Vector quantileForecast, double quantile) { }
+        public static double Rmse(AI.DataStructs.Algebraic.Vector actual, AI.DataStructs.Algebraic.Vector forecast) { }
+        public static double SMape(AI.DataStructs.Algebraic.Vector actual, AI.DataStructs.Algebraic.Vector forecast) { }
+    }
+    public sealed record ForecastResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Forecasting.ForecastResult>
+    {
+        public ForecastResult() { }
+        public double Aic { get; init; }
+        public double ConfidenceLevel { get; init; }
+        public AI.DataStructs.Algebraic.Vector Fitted { get; init; }
+        public int Horizon { get; }
+        public double InSampleMase { get; init; }
+        public AI.DataStructs.Algebraic.Vector Lower { get; init; }
+        public string Model { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Parameters { get; init; }
+        public AI.DataStructs.Algebraic.Vector PointForecast { get; init; }
+        public double ResidualAutocorrelation { get; init; }
+        public AI.DataStructs.Algebraic.Vector Residuals { get; init; }
+        public int SeasonalPeriod { get; init; }
+        public double Sigma { get; init; }
+        public AI.DataStructs.Algebraic.Vector Upper { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class HierarchicalReconciliation
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Summing",
+                "Nodes"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Matrix, System.Collections.Generic.IReadOnlyList<AI.Economics.Forecasting.HierarchyNode>> BuildTwoLevel(System.Collections.Generic.IReadOnlyList<int> groupSizes) { }
+        public static AI.Economics.Forecasting.ReconciliationResult Reconcile(System.Collections.Generic.IReadOnlyList<AI.Economics.Forecasting.HierarchyNode> nodes, AI.DataStructs.Algebraic.Matrix summing, AI.DataStructs.Algebraic.Matrix baseForecasts, AI.Economics.Forecasting.ReconciliationMethod method = 3, AI.DataStructs.Algebraic.Vector? errorVariances = null) { }
+    }
+    public sealed record HierarchyNode : System.IEquatable<AI.Economics.Forecasting.HierarchyNode>
+    {
+        public HierarchyNode(string Name, int Level, bool IsBottom) { }
+        public bool IsBottom { get; init; }
+        public int Level { get; init; }
+        public string Name { get; init; }
+    }
+    public static class IntermittentDemand
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Forecasting.IntermittentForecast> CompareAll(AI.DataStructs.Algebraic.Vector series, int horizon = 12, double alpha = 0.1, double leadTime = 4, double serviceLevel = 0.95) { }
+        public static AI.Economics.Forecasting.IntermittentForecast Fit(AI.DataStructs.Algebraic.Vector series, AI.Economics.Forecasting.IntermittentMethod method = 1, int horizon = 12, double alpha = 0.1, double beta = NaN, double leadTime = 4, double serviceLevel = 0.95) { }
+    }
+    public sealed record IntermittentForecast : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Forecasting.IntermittentForecast>
+    {
+        public IntermittentForecast() { }
+        public double AverageDemandSize { get; init; }
+        public double AverageInterval { get; init; }
+        public string DemandPattern { get; init; }
+        public double DemandPerPeriod { get; init; }
+        public double InSampleMase { get; init; }
+        public double LeadTime { get; init; }
+        public AI.Economics.Forecasting.IntermittentMethod Method { get; init; }
+        public int Observations { get; init; }
+        public AI.DataStructs.Algebraic.Vector PointForecast { get; init; }
+        public AI.Economics.Forecasting.IntermittentMethod RecommendedMethod { get; init; }
+        public double ReorderPoint { get; init; }
+        public double SafetyStock { get; init; }
+        public double ServiceLevel { get; init; }
+        public double SquaredCoefficientOfVariation { get; init; }
+        public double ZeroShare { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public enum IntermittentMethod
+    {
+        Croston = 0,
+        SyntetosBoylan = 1,
+        TeunterSyntetosBabai = 2,
+    }
+    public enum ReconciliationMethod
+    {
+        BottomUp = 0,
+        TopDown = 1,
+        OrdinaryLeastSquares = 2,
+        MinTraceDiagonal = 3,
+    }
+    public sealed record ReconciliationResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Forecasting.ReconciliationResult>
+    {
+        public ReconciliationResult() { }
+        public double AverageAdjustment { get; init; }
+        public AI.DataStructs.Algebraic.Matrix BaseForecasts { get; init; }
+        public double LargestAdjustment { get; init; }
+        public string LargestAdjustmentNode { get; init; }
+        public double MaxIncoherenceAfter { get; init; }
+        public double MaxIncoherenceBefore { get; init; }
+        public AI.Economics.Forecasting.ReconciliationMethod Method { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Forecasting.HierarchyNode> Nodes { get; init; }
+        public AI.DataStructs.Algebraic.Matrix ReconciledForecasts { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public enum SeasonalityType
+    {
+        None = 0,
+        Additive = 1,
+        Multiplicative = 2,
+    }
+    public static class StlDecomposition
+    {
+        public static AI.Economics.Forecasting.StlResult Decompose(AI.DataStructs.Algebraic.Vector series, int period, int seasonalSpan = 11, int trendSpan = 0, int robustIterations = 1) { }
+    }
+    public sealed record StlResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Forecasting.StlResult>
+    {
+        public StlResult() { }
+        public System.Collections.Generic.IReadOnlyList<int> Outliers { get; init; }
+        public int Period { get; init; }
+        public AI.DataStructs.Algebraic.Vector Remainder { get; init; }
+        public AI.DataStructs.Algebraic.Vector Seasonal { get; init; }
+        public double SeasonalStrength { get; init; }
+        public AI.DataStructs.Algebraic.Vector SeasonallyAdjusted { get; init; }
+        public AI.DataStructs.Algebraic.Vector Series { get; init; }
+        public AI.DataStructs.Algebraic.Vector Trend { get; init; }
+        public double TrendStrength { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class ThetaMethod
+    {
+        public static AI.Economics.Forecasting.ForecastResult Fit(AI.DataStructs.Algebraic.Vector series, int horizon, int season = 1, double confidenceLevel = 0.9) { }
+    }
+}
+namespace AI.Economics.Market
+{
+    public sealed class BassDiffusion : AI.Insights.IInterpretable
+    {
+        public BassDiffusion() { }
+        public double Imitation { get; }
+        public double Innovation { get; }
+        public double MarketPotential { get; }
+        public double PeakAdopters { get; }
+        public double PeakTime { get; }
+        public double RSquared { get; }
+        public AI.DataStructs.Algebraic.Vector Adopters(int periods) { }
+        public AI.DataStructs.Algebraic.Vector Cumulative(int periods) { }
+        public void Fit(AI.DataStructs.Algebraic.Vector cumulativeAdopters) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public void SetParameters(double marketPotential, double innovation, double imitation) { }
+    }
+    public sealed record BottomUpInput : System.IEquatable<AI.Economics.Market.BottomUpInput>
+    {
+        public BottomUpInput() { }
+        public double AnnualRevenuePerAccount { get; init; }
+        public double QualifiedShare { get; init; }
+        public double ReachableShare { get; init; }
+        public double TargetAccounts { get; init; }
+        public double WinRate { get; init; }
+    }
+    public static class MarketSizing
+    {
+        public static AI.Economics.Market.MarketSizingResult Estimate(AI.Economics.Market.TopDownInput topDown, AI.Economics.Market.BottomUpInput bottomUp) { }
+    }
+    public sealed record MarketSizingResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Market.MarketSizingResult>
+    {
+        public MarketSizingResult() { }
+        public double ImpliedMarketShare { get; init; }
+        public double ReconciledSam { get; init; }
+        public double ReconciledSom { get; init; }
+        public double ReconciledTam { get; init; }
+        public double SamBottomUp { get; init; }
+        public double SamTopDown { get; init; }
+        public double SomBottomUp { get; init; }
+        public double SomDivergence { get; init; }
+        public double SomTopDown { get; init; }
+        public double TamBottomUp { get; init; }
+        public double TamDivergence { get; init; }
+        public double TamTopDown { get; init; }
+        public string Verdict { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record TopDownInput : System.IEquatable<AI.Economics.Market.TopDownInput>
+    {
+        public TopDownInput() { }
+        public double AchievableShare { get; init; }
+        public double AddressableShare { get; init; }
+        public double GeographyShare { get; init; }
+        public double SegmentShare { get; init; }
+        public double TotalMarketValue { get; init; }
+    }
+}
+namespace AI.Economics.Marketing
+{
+    public sealed record BudgetAllocationResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Marketing.BudgetAllocationResult>
+    {
+        public BudgetAllocationResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Marketing.ChannelBudget> Channels { get; init; }
+        public double CurrentResponse { get; init; }
+        public double MarginalReturn { get; init; }
+        public double OptimalResponse { get; init; }
+        public double ResponseGain { get; }
+        public double ResponseGainRate { get; }
+        public double TotalBudget { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class BudgetOptimizer
+    {
+        public static AI.Economics.Marketing.BudgetAllocationResult Allocate(AI.Economics.Marketing.MmmResult model, double totalBudget = NaN, int periods = 1) { }
+        public static double Response(AI.Economics.Marketing.ChannelEffect effect, double spendPerPeriod) { }
+    }
+    public sealed record ChannelBudget : System.IEquatable<AI.Economics.Marketing.ChannelBudget>
+    {
+        public ChannelBudget() { }
+        public double Change { get; }
+        public double CurrentResponse { get; init; }
+        public double CurrentSpend { get; init; }
+        public double MarginalReturnAtOptimum { get; init; }
+        public string Name { get; init; }
+        public double OptimalResponse { get; init; }
+        public double OptimalSpend { get; init; }
+    }
+    public sealed record ChannelEffect : System.IEquatable<AI.Economics.Marketing.ChannelEffect>
+    {
+        public ChannelEffect() { }
+        public double Coefficient { get; init; }
+        public AI.DataStructs.Algebraic.Vector Contribution { get; init; }
+        public double ContributionShare { get; init; }
+        public double Decay { get; init; }
+        public double HalfLife { get; }
+        public double MarginalRoi { get; init; }
+        public string Name { get; init; }
+        public double Roi { get; init; }
+        public double SaturationLevel { get; init; }
+        public double SaturationPoint { get; init; }
+        public double SaturationShape { get; init; }
+        public double TotalContribution { get; init; }
+        public double TotalSpend { get; init; }
+    }
+    public static class MarketingMixModel
+    {
+        public static AI.DataStructs.Algebraic.Vector Adstock(AI.DataStructs.Algebraic.Vector spend, double decay) { }
+        public static AI.Economics.Marketing.MmmResult Fit(AI.Economics.Marketing.MmmInput input) { }
+        public static double Hill(double value, double halfPoint, double shape) { }
+    }
+    public sealed record MediaChannel : System.IEquatable<AI.Economics.Marketing.MediaChannel>
+    {
+        public MediaChannel() { }
+        public string Name { get; init; }
+        public AI.DataStructs.Algebraic.Vector Spend { get; init; }
+    }
+    public sealed record MmmInput : System.IEquatable<AI.Economics.Marketing.MmmInput>
+    {
+        public MmmInput() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Marketing.MediaChannel> Channels { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Marketing.MediaChannel> Controls { get; init; }
+        public int FourierTerms { get; init; }
+        public bool IncludeTrend { get; init; }
+        public double MarginRate { get; init; }
+        public double Ridge { get; init; }
+        public AI.DataStructs.Algebraic.Vector Sales { get; init; }
+        public int SeasonalPeriod { get; init; }
+        public int TuningIterations { get; init; }
+    }
+    public sealed record MmmResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Marketing.MmmResult>
+    {
+        public MmmResult() { }
+        public AI.DataStructs.Algebraic.Vector Baseline { get; init; }
+        public double BaselineContribution { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Marketing.ChannelEffect> Channels { get; init; }
+        public AI.DataStructs.Algebraic.Vector Fitted { get; init; }
+        public double Mape { get; init; }
+        public double MarginRate { get; init; }
+        public double MediaShare { get; init; }
+        public double RSquared { get; init; }
+        public AI.DataStructs.Algebraic.Vector Residuals { get; init; }
+        public double TotalSales { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record UpliftDecile : System.IEquatable<AI.Economics.Marketing.UpliftDecile>
+    {
+        public UpliftDecile() { }
+        public double ActualUplift { get; init; }
+        public int ControlCount { get; init; }
+        public double ControlRate { get; init; }
+        public int Count { get; init; }
+        public int Group { get; init; }
+        public double PredictedUplift { get; init; }
+        public int TreatedCount { get; init; }
+        public double TreatedRate { get; init; }
+    }
+    public static class UpliftModeling
+    {
+        public static AI.Economics.Marketing.UpliftResult Fit(System.Collections.Generic.IReadOnlyList<AI.Economics.Marketing.UpliftObservation> observations, double promoCost, double marginPerConversion, int groups = 10) { }
+    }
+    public sealed record UpliftObservation : System.IEquatable<AI.Economics.Marketing.UpliftObservation>
+    {
+        public UpliftObservation() { }
+        public bool Converted { get; init; }
+        public AI.DataStructs.Algebraic.Vector Features { get; init; }
+        public bool Treated { get; init; }
+    }
+    public sealed record UpliftResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Marketing.UpliftResult>
+    {
+        public UpliftResult() { }
+        public double AverageTreatmentEffect { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Marketing.UpliftDecile> Groups { get; init; }
+        public double MarginPerConversion { get; init; }
+        public int Observations { get; init; }
+        public double ProfitTargeted { get; init; }
+        public double ProfitThreshold { get; init; }
+        public double ProfitTreatAll { get; init; }
+        public double PromoCost { get; init; }
+        public double QiniCoefficient { get; init; }
+        public AI.DataStructs.Algebraic.Vector QiniX { get; init; }
+        public AI.DataStructs.Algebraic.Vector QiniY { get; init; }
+        public AI.DataStructs.Algebraic.Vector RandomY { get; init; }
+        public double SavingsVsTreatAll { get; }
+        public int SleepingDogs { get; init; }
+        public double TargetedShare { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Economics.Portfolio
+{
+    public sealed record AttributionResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Portfolio.AttributionResult>
+    {
+        public AttributionResult() { }
+        public double ActiveReturn { get; }
+        public double BenchmarkReturn { get; init; }
+        public string Portfolio { get; init; }
+        public double PortfolioReturn { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Portfolio.BrinsonSegment> Segments { get; init; }
+        public double TotalAllocation { get; }
+        public double TotalInteraction { get; }
+        public double TotalSelection { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class BlackLitterman
+    {
+        public static AI.Economics.Portfolio.InvestorView Absolute(int assetCount, int asset, double expectedReturn, double confidence, string description = "") { }
+        public static AI.Economics.Portfolio.BlackLittermanResult Blend(AI.DataStructs.Algebraic.Vector marketWeights, AI.DataStructs.Algebraic.Matrix covariance, System.Collections.Generic.IReadOnlyList<AI.Economics.Portfolio.InvestorView>? views = null, System.Collections.Generic.IReadOnlyList<string>? assets = null, double riskAversion = 2.5, double tau = 0.05) { }
+        public static AI.Economics.Portfolio.InvestorView Relative(int assetCount, int outperformer, int underperformer, double excessReturn, double confidence, string description = "") { }
+    }
+    public sealed record BlackLittermanResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Portfolio.BlackLittermanResult>
+    {
+        public BlackLittermanResult() { }
+        public double ActiveShare { get; }
+        public AI.DataStructs.Algebraic.Vector ActiveWeights { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Assets { get; init; }
+        public AI.DataStructs.Algebraic.Vector ImpliedReturns { get; init; }
+        public AI.DataStructs.Algebraic.Vector MarketWeights { get; init; }
+        public AI.DataStructs.Algebraic.Vector OptimalWeights { get; init; }
+        public AI.DataStructs.Algebraic.Vector PosteriorReturns { get; init; }
+        public double RiskAversion { get; init; }
+        public double Tau { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Portfolio.InvestorView> Views { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record BrinsonSegment : System.IEquatable<AI.Economics.Portfolio.BrinsonSegment>
+    {
+        public BrinsonSegment(string Segment, double Allocation, double Selection, double Interaction, double Total) { }
+        public double Allocation { get; init; }
+        public double Interaction { get; init; }
+        public string Segment { get; init; }
+        public double Selection { get; init; }
+        public double Total { get; init; }
+    }
+    public static class CvarOptimization
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "ValueAtRisk",
+                "ConditionalValueAtRisk"})]
+        public static System.ValueTuple<double, double> Evaluate(AI.DataStructs.Algebraic.Matrix scenarios, AI.DataStructs.Algebraic.Vector weights, double confidence = 0.95) { }
+        public static AI.Economics.Portfolio.CvarOptimizationResult Optimize(AI.DataStructs.Algebraic.Matrix scenarios, System.Collections.Generic.IReadOnlyList<string>? assets = null, double confidence = 0.95, double minimumReturn = -Infinity, double maximumWeight = 1) { }
+    }
+    public sealed record CvarOptimizationResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Portfolio.CvarOptimizationResult>
+    {
+        public CvarOptimizationResult() { }
+        public System.Collections.Generic.IReadOnlyList<string> Assets { get; init; }
+        public double ConditionalValueAtRisk { get; init; }
+        public double Confidence { get; init; }
+        public double ExpectedReturn { get; init; }
+        public double MeanVarianceCvar { get; init; }
+        public AI.DataStructs.Algebraic.Vector MeanVarianceWeights { get; init; }
+        public int Scenarios { get; init; }
+        public double TailImprovement { get; }
+        public int TailScenarios { get; init; }
+        public double ValueAtRisk { get; init; }
+        public double Volatility { get; init; }
+        public AI.DataStructs.Algebraic.Vector Weights { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record FactorLoading : System.IEquatable<AI.Economics.Portfolio.FactorLoading>
+    {
+        public FactorLoading(string Factor, double Loading, double StandardError, double TStatistic, double Contribution) { }
+        public double Contribution { get; init; }
+        public string Factor { get; init; }
+        public bool IsSignificant { get; }
+        public double Loading { get; init; }
+        public double StandardError { get; init; }
+        public double TStatistic { get; init; }
+    }
+    public sealed record FactorModelResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Portfolio.FactorModelResult>
+    {
+        public FactorModelResult() { }
+        public double Alpha { get; init; }
+        public double AlphaStandardError { get; init; }
+        public double AlphaTStatistic { get; init; }
+        public double ExplainedReturn { get; init; }
+        public bool HasAlpha { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Portfolio.FactorLoading> Loadings { get; init; }
+        public int Observations { get; init; }
+        public string Portfolio { get; init; }
+        public double RSquared { get; init; }
+        public double TotalReturn { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class FactorModels
+    {
+        public static AI.Economics.Portfolio.AttributionResult BrinsonAttribution(System.Collections.Generic.IReadOnlyList<string> segments, AI.DataStructs.Algebraic.Vector portfolioWeights, AI.DataStructs.Algebraic.Vector benchmarkWeights, AI.DataStructs.Algebraic.Vector portfolioReturns, AI.DataStructs.Algebraic.Vector benchmarkReturns, string portfolio = "портфель") { }
+        public static AI.Economics.Portfolio.FactorModelResult Fit(AI.DataStructs.Algebraic.Vector excessReturns, AI.DataStructs.Algebraic.Matrix factors, System.Collections.Generic.IReadOnlyList<string>? factorNames = null, int periodsPerYear = 12, string portfolio = "портфель") { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Factors",
+                "ExplainedVariance",
+                "Loadings"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Matrix, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Matrix> PrincipalComponents(AI.DataStructs.Algebraic.Matrix returns, int factorCount = 3) { }
+    }
+    public sealed record FrontierPoint : System.IEquatable<AI.Economics.Portfolio.FrontierPoint>
+    {
+        public FrontierPoint(double Return, double Risk, double Sharpe, AI.DataStructs.Algebraic.Vector Weights) { }
+        public double Return { get; init; }
+        public double Risk { get; init; }
+        public double Sharpe { get; init; }
+        public AI.DataStructs.Algebraic.Vector Weights { get; init; }
+    }
+    public sealed record InvestorView : System.IEquatable<AI.Economics.Portfolio.InvestorView>
+    {
+        public InvestorView(string Description, AI.DataStructs.Algebraic.Vector Weights, double ExpectedReturn, double Confidence) { }
+        public double Confidence { get; init; }
+        public string Description { get; init; }
+        public double ExpectedReturn { get; init; }
+        public AI.DataStructs.Algebraic.Vector Weights { get; init; }
+    }
+    public static class MeanVariance
+    {
+        public static AI.DataStructs.Algebraic.Matrix Covariance(AI.DataStructs.Algebraic.Matrix returns, double shrinkage = 0) { }
+        public static AI.Economics.Portfolio.OptimizationResult Optimize(AI.DataStructs.Algebraic.Vector expectedReturns, AI.DataStructs.Algebraic.Matrix covariance, System.Collections.Generic.IReadOnlyList<string>? assets = null, double riskFreeRate = 0, AI.Economics.Portfolio.PortfolioConstraints? constraints = null, int frontierPoints = 25) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Asset",
+                "Weight",
+                "RiskContribution"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double, double>> RiskBudget(AI.DataStructs.Algebraic.Vector weights, AI.DataStructs.Algebraic.Matrix covariance, System.Collections.Generic.IReadOnlyList<string>? assets = null) { }
+    }
+    public sealed record OptimizationResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Portfolio.OptimizationResult>
+    {
+        public OptimizationResult() { }
+        public System.Collections.Generic.IReadOnlyList<string> Assets { get; init; }
+        public double EffectiveAssets { get; }
+        public double ExpectedReturn { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Portfolio.FrontierPoint> Frontier { get; init; }
+        public AI.Economics.Portfolio.FrontierPoint? MaximumSharpe { get; init; }
+        public AI.Economics.Portfolio.FrontierPoint? MinimumVariance { get; init; }
+        public double Risk { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Asset",
+                "Weight",
+                "RiskContribution"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double, double>> RiskBudget { get; init; }
+        public double RiskFreeRate { get; init; }
+        public double Sharpe { get; init; }
+        public double TransactionCost { get; init; }
+        public AI.DataStructs.Algebraic.Vector Weights { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record PerformanceMetrics : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Portfolio.PerformanceMetrics>
+    {
+        public PerformanceMetrics() { }
+        public double Alpha { get; init; }
+        public double AnnualReturn { get; init; }
+        public double Beta { get; init; }
+        public double Calmar { get; init; }
+        public double DownsideDeviation { get; init; }
+        public AI.DataStructs.Algebraic.Vector Drawdowns { get; init; }
+        public bool HasBenchmark { get; init; }
+        public double HitRate { get; init; }
+        public double InformationRatio { get; init; }
+        public double MaxDrawdown { get; init; }
+        public int MaxDrawdownLength { get; init; }
+        public int Observations { get; init; }
+        public double Omega { get; init; }
+        public string Portfolio { get; init; }
+        public int RecoveryPeriods { get; init; }
+        public double Sharpe { get; init; }
+        public double Sortino { get; init; }
+        public double TrackingError { get; init; }
+        public double Volatility { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record PortfolioConstraints : System.IEquatable<AI.Economics.Portfolio.PortfolioConstraints>
+    {
+        public PortfolioConstraints() { }
+        public System.Collections.Generic.IReadOnlyList<double>? CurrentWeights { get; init; }
+        public double LotSize { get; init; }
+        public int MaximumAssets { get; init; }
+        public double MaximumWeight { get; init; }
+        public double MinimumWeight { get; init; }
+        public double TransactionCost { get; init; }
+    }
+    public static class PortfolioMetrics
+    {
+        public static AI.Economics.Portfolio.PerformanceMetrics Compute(AI.DataStructs.Algebraic.Vector returns, AI.DataStructs.Algebraic.Vector? benchmark = null, double riskFreeRate = 0, int periodsPerYear = 12, double omegaThreshold = 0, string portfolio = "портфель") { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Drawdowns",
+                "MaxDrawdown",
+                "Length",
+                "Recovery"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, double, int, int> DrawdownProfile(AI.DataStructs.Algebraic.Vector returns) { }
+        public static AI.DataStructs.Algebraic.Vector PortfolioReturns(AI.DataStructs.Algebraic.Vector weights, AI.DataStructs.Algebraic.Matrix assetReturns) { }
+    }
+    public sealed record RebalanceTrade : System.IEquatable<AI.Economics.Portfolio.RebalanceTrade>
+    {
+        public RebalanceTrade(int Period, double Turnover, double Cost, double RealizedGain, double Tax) { }
+        public double Cost { get; init; }
+        public int Period { get; init; }
+        public double RealizedGain { get; init; }
+        public double Tax { get; init; }
+        public double Turnover { get; init; }
+    }
+    public static class Rebalancing
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Portfolio.RebalancingResult> CompareRules(AI.DataStructs.Algebraic.Matrix returns, AI.DataStructs.Algebraic.Vector targetWeights, System.Collections.Generic.IReadOnlyList<string>? assets = null, double transactionCost = 0.001, double taxRate = 0.13) { }
+        public static AI.Economics.Portfolio.RebalancingResult Simulate(AI.DataStructs.Algebraic.Matrix returns, AI.DataStructs.Algebraic.Vector targetWeights, AI.Economics.Portfolio.RebalancingRule rule = 2, System.Collections.Generic.IReadOnlyList<string>? assets = null, double transactionCost = 0.001, double taxRate = 0.13, int interval = 12, double threshold = 0.05, double partialShare = 0.5, int periodsPerYear = 12) { }
+    }
+    public sealed record RebalancingResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Portfolio.RebalancingResult>
+    {
+        public RebalancingResult() { }
+        public double AnnualReturn { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Assets { get; init; }
+        public double CostDrag { get; init; }
+        public double FinalValue { get; init; }
+        public AI.DataStructs.Algebraic.Vector FinalWeights { get; init; }
+        public double GrossValue { get; init; }
+        public double MaximumDrift { get; init; }
+        public int RebalanceCount { get; }
+        public AI.Economics.Portfolio.RebalancingRule Rule { get; init; }
+        public AI.DataStructs.Algebraic.Vector TargetWeights { get; init; }
+        public double TotalCost { get; init; }
+        public double TotalTax { get; init; }
+        public double TotalTurnover { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Portfolio.RebalanceTrade> Trades { get; init; }
+        public double Volatility { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public enum RebalancingRule
+    {
+        BuyAndHold = 0,
+        Calendar = 1,
+        Threshold = 2,
+        Partial = 3,
+    }
+    public sealed record RiskCluster : System.IEquatable<AI.Economics.Portfolio.RiskCluster>
+    {
+        public RiskCluster(System.Collections.Generic.IReadOnlyList<string> Assets, double Variance, double Weight) { }
+        public System.Collections.Generic.IReadOnlyList<string> Assets { get; init; }
+        public double Variance { get; init; }
+        public double Weight { get; init; }
+    }
+    public static class RiskParity
+    {
+        public static AI.Economics.Portfolio.RiskParityResult Build(AI.DataStructs.Algebraic.Matrix covariance, System.Collections.Generic.IReadOnlyList<string>? assets = null, AI.Economics.Portfolio.RiskParityMethod method = 1) { }
+    }
+    public enum RiskParityMethod
+    {
+        InverseVolatility = 0,
+        EqualRiskContribution = 1,
+        HierarchicalRiskParity = 2,
+    }
+    public sealed record RiskParityResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Portfolio.RiskParityResult>
+    {
+        public RiskParityResult() { }
+        public System.Collections.Generic.IReadOnlyList<string> Assets { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Portfolio.RiskCluster> Clusters { get; init; }
+        public double DiversificationRatio { get; init; }
+        public double EffectiveAssets { get; }
+        public double MaximumDeviation { get; init; }
+        public AI.Economics.Portfolio.RiskParityMethod Method { get; init; }
+        public double Risk { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Asset",
+                "Weight",
+                "RiskContribution"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double, double>> RiskBudget { get; init; }
+        public AI.DataStructs.Algebraic.Vector Weights { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Economics.Pricing
+{
+    public sealed record ChoiceTask : System.IEquatable<AI.Economics.Pricing.ChoiceTask>
+    {
+        public ChoiceTask() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ConjointProfile> Alternatives { get; init; }
+        public int ChosenIndex { get; init; }
+        public int Respondent { get; init; }
+    }
+    public sealed record ConjointAttribute : System.IEquatable<AI.Economics.Pricing.ConjointAttribute>
+    {
+        public ConjointAttribute(string Name, System.Collections.Generic.IReadOnlyList<string> Levels, System.Collections.Generic.IReadOnlyList<double>? NumericValues = null) { }
+        public int ColumnCount { get; }
+        public bool IsNumeric { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Levels { get; init; }
+        public string Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double>? NumericValues { get; init; }
+    }
+    public sealed class ConjointDesign
+    {
+        public ConjointDesign(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ConjointAttribute> attributes) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ConjointAttribute> Attributes { get; }
+        public int ParameterCount { get; }
+        public System.Collections.Generic.IReadOnlyList<string> ParameterNames { get; }
+        public int PriceColumn { get; }
+        public double[] Encode(AI.Economics.Pricing.ConjointProfile profile) { }
+    }
+    public sealed record ConjointProfile : System.IEquatable<AI.Economics.Pricing.ConjointProfile>
+    {
+        public ConjointProfile(System.Collections.Generic.IReadOnlyList<int> LevelIndices) { }
+        public System.Collections.Generic.IReadOnlyList<int> LevelIndices { get; init; }
+    }
+    public sealed record ConjointResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Pricing.ConjointResult>
+    {
+        public ConjointResult() { }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> AttributeImportance { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> HeterogeneityStdDev { get; init; }
+        public double HitRate { get; init; }
+        public bool IsHierarchical { get; init; }
+        public double LogLikelihood { get; init; }
+        public double McFaddenR2 { get; }
+        public double NullLogLikelihood { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.PartWorth> PartWorths { get; init; }
+        public double PriceCoefficient { get; init; }
+        public int Respondents { get; init; }
+        public int Tasks { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class CrossElasticity
+    {
+        public static AI.DataStructs.Algebraic.Matrix Diagonal(AI.DataStructs.Algebraic.Vector ownElasticities) { }
+        public static AI.DataStructs.Algebraic.Matrix Estimate(AI.DataStructs.Algebraic.Matrix prices, AI.DataStructs.Algebraic.Matrix quantities) { }
+    }
+    public static class DemandElasticity
+    {
+        public static double DemandAt(double basePrice, double baseQuantity, double elasticity, double newPrice) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Prices",
+                "Quantities"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> DemandCurve(double basePrice, double baseQuantity, double elasticity, double from, double to, int points = 60) { }
+        public static AI.Economics.Pricing.ElasticityResult Estimate(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.PriceObservation> observations, AI.Economics.Pricing.ElasticityEstimator estimator = 0) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ElasticityResult> EstimateAll(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.PriceObservation> observations) { }
+    }
+    public enum ElasticityEstimator
+    {
+        LogLogOls = 0,
+        PanelFixedEffects = 1,
+        InstrumentalVariables = 2,
+    }
+    public sealed record ElasticityResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Pricing.ElasticityResult>
+    {
+        public ElasticityResult() { }
+        public double BreakEvenMargin { get; }
+        public double ConfidenceHigh { get; init; }
+        public double ConfidenceLow { get; init; }
+        public double Elasticity { get; init; }
+        public AI.Economics.Pricing.ElasticityEstimator Estimator { get; init; }
+        public double FirstStageF { get; init; }
+        public bool IsElastic { get; }
+        public double NaiveElasticity { get; init; }
+        public int Observations { get; init; }
+        public double OptimalMarkup { get; }
+        public double PValue { get; init; }
+        public double RSquared { get; init; }
+        public double StandardError { get; init; }
+        public double TStatistic { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record GaborGrangerResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Pricing.GaborGrangerResult>
+    {
+        public GaborGrangerResult() { }
+        public double AcceptanceAtProfitOptimum { get; init; }
+        public AI.DataStructs.Algebraic.Vector AcceptanceRates { get; init; }
+        public double ElasticityAtOptimum { get; init; }
+        public AI.DataStructs.Algebraic.Vector Prices { get; init; }
+        public AI.DataStructs.Algebraic.Vector Profit { get; init; }
+        public double ProfitOptimalPrice { get; init; }
+        public int Respondents { get; init; }
+        public AI.DataStructs.Algebraic.Vector Revenue { get; init; }
+        public double RevenueOptimalPrice { get; init; }
+        public double UnitCost { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed class HierarchicalBayesConjoint
+    {
+        public HierarchicalBayesConjoint() { }
+        public double AcceptanceRate { get; }
+        public AI.Economics.Pricing.ConjointDesign? Design { get; }
+        public System.Collections.Generic.IReadOnlyList<double[]> IndividualUtilities { get; }
+        public AI.DataStructs.Algebraic.Vector PopulationMean { get; }
+        public AI.DataStructs.Algebraic.Vector PopulationStdDev { get; }
+        public AI.Economics.Pricing.ConjointResult Fit(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ChoiceTask> tasks, AI.Economics.Pricing.ConjointDesign design, int draws = 2000, int burnIn = 1000, int seed = 42) { }
+        public AI.DataStructs.Algebraic.Vector SimulateShares(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ConjointProfile> profiles) { }
+    }
+    public sealed class MultinomialLogit
+    {
+        public MultinomialLogit() { }
+        public AI.DataStructs.Algebraic.Vector Coefficients { get; }
+        public AI.Economics.Pricing.ConjointDesign? Design { get; }
+        public AI.Economics.Pricing.ConjointResult Fit(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ChoiceTask> tasks, AI.Economics.Pricing.ConjointDesign design, int maxIterations = 50) { }
+        public AI.DataStructs.Algebraic.Vector SimulateShares(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ConjointProfile> profiles) { }
+    }
+    public sealed record PartWorth : System.IEquatable<AI.Economics.Pricing.PartWorth>
+    {
+        public PartWorth() { }
+        public string Name { get; init; }
+        public double PValue { get; init; }
+        public double StandardError { get; init; }
+        public double Utility { get; init; }
+        public double WillingnessToPay { get; init; }
+    }
+    public sealed record PriceConstraints : System.IEquatable<AI.Economics.Pricing.PriceConstraints>
+    {
+        public PriceConstraints() { }
+        public double MaxPriceChange { get; init; }
+        public double MinMarginRate { get; init; }
+        public double MinTotalRevenue { get; init; }
+        public double MinTotalVolume { get; init; }
+    }
+    public sealed record PriceObservation : System.IEquatable<AI.Economics.Pricing.PriceObservation>
+    {
+        public PriceObservation() { }
+        public System.Collections.Generic.IReadOnlyList<double>? Controls { get; init; }
+        public double Instrument { get; init; }
+        public int Period { get; init; }
+        public double Price { get; init; }
+        public double Quantity { get; init; }
+        public int Unit { get; init; }
+    }
+    public sealed record PriceOptimizationResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Pricing.PriceOptimizationResult>
+    {
+        public PriceOptimizationResult() { }
+        public double CannibalizationCost { get; init; }
+        public bool ConstraintsBinding { get; }
+        public double CurrentProfit { get; init; }
+        public double CurrentRevenue { get; init; }
+        public double CurrentVolume { get; init; }
+        public double IndependentOptimumProfit { get; init; }
+        public double OptimalProfit { get; init; }
+        public double OptimalRevenue { get; init; }
+        public double OptimalVolume { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ProductPriceRecommendation> Products { get; init; }
+        public double ProfitGain { get; }
+        public double ProfitGainRate { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class PriceOptimizer
+    {
+        public static double LernerPrice(double unitCost, double elasticity) { }
+        public static AI.Economics.Pricing.PriceOptimizationResult Optimize(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.ProductPricing> products, AI.DataStructs.Algebraic.Matrix elasticities, AI.Economics.Pricing.PriceConstraints? constraints = null) { }
+    }
+    public sealed record ProductPriceRecommendation : System.IEquatable<AI.Economics.Pricing.ProductPriceRecommendation>
+    {
+        public ProductPriceRecommendation() { }
+        public bool AtBound { get; init; }
+        public double CurrentPrice { get; init; }
+        public double CurrentProfit { get; init; }
+        public double CurrentQuantity { get; init; }
+        public string Name { get; init; }
+        public double NewMargin { get; init; }
+        public double OptimalPrice { get; init; }
+        public double OptimalProfit { get; init; }
+        public double OptimalQuantity { get; init; }
+        public double PriceChange { get; }
+    }
+    public sealed record ProductPricing : System.IEquatable<AI.Economics.Pricing.ProductPricing>
+    {
+        public ProductPricing() { }
+        public double CurrentMargin { get; }
+        public double CurrentPrice { get; init; }
+        public double CurrentQuantity { get; init; }
+        public string Name { get; init; }
+        public double UnitCost { get; init; }
+    }
+    public sealed record VanWestendorpAnswer : System.IEquatable<AI.Economics.Pricing.VanWestendorpAnswer>
+    {
+        public VanWestendorpAnswer(double TooCheap, double Cheap, double Expensive, double TooExpensive) { }
+        public double Cheap { get; init; }
+        public double Expensive { get; init; }
+        public double TooCheap { get; init; }
+        public double TooExpensive { get; init; }
+    }
+    public sealed record VanWestendorpResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Pricing.VanWestendorpResult>
+    {
+        public VanWestendorpResult() { }
+        public AI.DataStructs.Algebraic.Vector CheapCurve { get; init; }
+        public AI.DataStructs.Algebraic.Vector ExpensiveCurve { get; init; }
+        public int InconsistentAnswers { get; init; }
+        public double IndifferencePricePoint { get; init; }
+        public double OptimalPricePoint { get; init; }
+        public double PointOfMarginalCheapness { get; init; }
+        public double PointOfMarginalExpensiveness { get; init; }
+        public AI.DataStructs.Algebraic.Vector Prices { get; init; }
+        public int Respondents { get; init; }
+        public AI.DataStructs.Algebraic.Vector TooCheapCurve { get; init; }
+        public AI.DataStructs.Algebraic.Vector TooExpensiveCurve { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class WillingnessToPay
+    {
+        public static AI.Economics.Pricing.GaborGrangerResult GaborGranger(AI.DataStructs.Algebraic.Vector prices, AI.DataStructs.Algebraic.Vector acceptanceRates, double unitCost = 0, int respondents = 0) { }
+        public static AI.Economics.Pricing.VanWestendorpResult VanWestendorp(System.Collections.Generic.IReadOnlyList<AI.Economics.Pricing.VanWestendorpAnswer> answers, int gridPoints = 120) { }
+    }
+}
+namespace AI.Economics.Projects
+{
+    public enum AcquisitionMode
+    {
+        Purchase = 0,
+        Credit = 1,
+        Lease = 2,
+    }
+    public sealed record AcquisitionOption : System.IEquatable<AI.Economics.Projects.AcquisitionOption>
+    {
+        public AcquisitionOption(AI.Economics.Projects.AcquisitionMode Mode, double PresentValueOfCost, double TotalOutflow, double TaxShield, double ResidualValue, AI.DataStructs.Algebraic.Vector CashFlows) { }
+        public AI.DataStructs.Algebraic.Vector CashFlows { get; init; }
+        public AI.Economics.Projects.AcquisitionMode Mode { get; init; }
+        public double PresentValueOfCost { get; init; }
+        public double ResidualValue { get; init; }
+        public double TaxShield { get; init; }
+        public double TotalOutflow { get; init; }
+    }
+    public static class BreakEven
+    {
+        public static AI.Economics.Projects.BreakEvenResult Analyze(double price, double variableCost, double fixedCosts, double volume, double interest = 0, double targetProfit = 0, double taxRate = 0.2, string name = "продукт") { }
+        public static AI.Economics.Projects.CapitalStructureResult OptimalStructure(string company, double unleveredCostOfEquity, double baseCostOfDebt, double taxRate, double operatingProfit, double currentDebtShare = 0.3, double distressSlope = 0.35, int steps = 19) { }
+    }
+    public sealed record BreakEvenResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Projects.BreakEvenResult>
+    {
+        public BreakEvenResult() { }
+        public double BreakEvenRevenue { get; init; }
+        public double BreakEvenUnits { get; init; }
+        public double CombinedLeverage { get; }
+        public double ContributionMargin { get; init; }
+        public double ContributionPerUnit { get; init; }
+        public double FinancialLeverage { get; init; }
+        public double MarginOfSafety { get; init; }
+        public string Name { get; init; }
+        public double NetProfit { get; init; }
+        public double OperatingLeverage { get; init; }
+        public double OperatingProfit { get; init; }
+        public double TargetUnits { get; init; }
+        public double UnitsToZeroProfit { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record CapitalStructurePoint : System.IEquatable<AI.Economics.Projects.CapitalStructurePoint>
+    {
+        public CapitalStructurePoint(double DebtShare, double CostOfEquity, double CostOfDebt, double Wacc, double FirmValue) { }
+        public double CostOfDebt { get; init; }
+        public double CostOfEquity { get; init; }
+        public double DebtShare { get; init; }
+        public double FirmValue { get; init; }
+        public double Wacc { get; init; }
+    }
+    public sealed record CapitalStructureResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Projects.CapitalStructureResult>
+    {
+        public CapitalStructureResult() { }
+        public string Company { get; init; }
+        public double CurrentDebtShare { get; init; }
+        public double CurrentWacc { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Projects.CapitalStructurePoint> Curve { get; init; }
+        public double MinimumWacc { get; init; }
+        public double OptimalDebtShare { get; init; }
+        public double ValueGain { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record DatedCashFlow : System.IEquatable<AI.Economics.Projects.DatedCashFlow>
+    {
+        public DatedCashFlow(System.DateOnly Date, double Amount) { }
+        public double Amount { get; init; }
+        public System.DateOnly Date { get; init; }
+    }
+    public static class Depreciation
+    {
+        public static AI.Economics.Projects.DepreciationSchedule Build(double cost, int usefulLife, AI.Economics.Projects.DepreciationMethod method = 0, double salvage = 0, double taxRate = 0.2, double discountRate = 0.12, double factor = 2) { }
+        public static AI.DataStructs.Algebraic.Vector Charges(AI.Economics.Projects.DepreciationSchedule schedule) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Projects.DepreciationSchedule> CompareMethods(double cost, int usefulLife, double salvage = 0, double taxRate = 0.2, double discountRate = 0.12) { }
+    }
+    public enum DepreciationMethod
+    {
+        StraightLine = 0,
+        DecliningBalance = 1,
+        SumOfYearsDigits = 2,
+        TaxNonLinear = 3,
+    }
+    public sealed record DepreciationPeriod : System.IEquatable<AI.Economics.Projects.DepreciationPeriod>
+    {
+        public DepreciationPeriod(int Period, double OpeningValue, double Charge, double ClosingValue, double TaxShield, double DiscountedShield) { }
+        public double Charge { get; init; }
+        public double ClosingValue { get; init; }
+        public double DiscountedShield { get; init; }
+        public double OpeningValue { get; init; }
+        public int Period { get; init; }
+        public double TaxShield { get; init; }
+    }
+    public sealed record DepreciationSchedule : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Projects.DepreciationSchedule>
+    {
+        public DepreciationSchedule() { }
+        public double Cost { get; init; }
+        public double FrontLoading { get; init; }
+        public AI.Economics.Projects.DepreciationMethod Method { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Projects.DepreciationPeriod> Periods { get; init; }
+        public double PresentValueOfShield { get; init; }
+        public double Salvage { get; init; }
+        public double TaxRate { get; init; }
+        public int UsefulLife { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record InvestmentAppraisal : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Projects.InvestmentAppraisal>
+    {
+        public InvestmentAppraisal() { }
+        public AI.DataStructs.Algebraic.Vector CumulativeDiscounted { get; init; }
+        public double DiscountRate { get; init; }
+        public double DiscountedPayback { get; init; }
+        public double InitialInvestment { get; init; }
+        public double InternalRateOfReturn { get; init; }
+        public bool IsAccepted { get; }
+        public double ModifiedIrr { get; init; }
+        public string Name { get; init; }
+        public double NetPresentValue { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Rate",
+                "Npv"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> NpvProfile { get; init; }
+        public double PaybackPeriod { get; init; }
+        public double ProfitabilityIndex { get; init; }
+        public int SignChanges { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class InvestmentCriteria
+    {
+        public static AI.Economics.Projects.InvestmentAppraisal Appraise(AI.DataStructs.Algebraic.Vector cashFlows, double discountRate, double reinvestmentRate = -1, string name = "проект") { }
+        public static double ExtendedInternalRateOfReturn(System.Collections.Generic.IReadOnlyList<AI.Economics.Projects.DatedCashFlow> flows) { }
+        public static double ExtendedNetPresentValue(System.Collections.Generic.IReadOnlyList<AI.Economics.Projects.DatedCashFlow> flows, double annualRate) { }
+        public static double InternalRateOfReturn(AI.DataStructs.Algebraic.Vector cashFlows) { }
+        public static double ModifiedInternalRateOfReturn(AI.DataStructs.Algebraic.Vector cashFlows, double financeRate, double reinvestmentRate) { }
+        public static double NetPresentValue(AI.DataStructs.Algebraic.Vector cashFlows, double rate) { }
+    }
+    public static class LeaseVsBuy
+    {
+        public static AI.Economics.Projects.LeaseVsBuyResult Compare(AI.Economics.Projects.LeaseVsBuyInput input) { }
+    }
+    public sealed record LeaseVsBuyInput : System.IEquatable<AI.Economics.Projects.LeaseVsBuyInput>
+    {
+        public LeaseVsBuyInput() { }
+        public string Asset { get; init; }
+        public double AssetCost { get; init; }
+        public double CreditDownPayment { get; init; }
+        public double CreditRate { get; init; }
+        public int DepreciationLife { get; init; }
+        public double DiscountRate { get; init; }
+        public double LeaseAdvance { get; init; }
+        public double LeaseBuyout { get; init; }
+        public double LeaseDepreciationFactor { get; init; }
+        public double LeaseMarkup { get; init; }
+        public double ResidualValue { get; init; }
+        public double TaxRate { get; init; }
+        public int Years { get; init; }
+    }
+    public sealed record LeaseVsBuyResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Projects.LeaseVsBuyResult>
+    {
+        public LeaseVsBuyResult() { }
+        public double Advantage { get; }
+        public string Asset { get; init; }
+        public AI.Economics.Projects.AcquisitionMode Best { get; }
+        public double BreakEvenLeaseMarkup { get; init; }
+        public double DiscountRate { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Projects.AcquisitionOption> Options { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record LoanPayment : System.IEquatable<AI.Economics.Projects.LoanPayment>
+    {
+        public LoanPayment(int Period, double OpeningBalance, double Payment, double Interest, double Principal, double Prepayment, double ClosingBalance) { }
+        public double ClosingBalance { get; init; }
+        public double Interest { get; init; }
+        public double OpeningBalance { get; init; }
+        public double Payment { get; init; }
+        public int Period { get; init; }
+        public double Prepayment { get; init; }
+        public double Principal { get; init; }
+    }
+    public static class LoanSchedule
+    {
+        public static double AnnuityPayment(double principal, double ratePerPeriod, int periods) { }
+        public static AI.Economics.Projects.LoanScheduleResult Build(double principal, double annualRate, int periods, AI.Economics.Projects.RepaymentType type = 0, int periodsPerYear = 12, double upfrontFee = 0, System.Collections.Generic.IReadOnlyList<AI.Economics.Projects.Prepayment>? prepayments = null) { }
+        public static double EffectiveRate(double nominalRate, int compoundingPerYear) { }
+    }
+    public sealed record LoanScheduleResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Projects.LoanScheduleResult>
+    {
+        public LoanScheduleResult() { }
+        public int ActualTerm { get; }
+        public double AnnualPercentageRate { get; init; }
+        public double EffectiveAnnualRate { get; init; }
+        public double NominalRate { get; init; }
+        public int OriginalTerm { get; init; }
+        public double Overpayment { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Projects.LoanPayment> Payments { get; init; }
+        public double PrepaymentSaving { get; init; }
+        public double Principal { get; init; }
+        public double TotalInterest { get; init; }
+        public double TotalPaid { get; init; }
+        public AI.Economics.Projects.RepaymentType Type { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record Prepayment : System.IEquatable<AI.Economics.Projects.Prepayment>
+    {
+        public Prepayment(int Period, double Amount, bool ReducePayment = false) { }
+        public double Amount { get; init; }
+        public int Period { get; init; }
+        public bool ReducePayment { get; init; }
+    }
+    public enum RepaymentType
+    {
+        Annuity = 0,
+        Differentiated = 1,
+        InterestOnly = 2,
+    }
+}
+namespace AI.Economics.Risk
+{
+    public sealed record BacktestVarResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Risk.BacktestVarResult>
+    {
+        public BacktestVarResult() { }
+        public double AverageExceptionSeverity { get; init; }
+        public double ConditionalCoveragePValue { get; init; }
+        public double ConditionalCoverageStatistic { get; init; }
+        public double Confidence { get; init; }
+        public double ExceptionRate { get; }
+        public int Exceptions { get; init; }
+        public double ExpectedExceptions { get; }
+        public double IndependencePValue { get; init; }
+        public double IndependenceStatistic { get; init; }
+        public bool IsAccepted { get; }
+        public double KupiecPValue { get; init; }
+        public double KupiecStatistic { get; init; }
+        public int LongestExceptionRun { get; init; }
+        public string Model { get; init; }
+        public int Observations { get; init; }
+        public string TrafficLight { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record CashPosition : System.IEquatable<AI.Economics.Risk.CashPosition>
+    {
+        public CashPosition(int Period, double Opening, double Inflow, double Outflow, double Closing, double Shortfall) { }
+        public double Closing { get; init; }
+        public double Inflow { get; init; }
+        public double Opening { get; init; }
+        public double Outflow { get; init; }
+        public int Period { get; init; }
+        public double Shortfall { get; init; }
+    }
+    public enum CopulaFamily
+    {
+        Gaussian = 0,
+        StudentT = 1,
+        Clayton = 2,
+        Gumbel = 3,
+    }
+    public sealed record CopulaResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Risk.CopulaResult>
+    {
+        public CopulaResult() { }
+        public double Aic { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Family",
+                "LogLikelihood",
+                "Aic"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<AI.Economics.Risk.CopulaFamily, double, double>> Comparison { get; init; }
+        public double DegreesOfFreedom { get; init; }
+        public double EmpiricalLowerTail { get; init; }
+        public AI.Economics.Risk.CopulaFamily Family { get; init; }
+        public double KendallTau { get; init; }
+        public double LogLikelihood { get; init; }
+        public double LowerTailDependence { get; init; }
+        public int Observations { get; init; }
+        public double Parameter { get; init; }
+        public double PearsonCorrelation { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "First",
+                "Second"})]
+        public System.ValueTuple<string, string> Series { get; init; }
+        public double UpperTailDependence { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class Copulas
+    {
+        public static AI.Economics.Risk.CopulaResult Fit(AI.DataStructs.Algebraic.Vector first, AI.DataStructs.Algebraic.Vector second, AI.Economics.Risk.CopulaFamily family = 1, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "First",
+                "Second"})] System.ValueTuple<string, string>? names = default) { }
+        public static double KendallTau(AI.DataStructs.Algebraic.Vector first, AI.DataStructs.Algebraic.Vector second) { }
+        public static AI.DataStructs.Algebraic.Matrix Simulate(AI.Economics.Risk.CopulaFamily family, double parameter, int count, double degreesOfFreedom = 5, int seed = 42) { }
+    }
+    public static class ExtremeValue
+    {
+        public static AI.Economics.Risk.ExtremeValueResult Fit(AI.DataStructs.Algebraic.Vector returns, double thresholdQuantile = 0.95, System.Collections.Generic.IReadOnlyList<double>? confidenceLevels = null, string series = "убытки") { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Threshold",
+                "MeanExcess"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> MeanExcessPlot(AI.DataStructs.Algebraic.Vector returns, int points = 30) { }
+        public static double TailQuantile(double threshold, double shape, double scale, double exceedanceRate, double confidence) { }
+    }
+    public sealed record ExtremeValueResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Risk.ExtremeValueResult>
+    {
+        public ExtremeValueResult() { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Confidence",
+                "Empirical"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> EmpiricalQuantiles { get; init; }
+        public double ExceedanceRate { get; init; }
+        public int Exceedances { get; init; }
+        public bool HasFiniteMean { get; }
+        public bool HasFiniteVariance { get; }
+        public double LogLikelihood { get; init; }
+        public int Observations { get; init; }
+        public double Scale { get; init; }
+        public string Series { get; init; }
+        public double Shape { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Confidence",
+                "ValueAtRisk",
+                "ExpectedShortfall"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double, double>> TailQuantiles { get; init; }
+        public double Threshold { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record LiquidityResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Risk.LiquidityResult>
+    {
+        public LiquidityResult() { }
+        public double BaumolCash { get; init; }
+        public string Company { get; init; }
+        public double MaximumShortfall { get; init; }
+        public double MillerOrrAverage { get; }
+        public double MillerOrrLower { get; init; }
+        public double MillerOrrReturn { get; init; }
+        public double MillerOrrUpper { get; init; }
+        public double MinimumBalance { get; init; }
+        public int MinimumPeriod { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Risk.CashPosition> Positions { get; init; }
+        public double RequiredCreditLine { get; init; }
+        public int ShortfallPeriods { get; init; }
+        public double ShortfallProbability { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class LiquidityRisk
+    {
+        public static AI.Economics.Risk.LiquidityResult Analyze(double openingBalance, AI.DataStructs.Algebraic.Vector inflows, AI.DataStructs.Algebraic.Vector outflows, double inflowVolatility = 0.15, double transactionCost = 5000, double interestRate = 0.01, double minimumBalance = 0, string company = "компания", int simulations = 5000, int seed = 42) { }
+        public static double Baumol(double periodDemand, double transactionCost, double interestRate) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Return",
+                "Upper"})]
+        public static System.ValueTuple<double, double, double> MillerOrr(double minimumBalance, double dailyVariance, double transactionCost, double dailyRate) { }
+    }
+    public sealed record StressScenario : System.IEquatable<AI.Economics.Risk.StressScenario>
+    {
+        public StressScenario(string Name, System.Collections.Generic.IReadOnlyList<double> Shocks, double Loss, double LossShare) { }
+        public double Loss { get; init; }
+        public double LossShare { get; init; }
+        public string Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Shocks { get; init; }
+    }
+    public sealed record StressTestResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Risk.StressTestResult>
+    {
+        public StressTestResult() { }
+        public System.Collections.Generic.IReadOnlyList<string> Factors { get; init; }
+        public string Portfolio { get; init; }
+        public double ReverseStressDistance { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> ReverseStressShocks { get; init; }
+        public double ReverseStressTarget { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Risk.StressScenario> Scenarios { get; init; }
+        public double ValueAtRisk { get; init; }
+        public double WorstLoss { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class ValueAtRisk
+    {
+        public static AI.Economics.Risk.VarResultSet Compute(AI.DataStructs.Algebraic.Vector returns, double portfolioValue = 1, double confidence = 0.99, int horizon = 1, AI.Economics.Risk.VarMethod method = 0, string portfolio = "портфель") { }
+        public static double CornishFisherVar(double mean, double sigma, double skewness, double kurtosis, double confidence) { }
+        public static double HistoricalShortfall(AI.DataStructs.Algebraic.Vector returns, double confidence) { }
+        public static double HistoricalVar(AI.DataStructs.Algebraic.Vector returns, double confidence) { }
+        public static double ParametricShortfall(double mean, double sigma, double confidence) { }
+        public static double ParametricVar(double mean, double sigma, double confidence) { }
+    }
+    public static class VarBacktesting
+    {
+        public static AI.Economics.Risk.BacktestVarResult Backtest(AI.DataStructs.Algebraic.Vector returns, AI.DataStructs.Algebraic.Vector varForecasts, double confidence = 0.99, string model = "модель") { }
+        public static AI.Economics.Risk.StressTestResult StressTest(AI.DataStructs.Algebraic.Vector exposures, AI.DataStructs.Algebraic.Vector factorVolatility, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Name",
+                "Shocks"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, AI.DataStructs.Algebraic.Vector>> scenarios, System.Collections.Generic.IReadOnlyList<string> factors, double valueAtRisk = 0, double reverseTarget = 0.2, string portfolio = "портфель") { }
+    }
+    public enum VarMethod
+    {
+        Historical = 0,
+        Parametric = 1,
+        CornishFisher = 2,
+        MonteCarlo = 3,
+    }
+    public sealed record VarResultSet : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Risk.VarResultSet>
+    {
+        public VarResultSet() { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Method",
+                "Var",
+                "Shortfall"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<AI.Economics.Risk.VarMethod, double, double>> Comparison { get; init; }
+        public double Confidence { get; init; }
+        public double ExpectedShortfall { get; init; }
+        public double ExpectedShortfallAmount { get; init; }
+        public int Horizon { get; init; }
+        public double Kurtosis { get; init; }
+        public AI.Economics.Risk.VarMethod Method { get; init; }
+        public int Observations { get; init; }
+        public string Portfolio { get; init; }
+        public double Skewness { get; init; }
+        public double TailRatio { get; }
+        public double ValueAtRisk { get; init; }
+        public double ValueAtRiskAmount { get; init; }
+        public double Volatility { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Economics.Runway
+{
+    public sealed record FundingEvent : System.IEquatable<AI.Economics.Runway.FundingEvent>
+    {
+        public FundingEvent(int Month, double Amount, double Probability = 1) { }
+        public double Amount { get; init; }
+        public int Month { get; init; }
+        public double Probability { get; init; }
+    }
+    public sealed record RunwayInput : System.IEquatable<AI.Economics.Runway.RunwayInput>
+    {
+        public RunwayInput() { }
+        public double Cash { get; init; }
+        public double CostGrowthMean { get; init; }
+        public double CostGrowthVolatility { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Runway.FundingEvent>? Funding { get; init; }
+        public double GrossMarginRate { get; init; }
+        public int Horizon { get; init; }
+        public double MonthlyCosts { get; init; }
+        public double MonthlyRevenue { get; init; }
+        public double RevenueGrowthMean { get; init; }
+        public double RevenueGrowthVolatility { get; init; }
+        public int Seed { get; init; }
+        public int Simulations { get; init; }
+    }
+    public sealed record RunwayResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Runway.RunwayResult>
+    {
+        public RunwayResult() { }
+        public double CashOutP10 { get; init; }
+        public double CashOutP50 { get; init; }
+        public double CashOutP90 { get; init; }
+        public AI.DataStructs.Algebraic.Vector CashP10 { get; init; }
+        public AI.DataStructs.Algebraic.Vector CashP50 { get; init; }
+        public AI.DataStructs.Algebraic.Vector CashP90 { get; init; }
+        public double DeterministicRunwayMonths { get; init; }
+        public double MedianBreakEvenMonth { get; init; }
+        public double ProbabilityBreakEven { get; init; }
+        public double ProbabilityCashOutIn12 { get; init; }
+        public double ProbabilityCashOutIn6 { get; init; }
+        public AI.DataStructs.Algebraic.Vector SurvivalCurve { get; init; }
+        public double SurvivalProbability { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class RunwaySimulator
+    {
+        public static AI.Economics.Runway.RunwayResult Simulate(AI.Economics.Runway.RunwayInput input) { }
+    }
+}
+namespace AI.Economics.Saas
+{
+    public enum MetricVerdict
+    {
+        Good = 0,
+        Warning = 1,
+        Poor = 2,
+    }
+    public static class MrrBridge
+    {
+        public static AI.Economics.Saas.MrrBridgeResult Build(System.Collections.Generic.IReadOnlyDictionary<string, double> start, System.Collections.Generic.IReadOnlyDictionary<string, double> end, System.Collections.Generic.IReadOnlyCollection<string>? previouslyChurned = null) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Saas.MrrBridgeResult> BuildSeries(System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyDictionary<string, double>> snapshots) { }
+    }
+    public sealed record MrrBridgeResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Saas.MrrBridgeResult>
+    {
+        public MrrBridgeResult() { }
+        public int ChurnedCustomers { get; init; }
+        public double ChurnedMrr { get; init; }
+        public double ContractionMrr { get; init; }
+        public int EndingCustomers { get; init; }
+        public double EndingMrr { get; init; }
+        public double ExpansionMrr { get; init; }
+        public double GrossRevenueRetention { get; init; }
+        public double LogoChurnRate { get; init; }
+        public double NetDollarRetention { get; init; }
+        public double NetNewMrr { get; init; }
+        public int NewCustomers { get; init; }
+        public double NewMrr { get; init; }
+        public double QuickRatio { get; init; }
+        public double ReactivationMrr { get; init; }
+        public int StartingCustomers { get; init; }
+        public double StartingMrr { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record SaasHealthInput : System.IEquatable<AI.Economics.Saas.SaasHealthInput>
+    {
+        public SaasHealthInput() { }
+        public double ArpaMonthly { get; init; }
+        public double ArrEnd { get; init; }
+        public double ArrStart { get; init; }
+        public double ArrYearAgo { get; init; }
+        public double Cac { get; init; }
+        public double FreeCashFlowMargin { get; init; }
+        public double GrossMarginRate { get; init; }
+        public double NetBurn { get; init; }
+        public double NetDollarRetention { get; init; }
+        public double SalesAndMarketing { get; init; }
+    }
+    public sealed record SaasMetric : System.IEquatable<AI.Economics.Saas.SaasMetric>
+    {
+        public SaasMetric(string Name, double Value, string Unit, AI.Economics.Saas.MetricVerdict Verdict, string Comment) { }
+        public string Comment { get; init; }
+        public string Name { get; init; }
+        public string Unit { get; init; }
+        public double Value { get; init; }
+        public AI.Economics.Saas.MetricVerdict Verdict { get; init; }
+    }
+    public static class SaasMetrics
+    {
+        public static double BurnMultiple(double netBurn, double netNewArr) { }
+        public static double CacPaybackMonths(double cac, double arpaMonthly, double grossMarginRate) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Saas.SaasMetric> Evaluate(AI.Economics.Saas.SaasHealthInput input) { }
+        public static double MagicNumber(double arrStart, double arrEnd, double salesAndMarketing) { }
+        public static double RuleOf40(double growthRatePercent, double marginPercent) { }
+    }
+    public static class SaasMetricsInsights
+    {
+        public static AI.Insights.Interpretation Interpret(this System.Collections.Generic.IReadOnlyList<AI.Economics.Saas.SaasMetric> metrics) { }
+    }
+}
+namespace AI.Economics.Statements
+{
+    public enum BankruptcyModelKind
+    {
+        Logistic = 0,
+        Bayesian = 1,
+        SupportVector = 2,
+    }
+    public sealed record BankruptcyModelResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.BankruptcyModelResult>
+    {
+        public BankruptcyModelResult() { }
+        public int Bankruptcies { get; init; }
+        public AI.Economics.Credit.ScoreQuality CrossValidated { get; init; }
+        public int Folds { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.FeatureImportance> Importances { get; init; }
+        public AI.Economics.Credit.ScoreQuality InSample { get; init; }
+        public AI.Economics.Statements.BankruptcyModelKind Model { get; init; }
+        public int Observations { get; init; }
+        public double OverfitGap { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record BankruptcyObservation : System.IEquatable<AI.Economics.Statements.BankruptcyObservation>
+    {
+        public BankruptcyObservation(AI.Economics.Statements.FinancialStatement Statement, bool WentBankrupt) { }
+        public AI.Economics.Statements.FinancialStatement Statement { get; init; }
+        public bool WentBankrupt { get; init; }
+    }
+    public sealed record BankruptcyPrediction : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.BankruptcyPrediction>
+    {
+        public BankruptcyPrediction() { }
+        public double AltmanZ { get; init; }
+        public string Company { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Feature",
+                "Value",
+                "MeanHealthy",
+                "MeanBankrupt"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double, double, double>> Features { get; init; }
+        public bool IsHighRisk { get; }
+        public string Period { get; init; }
+        public double Probability { get; init; }
+        public double Threshold { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed class BankruptcyPredictor
+    {
+        public BankruptcyPredictor() { }
+        public System.Collections.Generic.IReadOnlyList<string> FeatureNames { get; }
+        public bool IsTrained { get; }
+        public AI.Economics.Statements.BankruptcyPrediction Predict(AI.Economics.Statements.FinancialStatement statement, double threshold = 0.5) { }
+        public AI.Economics.Statements.BankruptcyModelResult Train(System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.BankruptcyObservation> observations, AI.Economics.Statements.BankruptcyModelKind kind = 0, int folds = 5, int seed = 42) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.BankruptcyModelResult> CompareAll(System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.BankruptcyObservation> observations, int folds = 5, int seed = 42) { }
+        public static AI.DataStructs.Algebraic.Vector ExtractFeatures(AI.Economics.Statements.FinancialStatement s) { }
+    }
+    public sealed record BeneishIndex : System.IEquatable<AI.Economics.Statements.BeneishIndex>
+    {
+        public BeneishIndex(string Code, string Name, double Value, double Weight, double Contribution, double Neutral, string Comment) { }
+        public string Code { get; init; }
+        public string Comment { get; init; }
+        public double Contribution { get; init; }
+        public double Deviation { get; }
+        public bool IsFlagged { get; }
+        public string Name { get; init; }
+        public double Neutral { get; init; }
+        public double Value { get; init; }
+        public double Weight { get; init; }
+    }
+    public static class BeneishModel
+    {
+        public static AI.Economics.Statements.BeneishResult Compute(AI.Economics.Statements.FinancialStatement current, AI.Economics.Statements.FinancialStatement previous) { }
+    }
+    public sealed record BeneishResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.BeneishResult>
+    {
+        public BeneishResult() { }
+        public string Company { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.BeneishIndex> Indices { get; init; }
+        public bool IsLikelyManipulator { get; init; }
+        public double MScore { get; init; }
+        public string Period { get; init; }
+        public double Probability { get; init; }
+        public double Threshold { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class BenfordAnalysis
+    {
+        public static AI.Economics.Statements.BenfordResult Analyze(System.Collections.Generic.IReadOnlyList<double> values, AI.Economics.Statements.BenfordScope scope = 0, string dataset = "транзакции") { }
+        public static int LeadingDigits(double value, AI.Economics.Statements.BenfordScope scope) { }
+    }
+    public sealed record BenfordDigit : System.IEquatable<AI.Economics.Statements.BenfordDigit>
+    {
+        public BenfordDigit(int Digit, int Observed, double Expected, double ObservedShare, double ExpectedShare, double ZScore) { }
+        public double AbsoluteDeviation { get; }
+        public int Digit { get; init; }
+        public double Expected { get; init; }
+        public double ExpectedShare { get; init; }
+        public bool IsSignificant { get; }
+        public int Observed { get; init; }
+        public double ObservedShare { get; init; }
+        public double ZScore { get; init; }
+    }
+    public sealed record BenfordResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.BenfordResult>
+    {
+        public BenfordResult() { }
+        public double ChiSquare { get; init; }
+        public string Conformity { get; init; }
+        public string Dataset { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.BenfordDigit> Digits { get; init; }
+        public int Excluded { get; init; }
+        public double MeanAbsoluteDeviation { get; init; }
+        public double PValue { get; init; }
+        public int SampleSize { get; init; }
+        public AI.Economics.Statements.BenfordScope Scope { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.BenfordDigit> Suspicious { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public enum BenfordScope
+    {
+        FirstDigit = 0,
+        FirstTwoDigits = 1,
+    }
+    public sealed record DistressReport : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.DistressReport>
+    {
+        public DistressReport() { }
+        public double AverageProbability { get; }
+        public string Company { get; init; }
+        public AI.Economics.Statements.DistressZone Consensus { get; }
+        public int DistressVotes { get; }
+        public string Period { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Criterion",
+                "Passed",
+                "Comment"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, bool, string>> PiotroskiCriteria { get; init; }
+        public int PiotroskiScore { get; init; }
+        public int SafeVotes { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.DistressScore> Scores { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record DistressScore : System.IEquatable<AI.Economics.Statements.DistressScore>
+    {
+        public DistressScore() { }
+        public string Comment { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.ScoreComponent> Components { get; init; }
+        public string Model { get; init; }
+        public double? ProbabilityOfDefault { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Distress",
+                "Safe"})]
+        public System.ValueTuple<double, double> Thresholds { get; init; }
+        public double Value { get; init; }
+        public AI.Economics.Statements.DistressZone Zone { get; init; }
+    }
+    public static class DistressScores
+    {
+        public static AI.Economics.Statements.DistressScore Altman(AI.Economics.Statements.FinancialStatement s) { }
+        public static AI.Economics.Statements.DistressScore AltmanDoublePrime(AI.Economics.Statements.FinancialStatement s) { }
+        public static AI.Economics.Statements.DistressReport Evaluate(AI.Economics.Statements.FinancialStatement current, AI.Economics.Statements.FinancialStatement? previous = null, double assetDeflator = 1000000) { }
+        public static AI.Economics.Statements.DistressScore Ohlson(AI.Economics.Statements.FinancialStatement current, AI.Economics.Statements.FinancialStatement? previous = null, double assetDeflator = 1000000) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Score",
+                "Criteria",
+                "Criterion",
+                "Passed",
+                "Comment"})]
+        public static System.ValueTuple<int, System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, bool, string>>> Piotroski(AI.Economics.Statements.FinancialStatement current, AI.Economics.Statements.FinancialStatement? previous = null) { }
+        public static AI.Economics.Statements.DistressScore Springate(AI.Economics.Statements.FinancialStatement s) { }
+        public static AI.Economics.Statements.DistressScore Taffler(AI.Economics.Statements.FinancialStatement s) { }
+    }
+    public enum DistressZone
+    {
+        Safe = 0,
+        Grey = 1,
+        Distress = 2,
+    }
+    public static class DuPontAnalysis
+    {
+        public static AI.Economics.Statements.DuPontResult Analyze(AI.Economics.Statements.FinancialStatement current, AI.Economics.Statements.FinancialStatement? previous = null) { }
+    }
+    public sealed record DuPontFactor : System.IEquatable<AI.Economics.Statements.DuPontFactor>
+    {
+        public DuPontFactor(string Name, double Value, double Previous, double Contribution, string Meaning) { }
+        public double Change { get; }
+        public double Contribution { get; init; }
+        public string Meaning { get; init; }
+        public string Name { get; init; }
+        public double Previous { get; init; }
+        public double RelativeChange { get; }
+        public double Value { get; init; }
+    }
+    public sealed record DuPontResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.DuPontResult>
+    {
+        public DuPontResult() { }
+        public double Change { get; }
+        public string Company { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.DuPontFactor> FiveFactor { get; init; }
+        public bool HasComparison { get; init; }
+        public string Period { get; init; }
+        public double PreviousReturnOnEquity { get; init; }
+        public double ReturnOnEquity { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.DuPontFactor> ThreeFactor { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class EarningsQuality
+    {
+        public static AI.Economics.Statements.EarningsQualityResult Evaluate(AI.Economics.Statements.FinancialStatement current, AI.Economics.Statements.FinancialStatement? previous = null) { }
+    }
+    public sealed record EarningsQualityMetric : System.IEquatable<AI.Economics.Statements.EarningsQualityMetric>
+    {
+        public EarningsQualityMetric(string Name, double Value, double Threshold, bool IsFavourable, double Score, string Comment) { }
+        public string Comment { get; init; }
+        public bool IsFavourable { get; init; }
+        public string Name { get; init; }
+        public double Score { get; init; }
+        public double Threshold { get; init; }
+        public double Value { get; init; }
+    }
+    public sealed record EarningsQualityResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.EarningsQualityResult>
+    {
+        public EarningsQualityResult() { }
+        public double AccrualRatio { get; init; }
+        public double CashFlowAdequacy { get; init; }
+        public double CashFlowToNetIncome { get; init; }
+        public string Company { get; init; }
+        public double FreeCashFlowConversion { get; init; }
+        public bool HasComparison { get; init; }
+        public double InventoryDivergence { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.EarningsQualityMetric> Metrics { get; init; }
+        public string Period { get; init; }
+        public double QualityScore { get; init; }
+        public double ReceivablesDivergence { get; init; }
+        public string Verdict { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record FeatureImportance : System.IEquatable<AI.Economics.Statements.FeatureImportance>
+    {
+        public FeatureImportance(string Feature, double Importance, double MeanHealthy, double MeanBankrupt) { }
+        public string Feature { get; init; }
+        public double Importance { get; init; }
+        public double MeanBankrupt { get; init; }
+        public double MeanHealthy { get; init; }
+    }
+    public sealed record FinancialRatio : System.IEquatable<AI.Economics.Statements.FinancialRatio>
+    {
+        public FinancialRatio(string Group, string Name, double Value, string? Unit, double Benchmark, AI.Economics.Statements.RatioDirection Direction, string Comment) { }
+        public double Benchmark { get; init; }
+        public string Comment { get; init; }
+        public AI.Economics.Statements.RatioDirection Direction { get; init; }
+        public string Group { get; init; }
+        public bool MeetsBenchmark { get; }
+        public string Name { get; init; }
+        public string? Unit { get; init; }
+        public double Value { get; init; }
+    }
+    public static class FinancialRatios
+    {
+        public static AI.Economics.Statements.RatioReport Compute(AI.Economics.Statements.FinancialStatement current, AI.Economics.Statements.FinancialStatement? previous = null) { }
+    }
+    public sealed record FinancialStatement : System.IEquatable<AI.Economics.Statements.FinancialStatement>
+    {
+        public FinancialStatement() { }
+        public double AccountsPayable { get; init; }
+        public double AccountsReceivable { get; init; }
+        public double CapitalExpenditures { get; init; }
+        public double Cash { get; init; }
+        public string Company { get; init; }
+        public double CostOfGoodsSold { get; init; }
+        public double CurrentAssets { get; init; }
+        public double CurrentLiabilities { get; init; }
+        public double Depreciation { get; init; }
+        public double DividendsPaid { get; init; }
+        public double Ebitda { get; }
+        public double Equity { get; }
+        public double FreeCashFlow { get; }
+        public double GrossProfit { get; }
+        public double IncomeTax { get; init; }
+        public double IntangibleAssets { get; init; }
+        public double InterestExpense { get; init; }
+        public double Inventory { get; init; }
+        public double LongTermDebt { get; init; }
+        public double MarketCapitalization { get; init; }
+        public double NetDebt { get; }
+        public double NetIncome { get; init; }
+        public double NonCurrentAssets { get; }
+        public double NonCurrentLiabilities { get; }
+        public double OperatingCashFlow { get; init; }
+        public double OperatingExpenses { get; init; }
+        public double OperatingIncome { get; }
+        public string Period { get; init; }
+        public double PretaxIncome { get; }
+        public double PropertyPlantEquipment { get; init; }
+        public double RetainedEarnings { get; init; }
+        public double Revenue { get; init; }
+        public double ShortTermDebt { get; init; }
+        public double ShortTermInvestments { get; init; }
+        public double TotalAssets { get; init; }
+        public double TotalDebt { get; }
+        public double TotalLiabilities { get; init; }
+        public double WorkingCapital { get; }
+        public string[] Validate() { }
+    }
+    public enum RatioDirection
+    {
+        HigherIsBetter = 0,
+        LowerIsBetter = 1,
+        Neutral = 2,
+    }
+    public sealed record RatioReport : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.RatioReport>
+    {
+        public RatioReport() { }
+        public double AssetTurnover { get; init; }
+        public double BenchmarkPassRate { get; }
+        public double CashConversionCycle { get; init; }
+        public string Company { get; init; }
+        public double CurrentRatio { get; init; }
+        public double DebtToEquity { get; init; }
+        public double InterestCoverage { get; init; }
+        public double NetMargin { get; init; }
+        public string Period { get; init; }
+        public double QuickRatio { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.FinancialRatio> Ratios { get; init; }
+        public double ReturnOnAssets { get; init; }
+        public double ReturnOnEquity { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.FinancialRatio> Group(string group) { }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record ScoreComponent : System.IEquatable<AI.Economics.Statements.ScoreComponent>
+    {
+        public ScoreComponent(string Name, double Value, double Weight, double Contribution) { }
+        public double Contribution { get; init; }
+        public string Name { get; init; }
+        public double Value { get; init; }
+        public double Weight { get; init; }
+    }
+    public static class WorkingCapitalAnalysis
+    {
+        public static AI.Economics.Statements.WorkingCapitalResult Analyze(AI.Economics.Statements.FinancialStatement statement, AI.Economics.Statements.WorkingCapitalTargets? targets = null) { }
+    }
+    public sealed record WorkingCapitalDriver : System.IEquatable<AI.Economics.Statements.WorkingCapitalDriver>
+    {
+        public WorkingCapitalDriver(string Name, double Days, double TargetDays, double AmountPerDay, double CashImpact, string Comment) { }
+        public double AmountPerDay { get; init; }
+        public double CashImpact { get; init; }
+        public string Comment { get; init; }
+        public double Days { get; init; }
+        public string Name { get; init; }
+        public double TargetDays { get; init; }
+    }
+    public sealed record WorkingCapitalResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Statements.WorkingCapitalResult>
+    {
+        public WorkingCapitalResult() { }
+        public double AnnualFundingSaving { get; init; }
+        public double CashConversionCycle { get; init; }
+        public string Company { get; init; }
+        public double DaysInventoryOutstanding { get; init; }
+        public double DaysPayablesOutstanding { get; init; }
+        public double DaysSalesOutstanding { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Statements.WorkingCapitalDriver> Drivers { get; init; }
+        public double FundingPerGrowthPoint { get; init; }
+        public double OperatingCycle { get; init; }
+        public string Period { get; init; }
+        public double PotentialCashRelease { get; init; }
+        public double WorkingCapital { get; init; }
+        public double WorkingCapitalToRevenue { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record WorkingCapitalTargets : System.IEquatable<AI.Economics.Statements.WorkingCapitalTargets>
+    {
+        public WorkingCapitalTargets() { }
+        public double CostOfFunding { get; init; }
+        public double DaysInventoryOutstanding { get; init; }
+        public double DaysPayablesOutstanding { get; init; }
+        public double DaysSalesOutstanding { get; init; }
+    }
+}
+namespace AI.Economics.Survival
+{
+    public static class CompetingRisks
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Survival.CumulativeIncidence> Analyze(System.Collections.Generic.IReadOnlyList<AI.Economics.Survival.SurvivalRecord> data, System.Collections.Generic.IReadOnlyDictionary<int, string>? causeNames = null) { }
+    }
+    public static class CompetingRisksInsights
+    {
+        public static AI.Insights.Interpretation Interpret(this System.Collections.Generic.IReadOnlyList<AI.Economics.Survival.CumulativeIncidence> causes) { }
+    }
+    public sealed record CoxCoefficient : System.IEquatable<AI.Economics.Survival.CoxCoefficient>
+    {
+        public CoxCoefficient() { }
+        public double Beta { get; init; }
+        public double HazardRatio { get; init; }
+        public double HazardRatioLower { get; init; }
+        public double HazardRatioUpper { get; init; }
+        public string Name { get; init; }
+        public double PValue { get; init; }
+        public double StandardError { get; init; }
+        public double ZScore { get; init; }
+    }
+    public sealed class CoxProportionalHazards : AI.Insights.IInterpretable
+    {
+        public CoxProportionalHazards() { }
+        public AI.DataStructs.Algebraic.Vector BaselineCumulativeHazard { get; }
+        public AI.DataStructs.Algebraic.Vector BaselineTimes { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.Survival.CoxCoefficient> Coefficients { get; }
+        public double ConcordanceIndex { get; }
+        public int Iterations { get; }
+        public double LogPartialLikelihood { get; }
+        public void Fit(System.Collections.Generic.IReadOnlyList<AI.Economics.Survival.SurvivalRecord> data, System.Collections.Generic.IReadOnlyList<string>? covariateNames = null, int maxIterations = 50, double tolerance = 1E-09) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public AI.DataStructs.Algebraic.Vector PredictSurvival(AI.DataStructs.Algebraic.Vector covariates) { }
+        public double RiskScore(AI.DataStructs.Algebraic.Vector covariates) { }
+    }
+    public sealed record CumulativeIncidence : System.IEquatable<AI.Economics.Survival.CumulativeIncidence>
+    {
+        public CumulativeIncidence() { }
+        public int Cause { get; init; }
+        public double FinalIncidence { get; init; }
+        public double FinalNaiveIncidence { get; init; }
+        public AI.DataStructs.Algebraic.Vector Incidence { get; init; }
+        public AI.DataStructs.Algebraic.Vector NaiveIncidence { get; init; }
+        public string Name { get; init; }
+        public AI.DataStructs.Algebraic.Vector Times { get; init; }
+    }
+    public sealed class KaplanMeier : AI.Insights.IInterpretable
+    {
+        public KaplanMeier() { }
+        public AI.DataStructs.Algebraic.Vector AtRisk { get; }
+        public double ConfidenceLevel { get; }
+        public AI.DataStructs.Algebraic.Vector Events { get; }
+        public AI.DataStructs.Algebraic.Vector Lower { get; }
+        public double MedianSurvivalTime { get; }
+        public AI.DataStructs.Algebraic.Vector SurvivalCurve { get; }
+        public AI.DataStructs.Algebraic.Vector Times { get; }
+        public AI.DataStructs.Algebraic.Vector Upper { get; }
+        public void Fit(System.Collections.Generic.IReadOnlyList<AI.Economics.Survival.SurvivalRecord> data, double confidenceLevel = 0.95) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public double RestrictedMeanSurvival(double tau) { }
+        public double SurvivalAt(double time) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "ChiSquare",
+                "PValue"})]
+        public static System.ValueTuple<double, double> LogRankTest(System.Collections.Generic.IReadOnlyList<AI.Economics.Survival.SurvivalRecord> data, int groupA = 0, int groupB = 1) { }
+    }
+    public sealed record SurvivalRecord : System.IEquatable<AI.Economics.Survival.SurvivalRecord>
+    {
+        public SurvivalRecord() { }
+        public int Cause { get; init; }
+        public AI.DataStructs.Algebraic.Vector? Covariates { get; init; }
+        public bool Event { get; init; }
+        public int Group { get; init; }
+        public string Id { get; init; }
+        public double Time { get; init; }
+    }
+}
+namespace AI.Economics.UnitEconomics
+{
+    public static class ChannelEconomics
+    {
+        public static AI.Economics.UnitEconomics.ChannelMixResult Analyze(System.Collections.Generic.IReadOnlyList<AI.Economics.UnitEconomics.ChannelInput> channels) { }
+    }
+    public sealed record ChannelInput : System.IEquatable<AI.Economics.UnitEconomics.ChannelInput>
+    {
+        public ChannelInput() { }
+        public double ChurnRate { get; init; }
+        public double DiscountRate { get; init; }
+        public double GrossMarginRate { get; init; }
+        public int Horizon { get; init; }
+        public string Name { get; init; }
+        public double NewCustomers { get; init; }
+        public double RevenuePerPeriod { get; init; }
+        public double Spend { get; init; }
+    }
+    public sealed record ChannelMixResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.UnitEconomics.ChannelMixResult>
+    {
+        public ChannelMixResult() { }
+        public string? BestChannel { get; init; }
+        public double BlendedCac { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Economics.UnitEconomics.ChannelResult> Channels { get; init; }
+        public double LtvToPaidCac { get; init; }
+        public double PaidCac { get; init; }
+        public double TotalCustomers { get; init; }
+        public double TotalNetContribution { get; init; }
+        public double TotalSpend { get; init; }
+        public double WeightedLtv { get; init; }
+        public string? WorstChannel { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record ChannelResult : System.IEquatable<AI.Economics.UnitEconomics.ChannelResult>
+    {
+        public ChannelResult() { }
+        public double CustomerShare { get; init; }
+        public AI.Economics.UnitEconomics.UnitEconomicsResult Economics { get; init; }
+        public string Name { get; init; }
+        public double SpendShare { get; init; }
+        public double TotalNetContribution { get; init; }
+    }
+    public static class UnitEconomicsCalculator
+    {
+        public static AI.Economics.UnitEconomics.UnitEconomicsResult Compute(AI.Economics.UnitEconomics.UnitEconomicsInput input) { }
+        public static double LtvFromChurn(double contributionPerPeriod, double churnRate, double discountRate = 0) { }
+        public static double LtvFromCurve(double contributionPerPeriod, AI.DataStructs.Algebraic.Vector survival, double discountRate = 0) { }
+    }
+    public sealed record UnitEconomicsInput : System.IEquatable<AI.Economics.UnitEconomics.UnitEconomicsInput>
+    {
+        public UnitEconomicsInput() { }
+        public double CacOverride { get; init; }
+        public double ChurnRate { get; init; }
+        public double DiscountRate { get; init; }
+        public double GrossMarginRate { get; init; }
+        public int Horizon { get; init; }
+        public double MarketingSpend { get; init; }
+        public double NewCustomers { get; init; }
+        public double RevenuePerPeriod { get; init; }
+        public double SalesSpend { get; init; }
+        public AI.DataStructs.Algebraic.Vector? Survival { get; init; }
+        public double VariableCostPerPeriod { get; init; }
+    }
+    public sealed record UnitEconomicsResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.UnitEconomics.UnitEconomicsResult>
+    {
+        public UnitEconomicsResult() { }
+        public double Arpu { get; init; }
+        public double Cac { get; init; }
+        public double CacPaybackPeriods { get; init; }
+        public double ContributionMarginRate { get; init; }
+        public double ContributionPerPeriod { get; init; }
+        public AI.DataStructs.Algebraic.Vector CumulativeNet { get; init; }
+        public double ExpectedLifetimePeriods { get; init; }
+        public int HorizonUsed { get; init; }
+        public double Ltv { get; init; }
+        public double LtvToCac { get; init; }
+        public double NetContribution { get; init; }
+        public AI.DataStructs.Algebraic.Vector Survival { get; init; }
+        public double UndiscountedLtv { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Economics.Valuation
+{
+    public sealed record BerkusFactor : System.IEquatable<AI.Economics.Valuation.BerkusFactor>
+    {
+        public BerkusFactor(string Name, double Score, double MaxValue) { }
+        public double MaxValue { get; init; }
+        public string Name { get; init; }
+        public double Score { get; init; }
+    }
+    public sealed record RealOptionInput : System.IEquatable<AI.Economics.Valuation.RealOptionInput>
+    {
+        public RealOptionInput() { }
+        public double InvestmentCost { get; init; }
+        public double ProjectValue { get; init; }
+        public double RiskFreeRate { get; init; }
+        public int Steps { get; init; }
+        public double ValueLeakage { get; init; }
+        public double Volatility { get; init; }
+        public double YearsToDecision { get; init; }
+    }
+    public sealed record RealOptionResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Valuation.RealOptionResult>
+    {
+        public RealOptionResult() { }
+        public double BinomialValue { get; init; }
+        public double BlackScholesValue { get; init; }
+        public double Delta { get; init; }
+        public double ExerciseProbability { get; init; }
+        public double FlexibilityPremium { get; init; }
+        public double ImmediateExerciseThreshold { get; init; }
+        public double StaticNpv { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class RealOptionValuation
+    {
+        public static AI.Economics.Valuation.RealOptionResult Evaluate(AI.Economics.Valuation.RealOptionInput input) { }
+    }
+    public sealed record ScenarioValuationResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Valuation.ScenarioValuationResult>
+    {
+        public ScenarioValuationResult() { }
+        public double BestCaseShare { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Name",
+                "Probability",
+                "Valuation",
+                "Contribution"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double, double, double>> Breakdown { get; init; }
+        public double ExpectedValuation { get; init; }
+        public double StandardDeviation { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record ScorecardFactor : System.IEquatable<AI.Economics.Valuation.ScorecardFactor>
+    {
+        public ScorecardFactor(string Name, double Weight, double Ratio) { }
+        public string Name { get; init; }
+        public double Ratio { get; init; }
+        public double Weight { get; init; }
+    }
+    public static class StartupValuation
+    {
+        public static double Berkus(System.Collections.Generic.IReadOnlyList<AI.Economics.Valuation.BerkusFactor> factors) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Valuation.BerkusFactor> BerkusDefaults(double maxPerFactor, params double[] scores) { }
+        public static AI.Economics.Valuation.ScenarioValuationResult FirstChicago(System.Collections.Generic.IReadOnlyList<AI.Economics.Valuation.ValuationScenario> scenarios) { }
+        public static double Scorecard(double averageMarketPreMoney, System.Collections.Generic.IReadOnlyList<AI.Economics.Valuation.ScorecardFactor> factors) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Economics.Valuation.ScorecardFactor> ScorecardDefaults(params double[] ratios) { }
+        public static AI.Economics.Valuation.VcMethodResult VcMethod(AI.Economics.Valuation.VcMethodInput input) { }
+    }
+    public sealed record ValuationScenario : System.IEquatable<AI.Economics.Valuation.ValuationScenario>
+    {
+        public ValuationScenario(string Name, double Probability, double Valuation) { }
+        public string Name { get; init; }
+        public double Probability { get; init; }
+        public double Valuation { get; init; }
+    }
+    public sealed record VcMethodInput : System.IEquatable<AI.Economics.Valuation.VcMethodInput>
+    {
+        public VcMethodInput() { }
+        public double ExitMultiple { get; init; }
+        public double ExitRevenue { get; init; }
+        public double ExitValueOverride { get; init; }
+        public double ExpectedFutureDilution { get; init; }
+        public double Investment { get; init; }
+        public double TargetIrr { get; init; }
+        public double YearsToExit { get; init; }
+    }
+    public sealed record VcMethodResult : AI.Insights.IInterpretable, System.IEquatable<AI.Economics.Valuation.VcMethodResult>
+    {
+        public VcMethodResult() { }
+        public double ExitValue { get; init; }
+        public double MoneyMultiple { get; init; }
+        public double OwnershipAtExit { get; init; }
+        public double OwnershipNow { get; init; }
+        public double PostMoneyValuation { get; init; }
+        public double PreMoneyValuation { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}

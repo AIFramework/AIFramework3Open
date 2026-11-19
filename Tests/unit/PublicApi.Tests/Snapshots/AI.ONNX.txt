@@ -1,0 +1,136 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ONNX.Base.LayersModel
+{
+    public enum DataType
+    {
+        Float32 = 0,
+        Float64 = 1,
+        Int32 = 2,
+        Int64 = 3,
+    }
+    public class Dense : System.IDisposable
+    {
+        public Dense(string modelPath, AI.ONNX.Base.LayersModel.DataType dtype = 0) { }
+        public AI.ONNX.Base.LayersModel.DataType DType { get; set; }
+        public void Dispose() { }
+        public AI.DataStructs.Algebraic.Vector ForwardNoBatch(AI.DataStructs.Algebraic.Vector inputVector) { }
+    }
+}
+namespace AI.ONNX.Classifiers
+{
+    public class GrayScaleClassifier
+    {
+        public GrayScaleClassifier(string path, AI.ONNX.LibType libType = 0) { }
+        public AI.DataStructs.Algebraic.Vector Classify(AI.DataStructs.Algebraic.Matrix img) { }
+    }
+}
+namespace AI.ONNX
+{
+    public enum LibType
+    {
+        Keras = 0,
+        PyTorch = 1,
+        InverseCh = 2,
+    }
+    public class Tensor2Tensor : System.IDisposable
+    {
+        public Tensor2Tensor(string path, AI.ONNX.LibType libType = 0, AI.ONNX.LibType libTypeOut = 0) { }
+        public int DimOut { get; }
+        public int InputD { get; }
+        public int InputH { get; }
+        public string InputName { get; }
+        public int InputW { get; }
+        public AI.ONNX.LibType LibType { get; }
+        public int OutpD { get; }
+        public int OutpH { get; }
+        public int OutpW { get; }
+        public string OutputName { get; }
+        public Microsoft.ML.OnnxRuntime.InferenceSession Session { get; protected set; }
+        public void Dispose() { }
+        public AI.DataStructs.Algebraic.Tensor Transform(AI.DataStructs.Algebraic.Tensor img) { }
+    }
+}
+namespace AI.ONNX.NLP.Bert
+{
+    [System.Serializable]
+    public class BertConfig
+    {
+        public BertConfig() { }
+        [System.Text.Json.Serialization.JsonPropertyName("architectures")]
+        public System.Collections.Generic.List<string> Architectures { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("attention_probs_dropout_prob")]
+        public double AttentionProbsDropoutProb { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("classifier_dropout")]
+        public double? ClassifierDropout { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("gradient_checkpointing")]
+        public bool GradientCheckpointing { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hidden_act")]
+        public string HiddenAct { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hidden_dropout_prob")]
+        public double HiddenDropoutProb { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hidden_size")]
+        public int HiddenSize { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("initializer_range")]
+        public double InitializerRange { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("intermediate_size")]
+        public int IntermediateSize { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("layer_norm_eps")]
+        public double LayerNormEps { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("max_position_embeddings")]
+        public int MaxPositionEmbeddings { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("_name_or_path")]
+        public string NameOrPath { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("num_attention_heads")]
+        public int NumAttentionHeads { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("num_hidden_layers")]
+        public int NumHiddenLayers { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("pad_token_id")]
+        public int PadTokenId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("position_embedding_type")]
+        public string PositionEmbeddingType { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("transformers_version")]
+        public string TransformersVersion { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("type_vocab_size")]
+        public int TypeVocabSize { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("use_cache")]
+        public bool UseCache { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("vocab_size")]
+        public int VocabSize { get; set; }
+        public static AI.ONNX.NLP.Bert.BertConfig FromJson(string jsonConfigPath) { }
+    }
+    public class BertEmbedder
+    {
+        public BertEmbedder() { }
+        public BertEmbedder(AI.DataPrepaire.Tokenizers.TextTokenizers.HFTokenizers.BertTokenizer tokenizer, AI.ONNX.NLP.Bert.BertInfer model) { }
+        public AI.ONNX.NLP.Bert.BertInfer BertInference { get; set; }
+        public int BlockSize { get; set; }
+        public System.Func<string, string> Cleaner { get; set; }
+        public AI.ONNX.NLP.Bert.BertConfig Config { get; set; }
+        public bool IsCutting { get; set; }
+        public AI.DataPrepaire.Tokenizers.TextTokenizers.HFTokenizers.BertTokenizer Tokenizer { get; set; }
+        public System.Collections.Generic.List<AI.DataPrepaire.DataLoader.NNWBlockLoader.INNWBlockV2V> V2VBlocks { get; set; }
+        public System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> ForwardBert(string text) { }
+        public AI.DataStructs.Algebraic.Vector[] ForwardBlockPooling(System.Collections.Generic.IEnumerable<string> texts) { }
+        public AI.DataStructs.Algebraic.Vector ForwardBlockPooling(System.Collections.Generic.IEnumerable<string> texts, System.Collections.Generic.IEnumerable<double> blockWeights) { }
+        public AI.DataStructs.Algebraic.Vector ForwardSBert(string text) { }
+        public static string CleanString(string text) { }
+        public static AI.ONNX.NLP.Bert.BertEmbedder FromPretrained(string pathToFolder) { }
+    }
+    public class BertInfer : System.IDisposable
+    {
+        public BertInfer(string modelPath) { }
+        public System.Collections.Generic.Dictionary<string, Microsoft.ML.OnnxRuntime.OrtValue> CreateInput(long[] inpIds, long[] attentionMask, long[] types) { }
+        public void Dispose() { }
+        public AI.DataStructs.Algebraic.Vector[] Forward(System.Collections.Generic.IEnumerable<int> inpIds, System.Collections.Generic.IEnumerable<int> attentionMask, System.Collections.Generic.IEnumerable<int> types) { }
+    }
+    public sealed class OnnxBertEmbedder : AI.LLM.Services.Embeddings.Base.EmbedderServiceBase, System.IDisposable
+    {
+        public static readonly string[] RequiredFiles;
+        public OnnxBertEmbedder(string modelFolder) { }
+        public int Dimension { get; }
+        public void Dispose() { }
+        public override System.Threading.Tasks.Task<AI.DataStructs.Algebraic.Vector[]> EncodeAsync(System.Collections.Generic.IEnumerable<string> texts, System.Threading.CancellationToken cancellationToken = default) { }
+        public static bool IsModelFolder(string folder) { }
+    }
+}

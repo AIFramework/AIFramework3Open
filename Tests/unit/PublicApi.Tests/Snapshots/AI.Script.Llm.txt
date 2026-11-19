@@ -1,0 +1,157 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Llm
+{
+    public sealed record BenchmarkOutcome : System.IEquatable<AI.Script.Llm.BenchmarkOutcome>
+    {
+        public BenchmarkOutcome(AI.Script.Llm.BenchmarkTask Task, AI.Script.Llm.ScriptSolution Solution, string? Problem) { }
+        public string? Problem { get; init; }
+        public AI.Script.Llm.ScriptSolution Solution { get; init; }
+        public bool Solved { get; }
+        public AI.Script.Llm.BenchmarkTask Task { get; init; }
+    }
+    public sealed record BenchmarkReport : System.IEquatable<AI.Script.Llm.BenchmarkReport>
+    {
+        public BenchmarkReport(System.Collections.Generic.IReadOnlyList<AI.Script.Llm.BenchmarkOutcome> Outcomes) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Llm.BenchmarkOutcome> Outcomes { get; init; }
+        public int Solved { get; }
+        public int Total { get; }
+        public string Render() { }
+    }
+    public sealed record BenchmarkTask : System.IEquatable<AI.Script.Llm.BenchmarkTask>
+    {
+        public BenchmarkTask(string Name, string Task, System.Func<AI.Script.Hosting.RunResult, string?> Verify) { }
+        public string Name { get; init; }
+        public string Task { get; init; }
+        public System.Func<AI.Script.Hosting.RunResult, string?> Verify { get; init; }
+    }
+    public static class JsonIsland
+    {
+        public static bool TryExtract(string text, out AI.Script.Runtime.ScriptValue value) { }
+    }
+    public static class LlmLibrary
+    {
+        public static AI.Script.Hosting.ScriptHost UseLlm(this AI.Script.Hosting.ScriptHost host, AI.LLM.Core.Abstractions.ILLMClient? client = null, AI.LLM.Core.Abstractions.IEmbedderService? embedder = null, AI.LLM.Core.Abstractions.IRerankerService<string, string>? reranker = null) { }
+    }
+    [AI.Script.Binding.ScriptModule("llm", "Языковые модели: запросы, эмбеддинги; сеть бывает запрещена", Group="тексты")]
+    public sealed class LlmModule
+    {
+        public const string MapColumn = "answer";
+        public LlmModule(AI.LLM.Core.Abstractions.ILLMClient? client = null, AI.LLM.Core.Abstractions.IEmbedderService? embedder = null, AI.LLM.Core.Abstractions.IRerankerService<string, string>? reranker = null) { }
+        [AI.Script.Binding.ScriptFn("ask", "Задаёт модели вопрос и возвращает ответ текстом", Example="let answer = llm.ask(\"Перечисли три причины\", system: \"Отвечай списком\")")]
+        public System.Threading.Tasks.Task<string> Ask(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("текст запроса")] string prompt, [AI.Script.Binding.ScriptParam("системная инструкция")] string system = "", [AI.Script.Binding.ScriptParam("температура: выше — разнообразнее")] double temperature = 0, [AI.Script.Binding.ScriptParam("потолок длины ответа в токенах")] int max_tokens = 0) { }
+        [AI.Script.Binding.ScriptFn("available", "Подключена ли модель и разрешена ли сеть", Example="let answer = if llm.available() { llm.ask(question) } else { \"модель недоступна\" " +
+            "}")]
+        public bool Available(AI.Script.Binding.IScriptContext context) { }
+        [AI.Script.Binding.ScriptFn("chat", "Запрос с историей сообщений", Example="llm.chat([{ role: \"system\", text: \"Ты аналитик\" }, { role: \"user\", text: \"Итог?\" " +
+            "}])")]
+        public System.Threading.Tasks.Task<string> Chat(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("список записей { role, text }")] AI.Script.Runtime.ScriptList messages, [AI.Script.Binding.ScriptParam("температура")] double temperature = 0, [AI.Script.Binding.ScriptParam("потолок длины ответа в токенах")] int max_tokens = 0) { }
+        [AI.Script.Binding.ScriptFn("classify", "Относит текст к одной из меток", Example="llm.classify(отзыв, labels: [\"положительный\", \"отрицательный\"])")]
+        public System.Threading.Tasks.Task<string> Classify(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("текст")] string text, [AI.Script.Binding.ScriptParam("список меток")] AI.Script.Runtime.ScriptList labels, [AI.Script.Binding.ScriptParam("пояснение к задаче")] string instruction = "") { }
+        [AI.Script.Binding.ScriptFn("embed", "Векторное представление текста", Example="let v = llm.embed(\"текст запроса\")")]
+        public System.Threading.Tasks.Task<AI.DataStructs.Algebraic.Vector> Embed(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("текст")] string text) { }
+        [AI.Script.Binding.ScriptFn("embed_all", "Векторные представления списка текстов одной пачкой", Example="let m = llm.embed_all(документы)")]
+        public System.Threading.Tasks.Task<AI.DataStructs.Algebraic.Matrix> EmbedAll(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("список текстов")] AI.Script.Runtime.ScriptList texts) { }
+        [AI.Script.Binding.ScriptFn("extract", "Достаёт поля по схеме из каждого текста: строка на текст", Example="llm.extract(тексты, schema: { срок: \"date\", сумма: \"dec\" })")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptTable> Extract(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("текст либо список текстов")] AI.Script.Runtime.ScriptValue texts, [AI.Script.Binding.ScriptParam("схема: поле — тип (str, num, dec, bool, date)")] AI.Script.Runtime.ScriptRecord schema, [AI.Script.Binding.ScriptParam("что это за тексты: подсказка модели")] string about = "", [AI.Script.Binding.ScriptParam("температура")] double temperature = 0) { }
+        [AI.Script.Binding.ScriptFn("json", "Запрос со структурированным ответом: разбирает JSON из ответа модели", Example="llm.json(\"Разбери отзыв\", schema: { тон: \"str\", оценка: \"num\" })")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptValue> Json(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("текст запроса")] string prompt, [AI.Script.Binding.ScriptParam("образец ответа: поля и что в них класть")] AI.Script.Runtime.ScriptValue shape = default, [AI.Script.Binding.ScriptParam("схема ответа: поле — тип (str, num, dec, bool, date, list, record)")] AI.Script.Runtime.ScriptValue schema = default, [AI.Script.Binding.ScriptParam("системная инструкция")] string system = "", [AI.Script.Binding.ScriptParam("температура")] double temperature = 0) { }
+        [AI.Script.Binding.ScriptFn("map", "Запрос модели на каждую строку: ответы новой колонкой, с кэшем", Example="товары |> llm.map(prompt: row => \"Опиши ${row.name} в 40 словах\")")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptTable> Map(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("таблица строк")] AI.Script.Runtime.ScriptTable rows, [AI.Script.Binding.ScriptParam("запрос: функция от строки, возвращающая текст")] AI.Script.Runtime.ScriptCallable prompt, [AI.Script.Binding.ScriptParam("имя колонки для ответа")] string to = "answer", [AI.Script.Binding.ScriptParam("системная инструкция")] string system = "", [AI.Script.Binding.ScriptParam("температура")] double temperature = 0, [AI.Script.Binding.ScriptParam("отправлять запросы одновременно")] bool parallel = false) { }
+        [AI.Script.Binding.ScriptFn("rerank", "Оценивает близость запроса к каждому документу", Example="let scores = llm.rerank(question, docs)")]
+        public System.Threading.Tasks.Task<AI.DataStructs.Algebraic.Vector> Rerank(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("запрос")] string query, [AI.Script.Binding.ScriptParam("список документов")] AI.Script.Runtime.ScriptList documents) { }
+        public AI.Script.Binding.ScriptModule ToScriptModule() { }
+        [AI.Script.Binding.ScriptFn("usage", "Расход прогона: вызовы, токены, стоимость", Example="emit spent = llm.usage()")]
+        public static AI.Script.Runtime.ScriptRecord Usage(AI.Script.Binding.IScriptContext context) { }
+    }
+    public static class SchemaFit
+    {
+        public static string Describe(AI.Script.Runtime.ScriptRecord schema) { }
+        public static bool TryFit(AI.Script.Runtime.ScriptValue value, AI.Script.Runtime.ScriptRecord schema, out AI.Script.Runtime.ScriptValue fitted, out string error, bool missing = false) { }
+    }
+    public static class ScriptBenchmark
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Script.Llm.BenchmarkTask> Tasks { get; }
+        public static string? Near(AI.Script.Hosting.RunResult result, string name, double expected, double tolerance) { }
+        public static System.Threading.Tasks.Task<AI.Script.Llm.BenchmarkReport> RunAsync(AI.Script.Llm.ScriptWriter writer, System.Collections.Generic.IReadOnlyList<AI.Script.Llm.BenchmarkTask>? tasks = null, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public static class ScriptPrompt
+    {
+        public static string Card { get; }
+        public static string CardFor(AI.Script.Hosting.ScriptHost host) { }
+        public static string ExtractScript(string answer) { }
+        public static string Repair(string script, System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.Diagnostic> diagnostics) { }
+        public static string System(AI.Script.Hosting.ScriptHost host) { }
+    }
+    public sealed record ScriptSolution : System.IEquatable<AI.Script.Llm.ScriptSolution>
+    {
+        public ScriptSolution(string Script, AI.Script.Hosting.RunResult? Result, System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.Diagnostic> Diagnostics, int Attempts) { }
+        public int Attempts { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.Diagnostic> Diagnostics { get; init; }
+        public AI.Script.Hosting.RunResult? Result { get; init; }
+        public string Script { get; init; }
+        public bool Success { get; }
+    }
+    public sealed class ScriptTool
+    {
+        public const int LineLimit = 300;
+        public const int TranscriptLines = 40;
+        public ScriptTool(AI.Script.Hosting.ScriptHost host, System.Func<AI.Script.Hosting.RunOptions>? options = null, System.Func<System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.ScriptInput>, System.Threading.CancellationToken, System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<string, object?>>>? inputs = null) { }
+        public AI.Script.Hosting.RunResult? Last { get; }
+        [AI.LLM.Agents.Tools.AgentTool("check_script", "Проверить скрипт AIScript, не выполняя его: имена, аргументы и типы.")]
+        public AI.LLM.Agents.Multimodal.ToolResult Check([AI.LLM.Agents.Tools.ToolParameter("исходный текст скрипта на языке AIScript")] string script) { }
+        [AI.LLM.Agents.Tools.AgentTool("script_help", "Справка по языку AIScript: задача (например «данные»), пространство имён, конкрет" +
+            "ная функция либо поиск по словам задачи. Без аргумента — пространства по задачам" +
+            ".")]
+        public string Help([AI.LLM.Agents.Tools.ToolParameter("задача, имя пространства, полное имя функции либо слова задачи", Required=false)] string query = "") { }
+        [AI.LLM.Agents.Tools.AgentTool("run_script", "Выполнить конвейер обработки данных на языке AIScript. Скрипт сначала проверяется" +
+            ": при ошибках вернутся диагностики, и прогон не начнётся.")]
+        public System.Threading.Tasks.Task<AI.LLM.Agents.Multimodal.ToolResult> RunAsync([AI.LLM.Agents.Tools.ToolParameter("исходный текст скрипта на языке AIScript")] string script, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class ScriptWriter
+    {
+        public ScriptWriter(AI.LLM.Core.Abstractions.ILLMClient llm, AI.Script.Hosting.ScriptHost host, AI.Script.Llm.ScriptWriterOptions? options = null) { }
+        public System.Threading.Tasks.Task<AI.Script.Llm.ScriptSolution> SolveAsync(string task, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class ScriptWriterOptions
+    {
+        public ScriptWriterOptions() { }
+        public int MaxRepairs { get; set; }
+        public bool RepairFailedRuns { get; set; }
+        public System.Func<AI.Script.Hosting.RunOptions> RunOptions { get; set; }
+        public double Temperature { get; set; }
+    }
+    public sealed class SearchIndex
+    {
+        public SearchIndex(System.Collections.Generic.IReadOnlyList<string> texts, AI.DataStructs.Algebraic.Vector[]? vectors, AI.Script.Std.TextIndex? words) { }
+        public int Count { get; }
+        public string Kind { get; }
+        public bool NeedsEmbedding { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Document",
+                "Score"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, double>> Search(string query, AI.DataStructs.Algebraic.Vector? embedding, int top) { }
+        public string Text(int document) { }
+    }
+    [AI.Script.Binding.ScriptModule("search", "Поиск по корпусу: семантический, словесный и гибридный", Group="тексты")]
+    public sealed class SearchModule
+    {
+        public const string IndexHandle = "search.index";
+        public SearchModule(AI.LLM.Core.Abstractions.IEmbedderService? embedder = null) { }
+        [AI.Script.Binding.ScriptFn("context", "Склеивает найденное в текст для промпта", Example="let ctx = index.context(question, top: 4)")]
+        [AI.Script.Binding.ScriptMethod("search.index")]
+        public System.Threading.Tasks.Task<string> Context(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("индекс")] AI.Script.Runtime.ScriptHandle handle, [AI.Script.Binding.ScriptParam("текст запроса")] string query, [AI.Script.Binding.ScriptParam("сколько фрагментов взять")] int top = 5, [AI.Script.Binding.ScriptParam("потолок длины в символах")] int limit = 4000) { }
+        [AI.Script.Binding.ScriptFn("of", "Строит индекс по списку документов", Example="let index = search.of(docs)", Returns="search.index")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptHandle> Of(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("список текстов")] AI.Script.Runtime.ScriptList documents, [AI.Script.Binding.ScriptParam("вид индекса: \"semantic\", \"words\" либо \"hybrid\"")] string kind = "semantic") { }
+        [AI.Script.Binding.ScriptFn("query", "Ищет по запросу; возвращает таблицу с полями doc, text, score", Example="let found = index.query(\"как настроить прокси\", top: 3)")]
+        [AI.Script.Binding.ScriptMethod("search.index")]
+        public System.Threading.Tasks.Task<AI.Script.Runtime.ScriptTable> Query(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("индекс")] AI.Script.Runtime.ScriptHandle handle, [AI.Script.Binding.ScriptParam("текст запроса")] string query, [AI.Script.Binding.ScriptParam("сколько лучших вернуть")] int top = 5) { }
+        public AI.Script.Binding.ScriptModule ToScriptModule() { }
+        [AI.Script.Binding.ScriptFn("kind", "Вид индекса", Example="index.kind()")]
+        [AI.Script.Binding.ScriptMethod("search.index")]
+        public static string Kind([AI.Script.Binding.ScriptParam("индекс")] AI.Script.Runtime.ScriptHandle index) { }
+        [AI.Script.Binding.ScriptFn("size", "Сколько документов в индексе", Example="index.size()")]
+        [AI.Script.Binding.ScriptMethod("search.index")]
+        public static double Size([AI.Script.Binding.ScriptParam("индекс")] AI.Script.Runtime.ScriptHandle index) { }
+    }
+}

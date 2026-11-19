@@ -1,0 +1,97 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Logic.Data
+{
+    [System.Serializable]
+    public class DataDict<ImageType, ElementType>
+    {
+        public DataDict() { }
+        public System.Collections.Generic.Dictionary<ImageType, ElementType> TaskData { get; set; }
+    }
+    [System.Serializable]
+    public abstract class DataMutation<ImageType, ElementType>
+    {
+        protected DataMutation() { }
+        public ImageType Image { get; set; }
+        public abstract ElementType Transformer(ElementType dataInput);
+    }
+    [System.Serializable]
+    public class PathImplication
+    {
+        public PathImplication() { }
+        public uint ID { get; set; }
+        public double Prob { get; set; }
+    }
+}
+namespace AI.Logic.DiscretMath
+{
+    [System.Serializable]
+    public class LogicVar<T>
+    {
+        public LogicVar() { }
+        public LogicVar(T value) { }
+        public LogicVar(T value, bool mu) { }
+        public bool Mu { get; set; }
+        public T Value { get; set; }
+    }
+}
+namespace AI.Logic.Ontology.RDF
+{
+    [System.Serializable]
+    public class InferenceEngine
+    {
+        public InferenceEngine(AI.Logic.Ontology.RDF.Ontology ontology) { }
+        public System.Collections.Generic.List<AI.Logic.Ontology.RDF.Triple> Infer() { }
+    }
+    [System.Serializable]
+    public class Ontology
+    {
+        public Ontology() { }
+        public void AddTriple(AI.Logic.Ontology.RDF.Triple triple) { }
+        public System.Collections.Generic.HashSet<string> GetSubclasses(string cls) { }
+        public System.Collections.Generic.HashSet<string> GetSubproperties(string prop) { }
+        public System.Collections.Generic.List<AI.Logic.Ontology.RDF.Triple> GetTriples() { }
+        public System.Collections.Generic.List<AI.Logic.Ontology.RDF.Triple> GetTriplesByObject(string obj) { }
+        public System.Collections.Generic.List<AI.Logic.Ontology.RDF.Triple> GetTriplesByPredicate(string predicate) { }
+        public System.Collections.Generic.List<AI.Logic.Ontology.RDF.Triple> GetTriplesBySubject(string subject) { }
+    }
+    [System.Serializable]
+    public class Triple
+    {
+        public Triple(string subject, string predicate, string obj) { }
+        public string Object { get; }
+        public string Predicate { get; }
+        public string Subject { get; }
+        public override string ToString() { }
+    }
+}
+namespace AI.Logic.Probability
+{
+    [System.Serializable]
+    public class BayesianInference
+    {
+        public BayesianInference() { }
+        public double GetPosterior(string hypothesis) { }
+        public double GetPrior(string @event) { }
+        public void SetPrior(string @event, double probability) { }
+        public void UpdateProbabilities(System.Collections.Generic.Dictionary<string, double> likelihoods, System.Collections.Generic.Dictionary<string, double> hypotheses) { }
+    }
+    public enum CondOperations
+    {
+        Or = 0,
+        And = 1,
+    }
+    public class Condition<ImageType, ElementType> : System.Collections.Generic.List<AI.Fuzzy.Sets.FuzzySetGenerator<ImageType, ElementType>>
+    {
+        public Condition() { }
+        public AI.Logic.Probability.CondOperations OperationType { get; set; }
+    }
+    [System.Serializable]
+    public class ProbRule<ImageType, ElementType>
+    {
+        public ProbRule() { }
+        public AI.Logic.Probability.Condition<ImageType, ElementType> ConditionRule { get; set; }
+        public AI.Logic.Data.PathImplication Path { get; set; }
+        public AI.Logic.Data.DataMutation<ImageType, ElementType> Then { get; set; }
+    }
+}

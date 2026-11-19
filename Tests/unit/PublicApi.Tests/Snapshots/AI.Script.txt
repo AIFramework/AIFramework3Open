@@ -1,0 +1,1628 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Binding
+{
+    public sealed class FunctionRegistry
+    {
+        public FunctionRegistry() { }
+        public int Count { get; }
+        public System.Collections.Generic.IReadOnlyCollection<string> FunctionNames { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> Modules { get; }
+        public System.Collections.Generic.IReadOnlyCollection<string> Namespaces { get; }
+        public void Add(AI.Script.Binding.IScriptModule module) { }
+        public AI.Script.Binding.ScriptFunction? Find(string fullName) { }
+        public bool HasNamespace(string name) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Binding.ScriptFunction> InNamespace(string name) { }
+        public System.Collections.Generic.IReadOnlyList<string> MethodsOf(string handleType) { }
+        public bool TryGet(string fullName, out AI.Script.Binding.ScriptFunction function) { }
+        public bool TryGetMethod(string handleType, string name, out AI.Script.Binding.ScriptFunction function) { }
+    }
+    public interface IScriptAvailability
+    {
+        string? Unavailable(string function);
+    }
+    public interface IScriptContext
+    {
+        AI.Script.Hosting.IStageCache Cache { get; }
+        System.Threading.CancellationToken Cancellation { get; }
+        AI.Script.Hosting.IExperimentJournal? Journal { get; }
+        System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> Modules { get; }
+        AI.Script.Hosting.NetworkPolicy Network { get; }
+        int Parallelism { get; }
+        AI.Script.Hosting.ExperimentPilot? Pilot { get; }
+        System.Random Random { get; }
+        AI.Script.Hosting.IScriptSandbox Sandbox { get; }
+        string ScriptDigest { get; }
+        int Seed { get; }
+        AI.Script.Runtime.ExternalUsage Usage { get; }
+        void BeginExternalCall();
+        System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue> CallAsync(AI.Script.Runtime.ScriptValue callable, params AI.Script.Runtime.ScriptValue[] arguments);
+        System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue[]> CallEachAsync(AI.Script.Runtime.ScriptValue callable, System.Collections.Generic.IReadOnlyList<AI.Script.Runtime.ScriptValue> items, int parallelism);
+        void CountAllocation(long elements);
+        void CountExternal(long tokens = 0, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal cost);
+        void CountStep();
+        void FileSaved(AI.Script.Hosting.ScriptFileInfo file);
+        AI.Script.Binding.ScriptFunction? FindFunction(string fullName);
+        void Print(string line);
+        void Show(AI.Script.Runtime.ScriptValue value);
+        bool TryInput(string name, out AI.Script.Runtime.ScriptValue value);
+    }
+    public interface IScriptModule
+    {
+        string Description { get; }
+        System.Collections.Generic.IReadOnlyList<AI.Script.Binding.ScriptFunction> Functions { get; }
+        string Group { get; }
+        string Name { get; }
+        string Version { get; }
+    }
+    public static class Marshaller
+    {
+        public static AI.Script.Runtime.ScriptValue FromClr(object? value, string? handleType = null) { }
+        public static bool IsSupported(System.Type type) { }
+        public static object? ToClr(AI.Script.Runtime.ScriptValue value, System.Type target, string what) { }
+        public static AI.Script.Runtime.ScriptType TypeOf(System.Type type) { }
+        public static object? Unwrap(AI.Script.Runtime.ScriptValue value) { }
+    }
+    public static class SchemaModule
+    {
+        public static AI.Script.Binding.ScriptModule Build(string name, string description, System.Collections.Generic.IEnumerable<AI.Script.Binding.SchemaTool> tools, System.Func<string, System.Text.Json.Nodes.JsonObject, AI.Script.Binding.IScriptContext, System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue>> invoke) { }
+        public static System.Collections.Generic.IEnumerable<AI.Script.Binding.SchemaTool> ToolsOf(System.Text.Json.Nodes.JsonArray tools) { }
+    }
+    public sealed record SchemaTool : System.IEquatable<AI.Script.Binding.SchemaTool>
+    {
+        public SchemaTool(string Name, string Description, System.Text.Json.Nodes.JsonObject? InputSchema) { }
+        public string Description { get; init; }
+        public System.Text.Json.Nodes.JsonObject? InputSchema { get; init; }
+        public string Name { get; init; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple=false, Inherited=false)]
+    public sealed class ScriptFnAttribute : System.Attribute
+    {
+        public ScriptFnAttribute(string? name = null, string description = "") { }
+        public string? Columns { get; set; }
+        public string Description { get; }
+        public string? Example { get; set; }
+        public string? Name { get; }
+        public string? Reads { get; set; }
+        public string? Returns { get; set; }
+        public string? Writes { get; set; }
+    }
+    public sealed class ScriptFunction
+    {
+        public ScriptFunction() { }
+        public System.Collections.Generic.IReadOnlyList<string> Columns { get; init; }
+        public string Description { get; init; }
+        public string? Example { get; init; }
+        public string FullName { get; }
+        public System.Func<AI.Script.Runtime.ScriptValue[], AI.Script.Binding.IScriptContext, System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue>> Invoke { get; init; }
+        public bool IsElementwise { get; }
+        public bool IsVariadic { get; }
+        public string? MethodOf { get; init; }
+        public string Name { get; init; }
+        public string Namespace { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Binding.ScriptParameter> Parameters { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Reads { get; init; }
+        public int RequiredCount { get; }
+        public string? ReturnHandleType { get; init; }
+        public AI.Script.Runtime.ScriptType ReturnType { get; init; }
+        public string Signature { get; }
+        public string? Unavailable { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Writes { get; init; }
+        public AI.Script.Binding.ScriptParameter? FindParameter(string name) { }
+        public override string ToString() { }
+    }
+    public static class ScriptJson
+    {
+        public static AI.Script.Runtime.ScriptValue FromAnswer(string? text) { }
+        public static AI.Script.Runtime.ScriptValue FromNode(System.Text.Json.Nodes.JsonNode? node) { }
+        public static System.Text.Json.Nodes.JsonNode? ToNode(AI.Script.Runtime.ScriptValue value) { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple=false, Inherited=false)]
+    public sealed class ScriptMethodAttribute : System.Attribute
+    {
+        public ScriptMethodAttribute(string handleType) { }
+        public string HandleType { get; }
+    }
+    public sealed class ScriptModule : AI.Script.Binding.IScriptModule
+    {
+        public ScriptModule(string name, string description, string version, System.Collections.Generic.IReadOnlyList<AI.Script.Binding.ScriptFunction> functions, string group = "") { }
+        public string Description { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Binding.ScriptFunction> Functions { get; }
+        public string Group { get; }
+        public string Name { get; }
+        public string Version { get; }
+        public static AI.Script.Binding.ScriptModule FromObject(object instance) { }
+        public static AI.Script.Binding.ScriptModule FromType(System.Type type) { }
+        public static AI.Script.Binding.ScriptModule FromType<T>() { }
+        public static string ToSnakeCase(string name) { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=false, Inherited=false)]
+    public sealed class ScriptModuleAttribute : System.Attribute
+    {
+        public ScriptModuleAttribute(string name, string description = "") { }
+        public string Description { get; }
+        public string Group { get; set; }
+        public string Name { get; }
+        public string Version { get; set; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple=false)]
+    public sealed class ScriptParamAttribute : System.Attribute
+    {
+        public ScriptParamAttribute(string description) { }
+        public string Description { get; }
+        public string? Name { get; set; }
+        public bool Variadic { get; set; }
+    }
+    public sealed class ScriptParameter
+    {
+        public ScriptParameter() { }
+        public AI.Script.Runtime.ScriptValue Default { get; init; }
+        public string Description { get; init; }
+        public bool IsOptional { get; init; }
+        public bool IsVariadic { get; init; }
+        public string Name { get; init; }
+        public AI.Script.Runtime.ScriptType Type { get; init; }
+        public override string ToString() { }
+    }
+}
+namespace AI.Script.Docs
+{
+    public static class Manifest
+    {
+        public static string Describe(System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> modules, string query) { }
+        public static string Namespaces(System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> modules) { }
+    }
+    public static class ManifestBuilder
+    {
+        public static string Build(System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> modules, AI.Script.Docs.ManifestOptions? options = null) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Script.Docs.ManifestMatch> Search(System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> modules, string query, int limit = 10) { }
+    }
+    public enum ManifestFormat
+    {
+        Markdown = 0,
+        Json = 1,
+        Compact = 2,
+    }
+    public static class ManifestGroups
+    {
+        public const string Other = "прочее";
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Name",
+                "Description"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, string>> All { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Group",
+                "Description",
+                "Modules"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, string, System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule>>> Arrange(System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> modules) { }
+        public static string? Describe(string group) { }
+        public static string Of(AI.Script.Binding.IScriptModule module) { }
+    }
+    public sealed class ManifestMatch
+    {
+        public ManifestMatch() { }
+        public AI.Script.Binding.ScriptFunction Function { get; init; }
+        public int Score { get; init; }
+    }
+    public sealed class ManifestOptions
+    {
+        public ManifestOptions() { }
+        public AI.Script.Docs.ManifestFormat Format { get; set; }
+        public bool IncludeExamples { get; set; }
+        public bool IncludeParameters { get; set; }
+        public bool IndexOnly { get; set; }
+        public int MaxFunctions { get; set; }
+        public System.Collections.Generic.IReadOnlyCollection<string> Namespaces { get; set; }
+        public static AI.Script.Docs.ManifestOptions Full { get; }
+        public static AI.Script.Docs.ManifestOptions Index { get; }
+    }
+}
+namespace AI.Script.Hosting
+{
+    public sealed class CheckResult
+    {
+        public CheckResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.Diagnostic> Diagnostics { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.ScriptInput> Inputs { get; init; }
+        public bool Success { get; init; }
+        public string Render() { }
+    }
+    public sealed class DebugContext
+    {
+        public int? Branch { get; }
+        public System.Threading.CancellationToken Cancellation { get; }
+        public AI.Script.Runtime.ScriptError? Error { get; }
+        public AI.Script.Hosting.DebugFrame Frame { get; }
+        public AI.Script.Hosting.DebugEventKind Kind { get; }
+        public int Line { get; }
+        public AI.Script.Syntax.SourceText? Source { get; }
+        public int Thread { get; }
+        public AI.Script.Runtime.ScriptValue Evaluate(string expression, AI.Script.Hosting.DebugFrame? frame = null) { }
+        public int LineOf(AI.Script.Syntax.TextSpan span) { }
+        public System.Collections.Generic.IReadOnlyList<System.Collections.Generic.KeyValuePair<string, AI.Script.Runtime.ScriptValue>> Locals(AI.Script.Hosting.DebugFrame? frame = null) { }
+    }
+    public enum DebugEventKind
+    {
+        Statement = 0,
+        Error = 1,
+    }
+    public sealed class DebugFrame
+    {
+        public AI.Script.Syntax.TextSpan CallSite { get; }
+        public AI.Script.Hosting.DebugFrame? Caller { get; }
+        public int Depth { get; }
+        public bool IsStage { get; }
+        public string Name { get; }
+        public AI.Script.Runtime.Scope Scope { get; }
+        public AI.Script.Syntax.TextSpan Span { get; }
+        public System.Collections.Generic.IEnumerable<AI.Script.Hosting.DebugFrame> Stack() { }
+    }
+    public sealed class DebugSession : AI.Script.Hosting.IScriptDebugger
+    {
+        public DebugSession() { }
+        public bool BreakOnError { get; set; }
+        public System.Collections.Generic.IReadOnlyCollection<int> Breakpoints { get; }
+        public AI.Script.Hosting.DebugContext? Current { get; }
+        public event System.Action<AI.Script.Hosting.DebugContext, AI.Script.Hosting.DebugStop>? Paused;
+        public event System.Action? Resumed;
+        public void Continue() { }
+        public void OnEvent(AI.Script.Hosting.DebugContext context) { }
+        public void Pause() { }
+        public void SetBreakpoints(System.Collections.Generic.IEnumerable<int> lines) { }
+        public void StepInto() { }
+        public void StepOut() { }
+        public void StepOver() { }
+    }
+    public enum DebugStop
+    {
+        Breakpoint = 0,
+        Step = 1,
+        Pause = 2,
+        Error = 3,
+    }
+    public sealed class DelegateProgressSink : AI.Script.Hosting.IProgressSink
+    {
+        public DelegateProgressSink(System.Action<AI.Script.Hosting.StageNode, bool> report) { }
+        public void StageFinished(AI.Script.Hosting.StageNode stage) { }
+        public void StageStarted(AI.Script.Hosting.StageNode stage) { }
+    }
+    public sealed class DeniedSandbox : AI.Script.Hosting.IScriptSandbox
+    {
+        public static readonly AI.Script.Hosting.DeniedSandbox Instance;
+        public bool Enabled { get; }
+        public bool IsReadOnly { get; }
+        public string Root { get; }
+        public System.Threading.Tasks.Task<AI.Script.Hosting.ScriptFileInfo?> InfoAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ScriptFileInfo>> ListAsync(string directory, string mask, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<byte[]> ReadAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task WriteAsync(string path, byte[] data, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class DisabledStageCache : AI.Script.Hosting.IStageCache
+    {
+        public static readonly AI.Script.Hosting.DisabledStageCache Instance;
+        public void Put(string key, AI.Script.Runtime.ScriptValue value) { }
+        public bool TryGet(string key, out AI.Script.Runtime.ScriptValue value) { }
+    }
+    public sealed record ExperimentEntry : System.IEquatable<AI.Script.Hosting.ExperimentEntry>
+    {
+        public ExperimentEntry(string Id, string Script, int Seed, System.Collections.Generic.IReadOnlyDictionary<string, object?> Parameters, System.Collections.Generic.IReadOnlyDictionary<string, object?> Metrics, System.DateTimeOffset Started, long ElapsedMs, long Tokens, decimal Cost) { }
+        public decimal Cost { get; init; }
+        public long ElapsedMs { get; init; }
+        public string Id { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, object?> Metrics { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, object?> Parameters { get; init; }
+        public string Script { get; init; }
+        public int Seed { get; init; }
+        public System.DateTimeOffset Started { get; init; }
+        public long Tokens { get; init; }
+    }
+    public sealed record ExperimentEstimate : System.IEquatable<AI.Script.Hosting.ExperimentEstimate>
+    {
+        public ExperimentEstimate(int Trials, AI.Script.Runtime.ExternalUsage Before, AI.Script.Runtime.ExternalUsage Trial) { }
+        public AI.Script.Runtime.ExternalUsage Before { get; init; }
+        public int Calls { get; }
+        public decimal Cost { get; }
+        public long Tokens { get; }
+        public AI.Script.Runtime.ExternalUsage Trial { get; init; }
+        public int Trials { get; init; }
+    }
+    public sealed class ExperimentPilot
+    {
+        public ExperimentPilot() { }
+        public AI.Script.Hosting.ExperimentEstimate? Estimate { get; }
+        public void Record(AI.Script.Hosting.ExperimentEstimate estimate) { }
+    }
+    public sealed class FileStageCache : AI.Script.Hosting.IStageCache
+    {
+        public FileStageCache(string directory) { }
+        public string Directory { get; }
+        public void Put(string key, AI.Script.Runtime.ScriptValue value) { }
+        public bool TryGet(string key, out AI.Script.Runtime.ScriptValue value) { }
+    }
+    public interface IExperimentJournal
+    {
+        System.Threading.Tasks.Task AppendAsync(AI.Script.Hosting.ExperimentEntry entry, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task ExclusiveAsync(System.Func<System.Threading.Tasks.Task> action, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ExperimentEntry>> ReadAsync(System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IProgressSink
+    {
+        void StageFinished(AI.Script.Hosting.StageNode stage);
+        void StageStarted(AI.Script.Hosting.StageNode stage);
+    }
+    public interface IScriptArtifactSource
+    {
+        string ArtifactKind { get; }
+        object? ArtifactPayload { get; }
+        string ArtifactTitle { get; }
+    }
+    public interface IScriptAudioDecoder
+    {
+        System.Threading.Tasks.Task<AI.Script.Hosting.ScriptAudio> DecodeAsync(byte[] data, string fileName, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IScriptDebugger
+    {
+        void OnEvent(AI.Script.Hosting.DebugContext context);
+    }
+    public interface IScriptImageGenerator
+    {
+        System.Threading.Tasks.Task<AI.Script.Hosting.ScriptMedia> GenerateAsync(string prompt, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IScriptImageSource
+    {
+        string ImageTitle { get; }
+        byte[] RenderPng(int width, int height);
+    }
+    public interface IScriptSandbox
+    {
+        bool Enabled { get; }
+        bool IsReadOnly { get; }
+        string Root { get; }
+        System.Threading.Tasks.Task<AI.Script.Hosting.ScriptFileInfo?> InfoAsync(string path, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ScriptFileInfo>> ListAsync(string directory, string mask, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.IO.Stream> OpenReadAsync(string path, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> ReadAsync(string path, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task WriteAsync(string path, byte[] data, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IScriptSpeechSynthesizer
+    {
+        System.Threading.Tasks.Task<AI.Script.Hosting.ScriptMedia> SpeakAsync(string text, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IScriptTextRecognizer
+    {
+        System.Threading.Tasks.Task<AI.Script.Hosting.ScriptRecognition> ReadAsync(byte[] image, string mediaType, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IScriptTranscriber
+    {
+        System.Threading.Tasks.Task<AI.Script.Hosting.ScriptTranscript> TranscribeAsync(byte[] audio, string fileName, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IScriptVideoDecoder
+    {
+        System.Threading.Tasks.Task<AI.Script.Hosting.ScriptAudio> AudioAsync(byte[] data, string fileName, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ScriptVideoFrame>> FramesAsync(byte[] data, string fileName, System.TimeSpan every, int max, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AI.Script.Hosting.ScriptVideoInfo> InfoAsync(byte[] data, string fileName, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IStageCache
+    {
+        void Put(string key, AI.Script.Runtime.ScriptValue value);
+        bool TryGet(string key, out AI.Script.Runtime.ScriptValue value);
+    }
+    public sealed class MemoryExperimentJournal : AI.Script.Hosting.IExperimentJournal
+    {
+        public MemoryExperimentJournal() { }
+        public int Count { get; }
+        public System.Threading.Tasks.Task AppendAsync(AI.Script.Hosting.ExperimentEntry entry, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ExperimentEntry>> ReadAsync(System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class MemorySandbox : AI.Script.Hosting.IScriptSandbox
+    {
+        public MemorySandbox(bool readOnly = false) { }
+        public bool Enabled { get; }
+        public bool IsReadOnly { get; }
+        public string Root { get; }
+        public byte[]? Get(string path) { }
+        public System.Threading.Tasks.Task<AI.Script.Hosting.ScriptFileInfo?> InfoAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ScriptFileInfo>> ListAsync(string directory, string mask, System.Threading.CancellationToken cancellationToken = default) { }
+        public AI.Script.Hosting.MemorySandbox Put(string path, byte[] data) { }
+        public AI.Script.Hosting.MemorySandbox Put(string path, string text) { }
+        public System.Threading.Tasks.Task<byte[]> ReadAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task WriteAsync(string path, byte[] data, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class MemoryStageCache : AI.Script.Hosting.IStageCache
+    {
+        public MemoryStageCache() { }
+        public int Count { get; }
+        public void Clear() { }
+        public void Put(string key, AI.Script.Runtime.ScriptValue value) { }
+        public bool TryGet(string key, out AI.Script.Runtime.ScriptValue value) { }
+    }
+    public sealed class NetworkPolicy
+    {
+        public static readonly AI.Script.Hosting.NetworkPolicy Allowed;
+        public static readonly AI.Script.Hosting.NetworkPolicy Denied;
+        public bool Enabled { get; }
+        public System.Collections.Generic.IReadOnlyCollection<string> Hosts { get; }
+        public void Require(string what, string? host = null) { }
+        public static AI.Script.Hosting.NetworkPolicy AllowHosts(params string[] hosts) { }
+    }
+    public sealed record RecognizedText : System.IEquatable<AI.Script.Hosting.RecognizedText>
+    {
+        public RecognizedText(string Text, string? Region = null) { }
+        public string? Region { get; init; }
+        public string Text { get; init; }
+    }
+    public sealed class RunContext : AI.Script.Binding.IScriptContext
+    {
+        public RunContext(AI.Script.Hosting.RunOptions options, AI.Script.Binding.FunctionRegistry registry, AI.Script.Semantics.DiagnosticBag diagnostics, System.Threading.CancellationToken cancellation) { }
+        public System.Collections.Generic.List<AI.Script.Hosting.ScriptArtifact> Artifacts { get; }
+        public AI.Script.Hosting.IStageCache Cache { get; }
+        public int Calls { get; }
+        public System.Threading.CancellationToken Cancellation { get; }
+        public AI.Script.Runtime.LimitCounters Counters { get; }
+        public AI.Script.Hosting.IScriptDebugger? Debugger { get; }
+        public AI.Script.Semantics.DiagnosticBag Diagnostics { get; }
+        public System.Collections.Generic.Dictionary<string, object?> Emitted { get; }
+        public AI.Script.Hosting.RunGraph Graph { get; }
+        public AI.Script.Runtime.Interpreter? Interpreter { get; set; }
+        public AI.Script.Hosting.IExperimentJournal? Journal { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> Modules { get; }
+        public AI.Script.Hosting.NetworkPolicy Network { get; }
+        public AI.Script.Hosting.RunOptions Options { get; }
+        public int Parallelism { get; }
+        public AI.Script.Hosting.ExperimentPilot? Pilot { get; }
+        public AI.Script.Hosting.IProgressSink? Progress { get; }
+        public System.Random Random { get; }
+        public System.Threading.CancellationToken RunCancellation { get; }
+        public AI.Script.Hosting.IScriptSandbox Sandbox { get; }
+        public string ScriptDigest { get; init; }
+        public AI.Script.Hosting.SecretMask Secrets { get; }
+        public int Seed { get; }
+        public System.Collections.Generic.List<string> Transcript { get; }
+        public AI.Script.Runtime.ExternalUsage Usage { get; }
+        public void BeginExternalCall() { }
+        public System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue> CallAsync(AI.Script.Runtime.ScriptValue callable, params AI.Script.Runtime.ScriptValue[] arguments) { }
+        public System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue[]> CallEachAsync(AI.Script.Runtime.ScriptValue callable, System.Collections.Generic.IReadOnlyList<AI.Script.Runtime.ScriptValue> items, int parallelism) { }
+        public void CountAllocation(long elements) { }
+        public void CountCall() { }
+        public void CountExternal(long tokens = 0, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal cost) { }
+        public void CountStep() { }
+        public void FileSaved(AI.Script.Hosting.ScriptFileInfo file) { }
+        public AI.Script.Binding.ScriptFunction? FindFunction(string fullName) { }
+        public void PopCancellation(System.Threading.CancellationToken previous) { }
+        public void Print(string line) { }
+        public System.Threading.CancellationToken PushCancellation(System.Threading.CancellationToken cancellation) { }
+        public void Reseed(int seed) { }
+        public void Show(AI.Script.Runtime.ScriptValue value) { }
+        public bool TryInput(string name, out AI.Script.Runtime.ScriptValue value) { }
+        public System.IDisposable UseBranchRandom(int section, int branch) { }
+        public static int BranchSeed(int seed, int branch) { }
+    }
+    public sealed class RunGraph
+    {
+        public RunGraph() { }
+        public int CachedCount { get; }
+        public bool IsEmpty { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.StageNode> Nodes { get; }
+        public AI.Script.Hosting.StageNode Add(string name, int? caller) { }
+        public string Render() { }
+        public string ToMermaid() { }
+    }
+    public sealed class RunOptions
+    {
+        public RunOptions() { }
+        public AI.Script.Hosting.IStageCache? Cache { get; set; }
+        public AI.Script.Hosting.IScriptDebugger? Debugger { get; set; }
+        public string FileName { get; set; }
+        public AI.Script.Hosting.IExperimentJournal? Journal { get; set; }
+        public AI.Script.Runtime.ScriptLimits Limits { get; set; }
+        public System.Collections.Generic.HashSet<string> LockedOptions { get; }
+        public AI.Script.Hosting.NetworkPolicy Network { get; set; }
+        public int Parallelism { get; set; }
+        public AI.Script.Hosting.ExperimentPilot? Pilot { get; set; }
+        public AI.Script.Hosting.IProgressSink? Progress { get; set; }
+        public AI.Script.Hosting.IScriptSandbox Sandbox { get; set; }
+        public System.Collections.Generic.IReadOnlyCollection<string>? Secrets { get; set; }
+        public int Seed { get; set; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, object?>? Seeded { get; set; }
+        public AI.Script.Hosting.RunOptions Clone() { }
+    }
+    public static class RunProfiles
+    {
+        public static readonly System.TimeSpan UntrustedTimeout;
+        public static AI.Script.Hosting.RunOptions Trusted(string? workdir = null) { }
+        public static AI.Script.Hosting.RunOptions Untrusted(string? workdir = null) { }
+        public static AI.Script.Hosting.RunOptions UntrustedWithNetwork(string? workdir = null, int calls = 20, long tokens = 100000, [System.Runtime.CompilerServices.DecimalConstant(1, 0, 0u, 0u, 5u)] decimal cost, params string[] hosts) { }
+    }
+    public sealed class RunResult
+    {
+        public RunResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ScriptArtifact> Artifacts { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.Diagnostic> Diagnostics { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, object?> Emitted { get; init; }
+        public AI.Script.Semantics.Diagnostic? Error { get; }
+        public AI.Script.Hosting.RunGraph Graph { get; init; }
+        public AI.Script.Hosting.RunStats Stats { get; init; }
+        public bool Success { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Transcript { get; init; }
+        public string Render() { }
+    }
+    public sealed class RunStats
+    {
+        public RunStats() { }
+        public long Allocations { get; init; }
+        public int CachedStages { get; init; }
+        public int Calls { get; init; }
+        public System.TimeSpan Elapsed { get; init; }
+        public int ExternalCalls { get; init; }
+        public decimal ExternalCost { get; init; }
+        public long ExternalTokens { get; init; }
+        public int Stages { get; init; }
+        public int Steps { get; init; }
+        public override string ToString() { }
+    }
+    public sealed class ScopedSandbox : AI.Script.Hosting.IScriptSandbox
+    {
+        public ScopedSandbox(AI.Script.Hosting.IScriptSandbox inner, string directory) { }
+        public bool Enabled { get; }
+        public bool IsReadOnly { get; }
+        public string Root { get; }
+        public System.Threading.Tasks.Task<AI.Script.Hosting.ScriptFileInfo?> InfoAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ScriptFileInfo>> ListAsync(string directory, string mask, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.IO.Stream> OpenReadAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<byte[]> ReadAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task WriteAsync(string path, byte[] data, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class ScriptArtifact
+    {
+        public ScriptArtifact() { }
+        public string Kind { get; init; }
+        public string? MediaType { get; init; }
+        public string Text { get; init; }
+        public string? Title { get; init; }
+        public object? Value { get; init; }
+    }
+    public sealed record ScriptAudio : System.IEquatable<AI.Script.Hosting.ScriptAudio>
+    {
+        public ScriptAudio(System.Collections.Generic.IReadOnlyList<float[]> Channels, int Rate) { }
+        public System.Collections.Generic.IReadOnlyList<float[]> Channels { get; init; }
+        public int Rate { get; init; }
+    }
+    public sealed record ScriptFileInfo : System.IEquatable<AI.Script.Hosting.ScriptFileInfo>
+    {
+        public ScriptFileInfo(string Path, long Size, System.DateTimeOffset? Modified = default, string? StoredMediaType = null) { }
+        public string Kind { get; }
+        public string MediaType { get; }
+        public System.DateTimeOffset? Modified { get; init; }
+        public string Name { get; }
+        public string Path { get; init; }
+        public long Size { get; init; }
+        public string? StoredMediaType { get; init; }
+    }
+    public static class ScriptFileKinds
+    {
+        public static string Extension(string path) { }
+        public static string KindOf(string path) { }
+        public static string MediaTypeOf(string path) { }
+    }
+    public sealed class ScriptHost
+    {
+        public ScriptHost() { }
+        public AI.Script.Binding.FunctionRegistry Registry { get; }
+        public AI.Script.Hosting.CheckResult Check(string source, AI.Script.Hosting.RunOptions options) { }
+        public AI.Script.Hosting.CheckResult Check(string source, string fileName = "script.ais", System.Collections.Generic.IReadOnlyCollection<string>? seeded = null) { }
+        public string Describe(string query) { }
+        public string DescribeCapabilities(AI.Script.Docs.ManifestOptions? options = null) { }
+        public System.Threading.Tasks.Task<AI.Script.Hosting.RunResult> RunAsync(string source, AI.Script.Hosting.RunOptions? options = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Docs.ManifestMatch> Search(string query, int limit = 10) { }
+        public AI.Script.Hosting.ScriptHost Use(AI.Script.Binding.IScriptModule module) { }
+    }
+    public sealed record ScriptMedia : System.IEquatable<AI.Script.Hosting.ScriptMedia>
+    {
+        public ScriptMedia(byte[] Data, string MediaType, long Tokens = 0, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal Cost) { }
+        public decimal Cost { get; init; }
+        public byte[] Data { get; init; }
+        public string MediaType { get; init; }
+        public long Tokens { get; init; }
+    }
+    public sealed record ScriptMediaServices : System.IEquatable<AI.Script.Hosting.ScriptMediaServices>
+    {
+        public static readonly AI.Script.Hosting.ScriptMediaServices None;
+        public ScriptMediaServices(AI.Script.Hosting.IScriptImageGenerator? Images = null, AI.Script.Hosting.IScriptSpeechSynthesizer? Voice = null, AI.Script.Hosting.IScriptAudioDecoder? Audio = null, AI.Script.Hosting.IScriptVideoDecoder? Video = null, AI.Script.Hosting.IScriptTextRecognizer? Ocr = null, AI.Script.Hosting.IScriptTranscriber? Transcriber = null) { }
+        public AI.Script.Hosting.IScriptAudioDecoder? Audio { get; init; }
+        public AI.Script.Hosting.IScriptImageGenerator? Images { get; init; }
+        public AI.Script.Hosting.IScriptTextRecognizer? Ocr { get; init; }
+        public AI.Script.Hosting.IScriptTranscriber? Transcriber { get; init; }
+        public AI.Script.Hosting.IScriptVideoDecoder? Video { get; init; }
+        public AI.Script.Hosting.IScriptSpeechSynthesizer? Voice { get; init; }
+    }
+    public static class ScriptPaths
+    {
+        public const string RootPath = ".";
+        public static bool Matches(string name, string mask) { }
+        public static string Normalize(string path) { }
+    }
+    public sealed class ScriptProfile
+    {
+        public static readonly AI.Script.Hosting.ScriptProfile Pc1;
+        public ScriptProfile(string name, System.Collections.Generic.IReadOnlyCollection<string> namespaces, int maxChars, int loopPasses, System.TimeSpan timeout, System.Collections.Generic.IReadOnlyList<AI.Script.Binding.SchemaTool>? services = null) { }
+        public int LoopPasses { get; }
+        public int MaxChars { get; }
+        public string Name { get; }
+        public System.Collections.Generic.IReadOnlySet<string> Namespaces { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Binding.SchemaTool> Services { get; }
+        public System.TimeSpan Timeout { get; }
+        public AI.Script.Hosting.CheckResult Check(AI.Script.Hosting.ScriptHost host, string source) { }
+        public AI.Script.Hosting.ScriptHost Host(params AI.Script.Binding.IScriptModule[] modules) { }
+        public AI.Script.Hosting.RunOptions Options() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.Diagnostic> Violations(string source) { }
+    }
+    public sealed record ScriptRecognition : System.IEquatable<AI.Script.Hosting.ScriptRecognition>
+    {
+        public ScriptRecognition(System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.RecognizedText> Lines, long Tokens = 0, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal Cost) { }
+        public decimal Cost { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.RecognizedText> Lines { get; init; }
+        public long Tokens { get; init; }
+    }
+    public sealed record ScriptTranscript : System.IEquatable<AI.Script.Hosting.ScriptTranscript>
+    {
+        public ScriptTranscript(System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.TimedText> Segments, long Tokens = 0, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal Cost) { }
+        public decimal Cost { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.TimedText> Segments { get; init; }
+        public long Tokens { get; init; }
+    }
+    public sealed record ScriptVideoFrame : System.IEquatable<AI.Script.Hosting.ScriptVideoFrame>
+    {
+        public ScriptVideoFrame(System.TimeSpan At, byte[] Image) { }
+        public System.TimeSpan At { get; init; }
+        public byte[] Image { get; init; }
+    }
+    public sealed record ScriptVideoInfo : System.IEquatable<AI.Script.Hosting.ScriptVideoInfo>
+    {
+        public ScriptVideoInfo(System.TimeSpan Duration, double Fps, int Width, int Height) { }
+        public System.TimeSpan Duration { get; init; }
+        public double Fps { get; init; }
+        public int Height { get; init; }
+        public int Width { get; init; }
+    }
+    public sealed class SecretMask
+    {
+        public const string Replacement = "***";
+        public static readonly AI.Script.Hosting.SecretMask None;
+        public SecretMask(System.Collections.Generic.IEnumerable<string>? secrets) { }
+        public bool IsEmpty { get; }
+        public string Apply(string text) { }
+    }
+    public sealed class StageNode
+    {
+        public StageNode() { }
+        public int Attempts { get; set; }
+        public int? Caller { get; init; }
+        public System.TimeSpan Elapsed { get; set; }
+        public string? Error { get; set; }
+        public int Id { get; init; }
+        public string? Key { get; set; }
+        public string Name { get; init; }
+        public string? NotCacheable { get; set; }
+        public AI.Script.Hosting.StageOutcome Outcome { get; set; }
+        public string Result { get; set; }
+        public override string ToString() { }
+    }
+    public enum StageOutcome
+    {
+        Computed = 0,
+        Cached = 1,
+        Failed = 2,
+    }
+    public sealed record TimedText : System.IEquatable<AI.Script.Hosting.TimedText>
+    {
+        public TimedText(System.TimeSpan Start, System.TimeSpan End, string Text) { }
+        public System.TimeSpan End { get; init; }
+        public System.TimeSpan Start { get; init; }
+        public string Text { get; init; }
+    }
+    public sealed class WorkspaceSandbox : AI.Script.Hosting.IScriptSandbox
+    {
+        public WorkspaceSandbox(string root, bool readOnly = false) { }
+        public bool Enabled { get; }
+        public bool IsReadOnly { get; }
+        public string Root { get; }
+        public System.Threading.Tasks.Task<AI.Script.Hosting.ScriptFileInfo?> InfoAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.ScriptFileInfo>> ListAsync(string directory, string mask, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.IO.Stream> OpenReadAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<byte[]> ReadAsync(string path, System.Threading.CancellationToken cancellationToken = default) { }
+        public string Resolve(string path, bool forWriting) { }
+        public System.Threading.Tasks.Task WriteAsync(string path, byte[] data, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+}
+namespace AI.Script.Runtime
+{
+    public readonly struct ExternalUsage : System.IEquatable<AI.Script.Runtime.ExternalUsage>
+    {
+        public ExternalUsage(int Calls, long Tokens, decimal Cost) { }
+        public int Calls { get; init; }
+        public decimal Cost { get; init; }
+        public long Tokens { get; init; }
+    }
+    public sealed class Interpreter
+    {
+        public Interpreter(AI.Script.Hosting.RunContext context, AI.Script.Binding.FunctionRegistry registry, AI.Script.Semantics.DiagnosticBag diagnostics, AI.Script.Syntax.SourceText? source = null) { }
+        public AI.Script.Runtime.Scope Global { get; }
+        public System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue> CallAsync(AI.Script.Runtime.ScriptValue callable, params AI.Script.Runtime.ScriptValue[] arguments) { }
+        public System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue[]> CallEachAsync(AI.Script.Runtime.ScriptValue callable, System.Collections.Generic.IReadOnlyList<AI.Script.Runtime.ScriptValue> items, int parallelism) { }
+        public System.Threading.Tasks.ValueTask<AI.Script.Runtime.ScriptValue> EvaluateAsync(AI.Script.Syntax.Ast.Expr expression, AI.Script.Runtime.Scope scope) { }
+        public System.Threading.Tasks.Task RunAsync(AI.Script.Syntax.Ast.ScriptUnit unit) { }
+    }
+    public sealed class LimitCounters
+    {
+        public LimitCounters(AI.Script.Runtime.ScriptLimits limits) { }
+        public long Allocations { get; }
+        public int ExternalCalls { get; }
+        public decimal ExternalCost { get; }
+        public long ExternalTokens { get; }
+        public int Steps { get; }
+        public void BeginExternalCall() { }
+        public void CountAllocation(long elements) { }
+        public void CountExternal(long tokens, decimal cost) { }
+        public void CountStep() { }
+    }
+    public sealed class MeasureUnit : System.IEquatable<AI.Script.Runtime.MeasureUnit>
+    {
+        public System.Collections.Generic.IReadOnlyDictionary<string, int> Dimensions { get; }
+        public bool IsDimensionless { get; }
+        public double Scale { get; }
+        public string Symbol { get; }
+        public AI.Script.Runtime.MeasureUnit Divide(AI.Script.Runtime.MeasureUnit other) { }
+        public bool Equals(AI.Script.Runtime.MeasureUnit? other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public AI.Script.Runtime.MeasureUnit Inverse() { }
+        public AI.Script.Runtime.MeasureUnit Multiply(AI.Script.Runtime.MeasureUnit other) { }
+        public bool SameDimension(AI.Script.Runtime.MeasureUnit other) { }
+        public override string ToString() { }
+        public static AI.Script.Runtime.MeasureUnit Canonical(System.Collections.Generic.IReadOnlyDictionary<string, int> dimensions) { }
+        public static bool TryParse(string symbol, out AI.Script.Runtime.MeasureUnit unit) { }
+    }
+    public sealed class NativeFunction : AI.Script.Runtime.ScriptCallable
+    {
+        public NativeFunction(AI.Script.Binding.ScriptFunction function) { }
+        public AI.Script.Binding.ScriptFunction Function { get; }
+        public override string Name { get; }
+        public override System.Collections.Generic.IReadOnlyList<string> ParameterNames { get; }
+    }
+    public static class Operations
+    {
+        public static AI.Script.Runtime.ScriptValue Binary(AI.Script.Syntax.BinaryOperator op, AI.Script.Runtime.ScriptValue left, AI.Script.Runtime.ScriptValue right) { }
+        public static AI.Script.Runtime.ScriptValue Unary(AI.Script.Syntax.UnaryOperator op, AI.Script.Runtime.ScriptValue operand) { }
+    }
+    public sealed record QuantityValue : System.IEquatable<AI.Script.Runtime.QuantityValue>
+    {
+        public QuantityValue(double Value, string Unit) { }
+        public string Unit { get; init; }
+        public double Value { get; init; }
+        public override string ToString() { }
+    }
+    public sealed class Scope
+    {
+        public Scope(AI.Script.Runtime.Scope? parent = null) { }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, AI.Script.Runtime.ScriptValue>> Entries { get; }
+        public System.Collections.Generic.IReadOnlyCollection<string> Names { get; }
+        public AI.Script.Runtime.Scope? Parent { get; }
+        public void Declare(string name, AI.Script.Runtime.ScriptValue value) { }
+        public bool DeclaredHere(string name) { }
+        public bool TryAssign(string name, AI.Script.Runtime.ScriptValue value) { }
+        public bool TryGet(string name, out AI.Script.Runtime.ScriptValue value) { }
+    }
+    public sealed class ScriptAbort : AI.Script.Runtime.ScriptError
+    {
+        public ScriptAbort(string code, string message, string? hint = null) { }
+    }
+    public abstract class ScriptCallable
+    {
+        protected ScriptCallable() { }
+        public abstract string Name { get; }
+        public abstract System.Collections.Generic.IReadOnlyList<string> ParameterNames { get; }
+        public override string ToString() { }
+    }
+    public sealed class ScriptClosure : AI.Script.Runtime.ScriptCallable
+    {
+        public ScriptClosure(string name, System.Collections.Generic.IReadOnlyList<AI.Script.Syntax.Ast.ParameterNode> parameters, AI.Script.Syntax.Ast.Expr body, AI.Script.Runtime.Scope captured, bool isStage = false, string? documentation = null, AI.Script.Runtime.StageOptions? stage = null, string? sourceDigest = null) { }
+        public AI.Script.Syntax.Ast.Expr Body { get; }
+        public AI.Script.Runtime.Scope Captured { get; }
+        public string? Documentation { get; }
+        public bool IsStage { get; }
+        public override string Name { get; }
+        public override System.Collections.Generic.IReadOnlyList<string> ParameterNames { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Syntax.Ast.ParameterNode> Parameters { get; }
+        public string SourceDigest { get; }
+        public AI.Script.Runtime.StageOptions? Stage { get; }
+    }
+    public sealed class ScriptColumn
+    {
+        public int Count { get; }
+        public AI.Script.Runtime.ScriptValue this[int index] { get; }
+        public string Name { get; }
+        public AI.Script.Runtime.ScriptType Type { get; }
+        public AI.Script.Runtime.ScriptValue AsValue() { }
+        public AI.Script.Runtime.ScriptValue[] Copy() { }
+        public AI.Script.Runtime.ScriptColumn Renamed(string name) { }
+        public AI.Script.Runtime.ScriptColumn Take(System.Collections.Generic.IReadOnlyList<int> rows) { }
+        public AI.DataStructs.Algebraic.Vector ToVector() { }
+        public System.Collections.Generic.IEnumerable<AI.Script.Runtime.ScriptValue> Values() { }
+        public static AI.Script.Runtime.ScriptColumn From(string name, System.Collections.Generic.IEnumerable<AI.Script.Runtime.ScriptValue> values) { }
+        public static AI.Script.Runtime.ScriptColumn FromVector(string name, AI.DataStructs.Algebraic.Vector values) { }
+        public static AI.Script.Runtime.ScriptColumn Own(string name, AI.Script.Runtime.ScriptValue[] values) { }
+    }
+    public static class ScriptConstants
+    {
+        public static System.Collections.Generic.IReadOnlyDictionary<string, AI.Script.Runtime.ScriptValue> All { get; }
+    }
+    public class ScriptError : System.Exception
+    {
+        public ScriptError(string code, string message, string? hint = null) { }
+        public ScriptError(string code, string message, System.Exception inner, string? hint = null) { }
+        public string Code { get; }
+        public string? Hint { get; }
+        public AI.Script.Syntax.TextSpan? Span { get; set; }
+        public static AI.Script.Runtime.ScriptError Type(string what, AI.Script.Runtime.ScriptType expected, AI.Script.Runtime.ScriptType actual) { }
+    }
+    public static class ScriptFormatter
+    {
+        public const int PreviewLimit = 12;
+        public const int TableCellLimit = 24;
+        public const int TableRowLimit = 8;
+        public static string Format(AI.Script.Runtime.ScriptValue value) { }
+        public static string Format(AI.Script.Runtime.ScriptValue value, bool quoteStrings) { }
+        public static string Number(decimal value) { }
+        public static string Number(double value) { }
+        public static string Summary(AI.Script.Runtime.ScriptValue value) { }
+    }
+    public sealed class ScriptHandle
+    {
+        public const string DeferredType = "deferred";
+        public ScriptHandle(string typeName, object target, string? summary = null) { }
+        public long Id { get; }
+        public bool IsDeferred { get; }
+        public string? Summary { get; set; }
+        public object Target { get; }
+        public string TypeName { get; }
+        public override string ToString() { }
+        public static AI.Script.Runtime.ScriptValue Deferred(object step) { }
+    }
+    public sealed class ScriptLimits
+    {
+        public const long DefaultAllocations = 200000000;
+        public const int DefaultCallDepth = 64;
+        public const int DefaultSteps = 5000000;
+        public ScriptLimits() { }
+        public long Allocations { get; set; }
+        public int CallDepth { get; set; }
+        public int ExternalCalls { get; set; }
+        public decimal ExternalCost { get; set; }
+        public long ExternalTokens { get; set; }
+        public int LoopPasses { get; set; }
+        public int Steps { get; set; }
+        public System.TimeSpan? Timeout { get; set; }
+        public AI.Script.Runtime.ScriptLimits Clone() { }
+    }
+    public sealed class ScriptList : System.Collections.Generic.IEnumerable<AI.Script.Runtime.ScriptValue>, System.Collections.Generic.IReadOnlyCollection<AI.Script.Runtime.ScriptValue>, System.Collections.Generic.IReadOnlyList<AI.Script.Runtime.ScriptValue>, System.Collections.IEnumerable
+    {
+        public static readonly AI.Script.Runtime.ScriptList Empty;
+        public int Count { get; }
+        public AI.Script.Runtime.ScriptValue this[int index] { get; }
+        public AI.Script.Runtime.ScriptList Append(AI.Script.Runtime.ScriptValue value) { }
+        public System.Collections.Generic.IEnumerator<AI.Script.Runtime.ScriptValue> GetEnumerator() { }
+        public AI.Script.Runtime.ScriptList SetItem(int index, AI.Script.Runtime.ScriptValue value) { }
+        public AI.Script.Runtime.ScriptList Slice(int start, int end) { }
+        public static AI.Script.Runtime.ScriptList Concat(AI.Script.Runtime.ScriptList left, AI.Script.Runtime.ScriptList right) { }
+        public static AI.Script.Runtime.ScriptList From(System.Collections.Generic.IEnumerable<AI.Script.Runtime.ScriptValue> items) { }
+        public static AI.Script.Runtime.ScriptList Own(AI.Script.Runtime.ScriptValue[] items) { }
+    }
+    public readonly struct ScriptRange
+    {
+        public ScriptRange(double start, double end, double step = 1) { }
+        public int Count { get; }
+        public double End { get; }
+        public double this[int index] { get; }
+        public double Start { get; }
+        public double Step { get; }
+        public override string ToString() { }
+        public System.Collections.Generic.IEnumerable<double> Values() { }
+    }
+    public sealed class ScriptRecord
+    {
+        public static readonly AI.Script.Runtime.ScriptRecord Empty;
+        public int Count { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Keys { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Runtime.ScriptValue> Values { get; }
+        public bool Has(string name) { }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, AI.Script.Runtime.ScriptValue>> Pairs() { }
+        public bool TryGet(string name, out AI.Script.Runtime.ScriptValue value) { }
+        public AI.Script.Runtime.ScriptRecord With(string name, AI.Script.Runtime.ScriptValue value) { }
+        public static AI.Script.Runtime.ScriptRecord From(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, AI.Script.Runtime.ScriptValue>> fields) { }
+    }
+    public sealed class ScriptTable
+    {
+        public static readonly AI.Script.Runtime.ScriptTable Empty;
+        public int ColumnCount { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Runtime.ScriptColumn> Columns { get; }
+        public AI.Script.Runtime.ScriptColumn this[int index] { get; }
+        public int RowCount { get; }
+        public AI.Script.Runtime.ScriptColumn Column(string name) { }
+        public System.Collections.Generic.IReadOnlyList<string> Names() { }
+        public AI.Script.Runtime.ScriptRecord Row(int index) { }
+        public System.Collections.Generic.IEnumerable<AI.Script.Runtime.ScriptRecord> Rows() { }
+        public AI.Script.Runtime.ScriptTable Select(System.Collections.Generic.IReadOnlyList<string> names) { }
+        public AI.Script.Runtime.ScriptTable Take(System.Collections.Generic.IReadOnlyList<int> rows) { }
+        public AI.DataStructs.Algebraic.Matrix ToMatrix() { }
+        public bool TryGet(string name, out AI.Script.Runtime.ScriptColumn column) { }
+        public AI.Script.Runtime.ScriptTable With(AI.Script.Runtime.ScriptColumn column) { }
+        public AI.Script.Runtime.ScriptTable Without(System.Collections.Generic.IReadOnlyCollection<string> names) { }
+        public static AI.Script.Runtime.ScriptTable Create(System.Collections.Generic.IReadOnlyList<AI.Script.Runtime.ScriptColumn> columns) { }
+        public static AI.Script.Runtime.ScriptTable FromMatrix(AI.DataStructs.Algebraic.Matrix matrix, System.Collections.Generic.IReadOnlyList<string>? names = null) { }
+    }
+    public enum ScriptType
+    {
+        None = 0,
+        Num = 1,
+        Bool = 2,
+        Str = 3,
+        Date = 4,
+        Dur = 5,
+        Vec = 6,
+        CVec = 7,
+        Mat = 8,
+        Tensor = 9,
+        List = 10,
+        Record = 11,
+        Table = 12,
+        Range = 13,
+        Fn = 14,
+        Handle = 15,
+        Dec = 16,
+        Qty = 17,
+        Any = 18,
+    }
+    public static class ScriptTypeNames
+    {
+        public static AI.Script.Runtime.ScriptType? Parse(string name) { }
+        public static string ToName(this AI.Script.Runtime.ScriptType type) { }
+    }
+    public readonly struct ScriptValue : System.IEquatable<AI.Script.Runtime.ScriptValue>
+    {
+        public static readonly AI.Script.Runtime.ScriptValue False;
+        public static readonly AI.Script.Runtime.ScriptValue None;
+        public static readonly AI.Script.Runtime.ScriptValue True;
+        public bool IsNone { get; }
+        public double QuantityValue { get; }
+        public double RawNumber { get; }
+        public object? RawReference { get; }
+        public AI.Script.Runtime.ScriptType Type { get; }
+        public bool AsBool(string what = "значение") { }
+        public AI.Script.Runtime.ScriptCallable AsCallable(string what = "значение") { }
+        public System.DateTime AsDate(string what = "значение") { }
+        public decimal AsDecimal(string what = "значение") { }
+        public System.TimeSpan AsDuration(string what = "значение") { }
+        public AI.Script.Runtime.ScriptHandle AsHandle(string what = "значение") { }
+        public AI.Script.Runtime.ScriptList AsList(string what = "значение") { }
+        public AI.DataStructs.Algebraic.Matrix AsMatrix(string what = "значение") { }
+        public double AsNumber(string what = "значение") { }
+        public AI.Script.Runtime.ScriptRange AsRange(string what = "значение") { }
+        public AI.Script.Runtime.ScriptRecord AsRecord(string what = "значение") { }
+        public string AsString(string what = "значение") { }
+        public AI.Script.Runtime.ScriptTable AsTable(string what = "значение") { }
+        public AI.Script.Runtime.MeasureUnit AsUnit(string what = "значение") { }
+        public AI.DataStructs.Algebraic.Vector AsVector(string what = "значение") { }
+        public bool Equals(AI.Script.Runtime.ScriptValue other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+        public static AI.Script.Runtime.ScriptValue Bool(bool value) { }
+        public static AI.Script.Runtime.ScriptValue Date(System.DateTime value) { }
+        public static AI.Script.Runtime.ScriptValue Dec(decimal value) { }
+        public static AI.Script.Runtime.ScriptValue Dur(System.TimeSpan value) { }
+        public static AI.Script.Runtime.ScriptValue Fn(AI.Script.Runtime.ScriptCallable value) { }
+        public static AI.Script.Runtime.ScriptValue Handle(AI.Script.Runtime.ScriptHandle value) { }
+        public static AI.Script.Runtime.ScriptValue List(AI.Script.Runtime.ScriptList value) { }
+        public static AI.Script.Runtime.ScriptValue Mat(AI.DataStructs.Algebraic.Matrix value) { }
+        public static AI.Script.Runtime.ScriptValue Num(double value) { }
+        public static AI.Script.Runtime.ScriptValue Qty(double magnitude, AI.Script.Runtime.MeasureUnit unit) { }
+        public static AI.Script.Runtime.ScriptValue Quantity(double value, AI.Script.Runtime.MeasureUnit unit) { }
+        public static AI.Script.Runtime.ScriptValue Range(AI.Script.Runtime.ScriptRange value) { }
+        public static AI.Script.Runtime.ScriptValue Record(AI.Script.Runtime.ScriptRecord value) { }
+        public static AI.Script.Runtime.ScriptValue Str(string value) { }
+        public static AI.Script.Runtime.ScriptValue Table(AI.Script.Runtime.ScriptTable value) { }
+        public static AI.Script.Runtime.ScriptValue Vec(AI.DataStructs.Algebraic.Vector value) { }
+    }
+    public static class ScriptValueCodec
+    {
+        public const int Version = 1;
+        public static bool CanWrite(AI.Script.Runtime.ScriptValue value) { }
+        public static bool TryRead(System.IO.Stream stream, out AI.Script.Runtime.ScriptValue value) { }
+        public static void Write(System.IO.Stream stream, AI.Script.Runtime.ScriptValue value) { }
+    }
+    public sealed class StageOptions
+    {
+        public static readonly AI.Script.Runtime.StageOptions Default;
+        public StageOptions() { }
+        public int Attempts { get; init; }
+        public bool Cache { get; init; }
+        public string? Deprecated { get; init; }
+        public bool IsPlain { get; }
+        public bool NoCache { get; init; }
+        public bool Pure { get; init; }
+        public System.TimeSpan? Timeout { get; init; }
+        public static AI.Script.Runtime.StageOptions From(System.Collections.Generic.IReadOnlyList<AI.Script.Syntax.Ast.AttributeNode> attributes) { }
+    }
+    public static class UnitCatalog
+    {
+        public static bool TryGet(string symbol, out AI.Script.Runtime.MeasureUnit unit) { }
+        public static bool TryLiteral(string symbol, out AI.Script.Runtime.MeasureUnit unit) { }
+    }
+    public static class ValueDigest
+    {
+        public static string Hash(string text) { }
+        public static bool TryBuild(System.Collections.Generic.IEnumerable<string> parts, System.Collections.Generic.IEnumerable<AI.Script.Runtime.ScriptValue> values, out string key, out string? reason) { }
+        public readonly struct Result : System.IEquatable<AI.Script.Runtime.ValueDigest.Result>
+        {
+            public static readonly AI.Script.Runtime.ValueDigest.Result Ok;
+            public Result(bool Success, string? Reason) { }
+            public string? Reason { get; init; }
+            public bool Success { get; init; }
+        }
+    }
+}
+namespace AI.Script.Semantics
+{
+    public sealed class Checker
+    {
+        public Checker(AI.Script.Semantics.DiagnosticBag diagnostics, AI.Script.Binding.FunctionRegistry registry, System.Collections.Generic.IReadOnlyCollection<string>? seeded = null, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>>? seededColumns = null) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.ScriptInput> Inputs { get; }
+        public void Check(AI.Script.Syntax.Ast.ScriptUnit unit) { }
+    }
+    public sealed class Diagnostic
+    {
+        public Diagnostic(string code, AI.Script.Semantics.DiagnosticSeverity severity, AI.Script.Syntax.TextSpan span, string message, string? hint = null, AI.Script.Syntax.SourceText? source = null) { }
+        public string Code { get; }
+        public string? Hint { get; }
+        public string Message { get; }
+        public AI.Script.Syntax.LinePosition Position { get; }
+        public AI.Script.Semantics.DiagnosticSeverity Severity { get; }
+        public AI.Script.Syntax.SourceText? Source { get; }
+        public AI.Script.Syntax.TextSpan Span { get; }
+        public string Render() { }
+        public override string ToString() { }
+    }
+    public sealed class DiagnosticBag : System.Collections.Generic.IEnumerable<AI.Script.Semantics.Diagnostic>, System.Collections.Generic.IReadOnlyCollection<AI.Script.Semantics.Diagnostic>, System.Collections.IEnumerable
+    {
+        public DiagnosticBag(AI.Script.Syntax.SourceText? source = null) { }
+        public int Count { get; }
+        public bool HasErrors { get; }
+        public void Add(AI.Script.Semantics.Diagnostic diagnostic) { }
+        public void Error(string code, AI.Script.Syntax.TextSpan span, string message, string? hint = null) { }
+        public System.Collections.Generic.IEnumerator<AI.Script.Semantics.Diagnostic> GetEnumerator() { }
+        public void Info(string code, AI.Script.Syntax.TextSpan span, string message, string? hint = null) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.Diagnostic> ToList() { }
+        public void Warning(string code, AI.Script.Syntax.TextSpan span, string message, string? hint = null) { }
+    }
+    public static class DiagnosticCodes
+    {
+        public const string AssertionFailed = "AIS3120";
+        public const string BadFileFormat = "AIS3421";
+        public const string BadOperand = "AIS3103";
+        public const string BadOperandTypes = "AIS2102";
+        public const string CallDepthLimit = "AIS3204";
+        public const string Cancelled = "AIS3210";
+        public const string ChainedComparison = "AIS0201";
+        public const string ComparingDifferentTypes = "AIS2302";
+        public const string ConditionNotBool = "AIS2103";
+        public const string ConstantAssignment = "AIS1208";
+        public const string CostLimit = "AIS3205";
+        public const string DeclaredTypeMismatch = "AIS2105";
+        public const string DeferredValue = "AIS3212";
+        public const string DuplicateArgument = "AIS1106";
+        public const string DuplicateFunction = "AIS1207";
+        public const string DuplicateLet = "AIS1201";
+        public const string DuplicatePlaceholder = "AIS0210";
+        public const string ExactFloatComparison = "AIS2301";
+        public const string ExtraPositional = "AIS1105";
+        public const string FileNotFound = "AIS3420";
+        public const string FunctionFailed = "AIS3105";
+        public const string IndexOutOfRange = "AIS3101";
+        public const string InvalidCharacter = "AIS0003";
+        public const string InvalidDate = "AIS0006";
+        public const string InvalidNumber = "AIS0005";
+        public const string LoopLimit = "AIS3206";
+        public const string MemoryLimit = "AIS3203";
+        public const string MisplacedOptions = "AIS0220";
+        public const string MissingArgument = "AIS1103";
+        public const string MissingInput = "AIS1130";
+        public const string NetworkDenied = "AIS3411";
+        public const string NotCallable = "AIS2104";
+        public const string NotConnected = "AIS2902";
+        public const string NotImplementedYet = "AIS2901";
+        public const string NotInLoop = "AIS1205";
+        public const string NotIterable = "AIS2106";
+        public const string NotTopLevel = "AIS0225";
+        public const string PilotStopped = "AIS3211";
+        public const string PipeTargetNotCall = "AIS0212";
+        public const string PositionalAfterNamed = "AIS0215";
+        public const string ProfileForbidden = "AIS1140";
+        public const string ProfileTooLong = "AIS1141";
+        public const string ReturnOutsideFunction = "AIS1206";
+        public const string SandboxDenied = "AIS3410";
+        public const string Shadowing = "AIS2401";
+        public const string SizeMismatch = "AIS3102";
+        public const string StepLimit = "AIS3201";
+        public const string Timeout = "AIS3202";
+        public const string TypeMismatch = "AIS2101";
+        public const string UnboundName = "AIS1203";
+        public const string UnboundSet = "AIS1202";
+        public const string UnexpectedToken = "AIS0205";
+        public const string UnknownArgument = "AIS1102";
+        public const string UnknownColumn = "AIS1120";
+        public const string UnknownEscape = "AIS0004";
+        public const string UnknownFunction = "AIS1101";
+        public const string UnknownNamespace = "AIS1110";
+        public const string UnterminatedInterpolation = "AIS0007";
+        public const string UnterminatedString = "AIS0001";
+        public const string WatchNotExpression = "AIS3501";
+        public const string WatchNotImmediate = "AIS3502";
+    }
+    public enum DiagnosticSeverity
+    {
+        Info = 0,
+        Warning = 1,
+        Error = 2,
+    }
+    public sealed record ScriptInput : System.IEquatable<AI.Script.Semantics.ScriptInput>
+    {
+        public ScriptInput(string Name, string Kind, string About) { }
+        public string About { get; init; }
+        public string Kind { get; init; }
+        public string Name { get; init; }
+    }
+    public static class Suggestions
+    {
+        public static string? Closest(string target, System.Collections.Generic.IEnumerable<string> candidates) { }
+        public static int Distance(string left, string right, int limit = 2147483647) { }
+        public static System.Collections.Generic.IReadOnlyList<string> Nearest(string target, System.Collections.Generic.IEnumerable<string> candidates, int count = 3) { }
+    }
+    public static class TypeRules
+    {
+        public static bool Accepts(AI.Script.Runtime.ScriptType parameter, AI.Script.Runtime.ScriptType argument) { }
+        public static AI.Script.Runtime.ScriptType? Binary(AI.Script.Syntax.BinaryOperator op, AI.Script.Runtime.ScriptType left, AI.Script.Runtime.ScriptType right) { }
+        public static AI.Script.Runtime.ScriptType? ElementOf(AI.Script.Runtime.ScriptType sequence) { }
+        public static bool IsIterable(AI.Script.Runtime.ScriptType type) { }
+        public static AI.Script.Runtime.ScriptType? Unary(AI.Script.Syntax.UnaryOperator op, AI.Script.Runtime.ScriptType operand) { }
+    }
+}
+namespace AI.Script.Syntax.Ast
+{
+    public sealed class ArgumentNode : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        public ArgumentNode() { }
+        public bool IsPlaceholder { get; set; }
+        public string? Name { get; set; }
+        public AI.Script.Syntax.TextSpan NameSpan { get; set; }
+        public AI.Script.Syntax.Ast.Expr? Value { get; set; }
+    }
+    public sealed class AssertStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public AssertStmt() { }
+        public AI.Script.Syntax.Ast.Expr Condition { get; set; }
+        public AI.Script.Syntax.Ast.Expr? Message { get; set; }
+    }
+    public sealed class AttributeNode : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        public AttributeNode() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.Expr> Arguments { get; }
+        public string Name { get; set; }
+    }
+    public sealed class BinaryExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public BinaryExpr() { }
+        public AI.Script.Syntax.Ast.Expr Left { get; set; }
+        public AI.Script.Syntax.BinaryOperator Operator { get; set; }
+        public AI.Script.Syntax.TextSpan OperatorSpan { get; set; }
+        public AI.Script.Syntax.Ast.Expr Right { get; set; }
+    }
+    public sealed class BlockExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public BlockExpr() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.Stmt> Statements { get; }
+    }
+    public sealed class BreakStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public BreakStmt() { }
+    }
+    public sealed class CallExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public CallExpr() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.ArgumentNode> Arguments { get; }
+        public AI.Script.Syntax.TextSpan ArgumentsSpan { get; set; }
+        public AI.Script.Syntax.Ast.Expr Callee { get; set; }
+    }
+    public sealed class ContinueStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public ContinueStmt() { }
+    }
+    public sealed class EmitStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public EmitStmt() { }
+        public string Name { get; set; }
+        public AI.Script.Syntax.TextSpan NameSpan { get; set; }
+        public AI.Script.Syntax.Ast.Expr Value { get; set; }
+    }
+    public abstract class Expr : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        protected Expr() { }
+    }
+    public sealed class ExpressionStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public ExpressionStmt() { }
+        public AI.Script.Syntax.Ast.Expr Expression { get; set; }
+    }
+    public sealed class ForStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public ForStmt() { }
+        public AI.Script.Syntax.Ast.BlockExpr Body { get; set; }
+        public AI.Script.Syntax.Ast.Expr? By { get; set; }
+        public AI.Script.Syntax.Ast.Expr Iterable { get; set; }
+        public System.Collections.Generic.List<string> Names { get; }
+    }
+    public sealed class FunctionDeclStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public FunctionDeclStmt() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.AttributeNode> Attributes { get; }
+        public AI.Script.Syntax.Ast.BlockExpr Body { get; set; }
+        public string? Documentation { get; set; }
+        public bool IsStage { get; set; }
+        public string Name { get; set; }
+        public AI.Script.Syntax.TextSpan NameSpan { get; set; }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.ParameterNode> Parameters { get; }
+        public AI.Script.Runtime.ScriptType? ReturnType { get; set; }
+    }
+    public sealed class IfExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public IfExpr() { }
+        public AI.Script.Syntax.Ast.Expr Condition { get; set; }
+        public AI.Script.Syntax.Ast.Expr? Else { get; set; }
+        public AI.Script.Syntax.Ast.BlockExpr Then { get; set; }
+    }
+    public sealed class IndexArgument : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        public IndexArgument() { }
+        public bool IsAll { get; set; }
+        public AI.Script.Syntax.Ast.Expr? Value { get; set; }
+    }
+    public sealed class IndexExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public IndexExpr() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.IndexArgument> Arguments { get; }
+        public AI.Script.Syntax.Ast.Expr Target { get; set; }
+    }
+    public sealed class InterpolationExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public InterpolationExpr() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.InterpolationPart> Parts { get; }
+    }
+    public sealed class InterpolationPart
+    {
+        public InterpolationPart() { }
+        public AI.Script.Syntax.Ast.Expr? Expression { get; set; }
+        public string? Text { get; set; }
+    }
+    public sealed class LambdaExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public LambdaExpr() { }
+        public AI.Script.Syntax.Ast.Expr Body { get; set; }
+        public System.Collections.Generic.List<string> Parameters { get; }
+    }
+    public sealed class LetStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public LetStmt() { }
+        public AI.Script.Runtime.ScriptType? DeclaredType { get; set; }
+        public string Name { get; set; }
+        public AI.Script.Syntax.TextSpan NameSpan { get; set; }
+        public AI.Script.Syntax.Ast.Expr Value { get; set; }
+    }
+    public sealed class ListExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public ListExpr() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.Expr> Items { get; }
+    }
+    public sealed class LiteralExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public LiteralExpr() { }
+        public AI.Script.Runtime.ScriptValue Value { get; set; }
+    }
+    public sealed class MemberExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public MemberExpr() { }
+        public string Name { get; set; }
+        public AI.Script.Syntax.TextSpan NameSpan { get; set; }
+        public AI.Script.Syntax.Ast.Expr Target { get; set; }
+    }
+    public sealed class NameExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public NameExpr() { }
+        public string Name { get; set; }
+    }
+    public sealed class OptionFieldNode : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        public OptionFieldNode() { }
+        public string Name { get; set; }
+        public AI.Script.Runtime.ScriptValue Value { get; set; }
+    }
+    public sealed class OptionsStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public OptionsStmt() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.OptionFieldNode> Fields { get; }
+    }
+    public sealed class ParameterNode : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        public ParameterNode() { }
+        public AI.Script.Runtime.ScriptType? DeclaredType { get; set; }
+        public AI.Script.Syntax.Ast.Expr? Default { get; set; }
+        public string Name { get; set; }
+    }
+    public sealed class PipeExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public PipeExpr() { }
+        public AI.Script.Syntax.Ast.Expr Left { get; set; }
+        public AI.Script.Syntax.TextSpan OperatorSpan { get; set; }
+        public AI.Script.Syntax.Ast.CallExpr Right { get; set; }
+    }
+    public sealed class PlaceholderExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public PlaceholderExpr() { }
+    }
+    public sealed class RangeExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public RangeExpr() { }
+        public AI.Script.Syntax.Ast.Expr? By { get; set; }
+        public AI.Script.Syntax.Ast.Expr From { get; set; }
+        public AI.Script.Syntax.Ast.Expr To { get; set; }
+    }
+    public sealed class RecordExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public RecordExpr() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.RecordFieldNode> Fields { get; }
+    }
+    public sealed class RecordFieldNode : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        public RecordFieldNode() { }
+        public bool IsSpread { get; set; }
+        public string? Name { get; set; }
+        public AI.Script.Syntax.Ast.Expr Value { get; set; }
+    }
+    public sealed class ReturnStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public ReturnStmt() { }
+        public AI.Script.Syntax.Ast.Expr? Value { get; set; }
+    }
+    public sealed class ScriptUnit : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        public ScriptUnit() { }
+        public AI.Script.Syntax.Ast.OptionsStmt? Options { get; set; }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.Stmt> Statements { get; }
+    }
+    public sealed class SetStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public SetStmt() { }
+        public AI.Script.Syntax.BinaryOperator? Compound { get; set; }
+        public AI.Script.Syntax.Ast.Expr Target { get; set; }
+        public AI.Script.Syntax.Ast.Expr Value { get; set; }
+    }
+    public sealed class ShowStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public ShowStmt() { }
+        public AI.Script.Syntax.Ast.Expr Value { get; set; }
+    }
+    public abstract class Stmt : AI.Script.Syntax.Ast.SyntaxNode
+    {
+        protected Stmt() { }
+    }
+    public abstract class SyntaxNode
+    {
+        protected SyntaxNode() { }
+        public AI.Script.Syntax.TextSpan Span { get; set; }
+    }
+    public sealed class TryStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public TryStmt() { }
+        public AI.Script.Syntax.Ast.BlockExpr Body { get; set; }
+        public string ErrorName { get; set; }
+        public AI.Script.Syntax.Ast.BlockExpr Handler { get; set; }
+    }
+    public sealed class UnaryExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public UnaryExpr() { }
+        public AI.Script.Syntax.Ast.Expr Operand { get; set; }
+        public AI.Script.Syntax.UnaryOperator Operator { get; set; }
+    }
+    public sealed class UseStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public UseStmt() { }
+        public string Alias { get; set; }
+        public string Namespace { get; set; }
+    }
+    public sealed class VectorExpr : AI.Script.Syntax.Ast.Expr
+    {
+        public VectorExpr() { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Ast.Expr> Items { get; }
+    }
+    public sealed class WhileStmt : AI.Script.Syntax.Ast.Stmt
+    {
+        public WhileStmt() { }
+        public AI.Script.Syntax.Ast.BlockExpr Body { get; set; }
+        public AI.Script.Syntax.Ast.Expr Condition { get; set; }
+    }
+}
+namespace AI.Script.Syntax
+{
+    public enum BinaryOperator
+    {
+        Add = 0,
+        Subtract = 1,
+        Multiply = 2,
+        Divide = 3,
+        Modulo = 4,
+        Power = 5,
+        Equal = 6,
+        NotEqual = 7,
+        Less = 8,
+        Greater = 9,
+        LessOrEqual = 10,
+        GreaterOrEqual = 11,
+        And = 12,
+        Or = 13,
+    }
+    public sealed class Lexer
+    {
+        public Lexer(AI.Script.Syntax.SourceText source, AI.Script.Semantics.DiagnosticBag diagnostics, int start = 0, int end = -1) { }
+        public System.Collections.Generic.List<AI.Script.Syntax.Token> Lex() { }
+    }
+    public readonly struct LinePosition
+    {
+        public LinePosition(int line, int column) { }
+        public int Column { get; }
+        public int Line { get; }
+        public override string ToString() { }
+    }
+    public static class OperatorText
+    {
+        public static bool IsComparison(AI.Script.Syntax.BinaryOperator op) { }
+        public static string Of(AI.Script.Syntax.BinaryOperator op) { }
+        public static string Of(AI.Script.Syntax.UnaryOperator op) { }
+    }
+    public sealed class Parser
+    {
+        public Parser(AI.Script.Syntax.SourceText source, AI.Script.Semantics.DiagnosticBag diagnostics) { }
+        public AI.Script.Syntax.Ast.ScriptUnit ParseUnit() { }
+    }
+    public sealed class SourceText
+    {
+        public SourceText(string text, string fileName = "script.ais") { }
+        public string FileName { get; }
+        public char this[int index] { get; }
+        public int Length { get; }
+        public int LineCount { get; }
+        public string Text { get; }
+        public AI.Script.Syntax.LinePosition GetLinePosition(int offset) { }
+        public string GetLineText(int line) { }
+        public string GetText(AI.Script.Syntax.TextSpan span) { }
+    }
+    public readonly struct StringPart
+    {
+        public string? Expression { get; }
+        public int ExpressionStart { get; }
+        public bool IsExpression { get; }
+        public string? Text { get; }
+        public static AI.Script.Syntax.StringPart FromExpression(string expression, int start) { }
+        public static AI.Script.Syntax.StringPart FromText(string text) { }
+    }
+    public readonly struct TextSpan : System.IEquatable<AI.Script.Syntax.TextSpan>
+    {
+        public TextSpan(int start, int length) { }
+        public int End { get; }
+        public int Length { get; }
+        public int Start { get; }
+        public bool Equals(AI.Script.Syntax.TextSpan other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+        public AI.Script.Syntax.TextSpan Union(AI.Script.Syntax.TextSpan other) { }
+        public static AI.Script.Syntax.TextSpan FromBounds(int start, int end) { }
+    }
+    public sealed class Token
+    {
+        public Token(AI.Script.Syntax.TokenKind kind, AI.Script.Syntax.TextSpan span, string text, object? value = null, System.Collections.Generic.IReadOnlyList<AI.Script.Syntax.StringPart>? parts = null) { }
+        public AI.Script.Syntax.TokenKind Kind { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Syntax.StringPart>? Parts { get; }
+        public AI.Script.Syntax.TextSpan Span { get; }
+        public string Text { get; }
+        public object? Value { get; }
+        public override string ToString() { }
+        public static string Describe(AI.Script.Syntax.TokenKind kind) { }
+    }
+    public enum TokenKind
+    {
+        EndOfFile = 0,
+        Newline = 1,
+        DocComment = 2,
+        Number = 3,
+        String = 4,
+        Duration = 5,
+        Quantity = 6,
+        Date = 7,
+        Identifier = 8,
+        Underscore = 9,
+        Options = 10,
+        Let = 11,
+        Set = 12,
+        Fn = 13,
+        Stage = 14,
+        Return = 15,
+        If = 16,
+        Else = 17,
+        For = 18,
+        In = 19,
+        By = 20,
+        While = 21,
+        Break = 22,
+        Continue = 23,
+        Try = 24,
+        Catch = 25,
+        Use = 26,
+        As = 27,
+        Emit = 28,
+        Show = 29,
+        Assert = 30,
+        True = 31,
+        False = 32,
+        None = 33,
+        Nan = 34,
+        Inf = 35,
+        LParen = 36,
+        RParen = 37,
+        LBracket = 38,
+        RBracket = 39,
+        LBrace = 40,
+        RBrace = 41,
+        Comma = 42,
+        Colon = 43,
+        Dot = 44,
+        DotDot = 45,
+        Ellipsis = 46,
+        Arrow = 47,
+        FatArrow = 48,
+        At = 49,
+        Pipe = 50,
+        OrOr = 51,
+        AndAnd = 52,
+        Not = 53,
+        EqEq = 54,
+        NotEq = 55,
+        Less = 56,
+        Greater = 57,
+        LessEq = 58,
+        GreaterEq = 59,
+        Plus = 60,
+        Minus = 61,
+        Star = 62,
+        Slash = 63,
+        Percent = 64,
+        Caret = 65,
+        Assign = 66,
+        PlusAssign = 67,
+        MinusAssign = 68,
+        StarAssign = 69,
+        SlashAssign = 70,
+    }
+    public enum UnaryOperator
+    {
+        Negate = 0,
+        Not = 1,
+    }
+}

@@ -32,9 +32,42 @@ public class StatInferenceAccuracyTests
     [Fact]
     public void NormalQuantile_InvertsNormalCdf_AcrossSixSigma()
     {
-        // Φ считается через точную erfc, квантиль уточняется шагом Галлея: обращение держится далеко за 1e-9
+        // Допуск свой в каждой точке: ни общий абсолютный, ни общий относительный здесь не годятся, потому что
+        // достижимая точность меняется по сетке на восемь порядков. При z > 0 значение p = Φ(z) близко к 1 и хранится
+        // с абсолютным шагом ulp(p) = 2⁻⁵³. Одно его округление сдвигает точный квантиль на ulp(p)/φ(z): производная
+        // обратной функции dΦ⁻¹/dp = 1/φ (число обусловленности, Higham, «Accuracy and Stability of Numerical
+        // Algorithms», 2-е изд., SIAM, 2002, гл. 1). При z = 4,75 это 2,2e-11, при z = 6 — 1,8e-8, и точнее z из такого p
+        // не вернёт никакая реализация в double: прежний общий допуск 1e-11 был недостижим начиная с z = 4,75.
+        // Допуск — этот сдвиг на целый ulp(p) (округление даёт не больше половины) плюс 4 ulp(z) на арифметику
+        // квантиля, который после шага Галлея точен до последних разрядов (Acklam). В нижней половине и у нуля
+        // первое слагаемое ничтожно, и допуск в тысячи раз строже прежних 1e-11.
+        var failures = new List<string>();
+
         for (double z = -6; z <= 6; z += 0.25)
-            Assert.Equal(z, StatInference.NormalQuantile(StatInference.NormalCdf(z)), tolerance: 1e-11);
+        {
+            double p = StatInference.NormalCdf(z);
+            double density = Math.Exp(-z * z / 2) / Math.Sqrt(2 * Math.PI);
+            double tolerance = ((Math.BitIncrement(p) - p) / density) + (4 * (Math.BitIncrement(Math.Abs(z)) - Math.Abs(z)));
+            double error = StatInference.NormalQuantile(p) - z;
+
+            if (!(Math.Abs(error) <= tolerance))
+                failures.Add($"z = {z}: ошибка {error:E2}, допуск {tolerance:E2}");
+        }
+
+        Assert.True(failures.Count == 0, string.Join("\n", failures));
+    }
+
+    [Theory]
+    [InlineData(0.99999, 4.264890793923841)]
+    [InlineData(0.9999999999, 6.361340889697422)]
+    [InlineData(0.99999999999999, 7.650730905155643)]
+    public void NormalQuantile_UpperTail_MatchesExactQuantileOfGivenDouble(double probability, double expected)
+    {
+        // Эталон — точный квантиль именно этого double p (mpmath, 400 знаков), округлённый до double.
+        // Пока верхняя половина считалась напрямую, здесь были ошибки 1,5e-13, 2,9e-9 и 8,3e-9 (до 1e-9 относительно).
+        // Теперь точность та же, что в нижнем хвосте: erfc верна до 2,3e-15 относительно, в квантиль её ошибка
+        // переходит с множителем p/(|x|·φ(x)) < 1; допуск 1e-14 — с запасом в четыре раза
+        Assert.Equal(expected, StatInference.NormalQuantile(probability), tolerance: 1e-14 * expected);
     }
 
     [Theory]

@@ -1,0 +1,706 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.DataPrepaire.Backends.BertTokenizers
+{
+    [System.Serializable]
+    public class SpecialTokens
+    {
+        public SpecialTokens() { }
+        [System.Text.Json.Serialization.JsonPropertyName("cls_token")]
+        public string Classification { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mask_token")]
+        public string Mask { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("pad_token")]
+        public string Padding { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("sep_token")]
+        public string Separation { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unk_token")]
+        public string Unknown { get; set; }
+        public static AI.DataPrepaire.Backends.BertTokenizers.SpecialTokens FromJson(string jsonMapPath) { }
+    }
+    [System.Serializable]
+    public static class StringExtensions
+    {
+        public static System.Collections.Generic.IEnumerable<string> SplitAndKeep(this string inputString, params char[] delimiters) { }
+    }
+    [System.Serializable]
+    public struct TokenizeResult
+    {
+        public int[] AttentionMask { get; set; }
+        public int[] InputIds { get; set; }
+        public int[] TypeIds { get; set; }
+        public override string ToString() { }
+    }
+    [System.Serializable]
+    public abstract class TokenizerBase
+    {
+        public string TokenWordPart;
+        protected readonly System.Collections.Generic.List<string> _vocabulary;
+        protected readonly System.Collections.Generic.Dictionary<string, int> _vocabularyDict;
+        protected TokenizerBase(string vocabularyFilePath) { }
+        public AI.DataPrepaire.Backends.BertTokenizers.SpecialTokens SpecialTokenMap { get; set; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "InputIds",
+                "TokenTypeIds",
+                "AttentionMask"})]
+        public virtual System.Collections.Generic.List<System.ValueTuple<int, int, int>> BaseEncode(System.Collections.Generic.IEnumerable<string> texts, int sequenceLength = 0) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "InputIds",
+                "TokenTypeIds",
+                "AttentionMask"})]
+        public virtual System.Collections.Generic.List<System.ValueTuple<int, int, int>> BaseEncode(string text, int sequenceLength = 0) { }
+        public virtual AI.DataPrepaire.Backends.BertTokenizers.TokenizeResult Encode(System.Collections.Generic.IEnumerable<string> texts, int sequenceLength = 0) { }
+        public virtual AI.DataPrepaire.Backends.BertTokenizers.TokenizeResult Encode(string text, int sequenceLength = 0) { }
+        public string IdToToken(int id) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Token",
+                "VocabularyIndex",
+                "SegmentIndex"})]
+        public virtual System.Collections.Generic.List<System.ValueTuple<string, int, int>> Tokenize(params string[] texts) { }
+        protected abstract System.Collections.Generic.IEnumerable<string> TokenizeSentence(string text);
+        protected AI.DataPrepaire.Backends.BertTokenizers.TokenizeResult Tokens2Struct([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "InputIds",
+                "TokenTypeIds",
+                "AttentionMask"})] System.Collections.Generic.List<System.ValueTuple<int, int, int>> enc) { }
+        public virtual System.Collections.Generic.List<string> Untokenize(System.Collections.Generic.List<string> tokens) { }
+    }
+}
+namespace AI.DataPrepaire.DataLoader
+{
+    [System.Serializable]
+    public class DataItem
+    {
+        public System.Collections.Generic.List<object> Data;
+        public AI.DataPrepaire.DataLoader.TypeData TypeColum;
+        public DataItem(string name, System.Collections.Generic.List<dynamic> data) { }
+        public string Name { get; }
+        public void Convert() { }
+        public System.Collections.Generic.Dictionary<dynamic, int> GetCategoryIndex() { }
+        public System.Collections.Generic.Dictionary<dynamic, int> SelfCategoryToIndex() { }
+        public System.Collections.Generic.List<T> ToType<T>() { }
+        public AI.DataStructs.Algebraic.Vector ToVector() { }
+        public void TransformSelf(System.Func<dynamic, dynamic> transformFunc) { }
+    }
+    [System.Serializable]
+    public class DataTable
+    {
+        public DataTable() { }
+        public AI.DataPrepaire.DataLoader.DataItem this[string name] { get; set; }
+        public int Len { get; }
+        public void Add(AI.DataPrepaire.DataLoader.DataItem dataItem) { }
+        public void Add(string name, System.Collections.Generic.IEnumerable<dynamic> data) { }
+        public System.Collections.Generic.Dictionary<object, int> ColumnToCategorical(int colIndex = 0) { }
+        public System.Collections.Generic.Dictionary<object, int> ColumnToCategorical(string colName) { }
+        public string[] GetColums() { }
+        public object[] GetRow(int rowIndex) { }
+        public T[] GetRow<T>(int rowIndex) { }
+        public AI.DataPrepaire.DataLoader.DataTable GetSlice(int indStart, int len) { }
+        public AI.DataPrepaire.DataLoader.DataTable GetSubTable(System.Collections.Generic.IEnumerable<string> colums) { }
+        public AI.DataStructs.Algebraic.Vector RowToVector(int rowIndex) { }
+        public AI.DataStructs.Algebraic.Matrix ToMatrix() { }
+        public override string ToString() { }
+    }
+    public enum TypeData
+    {
+        DigitC = 0,
+        DigitP = 1,
+        String = 2,
+        UnDef = 3,
+    }
+}
+namespace AI.DataPrepaire.DataLoader.Formats
+{
+    [System.Serializable]
+    public static class CSVLoader
+    {
+        public static AI.DataPrepaire.DataLoader.DataTable Read(System.IO.StreamReader csvStream, char separator = ,) { }
+        public static AI.DataPrepaire.DataLoader.DataTable Read(System.IO.StreamReader csvStream, string separator = ",") { }
+        public static AI.DataPrepaire.DataLoader.DataTable Read(string csvPath, char separator = ,) { }
+        public static AI.DataPrepaire.DataLoader.DataTable Read(string csvPath, string separator = ",") { }
+    }
+    [System.Serializable]
+    public class CSVValuesParser
+    {
+        public CSVValuesParser(string text, string separator) { }
+        public System.Collections.Generic.List<string> Values { get; set; }
+    }
+    [System.Serializable]
+    public class JSONLoader
+    {
+        public JSONLoader() { }
+    }
+    public static class YAMLLoader
+    {
+        public static T Deserialize<T>(string yaml) { }
+        public static T Read<T>(string path) { }
+        public static System.Collections.Generic.IEnumerable<T> ReadDirectory<T>(string directory, string searchPattern = "*.yaml") { }
+    }
+}
+namespace AI.DataPrepaire.DataLoader.NNWBlockLoader
+{
+    public interface INNWBlockV2V
+    {
+        AI.DataStructs.Algebraic.Vector Forward(AI.DataStructs.Algebraic.Vector input);
+    }
+}
+namespace AI.DataPrepaire.DataNormalizers
+{
+    public class EmptyNormalizer : AI.DataPrepaire.DataNormalizers.Normalizer
+    {
+        public EmptyNormalizer() { }
+        public override AI.DataStructs.Algebraic.IAlgebraicStructure<double> Denormalize(AI.DataStructs.Algebraic.IAlgebraicStructure<double> normalizeData) { }
+        public override void Train(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> data) { }
+        public override AI.DataStructs.Algebraic.IAlgebraicStructure<double> Transform(AI.DataStructs.Algebraic.IAlgebraicStructure<double> data) { }
+    }
+    [System.Serializable]
+    public class MinimaxNomalizer : AI.DataPrepaire.DataNormalizers.Normalizer
+    {
+        public MinimaxNomalizer() { }
+        public double[] Max { get; set; }
+        public double[] MaxMinusMin { get; set; }
+        public double[] Min { get; set; }
+        public override AI.DataStructs.Algebraic.IAlgebraicStructure<double> Denormalize(AI.DataStructs.Algebraic.IAlgebraicStructure<double> normalizeData) { }
+        public override void Train(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> data) { }
+        public override AI.DataStructs.Algebraic.IAlgebraicStructure<double> Transform(AI.DataStructs.Algebraic.IAlgebraicStructure<double> data) { }
+    }
+    [System.Serializable]
+    public abstract class Normalizer
+    {
+        protected Normalizer() { }
+        public abstract AI.DataStructs.Algebraic.IAlgebraicStructure<double> Denormalize(AI.DataStructs.Algebraic.IAlgebraicStructure<double> normalizeData);
+        public virtual AI.DataStructs.Algebraic.IAlgebraicStructure<double>[] Denormalize(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> normalizeData) { }
+        public abstract void Train(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> data);
+        public abstract AI.DataStructs.Algebraic.IAlgebraicStructure<double> Transform(AI.DataStructs.Algebraic.IAlgebraicStructure<double> data);
+        public virtual AI.DataStructs.Algebraic.IAlgebraicStructure<double>[] Transform(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> data) { }
+    }
+    [System.Serializable]
+    public class ZNormalizer : AI.DataPrepaire.DataNormalizers.Normalizer
+    {
+        public ZNormalizer() { }
+        public double[] Mean { get; set; }
+        public double[] Std { get; set; }
+        public override AI.DataStructs.Algebraic.IAlgebraicStructure<double> Denormalize(AI.DataStructs.Algebraic.IAlgebraicStructure<double> normalizeData) { }
+        public override void Train(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> data) { }
+        public override AI.DataStructs.Algebraic.IAlgebraicStructure<double> Transform(AI.DataStructs.Algebraic.IAlgebraicStructure<double> data) { }
+    }
+}
+namespace AI.DataPrepaire.FeatureExtractors
+{
+    public abstract class FeaturesExtractor<T>
+    {
+        protected FeaturesExtractor() { }
+        public abstract AI.DataStructs.Algebraic.Vector GetFeatures(T data);
+        public virtual AI.DataStructs.Algebraic.Vector[] GetFeatures(T[] data) { }
+    }
+    [System.Serializable]
+    public class NoExtractor : AI.DataPrepaire.FeatureExtractors.FeaturesExtractor<AI.DataStructs.Algebraic.Vector>
+    {
+        public NoExtractor() { }
+        public override AI.DataStructs.Algebraic.Vector GetFeatures(AI.DataStructs.Algebraic.Vector data) { }
+    }
+}
+namespace AI.DataPrepaire.FeatureExtractors.TimeSeq
+{
+    [System.Serializable]
+    public class FilterExtractor : AI.DataPrepaire.FeatureExtractors.TimeSeq.TSExtractor
+    {
+        public FilterExtractor(double[] fCutDown, double[] fCutUp, double sr, int order = 5) { }
+        public AI.DSP.IIR.IIRFilter[] IIRs { get; set; }
+        public System.Func<AI.DataStructs.Algebraic.Vector, double> Transformer { get; set; }
+        public override AI.DataStructs.Algebraic.Vector GetFeatures(AI.DataStructs.Algebraic.Vector crop) { }
+    }
+    [System.Serializable]
+    public abstract class TSExtractor : AI.DataPrepaire.FeatureExtractors.FeaturesExtractor<AI.DataStructs.Algebraic.Vector>
+    {
+        protected TSExtractor() { }
+        public virtual AI.DataStructs.Algebraic.Vector[] GetFeatures(AI.DataStructs.Algebraic.Vector timeSeq, int cropSize) { }
+    }
+}
+namespace AI.DataPrepaire.NLPUtils
+{
+    [System.Serializable]
+    public static class CompareStringMethods
+    {
+        public static float HistogramCos(string input, string target) { }
+        public static float HistogramCos(string input, string target, int n) { }
+        public static float HistogramCrossEntropy(string input, string target) { }
+        public static float HistogramCrossEntropy(string input, string target, int n) { }
+        public static float LevenshteinDistance(int[] input, int[] target) { }
+        public static float LevenshteinDistance(string input, string target) { }
+        public static float WordCorellation(string input, string target) { }
+    }
+}
+namespace AI.DataPrepaire.NLPUtils.QA
+{
+    [System.Serializable]
+    public class KnnBot
+    {
+        public KnnBot(System.Func<string, AI.DataStructs.Algebraic.Vector> textTransform) { }
+        public AI.DataPrepaire.NLPUtils.QA.KnnBot.ClAlg Alg { get; set; }
+        public System.Collections.Generic.List<string> ClassesToStr { get; set; }
+        public AI.ML.Classification.IClassifier KNN { get; set; }
+        public AI.DataStructs.Algebraic.Vector Mean { get; set; }
+        public AI.DataStructs.Algebraic.Vector Std { get; set; }
+        public System.Func<string, AI.DataStructs.Algebraic.Vector> TextTransform { get; set; }
+        public AI.DataPrepaire.NLPUtils.QA.KnnBot.Answer GetAnswer(string text) { }
+        public void Train(System.Collections.Generic.IEnumerable<string> textQ, System.Collections.Generic.IEnumerable<string> textAns) { }
+        public class Answer
+        {
+            public Answer() { }
+            public string AnswerStr { get; set; }
+            public double Conf { get; set; }
+        }
+        public enum ClAlg
+        {
+            KNN = 0,
+            NN = 1,
+        }
+    }
+}
+namespace AI.DataPrepaire.NLPUtils.TextClassification
+{
+    [System.Serializable]
+    public class TextRuleClassifier
+    {
+        public AI.ML.SequenceAnalysis.SeqAnalyze.ClassifierS2V classifier;
+        public TextRuleClassifier(int count_of_classes, double top_p, int max_n_gramm) { }
+        public int CountRules { get; }
+        public void AddRule(string rull, int class_mark) { }
+        public int Predict(string text) { }
+        public void Train(string[] texts, int[] cls) { }
+    }
+}
+namespace AI.DataPrepaire.NLPUtils.TextGeneration
+{
+    [System.Serializable]
+    public class HMMFast
+    {
+        public HMMFast() { }
+        public HMMFast(AI.DataPrepaire.Tokenizers.TextTokenizers.WordTokenizer tokenizer, AI.ML.SequenceAnalysis.HMM.MCFast mc) { }
+        public int NGram { get; set; }
+        public AI.DataStructs.Algebraic.Vector ProbabilityVector { get; }
+        public string Generate(int num) { }
+        public string Generate(int num, string[] strs) { }
+        public string Generate(int num, string[] strs, System.Random rnd) { }
+        public AI.DataStructs.Algebraic.Vector TextToVector(string text) { }
+        public void Train(string trainText, bool addStart = false) { }
+    }
+}
+namespace AI.DataPrepaire.Pipelines
+{
+    [System.Serializable]
+    public class LSHPipeline<T>
+    {
+        public LSHPipeline() { }
+        public AI.DataPrepaire.Pipelines.Utils.IDetector<T> Detector { get; set; }
+        public AI.DataPrepaire.FeatureExtractors.FeaturesExtractor<T> Extractor { get; set; }
+        public AI.DataPrepaire.DataNormalizers.Normalizer Normalizer { get; set; }
+        public AI.ML.Regression.IMultyRegression<AI.DataStructs.Algebraic.Vector> ProbRegr { get; set; }
+        public AI.DataPrepaire.Pipelines.LSHPipeline<T>.DatasetForMR ClearData(T[] dataIn, AI.DataStructs.Algebraic.Vector[] classes) { }
+        public virtual string GetHash(T input, double tr = 0.01) { }
+        public virtual string[] GetHash(T[] input, double tr = 0.01) { }
+        public virtual AI.DataStructs.Algebraic.Vector GetProb(T input) { }
+        public virtual AI.DataStructs.Algebraic.Vector[] GetProb(T[] input) { }
+        public virtual AI.DataStructs.Algebraic.Vector GetStoсhasticHash(T input) { }
+        public virtual AI.DataStructs.Algebraic.Vector[] GetStoсhasticHash(T[] input) { }
+        public virtual void Train(System.Collections.Generic.IEnumerable<T> data, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> target) { }
+        [System.Serializable]
+        public class DataSampleMR
+        {
+            public DataSampleMR() { }
+            public DataSampleMR(T obj, AI.DataStructs.Algebraic.Vector probs) { }
+            public T Obj { get; set; }
+            public AI.DataStructs.Algebraic.Vector Probs { get; set; }
+        }
+        [System.Serializable]
+        public class DatasetForMR : System.Collections.Generic.List<AI.DataPrepaire.Pipelines.LSHPipeline<T>.DataSampleMR>
+        {
+            public DatasetForMR() { }
+            public DatasetForMR(int cap) { }
+            public void Add(T obj, AI.DataStructs.Algebraic.Vector probs) { }
+            public AI.DataStructs.Algebraic.Vector[] ReturnClasses() { }
+            public T[] ReturnData() { }
+            public void ShuffleData() { }
+        }
+    }
+    [System.Serializable]
+    public abstract class Object2VectorPipeline<T>
+    {
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> Transformer;
+        public Object2VectorPipeline() { }
+        public AI.DataPrepaire.FeatureExtractors.FeaturesExtractor<T> Extractor { get; set; }
+        public AI.DataPrepaire.DataNormalizers.Normalizer Normalizer { get; set; }
+        public virtual AI.DataStructs.Algebraic.Vector Run(T input) { }
+    }
+    [System.Serializable]
+    public abstract class ObjectClassifierPipeline<T>
+    {
+        public ObjectClassifierPipeline() { }
+        public AI.ML.Classification.IClassifier Classifier { get; set; }
+        public AI.DataPrepaire.Pipelines.Utils.DataAugmetation<AI.DataStructs.Algebraic.Vector> DataAugmetation { get; set; }
+        public System.Func<T, T> DataRestavration { get; set; }
+        public AI.DataPrepaire.Pipelines.Utils.IDetector<T> Detector { get; set; }
+        public AI.DataPrepaire.FeatureExtractors.FeaturesExtractor<T> Extractor { get; set; }
+        public AI.DataPrepaire.DataNormalizers.Normalizer Normalizer { get; set; }
+        public int UnknowClass { get; set; }
+        public virtual int[] Classify(System.Collections.Generic.IEnumerable<T> input) { }
+        public virtual int Classify(T input) { }
+        public virtual AI.DataStructs.Algebraic.Vector ClassifyProb(T input) { }
+        public virtual AI.DataStructs.Algebraic.Vector[] ClassifyProb(T[] input) { }
+        public AI.DataPrepaire.Pipelines.ObjectClassifierPipeline<T>.DatasetForClassifier ClearData(T[] dataIn, int[] classes) { }
+        public T[] DataArrayResvration(System.Collections.Generic.IEnumerable<T> data) { }
+        public AI.DataStructs.Algebraic.Vector GetFeatures(T data) { }
+        public virtual int StoсhasticClassify(T input, double temp = 1) { }
+        public virtual int[] StoсhasticClassify(T[] input, double temp = 1) { }
+        public virtual void Train(System.Collections.Generic.IEnumerable<T> data, System.Collections.Generic.IEnumerable<int> labels) { }
+        public virtual string TrainTest(T[] data, int[] marks, double trainPart = 0.9, int seed = 0, bool reportForEachClass = true) { }
+        [System.Serializable]
+        public class DataSample
+        {
+            public DataSample() { }
+            public DataSample(T obj, int classN) { }
+            public int ClassN { get; set; }
+            public T Obj { get; set; }
+        }
+        [System.Serializable]
+        public class DatasetForClassifier : System.Collections.Generic.List<AI.DataPrepaire.Pipelines.ObjectClassifierPipeline<T>.DataSample>
+        {
+            public DatasetForClassifier() { }
+            public DatasetForClassifier(int cap) { }
+            public void Add(T obj, int clIndex) { }
+            public int[] ReturnClasses() { }
+            public T[] ReturnData() { }
+            public void ShuffleData() { }
+        }
+    }
+    [System.Serializable]
+    public abstract class ObjectRegressionPipeline<T>
+    {
+        public ObjectRegressionPipeline() { }
+        public AI.DataPrepaire.Pipelines.Utils.DataAugmetation<AI.DataStructs.Algebraic.Vector> DataAugmetation { get; set; }
+        public System.Func<T, T> DataRestavration { get; set; }
+        public AI.DataPrepaire.Pipelines.Utils.IDetector<T> Detector { get; set; }
+        public AI.DataPrepaire.FeatureExtractors.FeaturesExtractor<T> Extractor { get; set; }
+        public double MeanY { get; set; }
+        public AI.DataPrepaire.DataNormalizers.Normalizer NormalizerX { get; set; }
+        public AI.ML.Regression.IRegression Regression { get; set; }
+        public double StdY { get; set; }
+        public AI.DataPrepaire.Pipelines.ObjectRegressionPipeline<T>.DatasetForRegression ClearData(T[] dataIn, double[] targets) { }
+        public T[] DataArrayResvration(System.Collections.Generic.IEnumerable<T> data) { }
+        public AI.DataStructs.Algebraic.Vector GetFeatures(T data) { }
+        public virtual AI.DataStructs.Algebraic.Vector Predict(System.Collections.Generic.IEnumerable<T> input) { }
+        public virtual double Predict(T input) { }
+        public virtual void Train(System.Collections.Generic.IEnumerable<T> data, System.Collections.Generic.IEnumerable<double> labels, bool yNormal = true) { }
+        public virtual double TrainTest(T[] data, double[] marks, double trainPart = 0.9, int seed = 0, bool yNormal = true) { }
+        [System.Serializable]
+        public class DataSampleR
+        {
+            public DataSampleR() { }
+            public DataSampleR(T obj, double target) { }
+            public T Obj { get; set; }
+            public double Target { get; set; }
+        }
+        [System.Serializable]
+        public class DatasetForRegression : System.Collections.Generic.List<AI.DataPrepaire.Pipelines.ObjectRegressionPipeline<T>.DataSampleR>
+        {
+            public DatasetForRegression() { }
+            public DatasetForRegression(int cap) { }
+            public void Add(T obj, double target) { }
+            public double[] ReturnClasses() { }
+            public T[] ReturnData() { }
+            public void ShuffleData() { }
+        }
+    }
+}
+namespace AI.DataPrepaire.Pipelines.RL
+{
+    [System.Serializable]
+    public class CriticPipeline<T> : AI.DataPrepaire.Pipelines.ObjectRegressionPipeline<T>
+    {
+        public CriticPipeline() { }
+    }
+    [System.Serializable]
+    public class RLWithCriticPipeline<T> : AI.DataPrepaire.Pipelines.RL.RLWithoutCriticPipeline<T>
+    {
+        public AI.DataPrepaire.Pipelines.RL.CriticPipeline<T> Critic;
+        public RLWithCriticPipeline() { }
+        public RLWithCriticPipeline(AI.DataPrepaire.Pipelines.ObjectClassifierPipeline<T> actor, AI.DataPrepaire.Pipelines.RL.CriticPipeline<T> critic) { }
+        public virtual void CriticTrain() { }
+        public virtual double ExpendedReward(T[] states) { }
+        public override void Train(int topK = 3) { }
+    }
+    [System.Serializable]
+    public class RLWithoutCriticPipeline<T>
+    {
+        public RLWithoutCriticPipeline() { }
+        public RLWithoutCriticPipeline(AI.DataPrepaire.Pipelines.ObjectClassifierPipeline<T> actor) { }
+        public System.Collections.Generic.List<int> Actions { get; set; }
+        public AI.DataPrepaire.Pipelines.ObjectClassifierPipeline<T> Actor { get; set; }
+        public AI.DataPrepaire.Pipelines.Utils.ScoreTableClassifier<T> RewardData { get; set; }
+        public System.Collections.Generic.List<T> States { get; set; }
+        public void ClearData() { }
+        public virtual int GetAction(T state, double conf = 0, double t = 1) { }
+        public virtual void SetReward(double score) { }
+        public virtual void Train(int topK = 3) { }
+    }
+}
+namespace AI.DataPrepaire.Pipelines.Utils
+{
+    [System.Serializable]
+    public abstract class DataAugmetation<T>
+    {
+        public DataAugmetation(int kAug) { }
+        public int KAug { get; set; }
+        public virtual T[] Augmetation(System.Collections.Generic.IEnumerable<T> samples) { }
+        public abstract T[] Augmetation(T sample);
+        public virtual System.Tuple<T, double>[] Augmetation(System.Collections.Generic.IEnumerable<T> samples, System.Collections.Generic.IEnumerable<double> tgts) { }
+        public virtual System.Tuple<T, int>[] Augmetation(System.Collections.Generic.IEnumerable<T> samples, System.Collections.Generic.IEnumerable<int> cls) { }
+        public virtual System.Tuple<T[], double[]> Augmetation(T sample, double target) { }
+        public virtual System.Tuple<T[], int[]> Augmetation(T sample, int classInd) { }
+    }
+    public interface IDetector<T>
+    {
+        bool IsDetected(T obj);
+    }
+    [System.Serializable]
+    public class NoAugmentation<T> : AI.DataPrepaire.Pipelines.Utils.DataAugmetation<T>
+    {
+        public NoAugmentation() { }
+        public override T[] Augmetation(T sample) { }
+    }
+    [System.Serializable]
+    public class NoDetector<T> : AI.DataPrepaire.Pipelines.Utils.IDetector<T>
+    {
+        public NoDetector() { }
+        public bool IsDetected(T obj) { }
+    }
+    [System.Serializable]
+    public class NormalAugmentation : AI.DataPrepaire.Pipelines.Utils.DataAugmetation<AI.DataStructs.Algebraic.Vector>
+    {
+        public NormalAugmentation(int kAug, double mean = 0, double std = 0.01) { }
+        public override AI.DataStructs.Algebraic.Vector[] Augmetation(AI.DataStructs.Algebraic.Vector sample) { }
+    }
+    [System.Serializable]
+    public class ScoreElCl<T>
+    {
+        public ScoreElCl() { }
+        public int[] Actions { get; set; }
+        public double Score { get; set; }
+        public T[] States { get; set; }
+    }
+    [System.Serializable]
+    public class ScoreTableClassifier<T> : System.Collections.Generic.List<AI.DataPrepaire.Pipelines.Utils.ScoreElCl<T>>
+    {
+        public ScoreTableClassifier() { }
+        public ScoreTableClassifier(AI.DataPrepaire.Pipelines.Utils.ScoreTableClassifier<T> model) { }
+        public ScoreTableClassifier(System.Collections.Generic.IEnumerable<AI.DataPrepaire.Pipelines.Utils.ScoreElCl<T>> data) { }
+        public ScoreTableClassifier(int cap) { }
+        public AI.DataPrepaire.Pipelines.ObjectClassifierPipeline<T>.DatasetForClassifier GetDataset() { }
+        public AI.DataPrepaire.Pipelines.Utils.ScoreElCl<T>[] TopK(int k = 3) { }
+        public AI.DataPrepaire.Pipelines.Utils.ScoreTableClassifier<T> TopKToTbl(int k = 3) { }
+    }
+}
+namespace AI.DataPrepaire.Tokenizers
+{
+    public interface ITokenizer<T>
+    {
+        int EndToken { get; set; }
+        int MaxSize { get; set; }
+        int PadToken { get; set; }
+        int StartToken { get; set; }
+        int UnknowToken { get; set; }
+        T[] Decode(System.Collections.Generic.IEnumerable<int> ids);
+        T[][] DecodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids);
+        T[] DecodeBatchObj(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids);
+        T DecodeObj(System.Collections.Generic.IEnumerable<int> ids);
+        int[] Encode(System.Collections.Generic.IEnumerable<T> data);
+        int[] Encode(T data);
+        int[] EncodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<T>> data);
+        int[] EncodeBatch(System.Collections.Generic.IEnumerable<T> data);
+    }
+    [System.Serializable]
+    public class TokenizerBase<T> : AI.DataPrepaire.Tokenizers.ITokenizer<T>
+    {
+        protected T[] decoder;
+        protected System.Collections.Generic.Dictionary<T, int> encoder;
+        public TokenizerBase() { }
+        public TokenizerBase(T[] decoder, System.Collections.Generic.Dictionary<T, int> encoder) { }
+        public int EndToken { get; set; }
+        public int MaxSize { get; set; }
+        public int PadToken { get; set; }
+        public int StartToken { get; set; }
+        public int UnknowToken { get; set; }
+        public virtual T[] Decode(System.Collections.Generic.IEnumerable<int> ids) { }
+        public virtual T[][] DecodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids) { }
+        public virtual T[] DecodeBatchObj(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids) { }
+        public virtual T DecodeObj(System.Collections.Generic.IEnumerable<int> ids) { }
+        public virtual int[] Encode(System.Collections.Generic.IEnumerable<T> data) { }
+        public virtual int[] Encode(T data) { }
+        public virtual int[] EncodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<T>> data) { }
+        public virtual int[] EncodeBatch(System.Collections.Generic.IEnumerable<T> data) { }
+    }
+    public enum TokenizerPadStratege
+    {
+        MaximumSeq = 0,
+        MaxSize = 1,
+    }
+}
+namespace AI.DataPrepaire.Tokenizers.MatrixTokenizer
+{
+    [System.Serializable]
+    public class SimpleMatrixTokenizer : AI.DataPrepaire.Tokenizers.ITokenizer<AI.DataStructs.Algebraic.Matrix>
+    {
+        public SimpleMatrixTokenizer() { }
+        public int EndToken { get; set; }
+        public int MaxSize { get; set; }
+        public int PadToken { get; set; }
+        public int StartToken { get; set; }
+        public int UnknowToken { get; set; }
+        public AI.DataStructs.Algebraic.Matrix[] Decode(System.Collections.Generic.IEnumerable<int> ids) { }
+        public AI.DataStructs.Algebraic.Matrix[][] DecodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids) { }
+        public AI.DataStructs.Algebraic.Matrix[] DecodeBatchObj(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids) { }
+        public AI.DataStructs.Algebraic.Matrix DecodeObj(System.Collections.Generic.IEnumerable<int> ids) { }
+        public int[] Encode(AI.DataStructs.Algebraic.Matrix data) { }
+        public int[] Encode(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Matrix> data) { }
+        public int[] EncodeBatch(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Matrix> data) { }
+        public int[] EncodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Matrix>> data) { }
+    }
+}
+namespace AI.DataPrepaire.Tokenizers.TextTokenizers
+{
+    [System.Serializable]
+    public class BPECore
+    {
+        public BPECore() { }
+        public int MaxNGrammSize { get; set; }
+        public int[] Tokenize(byte[] bytes) { }
+        public int[] Tokenize(string str) { }
+        public void TrainBPE(byte[][] bytes) { }
+        public static byte[] GetBytes(string str) { }
+    }
+    [System.Serializable]
+    public class BPE<T> : AI.DataPrepaire.Tokenizers.ITokenizer<T>
+    {
+        protected T[] decoder;
+        protected System.Collections.Generic.Dictionary<T, int> encoder;
+        public BPE() { }
+        public BPE(T[] decoder, System.Collections.Generic.Dictionary<T, int> encoder) { }
+        public int EndToken { get; set; }
+        public int MaxSize { get; set; }
+        public int PadToken { get; set; }
+        public int StartToken { get; set; }
+        public int UnknowToken { get; set; }
+        public virtual T[] Decode(System.Collections.Generic.IEnumerable<int> ids) { }
+        public virtual T[][] DecodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids) { }
+        public virtual T[] DecodeBatchObj(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids) { }
+        public virtual T DecodeObj(System.Collections.Generic.IEnumerable<int> ids) { }
+        public virtual int[] Encode(System.Collections.Generic.IEnumerable<T> data) { }
+        public virtual int[] Encode(T data) { }
+        public virtual int[] EncodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<T>> data) { }
+        public virtual int[] EncodeBatch(System.Collections.Generic.IEnumerable<T> data) { }
+    }
+    [System.Serializable]
+    public class CharTokenizer : AI.DataPrepaire.Tokenizers.TokenizerBase<string>
+    {
+        public CharTokenizer(string[] decoder, System.Collections.Generic.Dictionary<string, int> encoder) { }
+    }
+    [System.Serializable]
+    public class WordEndingsRUTokenizer : AI.DataPrepaire.Tokenizers.TokenizerBase<string>
+    {
+        public WordEndingsRUTokenizer(string path_to_text) { }
+        public WordEndingsRUTokenizer(string[] decoder, System.Collections.Generic.Dictionary<string, int> encoder) { }
+        public override string DecodeObj(System.Collections.Generic.IEnumerable<int> ids) { }
+        public override int[] Encode(string data) { }
+        public void TrainFromText(string text) { }
+        public void TrainFromTextFile(string path) { }
+    }
+    [System.Serializable]
+    public class WordTokenizer : AI.DataPrepaire.Tokenizers.TokenizerBase<string>
+    {
+        public WordTokenizer(bool isLower = true, System.Func<string, string> transformerStr = null) { }
+        public WordTokenizer(string[] decoder, System.Collections.Generic.Dictionary<string, int> encoder, System.Func<string, string> transformerStr = null) { }
+        public WordTokenizer(string path_to_text, bool isLower = true, System.Func<string, string> transformerStr = null) { }
+        public int DictLen { get; }
+        public bool IsLower { get; set; }
+        public System.Func<string, string> TransformerStr { get; set; }
+        public override string DecodeObj(System.Collections.Generic.IEnumerable<int> ids) { }
+        public override int[] Encode(string data) { }
+        public void TrainFromText(string text) { }
+        public void TrainFromTextFile(string path) { }
+    }
+}
+namespace AI.DataPrepaire.Tokenizers.TextTokenizers.HFTokenizers
+{
+    [System.Serializable]
+    public class BertTokenizer : AI.DataPrepaire.Backends.BertTokenizers.TokenizerBase
+    {
+        public BertTokenizer(string path, bool isUnCased = true) { }
+        public AI.DataPrepaire.Tokenizers.TextTokenizers.HFTokenizers.BertTokenizerConfig TokenizerConfig { get; set; }
+        public AI.DataPrepaire.Tokenizers.TextTokenizers.HFTokenizers.BertTokenizer FromPretrained(string pathToFolder) { }
+        protected override System.Collections.Generic.IEnumerable<string> TokenizeSentence(string text) { }
+    }
+    [System.Serializable]
+    public class BertTokenizerConfig
+    {
+        public BertTokenizerConfig() { }
+        [System.Text.Json.Serialization.JsonPropertyName("cls_token")]
+        public string ClassificationToken { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("do_basic_tokenize")]
+        public bool DoBasicTokenize { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("do_lower_case")]
+        public bool DoLowerCase { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mask_token")]
+        public string MaskToken { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("model_max_length")]
+        public int ModelMaxLength { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name_or_path")]
+        public string NameOrPath { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("never_split")]
+        public object NeverSplit { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("pad_token")]
+        public string PaddingToken { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("sep_token")]
+        public string SeparationToken { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("strip_accents")]
+        public object StripAccents { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("tokenize_chinese_chars")]
+        public bool TokenizeChineseChars { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("tokenizer_class")]
+        public string TokenizerClass { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unk_token")]
+        public string UnknownToken { get; set; }
+        public static AI.DataPrepaire.Tokenizers.TextTokenizers.HFTokenizers.BertTokenizerConfig FromJson(string jsonConfigPath) { }
+    }
+    [System.Serializable]
+    public class BertWithOutSplitWordTokenizer : AI.DataPrepaire.Backends.BertTokenizers.TokenizerBase
+    {
+        public BertWithOutSplitWordTokenizer(string path, bool isUnCased = true) { }
+        public AI.DataPrepaire.Tokenizers.TextTokenizers.HFTokenizers.BertTokenizerConfig TokenizerConfig { get; set; }
+        public AI.DataPrepaire.Tokenizers.TextTokenizers.HFTokenizers.BertWithOutSplitWordTokenizer FromPretrained(string pathToFolder) { }
+        protected override System.Collections.Generic.IEnumerable<string> TokenizeSentence(string text) { }
+    }
+}
+namespace AI.DataPrepaire.Tokenizers.VectorTokenizer
+{
+    [System.Serializable]
+    public class SimpleVectorTokenizer : AI.DataPrepaire.Tokenizers.ITokenizer<AI.DataStructs.Algebraic.Vector>
+    {
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> VectorTransformer;
+        public SimpleVectorTokenizer() { }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> ActivationFunction { get; set; }
+        public int EndToken { get; set; }
+        public int MaxSize { get; set; }
+        public int PadToken { get; set; }
+        public int StartToken { get; set; }
+        public int UnknowToken { get; set; }
+        public AI.DataStructs.Algebraic.Vector[] Decode(System.Collections.Generic.IEnumerable<int> ids) { }
+        public AI.DataStructs.Algebraic.Vector[][] DecodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids) { }
+        public AI.DataStructs.Algebraic.Vector[] DecodeBatchObj(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> ids) { }
+        public AI.DataStructs.Algebraic.Vector DecodeObj(System.Collections.Generic.IEnumerable<int> ids) { }
+        public virtual int[] Encode(AI.DataStructs.Algebraic.Vector data) { }
+        public virtual int[] Encode(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> data) { }
+        public virtual int[] EncodeBatch(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> data) { }
+        public virtual int[] EncodeBatch(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector>> data) { }
+        public virtual int EncodeObj(AI.DataStructs.Algebraic.Vector data) { }
+    }
+}

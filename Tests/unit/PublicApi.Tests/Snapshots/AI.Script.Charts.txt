@@ -1,0 +1,60 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Charts
+{
+    public static class ChartsLibrary
+    {
+        public static AI.Script.Binding.IScriptModule Module { get; }
+        public static AI.Script.Hosting.ScriptHost UseCharts(this AI.Script.Hosting.ScriptHost host) { }
+    }
+    public sealed class PlotFigure : AI.Script.Hosting.IScriptArtifactSource, AI.Script.Hosting.IScriptImageSource
+    {
+        public PlotFigure(string title, System.Collections.Generic.IReadOnlyList<AI.Script.Charts.PlotFigure> parts) { }
+        public PlotFigure(string title, AI.Charts.JS.PlotlyBuilder builder, System.Collections.Generic.IReadOnlyList<AI.Script.Charts.PlotSeries>? series = null, string xlabel = "", string ylabel = "") { }
+        public string ArtifactKind { get; }
+        public object? ArtifactPayload { get; }
+        public string ArtifactTitle { get; }
+        public string ImageTitle { get; }
+        public bool IsGrid { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Script.Charts.PlotFigure> Parts { get; }
+        public string Title { get; }
+        public byte[] RenderPng(int width, int height) { }
+        public string ToJson() { }
+        public override string ToString() { }
+    }
+    [AI.Script.Binding.ScriptModule("plot", "Графики: линии, точки, столбцы, тепловые карты, поверхности", Group="данные", Version="0.1")]
+    public static class PlotModule
+    {
+        public const string ArtifactKind = "plot";
+        public const string PlotHandle = "plot.figure";
+        [AI.Script.Binding.ScriptFn("bar", "Столбчатая диаграмма", Example="show plot.bar(<10, 20, 15>)", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle Bar([AI.Script.Binding.ScriptParam("ряд значений")] AI.DataStructs.Algebraic.Vector y, [AI.Script.Binding.ScriptParam("сетка по оси X; пусто — индексы")] AI.DataStructs.Algebraic.Vector? x = null, [AI.Script.Binding.ScriptParam("заголовок")] string title = "", [AI.Script.Binding.ScriptParam("подпись серии")] string name = "", [AI.Script.Binding.ScriptParam("подпись оси X")] string xlabel = "", [AI.Script.Binding.ScriptParam("подпись оси Y")] string ylabel = "") { }
+        [AI.Script.Binding.ScriptFn("grid", "Набор графиков одним артефактом", Example="show plot.grid([plot.line(x: t, y: a), plot.line(x: t, y: b)])", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle Grid([AI.Script.Binding.ScriptParam("список графиков")] AI.Script.Runtime.ScriptList figures, [AI.Script.Binding.ScriptParam("общий заголовок")] string title = "") { }
+        [AI.Script.Binding.ScriptFn("heatmap", "Тепловая карта матрицы", Example="show plot.heatmap(stat.confusion(y, pred), title: \"Матрица ошибок\")", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle Heatmap([AI.Script.Binding.ScriptParam("матрица значений")] AI.DataStructs.Algebraic.Matrix m, [AI.Script.Binding.ScriptParam("заголовок")] string title = "", [AI.Script.Binding.ScriptParam("подпись оси X")] string xlabel = "", [AI.Script.Binding.ScriptParam("подпись оси Y")] string ylabel = "", [AI.Script.Binding.ScriptParam("цветовая шкала")] string colors = "viridis") { }
+        [AI.Script.Binding.ScriptFn("hist", "Гистограмма распределения", Example="show plot.hist(sample, bins: 20)", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle Histogram([AI.Script.Binding.ScriptParam("выборка")] AI.DataStructs.Algebraic.Vector sample, [AI.Script.Binding.ScriptParam("число интервалов")] int bins = 20, [AI.Script.Binding.ScriptParam("заголовок")] string title = "", [AI.Script.Binding.ScriptParam("подпись оси X")] string xlabel = "") { }
+        [AI.Script.Binding.ScriptFn("line", "Линейный график", Example="show plot.line(signal, x: t, title: \"Сигнал\")", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle Line([AI.Script.Binding.ScriptParam("ряд значений")] AI.DataStructs.Algebraic.Vector y, [AI.Script.Binding.ScriptParam("сетка по оси X; пусто — индексы")] AI.DataStructs.Algebraic.Vector? x = null, [AI.Script.Binding.ScriptParam("заголовок")] string title = "", [AI.Script.Binding.ScriptParam("подпись серии")] string name = "", [AI.Script.Binding.ScriptParam("подпись оси X")] string xlabel = "", [AI.Script.Binding.ScriptParam("подпись оси Y")] string ylabel = "") { }
+        [AI.Script.Binding.ScriptFn("scatter", "Диаграмма рассеяния", Example="show plot.scatter(x: x[:, 0], y: x[:, 1], title: \"Кластеры\")", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle Scatter([AI.Script.Binding.ScriptParam("значения по оси X")] AI.DataStructs.Algebraic.Vector x, [AI.Script.Binding.ScriptParam("значения по оси Y")] AI.DataStructs.Algebraic.Vector y, [AI.Script.Binding.ScriptParam("заголовок")] string title = "", [AI.Script.Binding.ScriptParam("подпись серии")] string name = "", [AI.Script.Binding.ScriptParam("подпись оси X")] string xlabel = "", [AI.Script.Binding.ScriptParam("подпись оси Y")] string ylabel = "") { }
+        [AI.Script.Binding.ScriptFn("scatter_by", "Рассеяние с разбиением на серии по меткам", Example="show plot.scatter_by(x: a, y: b, labels: clusters)", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle ScatterBy([AI.Script.Binding.ScriptParam("значения по оси X")] AI.DataStructs.Algebraic.Vector x, [AI.Script.Binding.ScriptParam("значения по оси Y")] AI.DataStructs.Algebraic.Vector y, [AI.Script.Binding.ScriptParam("метки серий")] AI.DataStructs.Algebraic.Vector labels, [AI.Script.Binding.ScriptParam("заголовок")] string title = "", [AI.Script.Binding.ScriptParam("подпись оси X")] string xlabel = "", [AI.Script.Binding.ScriptParam("подпись оси Y")] string ylabel = "") { }
+        [AI.Script.Binding.ScriptFn("spectrum", "График спектра по записи с полями freq и power либо amp", Example="show plot.spectrum(dsp.welch(signal, fs: 8000))", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle Spectrum([AI.Script.Binding.ScriptParam("запись со спектром")] AI.Script.Runtime.ScriptRecord spectrum, [AI.Script.Binding.ScriptParam("заголовок")] string title = "Спектр", [AI.Script.Binding.ScriptParam("логарифмическая шкала по Y")] bool log = false) { }
+        [AI.Script.Binding.ScriptFn("surface", "Поверхность z(x, y) в трёх измерениях", Example="show plot.surface(z, x: lr, y: depth, title: \"Точность\", zlabel: \"accuracy\")", Returns="plot.figure")]
+        public static AI.Script.Runtime.ScriptHandle Surface([AI.Script.Binding.ScriptParam("матрица высот: строки по Y, столбцы по X")] AI.DataStructs.Algebraic.Matrix z, [AI.Script.Binding.ScriptParam("сетка по оси X (по столбцам); пусто — номера")] AI.DataStructs.Algebraic.Vector? x = null, [AI.Script.Binding.ScriptParam("сетка по оси Y (по строкам); пусто — номера")] AI.DataStructs.Algebraic.Vector? y = null, [AI.Script.Binding.ScriptParam("заголовок")] string title = "", [AI.Script.Binding.ScriptParam("подпись оси X")] string xlabel = "", [AI.Script.Binding.ScriptParam("подпись оси Y")] string ylabel = "", [AI.Script.Binding.ScriptParam("подпись оси Z")] string zlabel = "", [AI.Script.Binding.ScriptParam("цветовая шкала")] string colors = "viridis") { }
+        [AI.Script.Binding.ScriptFn("to_json", "Описание графика в формате Plotly", Example="emit chart = plot.to_json(figure)")]
+        [AI.Script.Binding.ScriptMethod("plot.figure")]
+        public static string ToJson([AI.Script.Binding.ScriptParam("график")] AI.Script.Runtime.ScriptHandle figure) { }
+    }
+    public sealed record PlotSeries : System.IEquatable<AI.Script.Charts.PlotSeries>
+    {
+        public PlotSeries(string Kind, double[] X, double[] Y, string? Name) { }
+        public string Kind { get; init; }
+        public string? Name { get; init; }
+        public double[] X { get; init; }
+        public double[] Y { get; init; }
+    }
+}

@@ -1,0 +1,592 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Solvers.Math
+{
+    public static class AdvancedMathExpression
+    {
+        public static AI.Solvers.Math.Core.Parsers.Expression Derivative(string input, string variable) { }
+        public static AI.Solvers.Math.Core.Parsers.Expression Integrate(string input) { }
+        public static AI.Solvers.Math.Core.Parsers.Expression Parse(string input) { }
+    }
+    public class AdvancedMathParser
+    {
+        public AdvancedMathParser(System.Collections.Generic.List<AI.Solvers.Math.Core.Parsers.Token> tokens) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Parse() { }
+    }
+    public class MainFractalMathProcessor
+    {
+        public MainFractalMathProcessor() { }
+        protected double EvaluateExpression(AI.Solvers.Math.Core.Parsers.Expression expr, System.Collections.Generic.Dictionary<string, double> variables) { }
+        public string ProcessFractalMathCommand(string input) { }
+        protected string ProcessODE(string equation) { }
+        protected string ProcessPDE(string equation) { }
+        public static string GetHelpText() { }
+    }
+}
+namespace AI.Solvers.Math.CAS
+{
+    public static class AlgebraicSimplifier
+    {
+        public static bool ExpressionsEqual(AI.Solvers.Math.Core.Parsers.Expression? a, AI.Solvers.Math.Core.Parsers.Expression? b) { }
+        public static AI.Solvers.Math.Core.Parsers.Expression Simplify(AI.Solvers.Math.Core.Parsers.Expression expr, int maxIterations = 10) { }
+    }
+}
+namespace AI.Solvers.Math.Core
+{
+    public enum CommandType
+    {
+        IndefiniteIntegral = 0,
+        DefiniteIntegral = 1,
+        DoubleIntegral = 2,
+        FirstDerivative = 3,
+        SecondDerivative = 4,
+        NthDerivative = 5,
+        PartialDerivative = 6,
+        ODE = 7,
+        ODEWithInitialConditions = 8,
+        SystemODE = 9,
+        PDE = 10,
+        Limit = 11,
+        TaylorSeries = 12,
+        LaplaceTransform = 13,
+        LaplaceTable = 14,
+        FourierTransform = 15,
+        Solve = 16,
+        Unknown = 17,
+    }
+    public class ComplexConstant : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public ComplexConstant(System.Numerics.Complex value) { }
+        public ComplexConstant(double real, double imaginary = 0) { }
+        public System.Numerics.Complex Value { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Constant : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Constant(double value) { }
+        public double Value { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public static class ExpressionEvaluator
+    {
+        public static void CollectVariables(AI.Solvers.Math.Core.Parsers.Expression expr, System.Collections.Generic.HashSet<string> variables) { }
+        public static double Evaluate(AI.Solvers.Math.Core.Parsers.Expression expr, System.Collections.Generic.Dictionary<string, double> variables) { }
+    }
+    public class FractalMathCommand
+    {
+        public FractalMathCommand() { }
+        public string EquationType { get; set; }
+        public System.Collections.Generic.List<string> Equations { get; set; }
+        public string Expression { get; set; }
+        public System.Collections.Generic.Dictionary<string, string> InitialConditions { get; set; }
+        public string LimitPoint { get; set; }
+        public double? LowerBound { get; set; }
+        public int Order { get; set; }
+        public AI.Solvers.Math.Core.CommandType Type { get; set; }
+        public double? UpperBound { get; set; }
+        public string Variable { get; set; }
+        public string Variable2 { get; set; }
+    }
+    public static class FractalMathStyleParser
+    {
+        public static AI.Solvers.Math.Core.FractalMathCommand Parse(string input) { }
+    }
+    public class Variable : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Variable(string name) { }
+        public string Name { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+}
+namespace AI.Solvers.Math.Core.Functions
+{
+    public class Abs : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Abs(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Acos : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Acos(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Acosh : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Acosh(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Asin : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Asin(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Asinh : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Asinh(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Atan : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Atan(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Atanh : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Atanh(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Ci : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Ci(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Cosh : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Cosh(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Cot : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Cot(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Csc : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Csc(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Ei : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Ei(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Erf : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Erf(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Erfc : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Erfc(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Exp : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Exp(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class FresnelC : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public FresnelC(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class FresnelS : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public FresnelS(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Heaviside : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Heaviside(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Li : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Li(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Ln : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Ln(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Log : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Log(AI.Solvers.Math.Core.Parsers.Expression baseExpr, AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public AI.Solvers.Math.Core.Parsers.Expression Base { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Log10 : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Log10(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class NonElementary : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public NonElementary(AI.Solvers.Math.Core.Parsers.Expression integrand, string variable, string description) { }
+        public string Description { get; }
+        public AI.Solvers.Math.Core.Parsers.Expression Integrand { get; }
+        public string Variable { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Sec : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Sec(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Sgn : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Sgn(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Si : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Si(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Sinh : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Sinh(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Tan : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Tan(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Tanh : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Tanh(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+}
+namespace AI.Solvers.Math.Core.Integrations
+{
+    public static class AdvancedIntegrationEngine
+    {
+        public static AI.Solvers.Math.Core.Parsers.Expression Integrate(AI.Solvers.Math.Core.Parsers.Expression expr, string variable) { }
+    }
+    public class UnevaluatedIntegral : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public UnevaluatedIntegral(AI.Solvers.Math.Core.Parsers.Expression integrand, string variable) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Integrand { get; }
+        public string Variable { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+}
+namespace AI.Solvers.Math.Core.Numerics
+{
+    public static class Quadrature
+    {
+        public static double Integrate(System.Func<double, double> f, double a, double b, double tolerance = 1E-10) { }
+    }
+}
+namespace AI.Solvers.Math.Core.Operators
+{
+    public class Add : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Add(AI.Solvers.Math.Core.Parsers.Expression left, AI.Solvers.Math.Core.Parsers.Expression right) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Left { get; }
+        public AI.Solvers.Math.Core.Parsers.Expression Right { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Divide : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Divide(AI.Solvers.Math.Core.Parsers.Expression numerator, AI.Solvers.Math.Core.Parsers.Expression denominator) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Denominator { get; }
+        public AI.Solvers.Math.Core.Parsers.Expression Numerator { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Multiply : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Multiply(AI.Solvers.Math.Core.Parsers.Expression left, AI.Solvers.Math.Core.Parsers.Expression right) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Left { get; }
+        public AI.Solvers.Math.Core.Parsers.Expression Right { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+    public class Power : AI.Solvers.Math.Core.Parsers.Expression
+    {
+        public Power(AI.Solvers.Math.Core.Parsers.Expression baseExpr, AI.Solvers.Math.Core.Parsers.Expression exponent) { }
+        public AI.Solvers.Math.Core.Parsers.Expression Base { get; }
+        public AI.Solvers.Math.Core.Parsers.Expression Exponent { get; }
+        public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+        public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+        public override string ToString() { }
+    }
+}
+namespace AI.Solvers.Math.Core.Parsers
+{
+    public abstract class Expression
+    {
+        protected Expression() { }
+        public abstract AI.Solvers.Math.Core.Parsers.Expression Clone();
+        public abstract AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable);
+        public abstract AI.Solvers.Math.Core.Parsers.Expression Simplify();
+        public override string ToString() { }
+    }
+    public class ImprovedTokenizer
+    {
+        public ImprovedTokenizer(string input) { }
+        public System.Collections.Generic.List<AI.Solvers.Math.Core.Parsers.Token> Tokenize() { }
+    }
+    public class Token
+    {
+        public Token(AI.Solvers.Math.Core.Parsers.TokenType type, string value = "") { }
+        public AI.Solvers.Math.Core.Parsers.TokenType Type { get; set; }
+        public string Value { get; set; }
+        public override string ToString() { }
+    }
+    public enum TokenType
+    {
+        Number = 0,
+        Variable = 1,
+        Plus = 2,
+        Minus = 3,
+        Multiply = 4,
+        Divide = 5,
+        Power = 6,
+        LeftParen = 7,
+        RightParen = 8,
+        Function = 9,
+        Integral = 10,
+        Comma = 11,
+        End = 12,
+    }
+}
+namespace AI.Solvers.Math.Core.Solvers
+{
+    public static class AdvancedSolver
+    {
+        public static string ComputeLimit(string expression, string variable, string point) { }
+        public static string FourierTransform(string expression, string variable = "x") { }
+        public static string LaplaceTransform(string expression, string variable = "t") { }
+        public static string ShowLaplaceTable() { }
+        public static string SolveEquation(string equation) { }
+        public static string TaylorSeries(string expression, string variable, string point, int terms = 10) { }
+    }
+    public static class DerivativeSolver
+    {
+        public static string FirstDerivative(string expression, string variable = "x") { }
+        public static string NthDerivative(string expression, string variable, int order) { }
+        public static string PartialDerivative(string expression, string variable) { }
+    }
+    public static class IntegralSolver
+    {
+        public static string DefiniteIntegral(string expression, string variable, double lowerBound, double upperBound) { }
+        public static string DoubleIntegral(string expression, string var1, string var2) { }
+        public static string IndefiniteIntegral(string expression, string variable = "x") { }
+    }
+    public static class LaplaceTable
+    {
+        public static string Find(AI.Solvers.Math.Core.Parsers.Expression expr, string variable = "t") { }
+        public static string GetFullTable() { }
+    }
+    public static class NumericalEquationSolver
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "success",
+                "root",
+                "iterations"})]
+        public static System.ValueTuple<bool, double, int> Bisection(System.Func<double, double> f, double a, double b, double tolerance = 1E-06, int maxIterations = 100) { }
+        public static System.Collections.Generic.List<double> FindAllRoots(System.Func<double, double> f, double a, double b, int intervals = 100, double tolerance = 1E-06) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "success",
+                "root",
+                "iterations"})]
+        public static System.ValueTuple<bool, double, int> Newton(System.Func<double, double> f, System.Func<double, double> df, double x0, double tolerance = 1E-06, int maxIterations = 100) { }
+        public static System.Func<double, double> NumericalDerivative(System.Func<double, double> f, double h = 0) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "success",
+                "root",
+                "iterations"})]
+        public static System.ValueTuple<bool, double, int> Secant(System.Func<double, double> f, double x0, double x1, double tolerance = 1E-06, int maxIterations = 100) { }
+        public static string SolveNumerically(AI.Solvers.Math.Core.Parsers.Expression leftExpr, AI.Solvers.Math.Core.Parsers.Expression rightExpr, string variable) { }
+    }
+    public static class NumericalPDESolver
+    {
+        public static string SolveAdvectionNumerical(double c, double T = 1, int nx = 100, int nt = 100) { }
+        public static string SolveBurgersNumerical(double alpha, double nu, double T = 0.5, int nx = 100, int nt = 500) { }
+        public static string SolveDiffusion2DNumerical(double D, double T = 0.1, int nx = 20, int ny = 20, int nt = 500) { }
+        public static string SolveDiffusionAdvectionNumerical(double c, double D, double T = 1, int nx = 50, int nt = 500) { }
+        public static string SolveHeatEquationNumerical(double alpha, double T = 0.1, int nx = 50, int nt = 1000) { }
+        public static string SolveHelmholtzNumerical(double a, double b, double k2, int nx = 20, int ny = 20) { }
+        public static string SolveLaplaceNumerical(double a, double b, int nx = 20, int ny = 20, int maxIter = 1000, double tol = 1E-06) { }
+        public static string SolveWaveEquationNumerical(double c, double T = 2, int nx = 50, int nt = 200) { }
+    }
+    public static class ODESolver
+    {
+        public static string SolveFirstOrderLinearODE(string equation) { }
+        public static string SolveNonlinearODE(string equation, double x0 = 0, double y0 = 1, double xEnd = 5, double step = 0.1) { }
+        public static string SolveODEWithInitialConditions(string equation, System.Collections.Generic.Dictionary<string, string> initialConditions) { }
+        public static string SolveSecondOrderODE(string equation) { }
+        public static string SolveSystemODE(System.Collections.Generic.List<string> equations) { }
+    }
+    public static class PDESolver
+    {
+        public static string SolveAdvectionEquation(string equation) { }
+        public static string SolveBurgersEquation(string equation) { }
+        public static string SolveDiffusionAdvectionEquation(string equation) { }
+        public static string SolveDiffusionEquation(string equation) { }
+        public static string SolveHeatEquation(string equation) { }
+        public static string SolveHelmholtzEquation(string equation) { }
+        public static string SolveLaplaceEquation(string equation) { }
+        public static string SolvePoissonEquation(string equation) { }
+        public static string SolveSchrodingerEquation(string equation) { }
+        public static string SolveWaveEquation(string equation) { }
+    }
+}
+namespace AI.Solvers.Math.Libs
+{
+    public sealed class SymbolicLib : AI.ClassicMath.Calculator.Libs.IMathLib
+    {
+        public SymbolicLib() { }
+        public string Description { get; set; }
+        public string Name { get; set; }
+        public System.Collections.Generic.Dictionary<string, AI.ClassicMath.Calculator.FunctionDefinition> GetFunctions() { }
+    }
+}
+public class Cos : AI.Solvers.Math.Core.Parsers.Expression
+{
+    public Cos(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+    public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+    public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+    public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+    public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+    public override string ToString() { }
+}
+public class Sin : AI.Solvers.Math.Core.Parsers.Expression
+{
+    public Sin(AI.Solvers.Math.Core.Parsers.Expression argument) { }
+    public AI.Solvers.Math.Core.Parsers.Expression Argument { get; }
+    public override AI.Solvers.Math.Core.Parsers.Expression Clone() { }
+    public override AI.Solvers.Math.Core.Parsers.Expression Derivative(string variable) { }
+    public override AI.Solvers.Math.Core.Parsers.Expression Simplify() { }
+    public override string ToString() { }
+}

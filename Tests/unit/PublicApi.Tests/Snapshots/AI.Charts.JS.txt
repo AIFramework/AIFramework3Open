@@ -1,0 +1,45 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Charts.JS
+{
+    public sealed class PlotlyBuilder
+    {
+        public PlotlyBuilder() { }
+        public string? AxisX { get; set; }
+        public string? AxisY { get; set; }
+        public string? AxisZ { get; set; }
+        public double CameraEyeX { get; set; }
+        public double CameraEyeY { get; set; }
+        public double CameraEyeZ { get; set; }
+        public bool Is3D { get; set; }
+        public bool IsGraph { get; set; }
+        public bool IsLogY { get; set; }
+        public bool IsPolar { get; set; }
+        public string? Title { get; set; }
+        public void AddArea(double[] x, double[] y, string? name = null, string? color = null) { }
+        public void AddBar2D(double[] x, double[] y, string? name = null, string? color = null, double opacity = 1) { }
+        public void AddDirectedGraph([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "x",
+                "y",
+                "label",
+                "group"})] System.ValueTuple<double, double, string, int>[] nodes, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "from",
+                "to"})] System.ValueTuple<int, int>[] edges, string[]? groupColors = null) { }
+        public void AddHeatmap(double[] x, double[] y, double[][] z, string? colorscale = null, double opacity = 0.85, bool showScale = false, double? zMin = default, double? zMax = default) { }
+        public void AddHeatmapDiscrete(double[] x, double[] y, int[][] classIds, string[]? colorMap = null, double opacity = 0.4) { }
+        public void AddLine(double[] x, double[] y, string? name = null, string? color = null, int width = 2, string shape = "linear") { }
+        public void AddPie(double[] labels, double[] values, string? name = null) { }
+        public void AddPolarLine(double[] theta, double[] r, string? name = null, string? color = null, int width = 2) { }
+        public void AddScatter2D(double[] x, double[] y, string? name = null, string? color = null, int markerSize = 6) { }
+        public void AddScatter3D(double[] x, double[] y, double[] z, string? name = null, string? color = null, int markerSize = 3, string colorscale = "Viridis", bool colorByZ = false) { }
+        public void AddSurface(double[] xGrid, double[] yGrid, double[] z, string? name = null, string colorscale = "Viridis", double opacity = 1, bool showEdges = true) { }
+        public string Build() { }
+        public static string MapColorscale(string colormapKind) { }
+    }
+    public static class PlotlyChartRenderer
+    {
+        public static string? ComputeTransform(AI.Charts.ChartView source, string action) { }
+        public static string GetInteropScript() { }
+        public static string? ToPlotlyJson(AI.Charts.ChartView chartView) { }
+    }
+}

@@ -1,0 +1,992 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Geometry.Collision
+{
+    public static class BoxContacts
+    {
+        public static AI.Geometry.Collision.ContactManifold BoxBox(AI.Geometry.Collision.BoxShape a, AI.Geometry.Collision.BoxShape b) { }
+        public static AI.Geometry.Collision.ContactManifold BoxPlane(AI.Geometry.Collision.BoxShape box, AI.Geometry.Primitives.Plane plane) { }
+        public static AI.Geometry.Collision.ContactManifold BoxSphere(AI.Geometry.Collision.BoxShape box, AI.Geometry.Collision.SphereShape sphere) { }
+    }
+    public sealed record BoxShape : AI.Geometry.Collision.IConvexShape, System.IEquatable<AI.Geometry.Collision.BoxShape>
+    {
+        public BoxShape(AI.Geometry.Collision.Pose Pose, AI.Geometry.Primitives.Vector3 HalfExtents) { }
+        public AI.Geometry.Primitives.Vector3 Center { get; }
+        public AI.Geometry.Primitives.Vector3 HalfExtents { get; init; }
+        public AI.Geometry.Collision.Pose Pose { get; init; }
+        public AI.Geometry.Primitives.Vector3 ClosestPoint(AI.Geometry.Primitives.Vector3 point) { }
+        public AI.Geometry.Primitives.Vector3 Corner(int index) { }
+        public AI.Geometry.Primitives.Vector3 Support(AI.Geometry.Primitives.Vector3 direction) { }
+        public static AI.Geometry.Collision.BoxShape FromObb(AI.Geometry.Primitives.Obb box) { }
+    }
+    public static class CapsuleContacts
+    {
+        public static AI.Geometry.Collision.ContactManifold CapsuleBox(AI.Geometry.Collision.CapsuleShape capsule, AI.Geometry.Collision.BoxShape box) { }
+        public static AI.Geometry.Collision.ContactManifold CapsuleCapsule(AI.Geometry.Collision.CapsuleShape a, AI.Geometry.Collision.CapsuleShape b) { }
+        public static AI.Geometry.Collision.ContactManifold CapsuleSphere(AI.Geometry.Collision.CapsuleShape capsule, AI.Geometry.Collision.SphereShape sphere) { }
+    }
+    public sealed record CapsuleShape : AI.Geometry.Collision.IConvexShape, System.IEquatable<AI.Geometry.Collision.CapsuleShape>
+    {
+        public CapsuleShape(AI.Geometry.Collision.Pose Pose, double HalfLength, double Radius) { }
+        public AI.Geometry.Primitives.Vector3 Center { get; }
+        public AI.Geometry.Primitives.Vector3 End { get; }
+        public double HalfLength { get; init; }
+        public AI.Geometry.Collision.Pose Pose { get; init; }
+        public double Radius { get; init; }
+        public AI.Geometry.Primitives.Vector3 Start { get; }
+        public AI.Geometry.Primitives.Vector3 Support(AI.Geometry.Primitives.Vector3 direction) { }
+    }
+    public static class CollisionDispatcher
+    {
+        public static AI.Geometry.Collision.ContactManifold Collide(AI.Geometry.Collision.IConvexShape a, AI.Geometry.Collision.IConvexShape b) { }
+        public static AI.Geometry.Collision.ContactManifold Collide(AI.Geometry.Collision.IConvexShape shape, AI.Geometry.Primitives.Plane plane) { }
+    }
+    public sealed class ContactManifold
+    {
+        public const int MaxPoints = 4;
+        public ContactManifold(AI.Geometry.Primitives.Vector3 normal, double depth, System.Collections.Generic.IEnumerable<AI.Geometry.Collision.ContactPoint> points) { }
+        public double Depth { get; }
+        public bool HasContact { get; }
+        public AI.Geometry.Primitives.Vector3 Normal { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Geometry.Collision.ContactPoint> Points { get; }
+        public static AI.Geometry.Collision.ContactManifold Empty { get; }
+        public AI.Geometry.Collision.ContactManifold Flipped() { }
+    }
+    public readonly struct ContactPoint : System.IEquatable<AI.Geometry.Collision.ContactPoint>
+    {
+        public ContactPoint(AI.Geometry.Primitives.Vector3 Position, double Depth, int? FeatureId = default) { }
+        public double Depth { get; init; }
+        public int? FeatureId { get; init; }
+        public AI.Geometry.Primitives.Vector3 Position { get; init; }
+    }
+    public sealed class ConvexPointSet : AI.Geometry.Collision.IConvexShape
+    {
+        public ConvexPointSet(AI.Geometry.Collision.Pose pose, System.Collections.Generic.IEnumerable<AI.Geometry.Primitives.Vector3> points) { }
+        public AI.Geometry.Primitives.Vector3 Center { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Geometry.Primitives.Vector3> Points { get; }
+        public AI.Geometry.Collision.Pose Pose { get; }
+        public AI.Geometry.Primitives.Vector3 Support(AI.Geometry.Primitives.Vector3 direction) { }
+    }
+    public sealed record CylinderShape : AI.Geometry.Collision.IConvexShape, System.IEquatable<AI.Geometry.Collision.CylinderShape>
+    {
+        public CylinderShape(AI.Geometry.Collision.Pose Pose, double HalfHeight, double Radius) { }
+        public AI.Geometry.Primitives.Vector3 Center { get; }
+        public double HalfHeight { get; init; }
+        public AI.Geometry.Collision.Pose Pose { get; init; }
+        public double Radius { get; init; }
+        public AI.Geometry.Primitives.Vector3 Support(AI.Geometry.Primitives.Vector3 direction) { }
+    }
+    public static class Epa
+    {
+        public static AI.Geometry.Collision.ContactManifold Penetration(AI.Geometry.Collision.IConvexShape a, AI.Geometry.Collision.IConvexShape b) { }
+    }
+    public static class Gjk
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Distance",
+                "OnA",
+                "OnB"})]
+        public static System.ValueTuple<double, AI.Geometry.Primitives.Vector3, AI.Geometry.Primitives.Vector3> Distance(AI.Geometry.Collision.IConvexShape a, AI.Geometry.Collision.IConvexShape b) { }
+        public static bool Intersects(AI.Geometry.Collision.IConvexShape a, AI.Geometry.Collision.IConvexShape b) { }
+    }
+    public interface IConvexShape
+    {
+        AI.Geometry.Primitives.Vector3 Center { get; }
+        AI.Geometry.Primitives.Vector3 Support(AI.Geometry.Primitives.Vector3 direction);
+    }
+    public sealed record MinkowskiShape : AI.Geometry.Collision.IConvexShape, System.IEquatable<AI.Geometry.Collision.MinkowskiShape>
+    {
+        public MinkowskiShape(AI.Geometry.Collision.IConvexShape First, AI.Geometry.Collision.IConvexShape Second) { }
+        public AI.Geometry.Primitives.Vector3 Center { get; }
+        public AI.Geometry.Collision.IConvexShape First { get; }
+        public AI.Geometry.Collision.IConvexShape Second { get; }
+        public AI.Geometry.Primitives.Vector3 Support(AI.Geometry.Primitives.Vector3 direction) { }
+    }
+    public readonly struct Pose : System.IEquatable<AI.Geometry.Collision.Pose>
+    {
+        public Pose(AI.Geometry.Primitives.Vector3 Position, AI.Geometry.Primitives.Vector3 AxisX, AI.Geometry.Primitives.Vector3 AxisY, AI.Geometry.Primitives.Vector3 AxisZ) { }
+        public AI.Geometry.Primitives.Vector3 AxisX { get; init; }
+        public AI.Geometry.Primitives.Vector3 AxisY { get; init; }
+        public AI.Geometry.Primitives.Vector3 AxisZ { get; init; }
+        public AI.Geometry.Primitives.Vector3 Position { get; init; }
+        public static AI.Geometry.Collision.Pose Identity { get; }
+        public AI.Geometry.Primitives.Vector3 Axis(int index) { }
+        public AI.Geometry.Primitives.Vector3 InverseRotate(AI.Geometry.Primitives.Vector3 world) { }
+        public AI.Geometry.Primitives.Vector3 Rotate(AI.Geometry.Primitives.Vector3 local) { }
+        public AI.Geometry.Primitives.Vector3 ToLocal(AI.Geometry.Primitives.Vector3 world) { }
+        public AI.Geometry.Primitives.Vector3 ToWorld(AI.Geometry.Primitives.Vector3 local) { }
+        public static AI.Geometry.Collision.Pose At(AI.Geometry.Primitives.Vector3 position) { }
+        public static AI.Geometry.Collision.Pose FromMatrix(AI.Geometry.Primitives.Vector3 position, AI.DataStructs.Algebraic.Matrix rotation) { }
+    }
+    public static class SphereContacts
+    {
+        public static AI.Geometry.Collision.ContactManifold SpherePlane(AI.Geometry.Collision.SphereShape sphere, AI.Geometry.Primitives.Plane plane) { }
+        public static AI.Geometry.Collision.ContactManifold SphereSphere(AI.Geometry.Collision.SphereShape a, AI.Geometry.Collision.SphereShape b) { }
+    }
+    public sealed record SphereShape : AI.Geometry.Collision.IConvexShape, System.IEquatable<AI.Geometry.Collision.SphereShape>
+    {
+        public SphereShape(AI.Geometry.Primitives.Vector3 Center, double Radius) { }
+        public AI.Geometry.Primitives.Vector3 Center { get; init; }
+        public double Radius { get; init; }
+        public AI.Geometry.Primitives.Vector3 Support(AI.Geometry.Primitives.Vector3 direction) { }
+        public static AI.Geometry.Collision.SphereShape FromSphere(AI.Geometry.Primitives.Sphere sphere) { }
+    }
+    public static class TimeOfImpact
+    {
+        public const double DefaultTolerance = 1E-09D;
+        public static double? SphereBox(AI.Geometry.Collision.SphereShape sphere, AI.Geometry.Primitives.Vector3 displacement, AI.Geometry.Collision.BoxShape box, double tolerance = 1E-09) { }
+        public static double? SpherePlane(AI.Geometry.Collision.SphereShape sphere, AI.Geometry.Primitives.Vector3 displacement, AI.Geometry.Primitives.Plane plane) { }
+        public static double? SphereSphere(AI.Geometry.Collision.SphereShape moving, AI.Geometry.Primitives.Vector3 displacement, AI.Geometry.Collision.SphereShape target) { }
+        public static double? Translational(AI.Geometry.Collision.IConvexShape a, AI.Geometry.Primitives.Vector3 displacementA, AI.Geometry.Collision.IConvexShape b, AI.Geometry.Primitives.Vector3 displacementB, double tolerance = 1E-09) { }
+    }
+}
+namespace AI.Geometry.Conics
+{
+    public class ConicSection
+    {
+        public ConicSection(double a, double b, double c, double d, double e, double f) { }
+        public double A { get; }
+        public double B { get; }
+        public double C { get; }
+        public double D { get; }
+        public double E { get; }
+        public double F { get; }
+        public AI.Geometry.Conics.ConicType Classify() { }
+        public AI.DataStructs.Algebraic.Vector[] Sample(int n) { }
+        public static AI.Geometry.Conics.ConicSection FromCircle(AI.Geometry.Primitives.Circle c) { }
+        public static AI.Geometry.Conics.ConicSection FromEllipse(AI.Geometry.Primitives.Ellipse e) { }
+    }
+    public enum ConicType
+    {
+        Circle = 0,
+        Ellipse = 1,
+        Parabola = 2,
+        Hyperbola = 3,
+        Degenerate = 4,
+    }
+}
+namespace AI.Geometry.Constraints
+{
+    public sealed record ConstraintResidual : System.IEquatable<AI.Geometry.Constraints.ConstraintResidual>
+    {
+        public ConstraintResidual(string Name, string Kind, double Value) { }
+        public string Kind { get; init; }
+        public string Name { get; init; }
+        public double Value { get; init; }
+    }
+    public sealed class GeometricSketch
+    {
+        public const double DefaultTolerance = 1E-06D;
+        public GeometricSketch() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Geometry.Constraints.SketchConstraint> Constraints { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Unknowns { get; }
+        public void AddCircle(string id, string center, double radius, bool isRadiusFixed = false) { }
+        public void AddLine(string id, string start, string end) { }
+        public string AddParameter(string name, double guess, bool isFixed = false) { }
+        public void AddPlane(string id, string a, string b, string c) { }
+        public void AddPoint(string id, double x, double y, bool isFixed = false) { }
+        public void AddPoint(string id, double x, double y, double z, bool isFixed = false) { }
+        public AI.Geometry.Constraints.SketchConstraint Angle(string first, string second, double radians, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Angle(string first, string second, string parameter, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Coincident(string a, string b, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Distance(string a, string b, double value, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Distance(string a, string b, string parameter, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint DistanceToLine(string point, string line, double value, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint DistanceToLine(string point, string line, string parameter, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint DistanceToPlane(string point, string plane, double value, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint DistanceToPlane(string point, string plane, string parameter, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint EqualLength(string first, string second, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint EqualRadius(string first, string second, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Expression(System.Collections.Generic.IReadOnlyList<string> references, System.Func<System.Collections.Generic.IReadOnlyDictionary<string, double>, double> residual, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Fix(string unknown, double value, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint FixPoint(string point, double x, double y, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint FixPoint(string point, double x, double y, double z, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Horizontal(string line, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Length(string line, double value, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Length(string line, string parameter, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint LengthRatio(string first, string second, double ratio, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint LengthRatio(string first, string second, string parameter, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Midpoint(string middle, string a, string b, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint OrientedAngle(string first, string second, double radians, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint OrientedAngle(string first, string second, string parameter, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Parallel(string first, string second, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Perpendicular(string first, string second, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint PointOnCircle(string point, string circle, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint PointOnLine(string point, string line, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint PointOnPlane(string point, string plane, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Radius(string circle, double value, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Radius(string circle, string parameter, string? name = null) { }
+        public bool RemoveConstraint(string name) { }
+        public AI.Geometry.Constraints.SketchConstraint Rotation(string image, string point, string axis, double radians, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Rotation(string image, string point, string axis, string parameter, string? name = null) { }
+        public void SetGuess(string name, double guess, bool? isFixed = default) { }
+        public AI.Geometry.Constraints.SketchSolution Solve(double tolerance = 1E-06) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Geometry.Constraints.SketchSolution> SolveAll(int starts = 32, int seed = 1, double tolerance = 1E-06) { }
+        public AI.Geometry.Constraints.SketchConstraint Symmetric(string a, string b, string line, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Tangent(string line, string circle, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint TangentCircles(string first, string second, bool isInternal = false, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Translation(string image, string point, string line, string? name = null) { }
+        public AI.Geometry.Constraints.SketchConstraint Vertical(string line, string? name = null) { }
+    }
+    public sealed class SketchConstraint
+    {
+        public int Count { get; }
+        public string Kind { get; }
+        public string Name { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Unknowns { get; }
+    }
+    public sealed class SketchSolution
+    {
+        public bool Converged { get; init; }
+        public double Cost { get; init; }
+        public int DegreesOfFreedom { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> EquationConstraints { get; }
+        public System.Collections.Generic.IReadOnlyList<string> FreeUnknowns { get; }
+        public int Iterations { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Jacobian { get; }
+        public double MaxResidual { get; }
+        public int Rank { get; init; }
+        public int Redundancy { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Geometry.Constraints.ConstraintResidual> Residuals { get; }
+        public bool Satisfied { get; init; }
+        public AI.Geometry.Constraints.SketchStatus Status { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> UndeterminedUnknowns { get; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Values { get; }
+        public System.Collections.Generic.IReadOnlyList<string> ViolatedConstraints { get; }
+        public double Angle(string first, string second) { }
+        public double AngleAt(string a, string vertex, string c) { }
+        public double Area(params string[] points) { }
+        public double Distance(string a, string b) { }
+        public double DistanceToLine(string point, string line) { }
+        public double DistanceToPlane(string point, string plane) { }
+        public double Evaluate(System.Func<System.Collections.Generic.IReadOnlyDictionary<string, double>, double> query) { }
+        public double Length(string line) { }
+        public double OrientedAngle(string first, string second) { }
+        public AI.DataStructs.Algebraic.Vector Point(string point) { }
+        public AI.Geometry.Primitives.Vector3 Point3(string point) { }
+        public double Radius(string circle) { }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Sensitivity(string unknown) { }
+        public double Value(string unknown) { }
+        public double Volume(params string[] points) { }
+    }
+    public enum SketchStatus
+    {
+        WellConstrained = 0,
+        UnderConstrained = 1,
+        Redundant = 2,
+        Inconsistent = 3,
+    }
+}
+namespace AI.Geometry.Curves
+{
+    public class BezierCurve
+    {
+        public BezierCurve(AI.DataStructs.Algebraic.Vector[] controlPoints) { }
+        public AI.DataStructs.Algebraic.Vector Evaluate(double t) { }
+        public AI.DataStructs.Algebraic.Vector[] Sample(int n) { }
+    }
+    public class CatmullRomCurve
+    {
+        public CatmullRomCurve(AI.DataStructs.Algebraic.Vector[] points, double alpha = 0.5) { }
+        public AI.DataStructs.Algebraic.Vector Evaluate(double t) { }
+        public AI.DataStructs.Algebraic.Vector[] Sample(int n) { }
+    }
+    public class HermiteCurve
+    {
+        public HermiteCurve([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "point",
+                "tangent"})] System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector>[] segments) { }
+        public AI.DataStructs.Algebraic.Vector Evaluate(double t) { }
+        public AI.DataStructs.Algebraic.Vector[] Sample(int n) { }
+    }
+    public static class PlaneCurveMeasures
+    {
+        public static double ArcLength(System.Func<double, double> dx, System.Func<double, double> dy, double from, double to, double relativeTolerance = 1E-10) { }
+        public static double Curvature(double dx, double dy, double ddx, double ddy) { }
+        public static double SignedArea(System.Func<double, double> x, System.Func<double, double> y, System.Func<double, double> dx, System.Func<double, double> dy, double from, double to, double relativeTolerance = 1E-10) { }
+    }
+}
+namespace AI.Geometry.Distances
+{
+    public static class LineLine
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "onA",
+                "onB"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> ClosestPoints(AI.Geometry.Primitives.Line3D a, AI.Geometry.Primitives.Line3D b) { }
+        public static double Distance(AI.Geometry.Primitives.Line3D a, AI.Geometry.Primitives.Line3D b) { }
+    }
+    public static class PointAabb
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Aabb box) { }
+        public static AI.Geometry.Primitives.Vector3 ClosestPoint(AI.Geometry.Primitives.Vector3 point, AI.Geometry.Primitives.Vector3 min, AI.Geometry.Primitives.Vector3 max) { }
+        public static double Distance(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Aabb box) { }
+        public static double Distance(AI.Geometry.Primitives.Vector3 point, AI.Geometry.Primitives.Vector3 min, AI.Geometry.Primitives.Vector3 max) { }
+    }
+    public static class PointLine
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Line3D line) { }
+        public static double Distance2D(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Line2D line) { }
+        public static double Distance3D(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Line3D line) { }
+    }
+    public static class PointObb
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Obb box) { }
+        public static AI.Geometry.Primitives.Vector3 ClosestPoint(AI.Geometry.Primitives.Vector3 point, AI.Geometry.Primitives.Vector3 center, AI.Geometry.Primitives.Vector3 halfExtents, AI.Geometry.Transforms.Quaternion orientation) { }
+        public static double Distance(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Obb box) { }
+        public static double Distance(AI.Geometry.Primitives.Vector3 point, AI.Geometry.Primitives.Vector3 center, AI.Geometry.Primitives.Vector3 halfExtents, AI.Geometry.Transforms.Quaternion orientation) { }
+    }
+    public static class PointPlane
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Plane plane) { }
+        public static double Distance(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Plane plane) { }
+        public static double SignedDistance(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Plane plane) { }
+    }
+    public static class PointSegment
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Segment seg) { }
+        public static double Distance(AI.DataStructs.Algebraic.Vector point, AI.Geometry.Primitives.Segment seg) { }
+    }
+    public static class PointTetrahedron
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector p, AI.Geometry.Primitives.Tetrahedron tet) { }
+    }
+    public static class PointTriangle
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector p, AI.Geometry.Primitives.Triangle tri) { }
+        public static AI.Geometry.Primitives.Vector3 ClosestPoint(AI.Geometry.Primitives.Vector3 p, AI.Geometry.Primitives.Vector3 a, AI.Geometry.Primitives.Vector3 b, AI.Geometry.Primitives.Vector3 c) { }
+        public static double Distance(AI.DataStructs.Algebraic.Vector p, AI.Geometry.Primitives.Triangle tri) { }
+    }
+    public static class SegmentSegment
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "OnA",
+                "OnB"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> ClosestPoints(AI.Geometry.Primitives.Segment a, AI.Geometry.Primitives.Segment b) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "S",
+                "T",
+                "OnA",
+                "OnB"})]
+        public static System.ValueTuple<double, double, AI.Geometry.Primitives.Vector3, AI.Geometry.Primitives.Vector3> ClosestPoints(AI.Geometry.Primitives.Vector3 a0, AI.Geometry.Primitives.Vector3 a1, AI.Geometry.Primitives.Vector3 b0, AI.Geometry.Primitives.Vector3 b1) { }
+        public static double Distance(AI.Geometry.Primitives.Segment a, AI.Geometry.Primitives.Segment b) { }
+        public static double Distance(AI.Geometry.Primitives.Vector3 a0, AI.Geometry.Primitives.Vector3 a1, AI.Geometry.Primitives.Vector3 b0, AI.Geometry.Primitives.Vector3 b1) { }
+    }
+    public static class TriangleTriangle
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Distance",
+                "OnA",
+                "OnB"})]
+        public static System.ValueTuple<double, AI.Geometry.Primitives.Vector3, AI.Geometry.Primitives.Vector3> Closest(AI.Geometry.Primitives.Vector3 a0, AI.Geometry.Primitives.Vector3 a1, AI.Geometry.Primitives.Vector3 a2, AI.Geometry.Primitives.Vector3 b0, AI.Geometry.Primitives.Vector3 b1, AI.Geometry.Primitives.Vector3 b2) { }
+        public static double Distance(AI.Geometry.Primitives.Triangle a, AI.Geometry.Primitives.Triangle b) { }
+    }
+}
+namespace AI.Geometry.Fitting
+{
+    public static class CircleFit
+    {
+        public static AI.Geometry.Primitives.Circle AlgebraicFit(AI.DataStructs.Algebraic.Vector[] points) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "circle",
+                "inliers"})]
+        public static System.ValueTuple<AI.Geometry.Primitives.Circle, bool[]> Ransac(AI.DataStructs.Algebraic.Vector[] points, int iterations = 500, double threshold = 1, System.Random rng = null) { }
+    }
+    public static class LineFit
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "slope",
+                "intercept"})]
+        public static System.ValueTuple<double, double> Ols(AI.DataStructs.Algebraic.Vector[] points) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "slope",
+                "intercept",
+                "inliers"})]
+        public static System.ValueTuple<double, double, bool[]> Ransac(AI.DataStructs.Algebraic.Vector[] points, int iterations = 500, double threshold = 1, System.Random rng = null) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "direction",
+                "point"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> Tls(AI.DataStructs.Algebraic.Vector[] points) { }
+    }
+}
+namespace AI.Geometry.Hull
+{
+    public sealed class ConvexHull3D
+    {
+        public System.Collections.Generic.IReadOnlyList<AI.Geometry.Hull.HullFace> Faces { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "A",
+                "B",
+                "C"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int, int>> Triangles { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Geometry.Primitives.Vector3> Vertices { get; }
+        public bool Contains(AI.Geometry.Primitives.Vector3 point, double tolerance = 1E-09) { }
+        public static AI.Geometry.Hull.ConvexHull3D Build(System.Collections.Generic.IReadOnlyList<AI.Geometry.Primitives.Vector3> points) { }
+    }
+    public readonly struct HullFace : System.IEquatable<AI.Geometry.Hull.HullFace>
+    {
+        public HullFace(int A, int B, int C, AI.Geometry.Primitives.Vector3 Normal, double Offset) { }
+        public int A { get; init; }
+        public int B { get; init; }
+        public int C { get; init; }
+        public AI.Geometry.Primitives.Vector3 Normal { get; init; }
+        public double Offset { get; init; }
+        public double SignedDistance(AI.Geometry.Primitives.Vector3 point) { }
+    }
+}
+namespace AI.Geometry.Intersections
+{
+    public static class AabbAabbIntersection
+    {
+        public static bool Test(AI.Geometry.Primitives.Aabb a, AI.Geometry.Primitives.Aabb b) { }
+    }
+    public static class CircleCircleIntersection
+    {
+        public static AI.DataStructs.Algebraic.Vector[] Intersect(AI.Geometry.Primitives.Circle a, AI.Geometry.Primitives.Circle b) { }
+    }
+    public static class CircleLineIntersection
+    {
+        public static AI.DataStructs.Algebraic.Vector[] Intersect(AI.Geometry.Primitives.Circle circle, AI.Geometry.Primitives.Line2D line) { }
+        public static AI.DataStructs.Algebraic.Vector[] Intersect(AI.Geometry.Primitives.Circle circle, AI.Geometry.Primitives.Segment segment) { }
+    }
+    public static class LineLineIntersection
+    {
+        public static AI.DataStructs.Algebraic.Vector Intersect(AI.Geometry.Primitives.Line2D a, AI.Geometry.Primitives.Line2D b) { }
+    }
+    public static class LinePlaneIntersection
+    {
+        public static AI.DataStructs.Algebraic.Vector Intersect(AI.Geometry.Primitives.Line3D line, AI.Geometry.Primitives.Plane plane) { }
+    }
+    public static class ObbObbIntersection
+    {
+        public static bool Test(AI.Geometry.Primitives.Obb a, AI.Geometry.Primitives.Obb b) { }
+    }
+    public static class PlanePlaneIntersection
+    {
+        public static AI.Geometry.Primitives.Line3D Intersect(AI.Geometry.Primitives.Plane a, AI.Geometry.Primitives.Plane b) { }
+    }
+    public static class RayAabbIntersection
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "tMin",
+                "tMax"})]
+        public static System.ValueTuple<double, double>? Intersect(AI.Geometry.Primitives.Ray ray, AI.Geometry.Primitives.Aabb box) { }
+    }
+    public static class RayObbIntersection
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "tMin",
+                "tMax"})]
+        public static System.ValueTuple<double, double>? Intersect(AI.Geometry.Primitives.Ray ray, AI.Geometry.Primitives.Obb box) { }
+    }
+    public static class RayPlaneIntersection
+    {
+        public static double? Intersect(AI.Geometry.Primitives.Ray ray, AI.Geometry.Primitives.Plane plane) { }
+    }
+    public static class RaySphereIntersection
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "t1",
+                "t2"})]
+        public static System.ValueTuple<double, double>? Intersect(AI.Geometry.Primitives.Ray ray, AI.Geometry.Primitives.Sphere sphere) { }
+    }
+    public static class RayTriangleIntersection
+    {
+        public static double? Intersect(AI.Geometry.Primitives.Ray ray, AI.Geometry.Primitives.Triangle tri) { }
+    }
+    public static class SegmentPolygonIntersection
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Geometry.Primitives.Segment> Inside(AI.Geometry.Primitives.Segment segment, AI.DataStructs.Algebraic.Vector[] polygon) { }
+        public static double LengthInside(AI.Geometry.Primitives.Segment segment, AI.DataStructs.Algebraic.Vector[] polygon) { }
+    }
+    public static class SegmentSegmentIntersection
+    {
+        public static AI.Geometry.Primitives.Segment CommonPart(AI.Geometry.Primitives.Segment s1, AI.Geometry.Primitives.Segment s2) { }
+        public static AI.DataStructs.Algebraic.Vector Intersect(AI.Geometry.Primitives.Segment s1, AI.Geometry.Primitives.Segment s2) { }
+    }
+    public static class SphereSphereIntersection
+    {
+        public static bool Test(AI.Geometry.Primitives.Sphere a, AI.Geometry.Primitives.Sphere b) { }
+    }
+    public static class ThreePlanesIntersection
+    {
+        public static AI.DataStructs.Algebraic.Vector Intersect(AI.Geometry.Primitives.Plane a, AI.Geometry.Primitives.Plane b, AI.Geometry.Primitives.Plane c) { }
+    }
+}
+namespace AI.Geometry.MassProperties
+{
+    public static class InertiaTensor
+    {
+        public static AI.Geometry.Primitives.Vector3 Apply(AI.DataStructs.Algebraic.Matrix tensor, AI.Geometry.Primitives.Vector3 vector) { }
+        public static AI.DataStructs.Algebraic.Matrix Box(double mass, AI.Geometry.Primitives.Vector3 halfExtents) { }
+        public static AI.DataStructs.Algebraic.Matrix Capsule(double mass, double radius, double height) { }
+        public static AI.DataStructs.Algebraic.Matrix Cylinder(double mass, double radius, double height) { }
+        public static AI.DataStructs.Algebraic.Matrix FromDiagonal(AI.Geometry.Primitives.Vector3 moments) { }
+        public static AI.DataStructs.Algebraic.Matrix ParallelAxis(AI.DataStructs.Algebraic.Matrix inertiaAboutCentroid, double mass, AI.Geometry.Primitives.Vector3 offset) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Moments",
+                "Axes"})]
+        public static System.ValueTuple<AI.Geometry.Primitives.Vector3, AI.DataStructs.Algebraic.Matrix> Principal(AI.DataStructs.Algebraic.Matrix inertia) { }
+        public static AI.DataStructs.Algebraic.Matrix Rotate(AI.DataStructs.Algebraic.Matrix inertia, AI.DataStructs.Algebraic.Matrix rotation) { }
+        public static AI.DataStructs.Algebraic.Matrix Rotate(AI.DataStructs.Algebraic.Matrix inertia, AI.Geometry.Transforms.Quaternion orientation) { }
+        public static AI.DataStructs.Algebraic.Matrix Sphere(double mass, double radius) { }
+    }
+    public static class MeshMass
+    {
+        public static AI.Geometry.MassProperties.SolidProperties Compute(System.Collections.Generic.IReadOnlyList<AI.Geometry.Primitives.Vector3> vertices, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "A",
+                "B",
+                "C"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int, int>> triangles) { }
+    }
+    public static class SimplexVolume
+    {
+        public static double Volume(System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> vertices) { }
+    }
+    public readonly struct SolidProperties : System.IEquatable<AI.Geometry.MassProperties.SolidProperties>
+    {
+        public SolidProperties(double Volume, AI.Geometry.Primitives.Vector3 Centroid, AI.DataStructs.Algebraic.Matrix Inertia) { }
+        public AI.Geometry.Primitives.Vector3 Centroid { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Inertia { get; init; }
+        public double Volume { get; init; }
+        public AI.DataStructs.Algebraic.Matrix InertiaForMass(double mass) { }
+    }
+}
+namespace AI.Geometry.Numerics
+{
+    public static class Eps
+    {
+        public const double Default = 1E-10D;
+        public static bool ApproxEqual(double a, double b, double relTol = 1E-09, double absTol = 1E-12) { }
+        public static bool IsZero(double x, double eps = 1E-10) { }
+        public static int Sign(double x, double eps = 1E-10) { }
+    }
+    public struct KahanAccumulator
+    {
+        public double Total { get; }
+        public void Add(double value) { }
+    }
+    public static class KahanSum
+    {
+        public static double Sum(System.Collections.Generic.IEnumerable<double> values) { }
+    }
+    public static class RobustPredicates
+    {
+        public static int InCircle(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b, AI.DataStructs.Algebraic.Vector c, AI.DataStructs.Algebraic.Vector d) { }
+        public static int InCircle(double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy) { }
+        public static int Orient2D(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b, AI.DataStructs.Algebraic.Vector c) { }
+        public static int Orient2D(double ax, double ay, double bx, double by, double cx, double cy) { }
+    }
+}
+namespace AI.Geometry.Polygons
+{
+    public static class ClosestInTriangle
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector p, AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b, AI.DataStructs.Algebraic.Vector c) { }
+    }
+    public static class ConvexHull
+    {
+        public static AI.DataStructs.Algebraic.Vector[] Compute(AI.DataStructs.Algebraic.Vector[] points) { }
+    }
+    public static class MinkowskiSum
+    {
+        public static AI.DataStructs.Algebraic.Vector[] Convex(AI.DataStructs.Algebraic.Vector[] a, AI.DataStructs.Algebraic.Vector[] b) { }
+    }
+    public static class Orientation2D
+    {
+        public static int Orient(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b, AI.DataStructs.Algebraic.Vector c) { }
+    }
+    public static class PointInPolygon
+    {
+        public static bool Contains(AI.DataStructs.Algebraic.Vector point, AI.DataStructs.Algebraic.Vector[] polygon) { }
+        public static bool RayCasting(AI.DataStructs.Algebraic.Vector point, AI.DataStructs.Algebraic.Vector[] polygon) { }
+        public static int WindingNumber(AI.DataStructs.Algebraic.Vector point, AI.DataStructs.Algebraic.Vector[] polygon) { }
+    }
+    public static class PolygonBoolean
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector[]> Difference(AI.DataStructs.Algebraic.Vector[] a, AI.DataStructs.Algebraic.Vector[] b) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector[]> Intersection(AI.DataStructs.Algebraic.Vector[] a, AI.DataStructs.Algebraic.Vector[] b) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector[]> Union(AI.DataStructs.Algebraic.Vector[] a, AI.DataStructs.Algebraic.Vector[] b) { }
+    }
+    public static class PolygonCentroid
+    {
+        public static AI.DataStructs.Algebraic.Vector Centroid(AI.DataStructs.Algebraic.Vector[] polygon) { }
+    }
+    public static class PolygonClipping
+    {
+        public static AI.DataStructs.Algebraic.Vector[] HalfPlane(AI.DataStructs.Algebraic.Vector[] polygon, AI.Geometry.Primitives.Line2D boundary) { }
+        public static AI.DataStructs.Algebraic.Vector[] SutherlandHodgman(AI.DataStructs.Algebraic.Vector[] subject, AI.DataStructs.Algebraic.Vector[] clip) { }
+    }
+    public static class PolygonDistance
+    {
+        public static double Distance(AI.DataStructs.Algebraic.Vector point, AI.DataStructs.Algebraic.Vector[] polygon) { }
+    }
+    public static class Polygonization
+    {
+        public static AI.DataStructs.Algebraic.Vector[] FromCircle(AI.Geometry.Primitives.Circle circle, int count) { }
+        public static AI.DataStructs.Algebraic.Vector[] FromEllipse(AI.Geometry.Primitives.Ellipse ellipse, int count) { }
+    }
+    public static class ShoelaceArea
+    {
+        public static double Area(AI.DataStructs.Algebraic.Vector[] polygon) { }
+        public static double SignedArea(AI.DataStructs.Algebraic.Vector[] polygon) { }
+    }
+}
+namespace AI.Geometry.Polylines
+{
+    public static class DouglasPeucker
+    {
+        public static AI.DataStructs.Algebraic.Vector[] Simplify(AI.DataStructs.Algebraic.Vector[] vertices, double tolerance) { }
+    }
+    public static class Polyline
+    {
+        public static AI.DataStructs.Algebraic.Vector ClosestPoint(AI.DataStructs.Algebraic.Vector point, AI.DataStructs.Algebraic.Vector[] vertices) { }
+        public static double Distance(AI.DataStructs.Algebraic.Vector point, AI.DataStructs.Algebraic.Vector[] vertices) { }
+        public static double Length(AI.DataStructs.Algebraic.Vector[] vertices) { }
+    }
+}
+namespace AI.Geometry.Primitives
+{
+    public record Aabb : System.IEquatable<AI.Geometry.Primitives.Aabb>
+    {
+        public Aabb(AI.DataStructs.Algebraic.Vector Min, AI.DataStructs.Algebraic.Vector Max) { }
+        public AI.DataStructs.Algebraic.Vector Center { get; }
+        public AI.DataStructs.Algebraic.Vector HalfExtents { get; }
+        public AI.DataStructs.Algebraic.Vector Max { get; init; }
+        public AI.DataStructs.Algebraic.Vector Min { get; init; }
+        public bool Contains(AI.DataStructs.Algebraic.Vector point) { }
+        public bool Intersects(AI.Geometry.Primitives.Aabb other) { }
+        public static AI.Geometry.Primitives.Aabb FromPoints(System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> points) { }
+    }
+    public record Circle : System.IEquatable<AI.Geometry.Primitives.Circle>
+    {
+        public Circle(AI.DataStructs.Algebraic.Vector Center, double Radius) { }
+        public double Area { get; }
+        public AI.DataStructs.Algebraic.Vector Center { get; init; }
+        public double Circumference { get; }
+        public double Radius { get; init; }
+        public bool Contains(AI.DataStructs.Algebraic.Vector point) { }
+    }
+    public record Ellipse : System.IEquatable<AI.Geometry.Primitives.Ellipse>
+    {
+        public Ellipse(AI.DataStructs.Algebraic.Vector Center, double A, double B, double Angle) { }
+        public double A { get; init; }
+        public double Angle { get; init; }
+        public double Area { get; }
+        public double B { get; init; }
+        public AI.DataStructs.Algebraic.Vector Center { get; init; }
+        public AI.DataStructs.Algebraic.Vector PointAt(double theta) { }
+    }
+    public record Line2D : System.IEquatable<AI.Geometry.Primitives.Line2D>
+    {
+        public Line2D(AI.DataStructs.Algebraic.Vector Point, AI.DataStructs.Algebraic.Vector Direction) { }
+        public AI.DataStructs.Algebraic.Vector Direction { get; init; }
+        public AI.DataStructs.Algebraic.Vector Point { get; init; }
+        public AI.DataStructs.Algebraic.Vector PointAt(double t) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "a",
+                "b",
+                "c"})]
+        public System.ValueTuple<double, double, double> ToGeneral() { }
+        public static AI.Geometry.Primitives.Line2D FromGeneral(double a, double b, double c) { }
+        public static AI.Geometry.Primitives.Line2D FromTwoPoints(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b) { }
+    }
+    public record Line3D : System.IEquatable<AI.Geometry.Primitives.Line3D>
+    {
+        public Line3D(AI.DataStructs.Algebraic.Vector Point, AI.DataStructs.Algebraic.Vector Direction) { }
+        public AI.DataStructs.Algebraic.Vector Direction { get; init; }
+        public AI.DataStructs.Algebraic.Vector Point { get; init; }
+        public AI.DataStructs.Algebraic.Vector PointAt(double t) { }
+        public static AI.Geometry.Primitives.Line3D FromTwoPoints(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b) { }
+    }
+    public record Obb : System.IEquatable<AI.Geometry.Primitives.Obb>
+    {
+        public Obb(AI.DataStructs.Algebraic.Vector Center, AI.DataStructs.Algebraic.Vector HalfExtents, AI.DataStructs.Algebraic.Matrix Rotation) { }
+        public AI.DataStructs.Algebraic.Vector Center { get; init; }
+        public AI.DataStructs.Algebraic.Vector HalfExtents { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Rotation { get; init; }
+        public bool Contains(AI.DataStructs.Algebraic.Vector point) { }
+        public AI.DataStructs.Algebraic.Vector[] Corners() { }
+    }
+    public record Plane : System.IEquatable<AI.Geometry.Primitives.Plane>
+    {
+        public Plane(AI.DataStructs.Algebraic.Vector Normal, double D) { }
+        public double D { get; init; }
+        public AI.DataStructs.Algebraic.Vector Normal { get; init; }
+        public AI.DataStructs.Algebraic.Vector PointOnPlane { get; }
+        public double SignedDistance(AI.DataStructs.Algebraic.Vector point) { }
+        public static AI.Geometry.Primitives.Plane FromGeneral(double a, double b, double c, double d) { }
+        public static AI.Geometry.Primitives.Plane FromPointNormal(AI.DataStructs.Algebraic.Vector point, AI.DataStructs.Algebraic.Vector normal) { }
+        public static AI.Geometry.Primitives.Plane FromThreePoints(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b, AI.DataStructs.Algebraic.Vector c) { }
+    }
+    public record Ray : System.IEquatable<AI.Geometry.Primitives.Ray>
+    {
+        public Ray(AI.DataStructs.Algebraic.Vector Origin, AI.DataStructs.Algebraic.Vector Direction) { }
+        public AI.DataStructs.Algebraic.Vector Direction { get; init; }
+        public AI.DataStructs.Algebraic.Vector Origin { get; init; }
+        public AI.DataStructs.Algebraic.Vector PointAt(double t) { }
+    }
+    public record Segment : System.IEquatable<AI.Geometry.Primitives.Segment>
+    {
+        public Segment(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public AI.DataStructs.Algebraic.Vector A { get; init; }
+        public AI.DataStructs.Algebraic.Vector B { get; init; }
+        public AI.DataStructs.Algebraic.Vector Direction { get; }
+        public double Length { get; }
+        public AI.DataStructs.Algebraic.Vector Midpoint { get; }
+        public AI.DataStructs.Algebraic.Vector PointAt(double t) { }
+    }
+    public record Sphere : System.IEquatable<AI.Geometry.Primitives.Sphere>
+    {
+        public Sphere(AI.DataStructs.Algebraic.Vector Center, double Radius) { }
+        public AI.DataStructs.Algebraic.Vector Center { get; init; }
+        public double Radius { get; init; }
+        public double SurfaceArea { get; }
+        public double Volume { get; }
+        public bool Contains(AI.DataStructs.Algebraic.Vector point) { }
+    }
+    public record Tetrahedron : System.IEquatable<AI.Geometry.Primitives.Tetrahedron>
+    {
+        public Tetrahedron(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B, AI.DataStructs.Algebraic.Vector C, AI.DataStructs.Algebraic.Vector D) { }
+        public AI.DataStructs.Algebraic.Vector A { get; init; }
+        public AI.DataStructs.Algebraic.Vector B { get; init; }
+        public AI.DataStructs.Algebraic.Vector C { get; init; }
+        public AI.DataStructs.Algebraic.Vector Centroid { get; }
+        public AI.DataStructs.Algebraic.Vector D { get; init; }
+        public double Volume() { }
+    }
+    public record Triangle : System.IEquatable<AI.Geometry.Primitives.Triangle>
+    {
+        public Triangle(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B, AI.DataStructs.Algebraic.Vector C) { }
+        public AI.DataStructs.Algebraic.Vector A { get; init; }
+        public AI.DataStructs.Algebraic.Vector B { get; init; }
+        public AI.DataStructs.Algebraic.Vector C { get; init; }
+        public AI.DataStructs.Algebraic.Vector Centroid { get; }
+        public double Area() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "u",
+                "v",
+                "w"})]
+        public System.ValueTuple<double, double, double> BarycentricCoords(AI.DataStructs.Algebraic.Vector p) { }
+        public AI.DataStructs.Algebraic.Vector Normal() { }
+    }
+    public readonly struct Vector3 : System.IEquatable<AI.Geometry.Primitives.Vector3>
+    {
+        public Vector3(double X, double Y, double Z) { }
+        public double this[int index] { get; }
+        public double Length { get; }
+        public double LengthSquared { get; }
+        public AI.Geometry.Primitives.Vector3 Normalized { get; }
+        public double X { get; init; }
+        public double Y { get; init; }
+        public double Z { get; init; }
+        public static AI.Geometry.Primitives.Vector3 Zero { get; }
+        public double AngleTo(AI.Geometry.Primitives.Vector3 other) { }
+        public AI.Geometry.Primitives.Vector3 Cross(AI.Geometry.Primitives.Vector3 other) { }
+        public double DistanceTo(AI.Geometry.Primitives.Vector3 other) { }
+        public double Dot(AI.Geometry.Primitives.Vector3 other) { }
+        public AI.Geometry.Primitives.Vector3 Scale(AI.Geometry.Primitives.Vector3 other) { }
+        public override string ToString() { }
+        public AI.DataStructs.Algebraic.Vector ToVector() { }
+        public static AI.Geometry.Primitives.Vector3 Abs(AI.Geometry.Primitives.Vector3 a) { }
+        public static AI.Geometry.Primitives.Vector3 FromVector(AI.DataStructs.Algebraic.Vector vector) { }
+        public static AI.Geometry.Primitives.Vector3 Lerp(AI.Geometry.Primitives.Vector3 a, AI.Geometry.Primitives.Vector3 b, double t) { }
+        public static AI.Geometry.Primitives.Vector3 Max(AI.Geometry.Primitives.Vector3 a, AI.Geometry.Primitives.Vector3 b) { }
+        public static AI.Geometry.Primitives.Vector3 Min(AI.Geometry.Primitives.Vector3 a, AI.Geometry.Primitives.Vector3 b) { }
+        public static AI.Geometry.Primitives.Vector3 operator *(AI.Geometry.Primitives.Vector3 a, double k) { }
+        public static AI.Geometry.Primitives.Vector3 operator *(double k, AI.Geometry.Primitives.Vector3 a) { }
+        public static AI.Geometry.Primitives.Vector3 operator +(AI.Geometry.Primitives.Vector3 a, AI.Geometry.Primitives.Vector3 b) { }
+        public static AI.Geometry.Primitives.Vector3 operator -(AI.Geometry.Primitives.Vector3 a) { }
+        public static AI.Geometry.Primitives.Vector3 operator -(AI.Geometry.Primitives.Vector3 a, AI.Geometry.Primitives.Vector3 b) { }
+        public static AI.Geometry.Primitives.Vector3 operator /(AI.Geometry.Primitives.Vector3 a, double k) { }
+    }
+}
+namespace AI.Geometry.Sampling
+{
+    public static class PlaneSampling
+    {
+        public static AI.DataStructs.Algebraic.Vector InDisk(System.Random rng, AI.Geometry.Primitives.Circle disk) { }
+        public static AI.DataStructs.Algebraic.Vector InDisk(double u1, double u2, AI.Geometry.Primitives.Circle disk) { }
+        public static AI.DataStructs.Algebraic.Vector InTriangle(System.Random rng, AI.Geometry.Primitives.Triangle triangle) { }
+        public static AI.DataStructs.Algebraic.Vector InTriangle(double u1, double u2, AI.Geometry.Primitives.Triangle triangle) { }
+        public static AI.DataStructs.Algebraic.Vector OnCircle(System.Random rng, AI.Geometry.Primitives.Circle circle) { }
+        public static AI.DataStructs.Algebraic.Vector OnCircle(double u, AI.Geometry.Primitives.Circle circle) { }
+    }
+    public sealed class PolygonSampler
+    {
+        public PolygonSampler(AI.DataStructs.Algebraic.Vector[] polygon, params AI.DataStructs.Algebraic.Vector[][] holes) { }
+        public double Area { get; }
+        public AI.DataStructs.Algebraic.Vector Sample(System.Random rng) { }
+        public AI.DataStructs.Algebraic.Vector Sample(double u1, double u2) { }
+    }
+    public static class SpaceSampling
+    {
+        public static AI.Geometry.Primitives.Vector3 Direction(System.Random rng) { }
+        public static AI.DataStructs.Algebraic.Vector Direction(System.Random rng, int dimension) { }
+        public static AI.Geometry.Primitives.Vector3 Direction(double u1, double u2) { }
+        public static AI.Geometry.Primitives.Vector3 InBall(System.Random rng, AI.Geometry.Primitives.Vector3 center, double radius) { }
+        public static AI.Geometry.Primitives.Vector3 InBall(double u1, double u2, double u3, AI.Geometry.Primitives.Vector3 center, double radius) { }
+        public static AI.DataStructs.Algebraic.Vector InBox(AI.DataStructs.Algebraic.Vector uniforms, AI.Geometry.Primitives.Aabb box) { }
+        public static AI.DataStructs.Algebraic.Vector InBox(System.Random rng, AI.Geometry.Primitives.Aabb box) { }
+        public static AI.Geometry.Primitives.Vector3 OnSphere(System.Random rng, AI.Geometry.Primitives.Vector3 center, double radius) { }
+        public static AI.Geometry.Primitives.Vector3 OnSphere(double u1, double u2, AI.Geometry.Primitives.Vector3 center, double radius) { }
+        public static AI.DataStructs.Algebraic.Vector VonMisesFisher(System.Random rng, AI.DataStructs.Algebraic.Vector meanDirection, double kappa) { }
+        public static AI.Geometry.Primitives.Vector3 VonMisesFisher(System.Random rng, AI.Geometry.Primitives.Vector3 meanDirection, double kappa) { }
+        public static AI.Geometry.Primitives.Vector3 VonMisesFisher(double u1, double u2, AI.Geometry.Primitives.Vector3 meanDirection, double kappa) { }
+    }
+}
+namespace AI.Geometry.Spatial
+{
+    public sealed class DynamicAabbTree<T>
+    {
+        public DynamicAabbTree(double margin = 0.1) { }
+        public int Count { get; }
+        public int Height { get; }
+        public T this[int proxy] { get; }
+        public double Margin { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Min",
+                "Max"})]
+        public System.ValueTuple<AI.Geometry.Primitives.Vector3, AI.Geometry.Primitives.Vector3> GetBounds(int proxy) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Min",
+                "Max"})]
+        public System.ValueTuple<AI.Geometry.Primitives.Vector3, AI.Geometry.Primitives.Vector3> GetFatBounds(int proxy) { }
+        public int Insert(AI.Geometry.Primitives.Vector3 min, AI.Geometry.Primitives.Vector3 max, T item) { }
+        public void Query(AI.Geometry.Primitives.Vector3 min, AI.Geometry.Primitives.Vector3 max, System.Collections.Generic.ICollection<int> results) { }
+        public void QueryPairs([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "A",
+                "B"})] System.Collections.Generic.ICollection<System.ValueTuple<int, int>> pairs) { }
+        public void QueryRay(AI.Geometry.Primitives.Vector3 origin, AI.Geometry.Primitives.Vector3 direction, double maxT, System.Collections.Generic.ICollection<int> results) { }
+        public void Remove(int proxy) { }
+        public bool Update(int proxy, AI.Geometry.Primitives.Vector3 min, AI.Geometry.Primitives.Vector3 max) { }
+    }
+}
+namespace AI.Geometry.Transforms
+{
+    public class Affine2D
+    {
+        public Affine2D(AI.DataStructs.Algebraic.Matrix m) { }
+        public AI.DataStructs.Algebraic.Matrix M { get; }
+        public AI.DataStructs.Algebraic.Vector Apply(AI.DataStructs.Algebraic.Vector point) { }
+        public AI.Geometry.Transforms.Affine2D Compose(AI.Geometry.Transforms.Affine2D other) { }
+        public AI.Geometry.Transforms.Affine2D Inverse() { }
+        public static AI.Geometry.Transforms.Affine2D Identity() { }
+        public static AI.Geometry.Transforms.Affine2D Rotation(double angle) { }
+        public static AI.Geometry.Transforms.Affine2D Scale(double sx, double sy) { }
+        public static AI.Geometry.Transforms.Affine2D Shear(double shx, double shy) { }
+        public static AI.Geometry.Transforms.Affine2D Translation(double dx, double dy) { }
+    }
+    public class Affine3D
+    {
+        public Affine3D(AI.DataStructs.Algebraic.Matrix m) { }
+        public AI.DataStructs.Algebraic.Matrix M { get; }
+        public AI.DataStructs.Algebraic.Vector Apply(AI.DataStructs.Algebraic.Vector point) { }
+        public AI.Geometry.Transforms.Affine3D Compose(AI.Geometry.Transforms.Affine3D other) { }
+        public AI.Geometry.Transforms.Affine3D Inverse() { }
+        public static AI.Geometry.Transforms.Affine3D FromQuaternion(AI.Geometry.Transforms.Quaternion q) { }
+        public static AI.Geometry.Transforms.Affine3D Identity() { }
+        public static AI.Geometry.Transforms.Affine3D RotationX(double angle) { }
+        public static AI.Geometry.Transforms.Affine3D RotationY(double angle) { }
+        public static AI.Geometry.Transforms.Affine3D RotationZ(double angle) { }
+        public static AI.Geometry.Transforms.Affine3D Scale(double sx, double sy, double sz) { }
+        public static AI.Geometry.Transforms.Affine3D Translation(double dx, double dy, double dz) { }
+    }
+    public static class EulerAngles
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "yaw",
+                "pitch",
+                "roll"})]
+        public static System.ValueTuple<double, double, double> FromMatrix(AI.DataStructs.Algebraic.Matrix m) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(double yaw, double pitch, double roll) { }
+    }
+    public static class HomogeneousCoords
+    {
+        public static AI.DataStructs.Algebraic.Vector FromHomogeneous(AI.DataStructs.Algebraic.Vector v) { }
+        public static AI.DataStructs.Algebraic.Vector ToHomogeneous(AI.DataStructs.Algebraic.Vector v) { }
+    }
+    public class Homography
+    {
+        public Homography(AI.DataStructs.Algebraic.Matrix m) { }
+        public AI.DataStructs.Algebraic.Matrix M { get; }
+        public AI.DataStructs.Algebraic.Vector Apply(AI.DataStructs.Algebraic.Vector point2d) { }
+        public static AI.Geometry.Transforms.Homography EstimateDLT(AI.DataStructs.Algebraic.Vector[] src, AI.DataStructs.Algebraic.Vector[] dst) { }
+    }
+    public static class Polar
+    {
+        public static double Bearing(AI.DataStructs.Algebraic.Vector from, AI.DataStructs.Algebraic.Vector to) { }
+        public static AI.DataStructs.Algebraic.Vector FromBearing(double distance, double bearing) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Radius",
+                "Angle"})]
+        public static System.ValueTuple<double, double> FromCartesian(AI.DataStructs.Algebraic.Vector point) { }
+        public static AI.DataStructs.Algebraic.Vector ToCartesian(double radius, double angle) { }
+    }
+    public readonly struct Quaternion : System.IEquatable<AI.Geometry.Transforms.Quaternion>
+    {
+        public readonly double W;
+        public readonly double X;
+        public readonly double Y;
+        public readonly double Z;
+        public Quaternion(double w, double x, double y, double z) { }
+        public AI.Geometry.Transforms.Quaternion Conjugate { get; }
+        public AI.Geometry.Transforms.Quaternion Inverse { get; }
+        public double Norm { get; }
+        public AI.Geometry.Transforms.Quaternion Normalize { get; }
+        public static AI.Geometry.Transforms.Quaternion Identity { get; }
+        public bool Equals(AI.Geometry.Transforms.Quaternion other) { }
+        public override int GetHashCode() { }
+        public AI.Geometry.Transforms.Quaternion Integrate(AI.Geometry.Primitives.Vector3 angularVelocity, double dt) { }
+        public AI.DataStructs.Algebraic.Vector Rotate(AI.DataStructs.Algebraic.Vector point) { }
+        public AI.Geometry.Primitives.Vector3 Rotate(AI.Geometry.Primitives.Vector3 point) { }
+        public AI.DataStructs.Algebraic.Matrix ToRotationMatrix3() { }
+        public AI.Geometry.Primitives.Vector3 ToRotationVector() { }
+        public static double Dot(AI.Geometry.Transforms.Quaternion a, AI.Geometry.Transforms.Quaternion b) { }
+        public static AI.Geometry.Transforms.Quaternion FromAxisAngle(AI.DataStructs.Algebraic.Vector axis, double angle) { }
+        public static AI.Geometry.Transforms.Quaternion FromAxisAngle(AI.Geometry.Primitives.Vector3 axis, double angle) { }
+        public static AI.Geometry.Transforms.Quaternion FromEuler(double yaw, double pitch, double roll) { }
+        public static AI.Geometry.Transforms.Quaternion FromRotationMatrix(AI.DataStructs.Algebraic.Matrix m) { }
+        public static AI.Geometry.Transforms.Quaternion FromRotationVector(AI.Geometry.Primitives.Vector3 rotationVector) { }
+        public static AI.Geometry.Primitives.Vector3 RotationVectorBetween(AI.Geometry.Transforms.Quaternion from, AI.Geometry.Transforms.Quaternion to) { }
+        public static AI.Geometry.Transforms.Quaternion Slerp(AI.Geometry.Transforms.Quaternion a, AI.Geometry.Transforms.Quaternion b, double t) { }
+        public static AI.Geometry.Transforms.Quaternion operator *(AI.Geometry.Transforms.Quaternion a, AI.Geometry.Transforms.Quaternion b) { }
+    }
+    public readonly struct RigidTransform : System.IEquatable<AI.Geometry.Transforms.RigidTransform>
+    {
+        public RigidTransform(AI.Geometry.Transforms.Quaternion Rotation, AI.Geometry.Primitives.Vector3 Translation) { }
+        public AI.Geometry.Transforms.RigidTransform Inverse { get; }
+        public AI.Geometry.Transforms.Quaternion Rotation { get; init; }
+        public AI.Geometry.Primitives.Vector3 Translation { get; init; }
+        public static AI.Geometry.Transforms.RigidTransform Identity { get; }
+        public AI.Geometry.Primitives.Vector3 Apply(AI.Geometry.Primitives.Vector3 point) { }
+        public AI.Geometry.Primitives.Vector3 ApplyVector(AI.Geometry.Primitives.Vector3 vector) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Angular",
+                "Linear"})]
+        public System.ValueTuple<AI.Geometry.Primitives.Vector3, AI.Geometry.Primitives.Vector3> Log() { }
+        public AI.Geometry.Transforms.Affine3D ToAffine() { }
+        public static AI.Geometry.Transforms.RigidTransform AboutAxis(AI.Geometry.Primitives.Vector3 point, AI.Geometry.Primitives.Vector3 direction, double angle) { }
+        public static AI.Geometry.Transforms.RigidTransform Exp(AI.Geometry.Primitives.Vector3 angular, AI.Geometry.Primitives.Vector3 linear) { }
+        public static AI.Geometry.Transforms.RigidTransform Interpolate(AI.Geometry.Transforms.RigidTransform from, AI.Geometry.Transforms.RigidTransform to, double s) { }
+        public static AI.Geometry.Transforms.RigidTransform operator *(AI.Geometry.Transforms.RigidTransform first, AI.Geometry.Transforms.RigidTransform second) { }
+    }
+}
+namespace AI.Geometry.Triangulation
+{
+    public static class Delaunay
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "A",
+                "B",
+                "C"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int, int>> Triangulate(AI.DataStructs.Algebraic.Vector[] points) { }
+    }
+    public static class EarClipping
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Geometry.Primitives.Triangle> Triangulate(AI.DataStructs.Algebraic.Vector[] outer, params AI.DataStructs.Algebraic.Vector[][] holes) { }
+    }
+    public static class Voronoi
+    {
+        public static AI.DataStructs.Algebraic.Vector[][] Cells(AI.DataStructs.Algebraic.Vector[] points, AI.DataStructs.Algebraic.Vector min, AI.DataStructs.Algebraic.Vector max) { }
+    }
+}

@@ -1,0 +1,1463 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AI.NeuralNetworks.Gpu")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AI.NeuralNetworks.Onnx")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("NNW.V2.Tests")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ML.NeuralNetworks.V2.Autograd
+{
+    public static class Engine
+    {
+        public static void Run(AI.ML.NeuralNetworks.V2.Tensor root, AI.ML.NeuralNetworks.V2.Tensor gradOutput) { }
+    }
+    public abstract class Function
+    {
+        protected Function() { }
+        public System.Collections.Generic.List<AI.ML.NeuralNetworks.V2.Tensor> Inputs { get; }
+        public System.Collections.Generic.List<AI.ML.NeuralNetworks.V2.Autograd.Function> NextFunctions { get; }
+        public object SavedContext { get; protected set; }
+        public System.Collections.Generic.List<AI.ML.NeuralNetworks.V2.Tensor> SavedTensors { get; }
+        public abstract AI.ML.NeuralNetworks.V2.Tensor[] Backward(AI.ML.NeuralNetworks.V2.Tensor gradOutput);
+        public void RegisterInput(AI.ML.NeuralNetworks.V2.Tensor t) { }
+    }
+    public static class GradCheck
+    {
+        public static bool Check(AI.ML.NeuralNetworks.V2.Tensor x, System.Func<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> fn, double eps = 0.001, double rtol = 0.01, double atol = 0.001) { }
+    }
+    public static class TapeContext
+    {
+        public static bool IsGradEnabled { get; }
+        public static System.IDisposable EnableGrad() { }
+        public static System.IDisposable NoGrad() { }
+    }
+    public sealed class ViewFunction : AI.ML.NeuralNetworks.V2.Autograd.Function
+    {
+        public ViewFunction(System.Func<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> inverseView) { }
+        public override AI.ML.NeuralNetworks.V2.Tensor[] Backward(AI.ML.NeuralNetworks.V2.Tensor gradOutput) { }
+    }
+}
+namespace AI.ML.NeuralNetworks.V2
+{
+    public enum DType : byte
+    {
+        Float32 = 0,
+        Float64 = 1,
+        Float16 = 2,
+        BFloat16 = 3,
+        Int8 = 10,
+        Int16 = 11,
+        Int32 = 12,
+        Int64 = 13,
+        UInt8 = 20,
+        Bool = 30,
+    }
+    public static class DTypes
+    {
+        public static int ElementSize(this AI.ML.NeuralNetworks.V2.DType dt) { }
+        public static AI.ML.NeuralNetworks.V2.DType FromManaged<T>()
+            where T :  unmanaged { }
+        public static bool IsFloating(this AI.ML.NeuralNetworks.V2.DType dt) { }
+        public static bool IsIntegral(this AI.ML.NeuralNetworks.V2.DType dt) { }
+        public static System.Type ManagedType(this AI.ML.NeuralNetworks.V2.DType dt) { }
+        public static AI.ML.NeuralNetworks.V2.DType Promote(AI.ML.NeuralNetworks.V2.DType a, AI.ML.NeuralNetworks.V2.DType b) { }
+    }
+    public readonly struct Device : System.IEquatable<AI.ML.NeuralNetworks.V2.Device>
+    {
+        public static readonly AI.ML.NeuralNetworks.V2.Device Cpu;
+        public Device(AI.ML.NeuralNetworks.V2.DeviceType type, int index = 0) { }
+        public int Index { get; }
+        public AI.ML.NeuralNetworks.V2.DeviceType Type { get; }
+        public bool Equals(AI.ML.NeuralNetworks.V2.Device other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Device Cuda(int index = 0) { }
+        public static bool operator !=(AI.ML.NeuralNetworks.V2.Device a, AI.ML.NeuralNetworks.V2.Device b) { }
+        public static bool operator ==(AI.ML.NeuralNetworks.V2.Device a, AI.ML.NeuralNetworks.V2.Device b) { }
+    }
+    public enum DeviceType : byte
+    {
+        Cpu = 0,
+        Cuda = 1,
+    }
+    public sealed class Shape : System.IEquatable<AI.ML.NeuralNetworks.V2.Shape>
+    {
+        public static readonly AI.ML.NeuralNetworks.V2.Shape Scalar;
+        public Shape(params int[] dims) { }
+        public int this[int axis] { get; }
+        public long NumElements { get; }
+        public int Rank { get; }
+        public bool Equals(AI.ML.NeuralNetworks.V2.Shape other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+        public int NormalizeAxis(int axis) { }
+        public int[] ToArray() { }
+        public override string ToString() { }
+        public static bool operator !=(AI.ML.NeuralNetworks.V2.Shape a, AI.ML.NeuralNetworks.V2.Shape b) { }
+        public static bool operator ==(AI.ML.NeuralNetworks.V2.Shape a, AI.ML.NeuralNetworks.V2.Shape b) { }
+    }
+    public static class Strides
+    {
+        public static bool IsContiguous(System.ReadOnlySpan<int> dims, System.ReadOnlySpan<int> strides) { }
+        public static int OffsetOf(System.ReadOnlySpan<int> indices, System.ReadOnlySpan<int> strides, int baseOffset = 0) { }
+        public static int[] RowMajor(System.ReadOnlySpan<int> dims) { }
+    }
+    public sealed class Tensor
+    {
+        public AI.ML.NeuralNetworks.V2.DType DType { get; }
+        public AI.ML.NeuralNetworks.V2.Device Device { get; }
+        public AI.ML.NeuralNetworks.V2.Tensor Grad { get; }
+        public AI.ML.NeuralNetworks.V2.Autograd.Function GradFn { get; }
+        public bool IsContiguous { get; }
+        public bool IsLeafRequiringGrad { get; }
+        public long NumElements { get; }
+        public int Offset { get; }
+        public int Rank { get; }
+        public bool RequiresGrad { get; }
+        public AI.ML.NeuralNetworks.V2.Shape Shape { get; }
+        public AI.ML.NeuralNetworks.V2.Storage.TensorStorage Storage { get; }
+        public System.ReadOnlySpan<int> Strides { get; }
+        public AI.ML.NeuralNetworks.V2.Tensor Abs() { }
+        public System.ReadOnlySpan<T> AsReadOnlySpan<T>()
+            where T :  unmanaged { }
+        public System.Span<T> AsSpan<T>()
+            where T :  unmanaged { }
+        public void Backward(AI.ML.NeuralNetworks.V2.Tensor gradient = null) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Contiguous() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Cuda(int index = 0) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Exp() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Expand(params int[] newDims) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Gelu() { }
+        public T Get<T>(params int[] indices)
+            where T :  unmanaged { }
+        public float GetFloat(params int[] indices) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Log() { }
+        public AI.ML.NeuralNetworks.V2.Tensor LogSoftmax(int axis = -1) { }
+        public AI.ML.NeuralNetworks.V2.Tensor MatMul(AI.ML.NeuralNetworks.V2.Tensor other) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Mean(int? axis = default, bool keepDim = false) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Permute(params int[] perm) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Relu() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Reshape(params int[] newDims) { }
+        public void Set<T>(T value, params int[] indices)
+            where T :  unmanaged { }
+        public void SetFloat(float value, params int[] indices) { }
+        public AI.ML.NeuralNetworks.V2.Tensor SetRequiresGrad(bool value = true) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Sigmoid() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Silu() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Softmax(int axis = -1) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Sqrt() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Squeeze(int axis) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Sum(int? axis = default, bool keepDim = false) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Tanh() { }
+        public AI.ML.NeuralNetworks.V2.Tensor To(AI.ML.NeuralNetworks.V2.Device device) { }
+        public AI.ML.NeuralNetworks.V2.Tensor ToCpu() { }
+        public override string ToString() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Transpose(int dim0, int dim1) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Unsqueeze(int axis) { }
+        public AI.ML.NeuralNetworks.V2.Tensor View(params int[] newDims) { }
+        public void ZeroGrad() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Arange(int n, AI.ML.NeuralNetworks.V2.DType dt = 0, AI.ML.NeuralNetworks.V2.Device? device = default) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Empty(AI.ML.NeuralNetworks.V2.Shape shape, AI.ML.NeuralNetworks.V2.DType dt = 0, AI.ML.NeuralNetworks.V2.Device? device = default) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor From(float[] data) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor From<T>(T[] data, AI.ML.NeuralNetworks.V2.Shape shape)
+            where T :  unmanaged { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Full(AI.ML.NeuralNetworks.V2.Shape shape, double value, AI.ML.NeuralNetworks.V2.DType dt = 0, AI.ML.NeuralNetworks.V2.Device? device = default) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Ones(AI.ML.NeuralNetworks.V2.Shape shape, AI.ML.NeuralNetworks.V2.DType dt = 0, AI.ML.NeuralNetworks.V2.Device? device = default) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Rand(AI.ML.NeuralNetworks.V2.Shape shape, System.Random rng = null, AI.ML.NeuralNetworks.V2.DType dt = 0, AI.ML.NeuralNetworks.V2.Device? device = default) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Randn(AI.ML.NeuralNetworks.V2.Shape shape, System.Random rng = null, AI.ML.NeuralNetworks.V2.DType dt = 0, AI.ML.NeuralNetworks.V2.Device? device = default) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Scalar(float value) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Zeros(params int[] dims) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Zeros(AI.ML.NeuralNetworks.V2.Shape shape, AI.ML.NeuralNetworks.V2.DType dt = 0, AI.ML.NeuralNetworks.V2.Device? device = default) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator *(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator *(AI.ML.NeuralNetworks.V2.Tensor a, float s) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator *(float s, AI.ML.NeuralNetworks.V2.Tensor a) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator +(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator +(AI.ML.NeuralNetworks.V2.Tensor a, float s) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator +(float s, AI.ML.NeuralNetworks.V2.Tensor a) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator -(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator -(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor operator /(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+    }
+}
+namespace AI.ML.NeuralNetworks.V2.Data
+{
+    public sealed class BatchSampler : AI.ML.NeuralNetworks.V2.Data.ISampler
+    {
+        public BatchSampler(AI.ML.NeuralNetworks.V2.Data.ISampler inner, int batchSize, bool dropLast = false) { }
+        public int BatchSize { get; }
+        public int Count { get; }
+        public bool DropLast { get; }
+        public AI.ML.NeuralNetworks.V2.Data.ISampler Inner { get; }
+        public System.Collections.Generic.IEnumerable<int> Iterate() { }
+        public System.Collections.Generic.IEnumerable<int[]> IterateBatches() { }
+    }
+    public static class Collate
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "padded",
+                "mask"})]
+        public static System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> PadSequence(System.Collections.Generic.IReadOnlyList<AI.ML.NeuralNetworks.V2.Tensor> items, float padValue = 0) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor PadStack(System.Collections.Generic.IReadOnlyList<AI.ML.NeuralNetworks.V2.Tensor> items, float padValue = 0) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "x",
+                "y"})]
+        public static System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> StackPair([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "x",
+                "y"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor>> items) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor StackTensors(System.Collections.Generic.IReadOnlyList<AI.ML.NeuralNetworks.V2.Tensor> items) { }
+    }
+    public delegate TBatch CollateFn<TItem, TBatch>(System.Collections.Generic.IReadOnlyList<TItem> items);
+    public sealed class DataLoader<TItem, TBatch> : System.Collections.Generic.IAsyncEnumerable<TBatch>, System.Collections.Generic.IEnumerable<TBatch>, System.Collections.IEnumerable
+    {
+        public DataLoader(AI.ML.NeuralNetworks.V2.Data.IDataset<TItem> dataset, int batchSize, AI.ML.NeuralNetworks.V2.Data.CollateFn<TItem, TBatch> collateFn, bool shuffle = false, bool dropLast = false, int numWorkers = 0, int prefetchFactor = 2, int? seed = default) { }
+        public AI.ML.NeuralNetworks.V2.Data.BatchSampler BatchSampler { get; }
+        public AI.ML.NeuralNetworks.V2.Data.CollateFn<TItem, TBatch> CollateFn { get; }
+        public int Count { get; }
+        public AI.ML.NeuralNetworks.V2.Data.IDataset<TItem> Dataset { get; }
+        public int NumWorkers { get; }
+        public int PrefetchFactor { get; }
+        [System.Runtime.CompilerServices.AsyncIteratorStateMachine(typeof(AI.ML.NeuralNetworks.V2.Data.DataLoader<TItem, TBatch>.<GetAsyncEnumerator>d__20))]
+        public System.Collections.Generic.IAsyncEnumerator<TBatch> GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Collections.Generic.IEnumerator<TBatch> GetEnumerator() { }
+    }
+    public interface IDataset<out T>
+    {
+        int Count { get; }
+        T Get(int index);
+    }
+    public interface ISampler
+    {
+        int Count { get; }
+        System.Collections.Generic.IEnumerable<int> Iterate();
+    }
+    public sealed class ListDataset<T> : AI.ML.NeuralNetworks.V2.Data.IDataset<T>
+    {
+        public ListDataset(System.Collections.Generic.IList<T> items) { }
+        public int Count { get; }
+        public T Get(int index) { }
+    }
+    public sealed class RandomSampler : AI.ML.NeuralNetworks.V2.Data.ISampler
+    {
+        public RandomSampler(int n, int? seed = default) { }
+        public int Count { get; }
+        public int N { get; }
+        public System.Collections.Generic.IEnumerable<int> Iterate() { }
+    }
+    public sealed class SequentialSampler : AI.ML.NeuralNetworks.V2.Data.ISampler
+    {
+        public SequentialSampler(int n) { }
+        public int Count { get; }
+        public int N { get; }
+        public System.Collections.Generic.IEnumerable<int> Iterate() { }
+    }
+    public sealed class TensorDataset : AI.ML.NeuralNetworks.V2.Data.IDataset<System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor>>
+    {
+        public TensorDataset(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor y) { }
+        public int Count { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "x",
+                "y"})]
+        public System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> Get(int index) { }
+    }
+}
+namespace AI.ML.NeuralNetworks.V2.Losses
+{
+    public static class ClassificationLosses
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor BCEWithLogits(AI.ML.NeuralNetworks.V2.Tensor logits, AI.ML.NeuralNetworks.V2.Tensor targets, AI.ML.NeuralNetworks.V2.Tensor posWeight = null, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor CrossEntropy(AI.ML.NeuralNetworks.V2.Tensor logits, AI.ML.NeuralNetworks.V2.Tensor targets, AI.ML.NeuralNetworks.V2.Tensor weight = null, int? ignoreIndex = default, float labelSmoothing = 0, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor KLDiv(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor target, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor NLL(AI.ML.NeuralNetworks.V2.Tensor logProb, AI.ML.NeuralNetworks.V2.Tensor targets, AI.ML.NeuralNetworks.V2.Tensor weight = null, int? ignoreIndex = default, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+    }
+    public static class EmbeddingLosses
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor CosineEmbedding(AI.ML.NeuralNetworks.V2.Tensor x1, AI.ML.NeuralNetworks.V2.Tensor x2, AI.ML.NeuralNetworks.V2.Tensor y, float margin = 0, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor CosineSimilarity(AI.ML.NeuralNetworks.V2.Tensor x1, AI.ML.NeuralNetworks.V2.Tensor x2, float eps = 1E-08) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor HingeEmbedding(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor y, float margin = 1, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor MarginRanking(AI.ML.NeuralNetworks.V2.Tensor x1, AI.ML.NeuralNetworks.V2.Tensor x2, AI.ML.NeuralNetworks.V2.Tensor y, float margin = 0, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor PairwiseDistance(AI.ML.NeuralNetworks.V2.Tensor x1, AI.ML.NeuralNetworks.V2.Tensor x2, float p = 2, float eps = 1E-06) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor TripletMargin(AI.ML.NeuralNetworks.V2.Tensor anchor, AI.ML.NeuralNetworks.V2.Tensor positive, AI.ML.NeuralNetworks.V2.Tensor negative, float margin = 1, float p = 2, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+    }
+    public enum Reduction
+    {
+        None = 0,
+        Mean = 1,
+        Sum = 2,
+    }
+    public static class RegressionLosses
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor Huber(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor target, float delta = 1, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor L1(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor target, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor MSE(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor target, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Reduce(AI.ML.NeuralNetworks.V2.Tensor t, AI.ML.NeuralNetworks.V2.Losses.Reduction r) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor SmoothL1(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor target, float beta = 1, AI.ML.NeuralNetworks.V2.Losses.Reduction reduction = 1) { }
+    }
+}
+namespace AI.ML.NeuralNetworks.V2.Nn
+{
+    public static class AdaLN
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor Apply(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor gamma, AI.ML.NeuralNetworks.V2.Tensor beta, float eps = 1E-05) { }
+    }
+    public sealed class AdaptiveAvgPool2d : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public AdaptiveAvgPool2d([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> outputSize) { }
+        public AdaptiveAvgPool2d(int output) { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> OutputSize { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class AvgPool2d : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public AvgPool2d([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> kernelSize, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> stride, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> padding) { }
+        public AvgPool2d(int kernelSize, int? stride = default, int padding = 0) { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> KernelSize { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Padding { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Stride { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+    }
+    public sealed class BatchNorm1d : AI.ML.NeuralNetworks.V2.Nn.BatchNormBase
+    {
+        public BatchNorm1d(int numFeatures, float eps = 1E-05, float momentum = 0.1, bool affine = true, bool trackRunningStats = true) { }
+    }
+    public sealed class BatchNorm2d : AI.ML.NeuralNetworks.V2.Nn.BatchNormBase
+    {
+        public BatchNorm2d(int numFeatures, float eps = 1E-05, float momentum = 0.1, bool affine = true, bool trackRunningStats = true) { }
+    }
+    public abstract class BatchNormBase : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        protected BatchNormBase(int numFeatures, int channelAxis, float eps, float momentum, bool affine, bool trackRunningStats) { }
+        public bool Affine { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Bias { get; }
+        public int ChannelAxis { get; }
+        public float Eps { get; }
+        public float Momentum { get; }
+        public int NumFeatures { get; }
+        public AI.ML.NeuralNetworks.V2.Tensor RunningMean { get; }
+        public AI.ML.NeuralNetworks.V2.Tensor RunningVar { get; }
+        public bool TrackRunningStats { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class Buffer
+    {
+        public Buffer(AI.ML.NeuralNetworks.V2.Tensor tensor) { }
+        public string Name { get; }
+        public AI.ML.NeuralNetworks.V2.Tensor Tensor { get; }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor op_Implicit(AI.ML.NeuralNetworks.V2.Nn.Buffer b) { }
+    }
+    public sealed class Conv1d : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public Conv1d(int inChannels, int outChannels, int kernelSize, int stride = 1, int padding = 0, int dilation = 1, int groups = 1, bool bias = true, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Bias { get; }
+        public int Dilation { get; }
+        public int Groups { get; }
+        public int InChannels { get; }
+        public int KernelSize { get; }
+        public int OutChannels { get; }
+        public int Padding { get; }
+        public int Stride { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class Conv2d : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public Conv2d(int inChannels, int outChannels, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> kernelSize, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> stride, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> padding, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> dilation, int groups, bool bias, System.Random rng) { }
+        public Conv2d(int inChannels, int outChannels, int kernelSize, int stride = 1, int padding = 0, int dilation = 1, int groups = 1, bool bias = true, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Bias { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Dilation { get; }
+        public int Groups { get; }
+        public int InChannels { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> KernelSize { get; }
+        public int OutChannels { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Padding { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Stride { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Apply(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor weight, AI.ML.NeuralNetworks.V2.Tensor bias, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> stride, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> padding, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> dilation, int groups) { }
+    }
+    public sealed class ConvTranspose2d : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public ConvTranspose2d(int inChannels, int outChannels, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> kernelSize, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> stride, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> padding, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> outputPadding, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> dilation, int groups, bool bias, System.Random rng) { }
+        public ConvTranspose2d(int inChannels, int outChannels, int kernelSize, int stride = 1, int padding = 0, int outputPadding = 0, int dilation = 1, int groups = 1, bool bias = true, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Bias { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Dilation { get; }
+        public int Groups { get; }
+        public int InChannels { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> KernelSize { get; }
+        public int OutChannels { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> OutputPadding { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Padding { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Stride { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Apply(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor weight, AI.ML.NeuralNetworks.V2.Tensor bias, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> stride, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> padding, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> outputPadding, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> dilation, int groups) { }
+    }
+    public sealed class Dropout : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public Dropout(float p = 0.5, System.Random rng = null) { }
+        public float P { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+        public readonly struct DropoutAttrs
+        {
+            public DropoutAttrs(float p, int seed) { }
+            public float P { get; }
+            public int Seed { get; }
+        }
+    }
+    public sealed class Embedding : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public Embedding(int numEmbeddings, int embeddingDim, int? paddingIdx = default, System.Random rng = null) { }
+        public int EmbeddingDim { get; }
+        public int NumEmbeddings { get; }
+        public int? PaddingIdx { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Lookup(AI.ML.NeuralNetworks.V2.Tensor weight, AI.ML.NeuralNetworks.V2.Tensor indices, int? paddingIdx = default) { }
+    }
+    public sealed class FeedForward : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public FeedForward(int dModel, int dFf, float dropout = 0.1, string activation = "gelu", System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Module Activation { get; }
+        public string ActivationName { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Linear Down { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Dropout DropAct { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Dropout DropOut { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Linear Up { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class GELU : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public GELU() { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class GRU : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public GRU(int inputSize, int hiddenSize, bool bias = true, bool batchFirst = true, System.Random rng = null) { }
+        public bool BatchFirst { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.GRUCell Cell { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "outputs",
+                "hN"})]
+        public System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> ForwardSeq(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor h0 = null) { }
+    }
+    public sealed class GRUCell : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public GRUCell(int inputSize, int hiddenSize, bool bias = true, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter BiasHH { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter BiasIH { get; }
+        public int HiddenSize { get; }
+        public int InputSize { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter WeightHH { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter WeightIH { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Step(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor h) { }
+    }
+    public sealed class GroupNorm : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public GroupNorm(int numGroups, int numChannels, float eps = 1E-05, bool affine = true) { }
+        public bool Affine { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Bias { get; }
+        public float Eps { get; }
+        public int NumChannels { get; }
+        public int NumGroups { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Apply(AI.ML.NeuralNetworks.V2.Tensor input, int G, int C, float eps, AI.ML.NeuralNetworks.V2.Tensor weight, AI.ML.NeuralNetworks.V2.Tensor bias) { }
+    }
+    public static class Init
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "fanIn",
+                "fanOut"})]
+        public static System.ValueTuple<int, int> CalcFanInOut(AI.ML.NeuralNetworks.V2.Tensor t, int groups = 1) { }
+        public static float CalculateGain(string nonlinearity, float param = 0) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Constant_(AI.ML.NeuralNetworks.V2.Tensor t, float value) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor KaimingNormal_(AI.ML.NeuralNetworks.V2.Tensor t, float a = 0, string mode = "fan_in", string nonlinearity = "leaky_relu", System.Random rng = null, int groups = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor KaimingUniform_(AI.ML.NeuralNetworks.V2.Tensor t, float a = 0, string mode = "fan_in", string nonlinearity = "leaky_relu", System.Random rng = null, int groups = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Normal_(AI.ML.NeuralNetworks.V2.Tensor t, float mean = 0, float std = 1, System.Random rng = null) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Uniform_(AI.ML.NeuralNetworks.V2.Tensor t, float a, float b, System.Random rng = null) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor XavierNormal_(AI.ML.NeuralNetworks.V2.Tensor t, float gain = 1, System.Random rng = null, int groups = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor XavierUniform_(AI.ML.NeuralNetworks.V2.Tensor t, float gain = 1, System.Random rng = null, int groups = 1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Zeros_(AI.ML.NeuralNetworks.V2.Tensor t) { }
+    }
+    public sealed class InstanceNorm : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public InstanceNorm(int numFeatures, float eps = 1E-05, bool affine = false) { }
+        public bool Affine { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Bias { get; }
+        public float Eps { get; }
+        public int NumFeatures { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+    }
+    public sealed class KVCache
+    {
+        public KVCache() { }
+        public int Length { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "K",
+                "V"})]
+        public System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> AppendAndGet(AI.ML.NeuralNetworks.V2.Tensor newK, AI.ML.NeuralNetworks.V2.Tensor newV) { }
+        public void Reset() { }
+    }
+    public sealed class LSTM : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public LSTM(int inputSize, int hiddenSize, bool bias = true, bool batchFirst = true, System.Random rng = null) { }
+        public bool BatchFirst { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.LSTMCell Cell { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "outputs",
+                "hN",
+                "cN"})]
+        public System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> ForwardSeq(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor h0 = null, AI.ML.NeuralNetworks.V2.Tensor c0 = null) { }
+    }
+    public sealed class LSTMCell : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public LSTMCell(int inputSize, int hiddenSize, bool bias = true, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter BiasHH { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter BiasIH { get; }
+        public int HiddenSize { get; }
+        public int InputSize { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter WeightHH { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter WeightIH { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "h",
+                "c"})]
+        public System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> Step(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor h, AI.ML.NeuralNetworks.V2.Tensor c) { }
+    }
+    public sealed class LayerNorm : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public LayerNorm(int normalizedFeatures, float eps = 1E-05, bool elementwiseAffine = true) { }
+        public LayerNorm(int[] normalizedShape, float eps = 1E-05, bool elementwiseAffine = true) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Bias { get; }
+        public bool ElementwiseAffine { get; }
+        public float Eps { get; }
+        public int[] NormalizedShape { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Apply(AI.ML.NeuralNetworks.V2.Tensor input, int normSize, float eps, AI.ML.NeuralNetworks.V2.Tensor weight, AI.ML.NeuralNetworks.V2.Tensor bias) { }
+        public readonly struct LayerNormAttrs
+        {
+            public LayerNormAttrs(int normSize, float eps) { }
+            public float Eps { get; }
+            public int NormSize { get; }
+        }
+    }
+    public sealed class Linear : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public Linear(int inFeatures, int outFeatures, bool bias = true, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Bias { get; }
+        public int InFeatures { get; }
+        public int OutFeatures { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public AI.ML.NeuralNetworks.V2.Tensor ForwardGelu(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+    }
+    public sealed class MaxPool2d : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public MaxPool2d([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> kernelSize, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> stride, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})] System.ValueTuple<int, int> padding) { }
+        public MaxPool2d(int kernelSize, int? stride = default, int padding = 0) { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> KernelSize { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Padding { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "H",
+                "W"})]
+        public System.ValueTuple<int, int> Stride { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+    }
+    public abstract class Module
+    {
+        protected Module() { }
+        public string Name { get; }
+        public bool Training { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Module Apply(System.Action<AI.ML.NeuralNetworks.V2.Nn.Parameter> fn) { }
+        public System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Tensor> Buffers() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Call(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Module> Children() { }
+        public AI.ML.NeuralNetworks.V2.Nn.Module Cpu() { }
+        public AI.ML.NeuralNetworks.V2.Nn.Module Cuda(int index = 0) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Module Eval() { }
+        public abstract AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input);
+        public void LoadStateDict(System.Collections.Generic.Dictionary<string, AI.ML.NeuralNetworks.V2.Tensor> state, bool strict = true) { }
+        public System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Module> Modules() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "name",
+                "buffer"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<string, AI.ML.NeuralNetworks.V2.Tensor>> NamedBuffers() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "name",
+                "param"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<string, AI.ML.NeuralNetworks.V2.Nn.Parameter>> NamedParameters() { }
+        public long NumParameters() { }
+        public System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> Parameters() { }
+        protected AI.ML.NeuralNetworks.V2.Nn.Buffer RegisterBuffer(string name, AI.ML.NeuralNetworks.V2.Tensor tensor) { }
+        protected T RegisterModule<T>(string name, T module)
+            where T : AI.ML.NeuralNetworks.V2.Nn.Module { }
+        protected AI.ML.NeuralNetworks.V2.Nn.Parameter RegisterParameter(string name, AI.ML.NeuralNetworks.V2.Tensor tensor) { }
+        public System.Collections.Generic.Dictionary<string, AI.ML.NeuralNetworks.V2.Tensor> StateDict() { }
+        public AI.ML.NeuralNetworks.V2.Nn.Module To(AI.ML.NeuralNetworks.V2.Device device) { }
+        public override string ToString() { }
+        public AI.ML.NeuralNetworks.V2.Nn.Module Train(bool mode = true) { }
+        public void ZeroGrad() { }
+    }
+    public sealed class ModuleDict : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public ModuleDict() { }
+        public AI.ML.NeuralNetworks.V2.Nn.Module this[string name] { get; }
+        public System.Collections.Generic.IEnumerable<string> Keys { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.ModuleDict Add(string name, AI.ML.NeuralNetworks.V2.Nn.Module module) { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class ModuleList : AI.ML.NeuralNetworks.V2.Nn.Module, System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Module>, System.Collections.IEnumerable
+    {
+        public ModuleList() { }
+        public ModuleList(params AI.ML.NeuralNetworks.V2.Nn.Module[] modules) { }
+        public int Count { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Module this[int index] { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.ModuleList Add(AI.ML.NeuralNetworks.V2.Nn.Module module) { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public System.Collections.Generic.IEnumerator<AI.ML.NeuralNetworks.V2.Nn.Module> GetEnumerator() { }
+    }
+    public sealed class MultiHeadAttention : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public MultiHeadAttention(int embedDim, int numHeads, float dropout = 0, bool bias = true, System.Random rng = null) { }
+        public bool Bias { get; }
+        public float Dropout { get; }
+        public int EmbedDim { get; }
+        public int HeadDim { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Linear KProj { get; }
+        public int NumHeads { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Linear OutProj { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Linear QProj { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Linear VProj { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public AI.ML.NeuralNetworks.V2.Tensor ForwardMHA(AI.ML.NeuralNetworks.V2.Tensor query, AI.ML.NeuralNetworks.V2.Tensor key, AI.ML.NeuralNetworks.V2.Tensor value, AI.ML.NeuralNetworks.V2.Tensor attnMask = null, bool isCausal = false, AI.ML.NeuralNetworks.V2.Nn.KVCache cache = null, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Tensor SelfAttention(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor attnMask = null, bool isCausal = false, AI.ML.NeuralNetworks.V2.Nn.KVCache cache = null, System.Random rng = null) { }
+    }
+    public sealed class Parameter
+    {
+        public Parameter(AI.ML.NeuralNetworks.V2.Tensor tensor) { }
+        public string Name { get; }
+        public AI.ML.NeuralNetworks.V2.Tensor Tensor { get; }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor op_Implicit(AI.ML.NeuralNetworks.V2.Nn.Parameter p) { }
+    }
+    public sealed class RMSNorm : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public RMSNorm(int normalizedFeatures, float eps = 1E-06, bool elementwiseAffine = true) { }
+        public float Eps { get; }
+        public int NormalizedFeatures { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter Weight { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public override string ToString() { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Apply(AI.ML.NeuralNetworks.V2.Tensor input, int normSize, float eps, AI.ML.NeuralNetworks.V2.Tensor weight) { }
+    }
+    public sealed class RNN : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public RNN(int inputSize, int hiddenSize, string nonlinearity = "tanh", bool bias = true, bool batchFirst = true, System.Random rng = null) { }
+        public bool BatchFirst { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.RNNCell Cell { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "outputs",
+                "hN"})]
+        public System.ValueTuple<AI.ML.NeuralNetworks.V2.Tensor, AI.ML.NeuralNetworks.V2.Tensor> ForwardSeq(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor h0 = null) { }
+    }
+    public sealed class RNNCell : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public RNNCell(int inputSize, int hiddenSize, string nonlinearity = "tanh", bool bias = true, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter BiasHH { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter BiasIH { get; }
+        public int HiddenSize { get; }
+        public int InputSize { get; }
+        public string Nonlinearity { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter WeightHH { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Parameter WeightIH { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Step(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Tensor h) { }
+    }
+    public sealed class ReLU : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public ReLU() { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public static class RoPE
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor Apply(AI.ML.NeuralNetworks.V2.Tensor x, int positionStart = 0, float theta = 10000) { }
+    }
+    public static class ScaledDotProductAttention
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor Apply(AI.ML.NeuralNetworks.V2.Tensor query, AI.ML.NeuralNetworks.V2.Tensor key, AI.ML.NeuralNetworks.V2.Tensor value, AI.ML.NeuralNetworks.V2.Tensor attnMask = null, bool isCausal = false, float dropoutP = 0, bool training = true, System.Random rng = null) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor CausalMask(int L, AI.ML.NeuralNetworks.V2.DType dt, AI.ML.NeuralNetworks.V2.Device dev) { }
+    }
+    public sealed class Sequential : AI.ML.NeuralNetworks.V2.Nn.Module, System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Module>, System.Collections.IEnumerable
+    {
+        public Sequential() { }
+        public Sequential(params AI.ML.NeuralNetworks.V2.Nn.Module[] layers) { }
+        public int Count { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Module this[int index] { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Sequential Add(AI.ML.NeuralNetworks.V2.Nn.Module module) { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public System.Collections.Generic.IEnumerator<AI.ML.NeuralNetworks.V2.Nn.Module> GetEnumerator() { }
+    }
+    public sealed class SiLU : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public SiLU() { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class Sigmoid : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public Sigmoid() { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class SinusoidalPositionalEncoding : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public SinusoidalPositionalEncoding(int embedDim, int maxLen = 5000) { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class Tanh : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public Tanh() { }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+    }
+    public sealed class TransformerDecoder : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public TransformerDecoder(AI.ML.NeuralNetworks.V2.Nn.TransformerDecoderLayer prototype, int numLayers, AI.ML.NeuralNetworks.V2.Nn.LayerNorm finalNorm = null, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.LayerNorm FinalNorm { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.ModuleList Layers { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor tgt, AI.ML.NeuralNetworks.V2.Tensor memory, AI.ML.NeuralNetworks.V2.Tensor tgtMask = null, AI.ML.NeuralNetworks.V2.Tensor memMask = null, bool tgtCausal = true) { }
+    }
+    public sealed class TransformerDecoderLayer : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public TransformerDecoderLayer(int dModel, int nHead, int dimFeedforward = 2048, float dropout = 0.1, string activation = "gelu", bool normFirst = true, System.Random rng = null) { }
+        public string ActivationName { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.MultiHeadAttention CrossAttn { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Dropout Dropout1 { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Dropout Dropout2 { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Dropout Dropout3 { get; }
+        public float DropoutP { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.FeedForward FFN { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.LayerNorm Norm1 { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.LayerNorm Norm2 { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.LayerNorm Norm3 { get; }
+        public bool NormFirst { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.MultiHeadAttention SelfAttn { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor tgt, AI.ML.NeuralNetworks.V2.Tensor memory, AI.ML.NeuralNetworks.V2.Tensor tgtMask = null, AI.ML.NeuralNetworks.V2.Tensor memMask = null, bool tgtCausal = true) { }
+    }
+    public sealed class TransformerEncoder : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public TransformerEncoder(AI.ML.NeuralNetworks.V2.Nn.TransformerEncoderLayer prototype, int numLayers, AI.ML.NeuralNetworks.V2.Nn.LayerNorm finalNorm = null, System.Random rng = null) { }
+        public AI.ML.NeuralNetworks.V2.Nn.LayerNorm FinalNorm { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.ModuleList Layers { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor mask, bool isCausal) { }
+    }
+    public sealed class TransformerEncoderLayer : AI.ML.NeuralNetworks.V2.Nn.Module
+    {
+        public TransformerEncoderLayer(int dModel, int nHead, int dimFeedforward = 2048, float dropout = 0.1, string activation = "gelu", bool normFirst = true, System.Random rng = null) { }
+        public string ActivationName { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Dropout Dropout1 { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.Dropout Dropout2 { get; }
+        public float DropoutP { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.FeedForward FFN { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.LayerNorm Norm1 { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.LayerNorm Norm2 { get; }
+        public bool NormFirst { get; }
+        public AI.ML.NeuralNetworks.V2.Nn.MultiHeadAttention SelfAttn { get; }
+        public override AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input) { }
+        public AI.ML.NeuralNetworks.V2.Tensor Forward(AI.ML.NeuralNetworks.V2.Tensor input, AI.ML.NeuralNetworks.V2.Tensor srcMask, bool isCausal) { }
+    }
+}
+namespace AI.ML.NeuralNetworks.V2.Ops
+{
+    public static class Broadcasting
+    {
+        public static AI.ML.NeuralNetworks.V2.Ops.Broadcasting.Result Compute(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor ReduceForBroadcast(AI.ML.NeuralNetworks.V2.Tensor grad, AI.ML.NeuralNetworks.V2.Shape originalShape) { }
+        public readonly struct Result
+        {
+            public AI.ML.NeuralNetworks.V2.Shape Shape { get; }
+            public int[] StridesA { get; }
+            public int[] StridesB { get; }
+        }
+    }
+    public sealed class CatAttrs
+    {
+        public CatAttrs(int axis, int[] sizes) { }
+        public int Axis { get; }
+        public int[] Sizes { get; }
+    }
+    public static class ElementwiseDispatch
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor Binary<TOp, T>(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b, string opName)
+            where TOp :  struct, AI.ML.NeuralNetworks.V2.Ops.IBinaryOp<T>
+            where T :  unmanaged { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Unary<TOp, T>(AI.ML.NeuralNetworks.V2.Tensor x, string opName)
+            where TOp :  struct, AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<T>
+            where T :  unmanaged { }
+    }
+    public static class Float32Ops
+    {
+        public struct Abs : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Add : AI.ML.NeuralNetworks.V2.Ops.IBinaryOp<float>
+        {
+            public float BackwardA(float a, float b, float y, float gy) { }
+            public float BackwardB(float a, float b, float y, float gy) { }
+            public float Forward(float a, float b) { }
+        }
+        public struct Cos : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Div : AI.ML.NeuralNetworks.V2.Ops.IBinaryOp<float>
+        {
+            public float BackwardA(float a, float b, float y, float gy) { }
+            public float BackwardB(float a, float b, float y, float gy) { }
+            public float Forward(float a, float b) { }
+        }
+        public struct Exp : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Gelu : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Log : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Mul : AI.ML.NeuralNetworks.V2.Ops.IBinaryOp<float>
+        {
+            public float BackwardA(float a, float b, float y, float gy) { }
+            public float BackwardB(float a, float b, float y, float gy) { }
+            public float Forward(float a, float b) { }
+        }
+        public struct Neg : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Pow : AI.ML.NeuralNetworks.V2.Ops.IBinaryOp<float>
+        {
+            public float BackwardA(float a, float b, float y, float gy) { }
+            public float BackwardB(float a, float b, float y, float gy) { }
+            public float Forward(float a, float b) { }
+        }
+        public struct Relu : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Sigmoid : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Silu : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Sin : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Sqrt : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+        public struct Sub : AI.ML.NeuralNetworks.V2.Ops.IBinaryOp<float>
+        {
+            public float BackwardA(float a, float b, float y, float gy) { }
+            public float BackwardB(float a, float b, float y, float gy) { }
+            public float Forward(float a, float b) { }
+        }
+        public struct Tanh : AI.ML.NeuralNetworks.V2.Ops.IUnaryOp<float>
+        {
+            public float Backward(float x, float y, float gy) { }
+            public float Forward(float x) { }
+        }
+    }
+    public sealed class FusedAdamWAttrs
+    {
+        public FusedAdamWAttrs(float lr, float beta1, float beta2, float eps, float wd, float bc1, float bc2) { }
+        public float Bc1 { get; }
+        public float Bc2 { get; }
+        public float Beta1 { get; }
+        public float Beta2 { get; }
+        public float Eps { get; }
+        public float Lr { get; }
+        public float WeightDecay { get; }
+    }
+    public sealed class GruSeqAttrs
+    {
+        public GruSeqAttrs(int t, int b, int h, bool hasBhh, bool hasH0) { }
+        public int B { get; }
+        public int H { get; }
+        public bool HasBhh { get; }
+        public bool HasH0 { get; }
+        public int T { get; }
+    }
+    public sealed class GruStepAttrs
+    {
+        public GruStepAttrs(int b, int h) { }
+        public int B { get; }
+        public int H { get; }
+    }
+    public interface IBinaryOp<T>
+        where T :  unmanaged
+    {
+        T BackwardA(T a, T b, T y, T gy);
+        T BackwardB(T a, T b, T y, T gy);
+        T Forward(T a, T b);
+    }
+    public interface IUnaryOp<T>
+        where T :  unmanaged
+    {
+        T Backward(T x, T y, T gy);
+        T Forward(T x);
+    }
+    public static class IndexingOps
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor Cat(System.Collections.Generic.IReadOnlyList<AI.ML.NeuralNetworks.V2.Tensor> tensors, int axis) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Narrow(AI.ML.NeuralNetworks.V2.Tensor input, int axis, int start, int length) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Select(AI.ML.NeuralNetworks.V2.Tensor input, int axis, int index) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Stack(System.Collections.Generic.IReadOnlyList<AI.ML.NeuralNetworks.V2.Tensor> tensors, int axis) { }
+    }
+    public sealed class LstmSeqAttrs
+    {
+        public LstmSeqAttrs(int t, int b, int h, bool hasH0, bool hasC0) { }
+        public int B { get; }
+        public int H { get; }
+        public bool HasC0 { get; }
+        public bool HasH0 { get; }
+        public int T { get; }
+    }
+    public sealed class LstmStepAttrs
+    {
+        public LstmStepAttrs(int b, int h) { }
+        public int B { get; }
+        public int H { get; }
+    }
+    public enum OpCode : ushort
+    {
+        Add = 0,
+        Sub = 1,
+        Mul = 2,
+        Div = 3,
+        Pow = 4,
+        Neg = 5,
+        Abs = 6,
+        Exp = 7,
+        Log = 8,
+        Sqrt = 9,
+        Sin = 10,
+        Cos = 11,
+        Relu = 12,
+        Sigmoid = 13,
+        Tanh = 14,
+        Gelu = 15,
+        Silu = 16,
+        Softmax = 17,
+        LogSoftmax = 18,
+        MatMul = 19,
+        BatchedMatMul = 20,
+        AddMM = 21,
+        Sum = 22,
+        Mean = 23,
+        Max = 24,
+        Min = 25,
+        ArgMax = 26,
+        ArgMin = 27,
+        Var = 28,
+        Std = 29,
+        Reshape = 30,
+        Transpose = 31,
+        Permute = 32,
+        Squeeze = 33,
+        Unsqueeze = 34,
+        Expand = 35,
+        Slice = 36,
+        Contiguous = 37,
+        Conv1d = 38,
+        Conv2d = 39,
+        Conv3d = 40,
+        MaxPool = 41,
+        AvgPool = 42,
+        LayerNorm = 43,
+        BatchNorm = 44,
+        GroupNorm = 45,
+        RMSNorm = 46,
+        Embedding = 47,
+        Dropout = 48,
+        CrossEntropy = 49,
+        BCE = 50,
+        MSE = 51,
+        L1 = 52,
+        NLL = 53,
+        KL = 54,
+        FusedAdamW = 55,
+        FusedLinearGelu = 56,
+        FusedAddBiasRelu = 57,
+        MulScalar = 58,
+        Cat = 59,
+        ScatterSlice = 60,
+        LstmStep = 61,
+        GruStep = 62,
+        LstmSeq = 63,
+        GruSeq = 64,
+        RnnSeq = 65,
+        Custom = 65535,
+    }
+    public delegate AI.ML.NeuralNetworks.V2.Tensor[] OpKernel(AI.ML.NeuralNetworks.V2.Tensor[] inputs, object attrs);
+    public static class OpRegistry
+    {
+        public static AI.ML.NeuralNetworks.V2.Ops.OpKernel Get(AI.ML.NeuralNetworks.V2.Ops.OpCode op, AI.ML.NeuralNetworks.V2.DType dt, AI.ML.NeuralNetworks.V2.Device device) { }
+        public static AI.ML.NeuralNetworks.V2.Ops.OpKernel Get(AI.ML.NeuralNetworks.V2.Ops.OpCode op, AI.ML.NeuralNetworks.V2.DType dt, AI.ML.NeuralNetworks.V2.DeviceType dev) { }
+        public static void Register(AI.ML.NeuralNetworks.V2.Ops.OpCode op, AI.ML.NeuralNetworks.V2.DType dt, AI.ML.NeuralNetworks.V2.Device device, AI.ML.NeuralNetworks.V2.Ops.OpKernel kernel) { }
+        public static void Register(AI.ML.NeuralNetworks.V2.Ops.OpCode op, AI.ML.NeuralNetworks.V2.DType dt, AI.ML.NeuralNetworks.V2.DeviceType dev, AI.ML.NeuralNetworks.V2.Ops.OpKernel kernel) { }
+        public static AI.ML.NeuralNetworks.V2.Ops.OpKernel TryGet(AI.ML.NeuralNetworks.V2.Ops.OpCode op, AI.ML.NeuralNetworks.V2.DType dt, AI.ML.NeuralNetworks.V2.Device device) { }
+        public static AI.ML.NeuralNetworks.V2.Ops.OpKernel TryGet(AI.ML.NeuralNetworks.V2.Ops.OpCode op, AI.ML.NeuralNetworks.V2.DType dt, AI.ML.NeuralNetworks.V2.DeviceType dev) { }
+    }
+    public sealed class ReduceAttrs
+    {
+        public ReduceAttrs(int? axis, bool keepDim) { }
+        public int? Axis { get; }
+        public bool KeepDim { get; }
+    }
+    public sealed class RnnSeqAttrs
+    {
+        public RnnSeqAttrs(int t, int b, int h, int nonlinearity, bool hasH0) { }
+        public int B { get; }
+        public int H { get; }
+        public bool HasH0 { get; }
+        public int Nonlinearity { get; }
+        public int T { get; }
+    }
+    public sealed class ScalarAttrs
+    {
+        public ScalarAttrs(float value) { }
+        public float Value { get; }
+    }
+    public sealed class ScatterAttrs
+    {
+        public ScatterAttrs(int axis, int start, int length) { }
+        public int Axis { get; }
+        public int Length { get; }
+        public int Start { get; }
+    }
+    public sealed class SoftmaxAttrs
+    {
+        public SoftmaxAttrs(int axis, long outer, int dim, long inner) { }
+        public int Axis { get; }
+        public int Dim { get; }
+        public long Inner { get; }
+        public long Outer { get; }
+    }
+    public static class SoftmaxOps
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor LogSoftmax(AI.ML.NeuralNetworks.V2.Tensor input, int axis = -1) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Softmax(AI.ML.NeuralNetworks.V2.Tensor input, int axis = -1) { }
+    }
+    public static class TensorOps
+    {
+        public static AI.ML.NeuralNetworks.V2.Tensor Abs(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Add(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor AddScalar(AI.ML.NeuralNetworks.V2.Tensor x, float s) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Cos(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Div(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Exp(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Gelu(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Log(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor MatMul(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Mean(AI.ML.NeuralNetworks.V2.Tensor x, int? axis = default, bool keepDim = false) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Mul(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor MulScalar(AI.ML.NeuralNetworks.V2.Tensor x, float s) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Neg(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Pow(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Relu(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Sigmoid(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Silu(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Sin(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Sqrt(AI.ML.NeuralNetworks.V2.Tensor x) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Sub(AI.ML.NeuralNetworks.V2.Tensor a, AI.ML.NeuralNetworks.V2.Tensor b) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Sum(AI.ML.NeuralNetworks.V2.Tensor x, int? axis = default, bool keepDim = false) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor SumToShape(AI.ML.NeuralNetworks.V2.Tensor x, AI.ML.NeuralNetworks.V2.Shape targetShape) { }
+        public static AI.ML.NeuralNetworks.V2.Tensor Tanh(AI.ML.NeuralNetworks.V2.Tensor x) { }
+    }
+}
+namespace AI.ML.NeuralNetworks.V2.Optim
+{
+    public sealed class Adadelta : AI.ML.NeuralNetworks.V2.Optim.Optimizer
+    {
+        public Adadelta(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float lr = 1, float rho = 0.9, float eps = 1E-06, float weightDecay = 0) { }
+        public float Eps { get; }
+        public float Rho { get; }
+        public float WeightDecay { get; }
+        public override void Step() { }
+    }
+    public sealed class Adagrad : AI.ML.NeuralNetworks.V2.Optim.Optimizer
+    {
+        public Adagrad(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float lr = 0.01, float lrDecay = 0, float weightDecay = 0, float eps = 1E-10) { }
+        public float Eps { get; }
+        public float LRDecay { get; }
+        public float WeightDecay { get; }
+        public override void Step() { }
+    }
+    public sealed class Adam : AI.ML.NeuralNetworks.V2.Optim.Optimizer
+    {
+        public Adam(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float lr = 0.001, float beta1 = 0.9, float beta2 = 0.999, float eps = 1E-08, float weightDecay = 0, AI.ML.NeuralNetworks.V2.Optim.AdamVariant variant = 0, bool decoupledWeightDecay = false, bool amsGrad = false) { }
+        public bool AmsGrad { get; }
+        public float Beta1 { get; }
+        public float Beta2 { get; }
+        public bool DecoupledWeightDecay { get; }
+        public float Eps { get; }
+        public AI.ML.NeuralNetworks.V2.Optim.AdamVariant Variant { get; }
+        public float WeightDecay { get; }
+        public override void Step() { }
+        public static AI.ML.NeuralNetworks.V2.Optim.Adam AdamW(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float lr = 0.001, float beta1 = 0.9, float beta2 = 0.999, float eps = 1E-08, float weightDecay = 0.01, bool amsGrad = false) { }
+    }
+    public enum AdamVariant
+    {
+        Adam = 0,
+        NAdam = 1,
+        RAdam = 2,
+        Adamax = 3,
+    }
+    public sealed class CosineAnnealingLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public CosineAnnealingLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, int tMax, float etaMin = 0) { }
+        public float EtaMin { get; }
+        public int TMax { get; }
+        protected override float ComputeLR() { }
+    }
+    public sealed class CosineAnnealingWarmRestarts : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public CosineAnnealingWarmRestarts(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, int t0, int tMult = 1, float etaMin = 0) { }
+        public float EtaMin { get; }
+        public int T0 { get; }
+        public int TMult { get; }
+        protected override float ComputeLR() { }
+    }
+    public sealed class ExponentialLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public ExponentialLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, float gamma) { }
+        public float Gamma { get; }
+        protected override float ComputeLR() { }
+    }
+    public abstract class LRScheduler
+    {
+        protected LRScheduler(AI.ML.NeuralNetworks.V2.Optim.Optimizer optimizer) { }
+        public float BaseLR { get; }
+        public float CurrentLR { get; }
+        public int LastEpoch { get; protected set; }
+        public AI.ML.NeuralNetworks.V2.Optim.Optimizer Optimizer { get; }
+        protected abstract float ComputeLR();
+        public virtual void Step() { }
+    }
+    public sealed class LambdaLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public LambdaLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, System.Func<int, float> lrLambda) { }
+        protected override float ComputeLR() { }
+    }
+    public sealed class LinearLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public LinearLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, float startFactor = 0.33333334, float endFactor = 1, int totalIters = 5) { }
+        protected override float ComputeLR() { }
+    }
+    public sealed class LinearWarmupLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public LinearWarmupLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, int warmupSteps, float peakLR) { }
+        protected override float ComputeLR() { }
+    }
+    public sealed class MultiStepLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public MultiStepLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, int[] milestones, float gamma = 0.1) { }
+        public float Gamma { get; }
+        public System.Collections.Generic.IReadOnlyList<int> Milestones { get; }
+        protected override float ComputeLR() { }
+    }
+    public sealed class OneCycleLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public OneCycleLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, float maxLR, int totalSteps, float pctStart = 0.3, float divFactor = 25, float finalDivFactor = 10000) { }
+        protected override float ComputeLR() { }
+    }
+    public abstract class Optimizer
+    {
+        protected readonly System.Collections.Generic.Dictionary<AI.ML.NeuralNetworks.V2.Nn.Parameter, System.Collections.Generic.Dictionary<string, AI.ML.NeuralNetworks.V2.Tensor>> State;
+        protected Optimizer(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float lr) { }
+        public float LearningRate { get; set; }
+        public System.Collections.Generic.IReadOnlyList<AI.ML.NeuralNetworks.V2.Nn.Parameter> Parameters { get; }
+        public int StepCount { get; protected set; }
+        protected AI.ML.NeuralNetworks.V2.Tensor GetOrCreateState(AI.ML.NeuralNetworks.V2.Nn.Parameter p, string key, System.Func<AI.ML.NeuralNetworks.V2.Tensor> factory) { }
+        public abstract void Step();
+        public void ZeroGrad() { }
+    }
+    public sealed class RMSProp : AI.ML.NeuralNetworks.V2.Optim.Optimizer
+    {
+        public RMSProp(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float lr = 0.01, float alpha = 0.99, float eps = 1E-08, float weightDecay = 0, float momentum = 0, bool centered = false) { }
+        public float Alpha { get; }
+        public bool Centered { get; }
+        public float Eps { get; }
+        public float Momentum { get; }
+        public float WeightDecay { get; }
+        public override void Step() { }
+    }
+    public sealed class ReduceLROnPlateau
+    {
+        public ReduceLROnPlateau(AI.ML.NeuralNetworks.V2.Optim.Optimizer optimizer, float factor = 0.1, int patience = 10, float threshold = 0.0001, float minLR = 0, bool minimize = true) { }
+        public float Factor { get; }
+        public float MinLR { get; }
+        public bool Minimize { get; }
+        public AI.ML.NeuralNetworks.V2.Optim.Optimizer Optimizer { get; }
+        public int Patience { get; }
+        public float Threshold { get; }
+        public bool Step(float metric) { }
+    }
+    public sealed class SGD : AI.ML.NeuralNetworks.V2.Optim.Optimizer
+    {
+        public SGD(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float lr, float momentum = 0, float weightDecay = 0, float dampening = 0, bool nesterov = false) { }
+        public float Dampening { get; }
+        public float Momentum { get; }
+        public bool Nesterov { get; }
+        public float WeightDecay { get; }
+        public override void Step() { }
+    }
+    public sealed class SequentialLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public SequentialLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, AI.ML.NeuralNetworks.V2.Optim.LRScheduler[] schedulers, int[] milestones) { }
+        protected override float ComputeLR() { }
+        public override void Step() { }
+    }
+    public sealed class StepLR : AI.ML.NeuralNetworks.V2.Optim.LRScheduler
+    {
+        public StepLR(AI.ML.NeuralNetworks.V2.Optim.Optimizer opt, int stepSize, float gamma = 0.1) { }
+        public float Gamma { get; }
+        public int StepSize { get; }
+        protected override float ComputeLR() { }
+    }
+}
+namespace AI.ML.NeuralNetworks.V2.Storage
+{
+    public sealed class CpuStorage : AI.ML.NeuralNetworks.V2.Storage.TensorStorage
+    {
+        public const long MaxByteSize = 2147483647;
+        public override System.ReadOnlySpan<T> AsReadOnlySpan<T>()
+            where T :  unmanaged { }
+        public override System.Span<T> AsSpan<T>()
+            where T :  unmanaged { }
+        protected override void DisposeCore(bool disposing) { }
+        public static AI.ML.NeuralNetworks.V2.Storage.CpuStorage Allocate(AI.ML.NeuralNetworks.V2.DType dt, long length) { }
+        public static AI.ML.NeuralNetworks.V2.Storage.CpuStorage From<T>(T[] data)
+            where T :  unmanaged { }
+    }
+    public interface IDeviceFillable
+    {
+        bool TryFill(double value);
+    }
+    public interface IHostCopyable
+    {
+        void CopyFromHost(AI.ML.NeuralNetworks.V2.Storage.TensorStorage hostSrc, long dstOffset, long length);
+        void CopyToHost(AI.ML.NeuralNetworks.V2.Storage.TensorStorage hostDst, long srcOffset, long length);
+    }
+    public static class StorageBackends
+    {
+        public static AI.ML.NeuralNetworks.V2.Storage.TensorStorage Allocate(AI.ML.NeuralNetworks.V2.DType dtype, AI.ML.NeuralNetworks.V2.Device device, long length) { }
+        public static bool IsRegistered(AI.ML.NeuralNetworks.V2.DeviceType deviceType) { }
+        public static void Register(AI.ML.NeuralNetworks.V2.DeviceType deviceType, AI.ML.NeuralNetworks.V2.Storage.StorageFactory factory) { }
+        public static AI.ML.NeuralNetworks.V2.Storage.StorageFactory TryGet(AI.ML.NeuralNetworks.V2.DeviceType deviceType) { }
+    }
+    public delegate AI.ML.NeuralNetworks.V2.Storage.TensorStorage StorageFactory(AI.ML.NeuralNetworks.V2.DType dtype, long length, int deviceIndex);
+    public abstract class TensorStorage : System.IDisposable
+    {
+        protected TensorStorage(AI.ML.NeuralNetworks.V2.DType dtype, AI.ML.NeuralNetworks.V2.Device device, long length) { }
+        public long ByteSize { get; }
+        public AI.ML.NeuralNetworks.V2.DType DType { get; }
+        public AI.ML.NeuralNetworks.V2.Device Device { get; }
+        public bool IsDisposed { get; }
+        public long Length { get; }
+        public abstract System.ReadOnlySpan<T> AsReadOnlySpan<T>()
+            where T :  unmanaged;
+        public abstract System.Span<T> AsSpan<T>()
+            where T :  unmanaged;
+        public void Dispose() { }
+        protected abstract void DisposeCore(bool disposing);
+        protected override void Finalize() { }
+    }
+}
+namespace AI.ML.NeuralNetworks.V2.Train
+{
+    public static class GradUtils
+    {
+        public static float ClipGradNorm(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float maxNorm) { }
+        public static void ClipGradValue(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float clipValue) { }
+        public static float TotalGradNorm(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters) { }
+    }
+    public interface ITrainStep<TBatch>
+    {
+        float Step(AI.ML.NeuralNetworks.V2.Nn.Module model, TBatch batch);
+    }
+    public sealed class LambdaTrainStep<TBatch> : AI.ML.NeuralNetworks.V2.Train.ITrainStep<TBatch>
+    {
+        public LambdaTrainStep(System.Func<AI.ML.NeuralNetworks.V2.Nn.Module, TBatch, float> step) { }
+        public float Step(AI.ML.NeuralNetworks.V2.Nn.Module model, TBatch batch) { }
+    }
+    public sealed class ParameterEMA
+    {
+        public ParameterEMA(System.Collections.Generic.IEnumerable<AI.ML.NeuralNetworks.V2.Nn.Parameter> parameters, float decay = 0.999) { }
+        public float Decay { get; }
+        public void CopyTo() { }
+        public AI.ML.NeuralNetworks.V2.Tensor Get(AI.ML.NeuralNetworks.V2.Nn.Parameter p) { }
+        public void Update() { }
+    }
+    public sealed class TrainEpochResult
+    {
+        public TrainEpochResult() { }
+        public float AverageLoss { get; set; }
+        public float LastGradNorm { get; set; }
+        public System.Collections.Generic.Dictionary<string, float> Metrics { get; }
+        public int NumBatches { get; set; }
+        public int OptimizerSteps { get; set; }
+        public float TotalLoss { get; set; }
+    }
+    public sealed class TrainerHooks
+    {
+        public TrainerHooks() { }
+        public System.Action<AI.ML.NeuralNetworks.V2.Train.TrainEpochResult> OnBatchBegin { get; set; }
+        public System.Action<AI.ML.NeuralNetworks.V2.Train.TrainEpochResult> OnBatchEnd { get; set; }
+        public System.Action<AI.ML.NeuralNetworks.V2.Train.TrainEpochResult> OnBeforeOptimizerStep { get; set; }
+        public System.Action<AI.ML.NeuralNetworks.V2.Train.TrainEpochResult> OnEpochBegin { get; set; }
+        public System.Action<AI.ML.NeuralNetworks.V2.Train.TrainEpochResult> OnEpochEnd { get; set; }
+    }
+    public sealed class Trainer<TBatch>
+    {
+        public Trainer(AI.ML.NeuralNetworks.V2.Nn.Module model, AI.ML.NeuralNetworks.V2.Optim.Optimizer optimizer, AI.ML.NeuralNetworks.V2.Train.ITrainStep<TBatch> stepFn) { }
+        public AI.ML.NeuralNetworks.V2.Train.ParameterEMA EMA { get; set; }
+        public int GradAccumSteps { get; set; }
+        public AI.ML.NeuralNetworks.V2.Train.TrainerHooks Hooks { get; }
+        public float MaxGradNorm { get; set; }
+        public AI.ML.NeuralNetworks.V2.Nn.Module Model { get; }
+        public AI.ML.NeuralNetworks.V2.Optim.Optimizer Optimizer { get; }
+        public AI.ML.NeuralNetworks.V2.Optim.LRScheduler Scheduler { get; set; }
+        public AI.ML.NeuralNetworks.V2.Train.ITrainStep<TBatch> StepFn { get; }
+        public System.Collections.Generic.List<AI.ML.NeuralNetworks.V2.Train.TrainEpochResult> Fit(System.Collections.Generic.IEnumerable<TBatch> dataLoader, int epochs) { }
+        public AI.ML.NeuralNetworks.V2.Train.TrainEpochResult TrainEpoch(System.Collections.Generic.IEnumerable<TBatch> dataLoader) { }
+    }
+}

@@ -1,0 +1,192 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Earth.Astronomy
+{
+    public static class AstronomicalTime
+    {
+        public const double J2000 = 2451545D;
+        public static double CenturiesSinceJ2000(System.DateTime moment) { }
+        public static int DayOfYear(System.DateTime moment) { }
+        public static double GreenwichSiderealTime(System.DateTime moment) { }
+        public static double JulianDate(System.DateTime moment) { }
+        public static double LocalSiderealTime(System.DateTime moment, double longitude) { }
+        public static double ModifiedJulianDate(System.DateTime moment) { }
+        public static System.DateTime ToDateTime(double julianDate) { }
+    }
+    public readonly struct HorizontalPosition : System.IEquatable<AI.Earth.Astronomy.HorizontalPosition>
+    {
+        public HorizontalPosition(double Altitude, double Azimuth, double Declination, double HourAngle) { }
+        public double Altitude { get; init; }
+        public double Azimuth { get; init; }
+        public double Declination { get; init; }
+        public double HourAngle { get; init; }
+        public bool IsAboveHorizon { get; }
+    }
+    public static class Moon
+    {
+        public const double ReferenceNewMoon = 2451550.09766D;
+        public const double SynodicMonth = 29.530588853D;
+        public static System.DateTime NextFullMoon(System.DateTime moment) { }
+        public static System.DateTime NextNewMoon(System.DateTime moment) { }
+        public static AI.Earth.Astronomy.MoonState State(System.DateTime moment) { }
+    }
+    public enum MoonPhaseName
+    {
+        New = 0,
+        WaxingCrescent = 1,
+        FirstQuarter = 2,
+        WaxingGibbous = 3,
+        Full = 4,
+        WaningGibbous = 5,
+        LastQuarter = 6,
+        WaningCrescent = 7,
+    }
+    public readonly struct MoonState : System.IEquatable<AI.Earth.Astronomy.MoonState>
+    {
+        public MoonState(double Age, double Phase, double Illumination, AI.Earth.Astronomy.MoonPhaseName Name) { }
+        public double Age { get; init; }
+        public double Illumination { get; init; }
+        public bool IsWaxing { get; }
+        public AI.Earth.Astronomy.MoonPhaseName Name { get; init; }
+        public double Phase { get; init; }
+    }
+    public static class SolarPosition
+    {
+        public const double Obliquity = 23.4392911D;
+        public const double RefractionCorrection = 0.833D;
+        public static double Declination(System.DateTime moment) { }
+        public static double EclipticLongitude(System.DateTime moment) { }
+        public static double EquationOfTime(System.DateTime moment) { }
+        public static double HourAngle(System.DateTime moment, double longitude) { }
+        public static AI.Earth.Astronomy.HorizontalPosition Position(System.DateTime moment, AI.Earth.Geodesy.GeoPoint observer) { }
+        public static AI.Earth.Astronomy.SunTimes Times(System.DateTime date, AI.Earth.Geodesy.GeoPoint observer, double horizonAngle = 0.833) { }
+    }
+    public readonly struct SunTimes : AI.Insights.IInterpretable, System.IEquatable<AI.Earth.Astronomy.SunTimes>
+    {
+        public SunTimes(System.DateTime? Sunrise, System.DateTime? Sunset, System.DateTime SolarNoon, double DayLengthHours, bool IsPolarDay, bool IsPolarNight) { }
+        public double DayLengthHours { get; init; }
+        public bool IsPolarDay { get; init; }
+        public bool IsPolarNight { get; init; }
+        public System.DateTime SolarNoon { get; init; }
+        public System.DateTime? Sunrise { get; init; }
+        public System.DateTime? Sunset { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Earth.Geodesy
+{
+    public readonly struct Ellipsoid : System.IEquatable<AI.Earth.Geodesy.Ellipsoid>
+    {
+        public Ellipsoid(string Name, double SemiMajorAxis, double Flattening) { }
+        public double EccentricitySquared { get; }
+        public double Flattening { get; init; }
+        public string Name { get; init; }
+        public double SemiMajorAxis { get; init; }
+        public double SemiMinorAxis { get; }
+        public static AI.Earth.Geodesy.Ellipsoid Krasovsky { get; }
+        public static AI.Earth.Geodesy.Ellipsoid Sphere { get; }
+        public static AI.Earth.Geodesy.Ellipsoid Wgs84 { get; }
+    }
+    public readonly struct GeoPoint : System.IEquatable<AI.Earth.Geodesy.GeoPoint>
+    {
+        public GeoPoint(double Latitude, double Longitude, double Height = 0) { }
+        public double Height { get; init; }
+        public double Latitude { get; init; }
+        public double LatitudeRadians { get; }
+        public double Longitude { get; init; }
+        public double LongitudeRadians { get; }
+        public override string ToString() { }
+        public AI.Earth.Geodesy.GeoPoint Validated() { }
+        public static double Normalize(double longitude) { }
+    }
+    public static class Geodesy
+    {
+        public static AI.Earth.Geodesy.GeoPoint Destination(AI.Earth.Geodesy.GeoPoint from, double bearingDegrees, AI.Units.Quantity distance, double radius = 6371008.8) { }
+        public static AI.Units.Quantity EllipsoidDistance(AI.Earth.Geodesy.GeoPoint from, AI.Earth.Geodesy.GeoPoint to, AI.Earth.Geodesy.Ellipsoid ellipsoid = default, double tolerance = 1E-12) { }
+        public static AI.Units.Quantity GreatCircleDistance(AI.Earth.Geodesy.GeoPoint from, AI.Earth.Geodesy.GeoPoint to, double radius = 6371008.8) { }
+        public static double InitialBearing(AI.Earth.Geodesy.GeoPoint from, AI.Earth.Geodesy.GeoPoint to) { }
+        public static AI.Geometry.Primitives.Vector3 ToEarthCentred(AI.Earth.Geodesy.GeoPoint point, AI.Earth.Geodesy.Ellipsoid ellipsoid = default) { }
+        public static AI.Earth.Geodesy.GeoPoint ToGeographic(AI.Geometry.Primitives.Vector3 position, AI.Earth.Geodesy.Ellipsoid ellipsoid = default) { }
+    }
+    public static class SphericalGeometry
+    {
+        public static AI.Units.Quantity PolygonArea(System.Collections.Generic.IReadOnlyList<AI.Earth.Geodesy.GeoPoint> vertices, double radius = 6371008.8) { }
+        public static double VertexAngle(AI.Earth.Geodesy.GeoPoint a, AI.Earth.Geodesy.GeoPoint b, AI.Earth.Geodesy.GeoPoint c) { }
+    }
+}
+namespace AI.Earth.Projections
+{
+    public readonly struct PlanarPoint : System.IEquatable<AI.Earth.Projections.PlanarPoint>
+    {
+        public PlanarPoint(double Easting, double Northing) { }
+        public double Easting { get; init; }
+        public double Northing { get; init; }
+    }
+    public readonly struct TileIndex : System.IEquatable<AI.Earth.Projections.TileIndex>
+    {
+        public TileIndex(int X, int Y, int Zoom) { }
+        public int X { get; init; }
+        public int Y { get; init; }
+        public int Zoom { get; init; }
+    }
+    public static class Utm
+    {
+        public static double CentralMeridian(int zone) { }
+        public static AI.Earth.Projections.UtmPoint Project(AI.Earth.Geodesy.GeoPoint point, AI.Earth.Geodesy.Ellipsoid ellipsoid = default) { }
+        public static AI.Earth.Geodesy.GeoPoint Unproject(AI.Earth.Projections.UtmPoint point, AI.Earth.Geodesy.Ellipsoid ellipsoid = default) { }
+        public static int ZoneFor(double longitude) { }
+    }
+    public readonly struct UtmPoint : System.IEquatable<AI.Earth.Projections.UtmPoint>
+    {
+        public UtmPoint(int Zone, bool IsNorthern, double Easting, double Northing) { }
+        public double Easting { get; init; }
+        public bool IsNorthern { get; init; }
+        public double Northing { get; init; }
+        public int Zone { get; init; }
+        public override string ToString() { }
+    }
+    public static class WebMercator
+    {
+        public const double MaxLatitude = 85.05112877980659D;
+        public const double Radius = 6378137D;
+        public static double GroundResolution(double latitude, int zoom, int tileSize = 256) { }
+        public static AI.Earth.Projections.PlanarPoint Project(AI.Earth.Geodesy.GeoPoint point) { }
+        public static AI.Earth.Projections.TileIndex Tile(AI.Earth.Geodesy.GeoPoint point, int zoom) { }
+        public static AI.Earth.Geodesy.GeoPoint TileCorner(AI.Earth.Projections.TileIndex tile) { }
+        public static AI.Earth.Geodesy.GeoPoint Unproject(AI.Earth.Projections.PlanarPoint point) { }
+    }
+}
+namespace AI.Earth.Spatial
+{
+    public readonly struct GeoBounds : System.IEquatable<AI.Earth.Spatial.GeoBounds>
+    {
+        public GeoBounds(double South, double West, double North, double East) { }
+        public bool CrossesAntimeridian { get; }
+        public double East { get; init; }
+        public double North { get; init; }
+        public double South { get; init; }
+        public double West { get; init; }
+        public bool Contains(AI.Earth.Geodesy.GeoPoint point) { }
+        public static AI.Earth.Spatial.GeoBounds Around(AI.Earth.Geodesy.GeoPoint centre, AI.Units.Quantity radius) { }
+    }
+    public sealed class GeoIndex<T>
+    {
+        public GeoIndex(double cellSizeDegrees = 1) { }
+        public int Count { get; }
+        public void Add(AI.Earth.Geodesy.GeoPoint point, T value) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Point",
+                "Value",
+                "Distance"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<AI.Earth.Geodesy.GeoPoint, T, AI.Units.Quantity>> Nearest(AI.Earth.Geodesy.GeoPoint centre, int count = 1) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Point",
+                "Value"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<AI.Earth.Geodesy.GeoPoint, T>> Within(AI.Earth.Spatial.GeoBounds bounds) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Point",
+                "Value",
+                "Distance"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<AI.Earth.Geodesy.GeoPoint, T, AI.Units.Quantity>> WithinRadius(AI.Earth.Geodesy.GeoPoint centre, AI.Units.Quantity radius) { }
+    }
+}

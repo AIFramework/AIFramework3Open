@@ -93,225 +93,120 @@ public class NDTensor : IAlgebraicStructure<double>, IEquatable<NDTensor>, ISava
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator +(NDTensor left, NDTensor right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] + right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator +(NDTensor left, NDTensor right) =>
+        ElementWise(SameShape(left, right), i => left.Data[i] + right.Data[i]);
     /// <summary>
     /// Сложение
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator +(double left, NDTensor right)
-    {
-        var ret = new NDTensor(right.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left + right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator +(double left, NDTensor right) =>
+        ElementWise(right, i => left + right.Data[i]);
     /// <summary>
     /// Сложение
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator +(NDTensor left, double right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] + right;
-
-        return ret;
-    }
+    public static NDTensor operator +(NDTensor left, double right) =>
+        ElementWise(left, i => left.Data[i] + right);
     /// <summary>
     /// Умножение
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator *(NDTensor left, NDTensor right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] * right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator *(NDTensor left, NDTensor right) =>
+        ElementWise(SameShape(left, right), i => left.Data[i] * right.Data[i]);
     /// <summary>
     /// Умножение
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator *(double left, NDTensor right)
-    {
-        var ret = new NDTensor(right.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left * right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator *(double left, NDTensor right) =>
+        ElementWise(right, i => left * right.Data[i]);
     /// <summary>
     /// Умножение
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator *(NDTensor left, double right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] * right;
-
-        return ret;
-    }
+    public static NDTensor operator *(NDTensor left, double right) =>
+        ElementWise(left, i => left.Data[i] * right);
     /// <summary>
     /// Разность
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator -(NDTensor left, NDTensor right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] - right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator -(NDTensor left, NDTensor right) =>
+        ElementWise(SameShape(left, right), i => left.Data[i] - right.Data[i]);
     /// <summary>
     /// Разность
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator -(double left, NDTensor right)
-    {
-        var ret = new NDTensor(right.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left - right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator -(double left, NDTensor right) =>
+        ElementWise(right, i => left - right.Data[i]);
     /// <summary>
     /// Разность
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator -(NDTensor left, double right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] - right;
-
-        return ret;
-    }
+    public static NDTensor operator -(NDTensor left, double right) =>
+        ElementWise(left, i => left.Data[i] - right);
     /// <summary>
     /// Отношение
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator /(NDTensor left, NDTensor right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] / right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator /(NDTensor left, NDTensor right) =>
+        ElementWise(SameShape(left, right), i => left.Data[i] / right.Data[i]);
     /// <summary>
     /// Отношение
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator /(double left, NDTensor right)
-    {
-        var ret = new NDTensor(right.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left / right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator /(double left, NDTensor right) =>
+        ElementWise(right, i => left / right.Data[i]);
     /// <summary>
     /// Отношение
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator /(NDTensor left, double right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] / right;
-
-        return ret;
-    }
+    public static NDTensor operator /(NDTensor left, double right) =>
+        ElementWise(left, i => left.Data[i] / right);
     /// <summary>
     /// Остаток от деления
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator %(NDTensor left, NDTensor right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] / right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator %(NDTensor left, NDTensor right) =>
+        ElementWise(SameShape(left, right), i => left.Data[i] % right.Data[i]);
     /// <summary>
     /// Остаток от деления
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator %(double left, NDTensor right)
-    {
-        var ret = new NDTensor(right.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left % right.Data[i];
-
-        return ret;
-    }
+    public static NDTensor operator %(double left, NDTensor right) =>
+        ElementWise(right, i => left % right.Data[i]);
     /// <summary>
     /// Остаток от деления
     /// </summary>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns></returns>
-    public static NDTensor operator %(NDTensor left, double right)
-    {
-        var ret = new NDTensor(left.Shape);
-
-        for (int i = 0; i < ret.Data[i]; i++)
-            ret.Data[i] = left.Data[i] % right;
-
-        return ret;
-    }
+    public static NDTensor operator %(NDTensor left, double right) =>
+        ElementWise(left, i => left.Data[i] % right);
     #endregion
 
     #region Методы
@@ -487,6 +382,39 @@ public class NDTensor : IAlgebraicStructure<double>, IEquatable<NDTensor>, ISava
     #endregion
 
     #region Приватные методы
+    /// <summary>
+    /// Поэлементный проход — единственный цикл арифметики NDTensor. Результат имеет форму
+    /// <paramref name="shapeSource"/>, его i-й элемент равен <paramref name="element"/>(i).
+    /// Число шагов — длина данных результата.
+    /// </summary>
+    private static NDTensor ElementWise(NDTensor shapeSource, Func<int, double> element)
+    {
+        ArgumentNullException.ThrowIfNull(shapeSource);
+
+        var result = new NDTensor(shapeSource.Shape);
+        double[] data = result.Data;
+
+        for (int i = 0; i < data.Length; i++)
+            data[i] = element(i);
+
+        return result;
+    }
+
+    /// <summary>
+    /// Проверяет операнды поэлементной операции двух тензоров: оба заданы и одной формы.
+    /// </summary>
+    /// <returns>Левый операнд — по нему строится форма результата.</returns>
+    private static NDTensor SameShape(NDTensor left, NDTensor right)
+    {
+        ArgumentNullException.ThrowIfNull(left);
+        ArgumentNullException.ThrowIfNull(right);
+
+        if (left.Shape != right.Shape)
+            throw new ArgumentException($"Поэлементная операция над тензорами разной формы: {left.Shape} и {right.Shape}.", nameof(right));
+
+        return left;
+    }
+
     private int GetIndex(int[] indexes)
     {
         int ind = indexes[0];

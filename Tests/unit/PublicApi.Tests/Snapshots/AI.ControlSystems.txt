@@ -1,0 +1,332 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ControlSystems.Adaptive
+{
+    [System.Serializable]
+    public sealed class ModelReferenceAdaptiveController
+    {
+        public ModelReferenceAdaptiveController() { }
+        public double AdaptationGain { get; set; }
+        public double FeedbackGain { get; set; }
+        public int PlantGainSign { get; set; }
+        public double ReferenceOutput { get; }
+        public double ReferencePole { get; set; }
+        public double Theta { get; set; }
+        public double TrackingError { get; }
+        public double Compute(double r, double y, double dt) { }
+        public void Reset(double referenceInitial = 0) { }
+    }
+    [System.Serializable]
+    public sealed class StateModelReferenceAdaptiveController
+    {
+        public StateModelReferenceAdaptiveController(AI.DataStructs.Algebraic.Matrix referenceA, AI.DataStructs.Algebraic.Matrix referenceB, AI.DataStructs.Algebraic.Matrix inputMatrix, AI.DataStructs.Algebraic.Matrix lyapunovWeight = null) { }
+        public double Leakage { get; set; }
+        public AI.DataStructs.Algebraic.Matrix LyapunovSolution { get; }
+        public double ReferenceAdaptationGain { get; set; }
+        public AI.DataStructs.Algebraic.Matrix ReferenceGain { get; }
+        public AI.DataStructs.Algebraic.Vector ReferenceState { get; }
+        public double StateAdaptationGain { get; set; }
+        public AI.DataStructs.Algebraic.Matrix StateGain { get; }
+        public AI.DataStructs.Algebraic.Vector TrackingError { get; }
+        public AI.DataStructs.Algebraic.Vector Compute(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector r, double dt) { }
+        public void Reset(AI.DataStructs.Algebraic.Vector referenceState = null, AI.DataStructs.Algebraic.Matrix stateGain = null, AI.DataStructs.Algebraic.Matrix referenceGain = null) { }
+    }
+}
+namespace AI.ControlSystems.ComplexObjectControl.Base
+{
+    public abstract class ComplexObjectBase
+    {
+        protected ComplexObjectBase() { }
+        public abstract AI.DataStructs.Algebraic.Vector GetState(AI.DataStructs.Algebraic.Vector action);
+    }
+    [System.Serializable]
+    public class ObjModelDataset
+    {
+        public ObjModelDataset() { }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> ControlActions { get; set; }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> States { get; set; }
+        public void Add(AI.DataStructs.Algebraic.Vector state, AI.DataStructs.Algebraic.Vector action) { }
+    }
+    [System.Serializable]
+    public class ObjectInversModel
+    {
+        public AI.ML.Regression.IMultyRegression<AI.DataStructs.Algebraic.Vector> MultyRegression;
+        public ObjectInversModel() { }
+        public virtual AI.DataStructs.Algebraic.Vector GetControl(AI.DataStructs.Algebraic.Vector state) { }
+        public virtual void Train(AI.ControlSystems.ComplexObjectControl.Base.ObjModelDataset dataset) { }
+    }
+    [System.Serializable]
+    public class ObjectModel
+    {
+        public AI.ML.Regression.IMultyRegression<AI.DataStructs.Algebraic.Vector> MultyRegression;
+        public ObjectModel() { }
+        public virtual AI.DataStructs.Algebraic.Vector GetReaction(AI.DataStructs.Algebraic.Vector action) { }
+        public virtual void Train(AI.ControlSystems.ComplexObjectControl.Base.ObjModelDataset dataset) { }
+    }
+}
+namespace AI.ControlSystems.Identification
+{
+    [System.Serializable]
+    public sealed class RecursiveLeastSquares
+    {
+        public RecursiveLeastSquares(AI.DataStructs.Algebraic.Vector initialTheta, AI.DataStructs.Algebraic.Matrix initialCovariance) { }
+        public double ForgettingFactor { get; set; }
+        public AI.DataStructs.Algebraic.Vector Theta { get; }
+        public void Update(AI.DataStructs.Algebraic.Vector phi, double y) { }
+    }
+}
+namespace AI.ControlSystems.Linear
+{
+    [System.Serializable]
+    public sealed class DiscreteLtiModel
+    {
+        public DiscreteLtiModel(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c) { }
+        public DiscreteLtiModel(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix d) { }
+        public DiscreteLtiModel(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Vector initialState) { }
+        public DiscreteLtiModel(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix d, AI.DataStructs.Algebraic.Vector initialState) { }
+        public AI.DataStructs.Algebraic.Matrix A { get; }
+        public AI.DataStructs.Algebraic.Matrix B { get; }
+        public AI.DataStructs.Algebraic.Matrix C { get; }
+        public AI.DataStructs.Algebraic.Matrix D { get; }
+        public int InputDimension { get; }
+        public int OutputDimension { get; }
+        public AI.DataStructs.Algebraic.Vector State { get; }
+        public int StateDimension { get; }
+        public AI.DataStructs.Algebraic.Vector OutputFor(AI.DataStructs.Algebraic.Vector u) { }
+        public void Reset() { }
+        public AI.DataStructs.Algebraic.Vector Step(AI.DataStructs.Algebraic.Vector u) { }
+    }
+    public static class Discretization
+    {
+        public static AI.DataStructs.Algebraic.Matrix DiscretizeProcessNoise(AI.DataStructs.Algebraic.Matrix ac, AI.DataStructs.Algebraic.Matrix qc, double dt) { }
+        public static void ZeroOrderHold(AI.DataStructs.Algebraic.Matrix ac, AI.DataStructs.Algebraic.Matrix bc, double dt, out AI.DataStructs.Algebraic.Matrix ad, out AI.DataStructs.Algebraic.Matrix bd) { }
+        public static AI.ControlSystems.Linear.DiscreteLtiModel ZeroOrderHoldModel(AI.DataStructs.Algebraic.Matrix ac, AI.DataStructs.Algebraic.Matrix bc, AI.DataStructs.Algebraic.Matrix cc, double dt, AI.DataStructs.Algebraic.Vector x0) { }
+    }
+    public static class LyapunovEquation
+    {
+        public const int MaxOrder = 30;
+        public static AI.DataStructs.Algebraic.Matrix SolveContinuous(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix q) { }
+        public static AI.DataStructs.Algebraic.Matrix SolveDiscrete(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix q) { }
+    }
+    public static class PolePlacement
+    {
+        public static AI.DataStructs.Algebraic.Matrix AckermannGain(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Vector monicPolynomialCoeffsLowToHigh) { }
+        public static AI.DataStructs.Algebraic.Matrix AckermannGain(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, System.Collections.Generic.IEnumerable<System.Numerics.Complex> poles) { }
+        public static AI.DataStructs.Algebraic.Matrix ControllabilityMatrix(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b) { }
+        public static AI.DataStructs.Algebraic.Vector PolynomialFromPoles(System.Collections.Generic.IEnumerable<System.Numerics.Complex> poles) { }
+    }
+    public static class RiccatiEquation
+    {
+        public static AI.DataStructs.Algebraic.Matrix DiscreteGain(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix r, AI.DataStructs.Algebraic.Matrix x) { }
+        public static AI.DataStructs.Algebraic.Matrix DiscreteResidual(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r, AI.DataStructs.Algebraic.Matrix x) { }
+        public static AI.DataStructs.Algebraic.Matrix SolveDiscrete(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r, double tolerance = 1E-09) { }
+    }
+    public static class SystemAnalysis
+    {
+        public static AI.DataStructs.Algebraic.Matrix Controllability(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b) { }
+        public static bool IsControllable(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, double tolerance = 1E-09) { }
+        public static bool IsObservable(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix c, double tolerance = 1E-09) { }
+        public static bool IsStableContinuous(AI.DataStructs.Algebraic.Matrix a) { }
+        public static bool IsStableDiscrete(AI.DataStructs.Algebraic.Matrix a) { }
+        public static AI.DataStructs.Algebraic.Matrix Observability(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix c) { }
+        public static System.Numerics.Complex[] Poles(AI.DataStructs.Algebraic.Matrix a) { }
+        public static int Rank(AI.DataStructs.Algebraic.Matrix matrix, double tolerance = 1E-09) { }
+        public static double SpectralRadius(AI.DataStructs.Algebraic.Matrix a) { }
+    }
+}
+namespace AI.ControlSystems.Nonlinear
+{
+    [System.Serializable]
+    public sealed class SlidingModeController
+    {
+        public SlidingModeController() { }
+        public double Gain { get; set; }
+        public double Lambda { get; set; }
+        public double SmoothingBoundary { get; set; }
+        public double Compute(double setpoint, double measured, double dt) { }
+        public void Reset() { }
+    }
+    [System.Serializable]
+    public sealed class StateSlidingModeController
+    {
+        public StateSlidingModeController(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix surface) { }
+        public double BoundaryLayer { get; set; }
+        public AI.DataStructs.Algebraic.Vector SwitchingGain { get; set; }
+        public AI.DataStructs.Algebraic.Vector Compute(AI.DataStructs.Algebraic.Vector x) { }
+        public AI.DataStructs.Algebraic.Vector Surface(AI.DataStructs.Algebraic.Vector x) { }
+    }
+    [System.Serializable]
+    public sealed class SuperTwistingController
+    {
+        public SuperTwistingController(double alpha, double beta) { }
+        public double Alpha { get; }
+        public double Beta { get; }
+        public double Integral { get; }
+        public double Compute(double s, double dt) { }
+        public void Reset() { }
+        public static AI.ControlSystems.Nonlinear.SuperTwistingController ForDisturbanceRate(double lipschitz) { }
+    }
+}
+namespace AI.ControlSystems.Observers
+{
+    [System.Serializable]
+    public sealed class ExtendedKalmanFilter
+    {
+        public ExtendedKalmanFilter(AI.DataStructs.Algebraic.Vector x0, AI.DataStructs.Algebraic.Matrix p0) { }
+        public AI.DataStructs.Algebraic.Matrix Covariance { get; }
+        public AI.DataStructs.Algebraic.Vector State { get; }
+        public int StateDimension { get; }
+        public void Predict(AI.DataStructs.Algebraic.Vector xNext, AI.DataStructs.Algebraic.Matrix fJacobian, AI.DataStructs.Algebraic.Matrix q) { }
+        public void Reset(AI.DataStructs.Algebraic.Vector x0, AI.DataStructs.Algebraic.Matrix p0) { }
+        public void Update(AI.DataStructs.Algebraic.Vector y, AI.DataStructs.Algebraic.Vector yPredicted, AI.DataStructs.Algebraic.Matrix hJacobian, AI.DataStructs.Algebraic.Matrix r) { }
+    }
+    [System.Serializable]
+    public sealed class KalmanFilter
+    {
+        public KalmanFilter(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix d, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r) { }
+        public KalmanFilter(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix d, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r, AI.DataStructs.Algebraic.Vector x0, AI.DataStructs.Algebraic.Matrix p0) { }
+        public AI.DataStructs.Algebraic.Matrix Covariance { get; }
+        public int InputDimension { get; }
+        public AI.DataStructs.Algebraic.Matrix Q { get; set; }
+        public AI.DataStructs.Algebraic.Matrix R { get; set; }
+        public AI.DataStructs.Algebraic.Vector State { get; }
+        public int StateDimension { get; }
+        public void Predict(AI.DataStructs.Algebraic.Vector u) { }
+        public void Reset(AI.DataStructs.Algebraic.Vector x0 = null, AI.DataStructs.Algebraic.Matrix p0 = null) { }
+        public void Update(AI.DataStructs.Algebraic.Vector y, AI.DataStructs.Algebraic.Vector u) { }
+        public static AI.ControlSystems.Observers.SteadyStateKalman SteadyState(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r) { }
+    }
+    [System.Serializable]
+    public sealed class LuenbergerObserver
+    {
+        public LuenbergerObserver(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix d, AI.DataStructs.Algebraic.Matrix l) { }
+        public LuenbergerObserver(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix l, AI.DataStructs.Algebraic.Vector initialEstimate) { }
+        public LuenbergerObserver(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix d, AI.DataStructs.Algebraic.Matrix l, AI.DataStructs.Algebraic.Vector initialEstimate) { }
+        public AI.DataStructs.Algebraic.Vector State { get; }
+        public int StateDimension { get; }
+        public void Reset() { }
+        public void Step(AI.DataStructs.Algebraic.Vector u, AI.DataStructs.Algebraic.Vector y) { }
+    }
+    public sealed record SteadyStateKalman : System.IEquatable<AI.ControlSystems.Observers.SteadyStateKalman>
+    {
+        public SteadyStateKalman(AI.DataStructs.Algebraic.Matrix Gain, AI.DataStructs.Algebraic.Matrix PriorCovariance, AI.DataStructs.Algebraic.Matrix PosteriorCovariance) { }
+        public AI.DataStructs.Algebraic.Matrix Gain { get; init; }
+        public AI.DataStructs.Algebraic.Matrix PosteriorCovariance { get; init; }
+        public AI.DataStructs.Algebraic.Matrix PriorCovariance { get; init; }
+    }
+}
+namespace AI.ControlSystems.Optimal
+{
+    public static class DiscreteLqr
+    {
+        public static AI.ControlSystems.Optimal.LqrDesign Design(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r, double tolerance = 1E-09) { }
+        public static AI.DataStructs.Algebraic.Matrix Solve(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r, double tolerance = 1E-10, int maxIterations = 500) { }
+    }
+    public static class LinearQuadraticMpc
+    {
+        public static AI.DataStructs.Algebraic.Matrix ComputeFirstGain(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r, AI.DataStructs.Algebraic.Matrix qf, int horizon) { }
+    }
+    [System.Serializable]
+    public sealed class LqgRegulator
+    {
+        public LqgRegulator(AI.ControlSystems.Observers.KalmanFilter kalmanFilter, AI.DataStructs.Algebraic.Matrix stateFeedbackGain) { }
+        public System.Numerics.Complex[] ClosedLoopPoles { get; }
+        public AI.DataStructs.Algebraic.Matrix CostToGo { get; }
+        public AI.DataStructs.Algebraic.Matrix EstimationCovariance { get; }
+        public AI.DataStructs.Algebraic.Matrix EstimatorGain { get; }
+        public double ExpectedCost { get; }
+        public AI.ControlSystems.Observers.KalmanFilter Filter { get; }
+        public AI.DataStructs.Algebraic.Matrix StateFeedbackGain { get; }
+        public AI.DataStructs.Algebraic.Vector Step(AI.DataStructs.Algebraic.Vector uPrev, AI.DataStructs.Algebraic.Vector y) { }
+        public static AI.ControlSystems.Optimal.LqgRegulator Design(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix c, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r, AI.DataStructs.Algebraic.Matrix processNoise, AI.DataStructs.Algebraic.Matrix measurementNoise) { }
+    }
+    public sealed record LqrDesign : System.IEquatable<AI.ControlSystems.Optimal.LqrDesign>
+    {
+        public LqrDesign(AI.DataStructs.Algebraic.Matrix Gain, AI.DataStructs.Algebraic.Matrix CostToGo, System.Numerics.Complex[] ClosedLoopPoles) { }
+        public System.Numerics.Complex[] ClosedLoopPoles { get; init; }
+        public AI.DataStructs.Algebraic.Matrix CostToGo { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Gain { get; init; }
+    }
+    public sealed class ModelPredictiveController
+    {
+        public ModelPredictiveController(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix b, AI.DataStructs.Algebraic.Matrix q, AI.DataStructs.Algebraic.Matrix r, int horizon, AI.DataStructs.Algebraic.Matrix terminalWeight = null) { }
+        public int Horizon { get; }
+        public int InputDimension { get; }
+        public AI.DataStructs.Algebraic.Vector InputLower { get; init; }
+        public AI.DataStructs.Algebraic.Vector InputReference { get; set; }
+        public AI.DataStructs.Algebraic.Vector InputUpper { get; init; }
+        public AI.DataStructs.Algebraic.Vector PreviousInput { get; }
+        public AI.DataStructs.Algebraic.Vector RateLower { get; init; }
+        public AI.DataStructs.Algebraic.Vector RateUpper { get; init; }
+        public AI.DataStructs.Algebraic.Matrix RateWeight { get; init; }
+        public bool SoftStateConstraints { get; init; }
+        public int StateDimension { get; }
+        public AI.DataStructs.Algebraic.Vector StateLower { get; init; }
+        public AI.DataStructs.Algebraic.Vector StateReference { get; set; }
+        public AI.DataStructs.Algebraic.Vector StateUpper { get; init; }
+        public AI.DataStructs.Algebraic.Matrix TerminalWeight { get; }
+        public double ViolationWeight { get; init; }
+        public AI.DataStructs.Algebraic.Vector Compute(AI.DataStructs.Algebraic.Vector state) { }
+        public void Reset(AI.DataStructs.Algebraic.Vector previousInput = null) { }
+        public AI.ControlSystems.Optimal.MpcStep Step(AI.DataStructs.Algebraic.Vector state) { }
+    }
+    public sealed class MpcStep : AI.Insights.IInterpretable
+    {
+        public int ActiveConstraints { get; }
+        public AI.DataStructs.Algebraic.Vector Input { get; }
+        public int Iterations { get; }
+        public double PredictedCost { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> PredictedInputs { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> PredictedStates { get; }
+        public double StateViolation { get; }
+        public AI.Solvers.Optimization.SolverStatus Status { get; }
+        public bool UsedFallback { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.ControlSystems.Pid
+{
+    public static class ImcPidTuning
+    {
+        public static void FirstOrderPi(double processGain, double timeConstant, double imcFilterTimeConstant, out double kp, out double ki) { }
+    }
+    [System.Serializable]
+    public sealed class PidController
+    {
+        public PidController() { }
+        public PidController(double kp, double ki, double kd) { }
+        public double AntiWindupTrackingGain { get; set; }
+        public double? DerivativeFilterTau { get; set; }
+        public bool DerivativeOnMeasurement { get; set; }
+        public double Feedforward { get; set; }
+        public double? IntegralClamp { get; set; }
+        public double IntegralOfError { get; }
+        public double Kd { get; set; }
+        public double Ki { get; set; }
+        public double Kp { get; set; }
+        public double? OutputMax { get; set; }
+        public double? OutputMin { get; set; }
+        public bool UseAntiWindupTracking { get; set; }
+        public double Compute(double setpoint, double measured, double dt) { }
+        public void Reset() { }
+    }
+    [System.Serializable]
+    public sealed class SlewRateLimiter
+    {
+        public SlewRateLimiter(double minDeltaPerStep, double maxDeltaPerStep) { }
+        public double LastOutput { get; }
+        public double MaxDeltaPerStep { get; set; }
+        public double MinDeltaPerStep { get; set; }
+        public double Limit(double desired) { }
+        public void Reset(double initialOutput = 0) { }
+    }
+    [System.Serializable]
+    public sealed class VectorPidController
+    {
+        public VectorPidController(int channelCount) { }
+        public int ChannelCount { get; }
+        public AI.ControlSystems.Pid.PidController this[int channel] { get; }
+        public AI.DataStructs.Algebraic.Vector Compute(AI.DataStructs.Algebraic.Vector setpoint, AI.DataStructs.Algebraic.Vector measured, double dt) { }
+        public void Reset() { }
+    }
+}

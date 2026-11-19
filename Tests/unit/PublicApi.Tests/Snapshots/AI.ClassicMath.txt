@@ -1,0 +1,591 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ClassicMath.AlgorithmAnalysis
+{
+    [System.Serializable]
+    public class CorrelationAnalysis
+    {
+        public CorrelationAnalysis(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public AI.DataStructs.Algebraic.Matrix CorMatrNorm { get; protected set; }
+        public double CorMatrDeterm() { }
+        public double MeanOrtog() { }
+    }
+    [System.Serializable]
+    public class ImageSimilarityMetrics
+    {
+        public ImageSimilarityMetrics() { }
+        public double SSIM(AI.DataStructs.Algebraic.IAlgebraicStructure<double> img1, AI.DataStructs.Algebraic.IAlgebraicStructure<double> img2) { }
+        public static double Dice(AI.DataStructs.Algebraic.IAlgebraicStructure<double> alg_str_1, AI.DataStructs.Algebraic.IAlgebraicStructure<double> alg_str_2, double threshold = 0.5) { }
+        public static double DiceApproximate(AI.DataStructs.Algebraic.IAlgebraicStructure<double> alg_str_1, AI.DataStructs.Algebraic.IAlgebraicStructure<double> alg_str_2) { }
+    }
+    [System.Serializable]
+    public static class MetricsForClassification
+    {
+        public static double Accuracy(int[] real, int[] outAlg) { }
+        public static double AveragePrecision(int[] real, int[] outAlg) { }
+        public static double AverageRecall(int[] real, int[] outAlg) { }
+        public static AI.DataStructs.Algebraic.Matrix ConfusionMatrix(int[] real, int[] outAlg) { }
+        public static double FMeasure(int[] real, int[] outAlg) { }
+        public static double FMeasure(int[] real, int[] outAlg, double beta) { }
+        public static string FullReport(int[] real, int[] outAlg, double betaForFMeasure = 1, bool isForEachClass = false) { }
+        public static AI.DataStructs.Algebraic.Vector PrecisionForEachClass(int[] real, int[] outAlg) { }
+        public static AI.DataStructs.Algebraic.Vector RecallForEachClass(int[] real, int[] outAlg) { }
+    }
+    [System.Serializable]
+    public static class MetricsForRegression
+    {
+        public static double Bias(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double Bias(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double MAE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double MAE(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double MAEPercent(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double MAEPercent(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double MAPE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double MAPE(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double MSE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double MSE(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double R2(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double R2(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double RMSE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double RMSE(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double RMSEPercent(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double RMSEPercent(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double RMSLE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+    }
+    [System.Serializable]
+    public class SimilarityOfBases
+    {
+        public SimilarityOfBases(AI.DataStructs.Algebraic.Matrix bas1, AI.DataStructs.Algebraic.Matrix bas2) { }
+        public double ProbRandBasis() { }
+    }
+}
+namespace AI.ClassicMath.Calculator
+{
+    [System.Serializable]
+    public class AdvancedCalculator
+    {
+        public AdvancedCalculator() { }
+        public System.Collections.Generic.Dictionary<string, AI.ClassicMath.Calculator.FunctionDefinition> Functions { get; set; }
+        public System.Collections.Generic.Dictionary<System.ValueTuple<System.Type, System.Type, string>, System.Func<object, object, object>> OperationsFunctions { get; set; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Precedence",
+                "Associativity"})]
+        public System.Collections.Generic.Dictionary<string, System.ValueTuple<int, string>> Operators { get; set; }
+        public object Evaluate(string expression, AI.ClassicMath.Calculator.ExecutionContext context, System.Threading.CancellationToken cancellationToken = default) { }
+        public AI.ClassicMath.Calculator.AdvancedCalculator Use(AI.ClassicMath.Calculator.Libs.IMathLib library) { }
+    }
+    [System.Serializable]
+    public static class CastsVar
+    {
+        public static System.Numerics.Complex CastToComplex(object obj, string funcName) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector CastToComplexVector(object obj, string funcName) { }
+        public static double CastToDouble(object obj, string funcName) { }
+        public static int CastToInt32(object obj, string funcName) { }
+        public static AI.DataStructs.Algebraic.Vector CastToRealVector(object obj, string funcName) { }
+    }
+    [System.Serializable]
+    public class DescriptionFunction
+    {
+        public DescriptionFunction() { }
+        public System.Collections.Generic.List<string> AreaList { get; set; }
+        public string Description { get; set; }
+        public string Example { get; set; }
+        public string Signature { get; set; }
+        public override string ToString() { }
+    }
+    public class ExecutionContext
+    {
+        public const int DefaultStepLimit = 1000000;
+        public const int MaxCallDepth = 64;
+        public ExecutionContext() { }
+        public ExecutionContext(AI.ClassicMath.Calculator.ExecutionContext parent) { }
+        public System.Threading.CancellationToken Cancellation { get; set; }
+        public int Depth { get; }
+        public System.Collections.Generic.Dictionary<string, object> Emitted { get; }
+        public object LastValue { get; set; }
+        public System.Collections.Generic.Dictionary<string, object> Memory { get; }
+        public int StepLimit { get; set; }
+        public int Steps { get; }
+        public System.Collections.Generic.Dictionary<string, AI.ClassicMath.Calculator.FunctionDefinition> UserFunctions { get; }
+        public void AddDoubleConstant(string constantName, double constant) { }
+        public void AddDoubleConstants(string constants) { }
+        public void CountStep() { }
+        public void Seed(System.Collections.Generic.IReadOnlyDictionary<string, object> values) { }
+    }
+    [System.Serializable]
+    public class FunctionDefinition
+    {
+        public FunctionDefinition() { }
+        public FunctionDefinition(int argumentCount, System.Func<object[], object> @delegate) { }
+        public int ArgumentCount { get; set; }
+        public System.Func<object[], AI.ClassicMath.Calculator.ExecutionContext, object> ContextDelegate { get; set; }
+        public System.Func<object[], object> Delegate { get; set; }
+        public AI.ClassicMath.Calculator.DescriptionFunction Description { get; set; }
+        public string Name { get; set; }
+        public object Invoke(object[] args, AI.ClassicMath.Calculator.ExecutionContext context) { }
+    }
+    public static class KnownConstants
+    {
+        public static string TryGetSymbolicForm(double value, double tolerance = 1E-08) { }
+    }
+    public static class ListOps
+    {
+        public static object Append(object list, object value) { }
+        public static System.Collections.Generic.IReadOnlyList<object> Items(object list, string what) { }
+        public static object SetAt(object list, int index, object value, string name) { }
+    }
+}
+namespace AI.ClassicMath.Calculator.Libs.Algebra
+{
+    [System.Serializable]
+    public class CubicEquationSolver : AI.ClassicMath.Calculator.FunctionDefinition
+    {
+        public CubicEquationSolver() { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector Solve(params System.Numerics.Complex[] args) { }
+    }
+    [System.Serializable]
+    public class EquationLib : AI.ClassicMath.Calculator.Libs.IMathLib
+    {
+        public EquationLib() { }
+        public string Description { get; set; }
+        public string Name { get; set; }
+        public System.Collections.Generic.Dictionary<string, AI.ClassicMath.Calculator.FunctionDefinition> GetFunctions() { }
+    }
+    [System.Serializable]
+    public class LinearEquationSolver : AI.ClassicMath.Calculator.FunctionDefinition
+    {
+        public LinearEquationSolver() { }
+        public static System.Numerics.Complex Solve(params System.Numerics.Complex[] args) { }
+    }
+    [System.Serializable]
+    public class QuadraticEquationSolver : AI.ClassicMath.Calculator.FunctionDefinition
+    {
+        public QuadraticEquationSolver() { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector Solve(params System.Numerics.Complex[] args) { }
+    }
+    [System.Serializable]
+    public class QuarticEquationSolver : AI.ClassicMath.Calculator.FunctionDefinition
+    {
+        public QuarticEquationSolver() { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector Solve(params System.Numerics.Complex[] args) { }
+    }
+}
+namespace AI.ClassicMath.Calculator.Libs
+{
+    [System.Serializable]
+    public class BaseMathLib : AI.ClassicMath.Calculator.Libs.IMathLib
+    {
+        public BaseMathLib() { }
+        public string Description { get; set; }
+        public string Name { get; set; }
+        public System.Collections.Generic.Dictionary<string, AI.ClassicMath.Calculator.FunctionDefinition> GetFunctions() { }
+    }
+    public interface IMathLib
+    {
+        string Description { get; set; }
+        string Name { get; set; }
+        System.Collections.Generic.Dictionary<string, AI.ClassicMath.Calculator.FunctionDefinition> GetFunctions();
+    }
+    public static class LibExtensions
+    {
+        public static string GetDescription(this AI.ClassicMath.Calculator.Libs.IMathLib mathLib) { }
+    }
+    [System.Serializable]
+    public class LibOperatorsBase
+    {
+        public LibOperatorsBase() { }
+        public System.Collections.Generic.Dictionary<System.ValueTuple<System.Type, System.Type, string>, System.Func<object, object, object>> GetOperationsFunctions() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Precedence",
+                "Associativity"})]
+        public System.Collections.Generic.Dictionary<string, System.ValueTuple<int, string>> GetOperators() { }
+    }
+}
+namespace AI.ClassicMath.Calculator.ProcessorLogic
+{
+    [System.Serializable]
+    public class Processor
+    {
+        public readonly AI.ClassicMath.Calculator.AdvancedCalculator AdvancedCalculator;
+        public Processor(params AI.ClassicMath.Calculator.Libs.IMathLib[] libraries) { }
+        public int StepLimit { get; set; }
+        public AI.ClassicMath.Calculator.ProcessorLogic.ScriptResult Execute(string script, System.Threading.CancellationToken cancellationToken = default) { }
+        public AI.ClassicMath.Calculator.ProcessorLogic.ScriptResult Execute(string script, System.Collections.Generic.IReadOnlyDictionary<string, object> seed, System.Threading.CancellationToken cancellationToken = default) { }
+        public bool IsTruthy(object result) { }
+        public System.Collections.Generic.List<string> Run(string script, System.Threading.CancellationToken cancellationToken = default) { }
+        public static string FormatResult(object result) { }
+        public static double GCDDouble(double a, double b) { }
+        public static long GCDLong(long a, long b) { }
+        public static long LCM(long a, long b) { }
+        public static double LCMDouble(double a, double b) { }
+    }
+    [System.Serializable]
+    public sealed record ScriptResult : System.IEquatable<AI.ClassicMath.Calculator.ProcessorLogic.ScriptResult>
+    {
+        public ScriptResult(bool Ok, System.Collections.Generic.IReadOnlyList<string> Output, string Error, System.Collections.Generic.IReadOnlyDictionary<string, object> Emitted = null) { }
+        public System.Collections.Generic.IReadOnlyDictionary<string, object> Emitted { get; init; }
+        public string Error { get; init; }
+        public bool Ok { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Output { get; init; }
+        public string Text { get; }
+    }
+}
+namespace AI.ClassicMath.MatrixUtils
+{
+    [System.Serializable]
+    public static class Cholesky
+    {
+        public static AI.DataStructs.Algebraic.Matrix Decompose(AI.DataStructs.Algebraic.Matrix A) { }
+        public static AI.DataStructs.Algebraic.Vector Solve(AI.DataStructs.Algebraic.Matrix A, AI.DataStructs.Algebraic.Vector b) { }
+    }
+    [System.Serializable]
+    public static class Eigen
+    {
+        public const double DefaultEps = 1E-13D;
+        public const int DefaultIterations = 500;
+        public static System.Numerics.Complex[] General(AI.DataStructs.Algebraic.Matrix matrix) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Values",
+                "Vectors"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Matrix> GeneralizedSymmetric(AI.DataStructs.Algebraic.Matrix matrix, AI.DataStructs.Algebraic.Matrix metric, AI.ClassicMath.MatrixUtils.EigenOrder order = 0, double tolerance = 1E-12, int maxIterations = 500, double eps = 1E-13) { }
+        public static AI.DataStructs.Algebraic.Matrix InverseSquareRoot(AI.DataStructs.Algebraic.Matrix matrix, double tolerance = 1E-12, int maxIterations = 500, double eps = 1E-13) { }
+        public static double SpectralRadius(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.DataStructs.Algebraic.Matrix SquareRoot(AI.DataStructs.Algebraic.Matrix matrix, double tolerance = 1E-12, int maxIterations = 500, double eps = 1E-13) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Values",
+                "Vectors"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Matrix> Symmetric(AI.DataStructs.Algebraic.Matrix matrix, AI.ClassicMath.MatrixUtils.EigenOrder order = 0, int maxIterations = 500, double eps = 1E-13) { }
+        public static AI.DataStructs.Algebraic.Matrix SymmetricFunction(AI.DataStructs.Algebraic.Matrix matrix, System.Func<double, double> function, int maxIterations = 500, double eps = 1E-13) { }
+    }
+    public enum EigenOrder
+    {
+        Ascending = 0,
+        Descending = 1,
+    }
+    [System.Serializable]
+    public class EigenValuesVectors
+    {
+        public EigenValuesVectors(AI.DataStructs.Algebraic.Matrix matrix, int iterations = 60, double eps = 0.01) { }
+        public AI.DataStructs.Algebraic.Vector Eigenvalues { get; set; }
+        public AI.DataStructs.Algebraic.Vector[] Eigenvectors { get; }
+        public double Eps { get; set; }
+        public bool IsConvergence { get; set; }
+        public static AI.DataStructs.Algebraic.Vector[] GetEigenvectorsStatic(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Vector eigenvalues) { }
+    }
+    [System.Serializable]
+    public class FeaturesExtractorMaper
+    {
+        public FeaturesExtractorMaper(System.Func<AI.DataStructs.Algebraic.Matrix, AI.DataStructs.Algebraic.Vector> transformFunction) { }
+        public AI.DataStructs.Algebraic.Vector[] CreateMap(AI.DataStructs.Algebraic.Matrix img, int sizeH = 10, int sizeW = 10) { }
+    }
+    [System.Serializable]
+    public static class GramSchmidtProcedure
+    {
+        public static AI.DataStructs.Algebraic.Matrix GetNormalBasis(AI.DataStructs.Algebraic.Matrix a) { }
+        public static AI.DataStructs.Algebraic.Vector GetProj(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Matrix b, int colB) { }
+        public static AI.DataStructs.Algebraic.Vector GetVectorCol(AI.DataStructs.Algebraic.Matrix a, int colA) { }
+        public static AI.DataStructs.Algebraic.Matrix Orthogonize(AI.DataStructs.Algebraic.Matrix a) { }
+        public static void WriteColumn(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Vector col, int indexCol) { }
+    }
+    [System.Serializable]
+    public static class JacobiEigen
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "eigenvalues",
+                "eigenvectors"})]
+        public static System.ValueTuple<double[], AI.DataStructs.Algebraic.Matrix> Compute(AI.DataStructs.Algebraic.Matrix A, int maxIter = 200, double eps = 1E-12) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "eigenvalues",
+                "eigenvectors"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Matrix> ComputeVector(AI.DataStructs.Algebraic.Matrix A, int maxIter = 200, double eps = 1E-12) { }
+    }
+    [System.Serializable]
+    public static class LU
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "L",
+                "U",
+                "perm"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Matrix, AI.DataStructs.Algebraic.Matrix, int[]> Decompose(AI.DataStructs.Algebraic.Matrix A) { }
+        public static double Determinant(AI.DataStructs.Algebraic.Matrix A) { }
+        public static AI.DataStructs.Algebraic.Vector Solve(AI.DataStructs.Algebraic.Matrix A, AI.DataStructs.Algebraic.Vector b) { }
+    }
+    [System.Serializable]
+    public class Maper
+    {
+        public Maper(System.Func<AI.DataStructs.Algebraic.Matrix, double> transformFunction) { }
+        public AI.DataStructs.Algebraic.Matrix CreateMap(AI.DataStructs.Algebraic.Matrix img, int sizeH = 10, int sizeW = 10) { }
+        public double[] CreateMap1D(AI.DataStructs.Algebraic.Matrix img, int sizeH = 10, int sizeW = 10) { }
+    }
+    [System.Serializable]
+    public static class Pseudoinverse
+    {
+        public static AI.DataStructs.Algebraic.Matrix Compute(AI.DataStructs.Algebraic.Matrix A, double tolerance = 1E-10) { }
+    }
+    [System.Serializable]
+    public static class QR
+    {
+        public static AI.DataStructs.Algebraic.Matrix GetQ(AI.DataStructs.Algebraic.Matrix a) { }
+        public static AI.DataStructs.Algebraic.Matrix GetR(AI.DataStructs.Algebraic.Matrix a, AI.DataStructs.Algebraic.Matrix q) { }
+    }
+    [System.Serializable]
+    public static class Svd
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "U",
+                "sigma",
+                "V"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Matrix, double[], AI.DataStructs.Algebraic.Matrix> Decompose(AI.DataStructs.Algebraic.Matrix A, int maxSweeps = 200, double eps = 1E-12) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "U",
+                "Sigma",
+                "V"})]
+        public static System.ValueTuple<AI.DataStructs.Algebraic.Matrix, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Matrix> DecomposeVector(AI.DataStructs.Algebraic.Matrix A, int maxSweeps = 200, double eps = 1E-12) { }
+    }
+}
+namespace AI.ClassicMath.MatrixUtils.FindFraction
+{
+    public class ConversionResult
+    {
+        public ConversionResult() { }
+        public System.Numerics.BigInteger Denominator { get; set; }
+        public string Description { get; set; }
+        public string Fraction { get; set; }
+        public System.Numerics.BigInteger Numerator { get; set; }
+        public AI.ClassicMath.MatrixUtils.FindFraction.ConversionType Type { get; set; }
+    }
+    public enum ConversionType
+    {
+        Integer = 0,
+        Terminating = 1,
+        Repeating = 2,
+        Algebraic = 3,
+        Transcendental = 4,
+        Irrational = 5,
+        Root = 6,
+    }
+    public static class FractionHelper
+    {
+        public static string FormatWithIntegerPart(System.Numerics.BigInteger numerator, System.Numerics.BigInteger denominator) { }
+        public static void Simplify(ref System.Numerics.BigInteger numerator, ref System.Numerics.BigInteger denominator) { }
+    }
+    public static class IntegerRelationFinder
+    {
+        public static int[] FindPolynomial(double x, int degree, double tolerance) { }
+    }
+    public static class NumberConverter
+    {
+        public static AI.ClassicMath.MatrixUtils.FindFraction.ConversionResult Analyze(double number) { }
+    }
+    public static class RadicalHelper
+    {
+        public static bool IsNthRoot(double value, int degree, double tolerance, out int radicand) { }
+        public static string SimplifyNthRoot(int value, int degree) { }
+        public static void SimplifySqrt(int n, out int outPart, out int inPart) { }
+    }
+    public static class RationalAnalyzer
+    {
+        public static AI.ClassicMath.MatrixUtils.FindFraction.ConversionResult Analyze(double number, double tolerance) { }
+    }
+    public static class TranscendentalNumbers
+    {
+        public static AI.ClassicMath.MatrixUtils.FindFraction.ConversionResult CheckKnownConstant(double number, double tolerance) { }
+        public static AI.ClassicMath.MatrixUtils.FindFraction.ConversionResult CheckRationalMultiple(double number, double tolerance) { }
+    }
+}
+namespace AI.MathUtils.Algebra
+{
+    [System.Serializable]
+    public static class Gauss
+    {
+        public static AI.DataStructs.Algebraic.Vector SolvingEquations(AI.DataStructs.Algebraic.Matrix A, AI.DataStructs.Algebraic.Vector B) { }
+    }
+    [System.Serializable]
+    public class Kramer
+    {
+        public Kramer() { }
+        public AI.DataStructs.Algebraic.Vector SolvingEquations(AI.DataStructs.Algebraic.Matrix A, AI.DataStructs.Algebraic.Vector B) { }
+    }
+}
+namespace AI.MathUtils.Combinatorics
+{
+    [System.Serializable]
+    public static class CombinatoricsBaseFunction
+    {
+        public static long Combinations(int n, int k) { }
+        public static double NumberOfCombinations(int k, int n) { }
+        public static double PlacingWithoutRepetition(int k, int n) { }
+    }
+}
+namespace AI.MathUtils.Integration
+{
+    public static class GaussKronrod
+    {
+        public static double Integrate(System.Func<double, double> f, double a, double b, double relativeTolerance = 1E-10, double absoluteTolerance = 1E-14) { }
+    }
+}
+namespace AI.MathUtils.Nonlinear
+{
+    public sealed class LeastSquaresResult
+    {
+        public LeastSquaresResult() { }
+        public bool Converged { get; init; }
+        public double Cost { get; init; }
+        public int FunctionEvaluations { get; init; }
+        public int Iterations { get; init; }
+        public required AI.DataStructs.Algebraic.Matrix Jacobian { get; init; }
+        public required AI.DataStructs.Algebraic.Vector Residuals { get; init; }
+        public required AI.DataStructs.Algebraic.Vector Solution { get; init; }
+        public int JacobianRank(double relativeTolerance = 1E-10) { }
+    }
+    public static class LevenbergMarquardt
+    {
+        public static AI.MathUtils.Nonlinear.LeastSquaresResult Solve(System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> residuals, AI.DataStructs.Algebraic.Vector start, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Matrix>? jacobian = null, AI.MathUtils.Nonlinear.LevenbergMarquardtOptions? options = null) { }
+    }
+    public sealed class LevenbergMarquardtOptions
+    {
+        public LevenbergMarquardtOptions() { }
+        public double CostTolerance { get; set; }
+        public double DerivativeStep { get; set; }
+        public double GradientTolerance { get; set; }
+        public double InitialDamping { get; set; }
+        public int MaxIterations { get; set; }
+        public double StepTolerance { get; set; }
+    }
+    public sealed class NewtonSystemOptions
+    {
+        public NewtonSystemOptions() { }
+        public double DerivativeStep { get; set; }
+        public double FunctionTolerance { get; set; }
+        public int MaxIterations { get; set; }
+        public double StepTolerance { get; set; }
+        public bool UseBroyden { get; set; }
+    }
+    public static class NewtonSystemSolver
+    {
+        public static AI.MathUtils.Nonlinear.NonlinearSystemResult Solve(System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, AI.DataStructs.Algebraic.Vector start, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Matrix>? jacobian = null, AI.MathUtils.Nonlinear.NewtonSystemOptions? options = null) { }
+    }
+    public sealed class NonlinearSystemResult
+    {
+        public NonlinearSystemResult() { }
+        public bool Converged { get; init; }
+        public int FunctionEvaluations { get; init; }
+        public int Iterations { get; init; }
+        public required AI.DataStructs.Algebraic.Vector Residual { get; init; }
+        public double ResidualNorm { get; init; }
+        public required AI.DataStructs.Algebraic.Vector Solution { get; init; }
+    }
+}
+namespace AI.MathUtils.ODE
+{
+    [System.Serializable]
+    public class CubicSplineInterpolator
+    {
+        public CubicSplineInterpolator(double[] xValues, double[] yValues) { }
+        public double Interpolate(double x) { }
+    }
+    public static class DormandPrince
+    {
+        public static AI.MathUtils.ODE.OdeSolution Integrate(System.Func<double, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, double t0, AI.DataStructs.Algebraic.Vector y0, double tEnd, AI.MathUtils.ODE.DormandPrinceOptions? options = null, System.Collections.Generic.IReadOnlyList<AI.MathUtils.ODE.OdeEvent>? events = null) { }
+    }
+    public sealed class DormandPrinceOptions
+    {
+        public DormandPrinceOptions() { }
+        public double AbsoluteTolerance { get; set; }
+        public double EventTolerance { get; set; }
+        public double InitialStep { get; set; }
+        public double MaxStep { get; set; }
+        public int MaxSteps { get; set; }
+        public double RelativeTolerance { get; set; }
+    }
+    public sealed class OdeEvent
+    {
+        public OdeEvent(System.Func<double, AI.DataStructs.Algebraic.Vector, double> function, bool isTerminal = false, int direction = 0) { }
+        public int Direction { get; }
+        public System.Func<double, AI.DataStructs.Algebraic.Vector, double> Function { get; }
+        public bool IsTerminal { get; }
+    }
+    public sealed class OdeEventHit
+    {
+        public OdeEventHit(int eventIndex, double time, AI.DataStructs.Algebraic.Vector state) { }
+        public int EventIndex { get; }
+        public AI.DataStructs.Algebraic.Vector State { get; }
+        public double Time { get; }
+    }
+    public sealed class OdeSolution
+    {
+        public int AcceptedSteps { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.MathUtils.ODE.OdeEventHit> Events { get; }
+        public AI.DataStructs.Algebraic.Vector FinalState { get; }
+        public double FinalTime { get; }
+        public int FunctionEvaluations { get; }
+        public int RejectedSteps { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> States { get; }
+        public bool StoppedByEvent { get; }
+        public bool Success { get; }
+        public AI.DataStructs.Algebraic.Vector Times { get; }
+        public AI.DataStructs.Algebraic.Vector Interpolate(double time) { }
+    }
+    [System.Serializable]
+    public class RungeKutta
+    {
+        public RungeKutta() { }
+        public AI.DataStructs.Algebraic.Vector ErrorEstimate { get; set; }
+        public AI.DataStructs.Algebraic.Vector X { get; set; }
+        public AI.DataStructs.Algebraic.Vector Y { get; set; }
+        public static AI.MathUtils.ODE.RungeKutta RungeKutta4(System.Func<double, double, double> function, double initialX, double initialY, double finalX, double stepSize, bool isHalfStep = false) { }
+        public static AI.MathUtils.ODE.RungeKutta RungeRombergRK4(System.Func<double, double, double> function, double initialX, double initialY, double finalX, double stepSize) { }
+        public static AI.DataStructs.Algebraic.Vector[] SolveSystem(System.Func<double, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, double initialX, AI.DataStructs.Algebraic.Vector initialY, System.Collections.Generic.IReadOnlyList<double> outputPoints, int stepsPerInterval = 20) { }
+    }
+    public static class VelocityVerlet
+    {
+        public static AI.MathUtils.ODE.VerletTrajectory Integrate(System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double, AI.DataStructs.Algebraic.Vector> acceleration, AI.DataStructs.Algebraic.Vector position, AI.DataStructs.Algebraic.Vector velocity, double startTime, double step, int steps, int recordEvery = 1) { }
+    }
+    public sealed class VerletTrajectory
+    {
+        public System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> Positions { get; }
+        public AI.DataStructs.Algebraic.Vector Times { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> Velocities { get; }
+    }
+}
+namespace AI.MathUtils.SpecialFunction
+{
+    [System.Serializable]
+    public class EllipticIntegral
+    {
+        public EllipticIntegral() { }
+        public static double CompleteComplementaryEllipticIntegral_I(double k) { }
+        public static double CompleteEllipticIntegral_I(double k) { }
+    }
+}
+namespace AI.MathUtils.Statistics
+{
+    public sealed record SigmaPoints : System.IEquatable<AI.MathUtils.Statistics.SigmaPoints>
+    {
+        public SigmaPoints(AI.DataStructs.Algebraic.Vector[] Points, double[] MeanWeights, double[] CovarianceWeights) { }
+        public int Count { get; }
+        public double[] CovarianceWeights { get; init; }
+        public double[] MeanWeights { get; init; }
+        public AI.DataStructs.Algebraic.Vector[] Points { get; init; }
+    }
+    public sealed record UnscentedResult : System.IEquatable<AI.MathUtils.Statistics.UnscentedResult>
+    {
+        public UnscentedResult(AI.DataStructs.Algebraic.Vector Mean, AI.DataStructs.Algebraic.Matrix Covariance, AI.DataStructs.Algebraic.Matrix CrossCovariance, AI.DataStructs.Algebraic.Matrix Linearization) { }
+        public AI.DataStructs.Algebraic.Matrix Covariance { get; init; }
+        public AI.DataStructs.Algebraic.Matrix CrossCovariance { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Linearization { get; init; }
+        public AI.DataStructs.Algebraic.Vector Mean { get; init; }
+    }
+    public static class UnscentedTransform
+    {
+        public static AI.MathUtils.Statistics.SigmaPoints Points(AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Matrix covariance, double alpha = 1, double beta = 2, double kappa = 0) { }
+        public static AI.MathUtils.Statistics.SigmaPoints Points(AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Vector stds, double alpha = 1, double beta = 2, double kappa = 0) { }
+        public static AI.MathUtils.Statistics.UnscentedResult Transform(AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Matrix covariance, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, double alpha = 1, double beta = 2, double kappa = 0) { }
+        public static AI.MathUtils.Statistics.UnscentedResult Transform(AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Vector stds, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, double alpha = 1, double beta = 2, double kappa = 0) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Mean",
+                "Variance",
+                "Gradient"})]
+        public static System.ValueTuple<double, double, AI.DataStructs.Algebraic.Vector> Transform(AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Vector stds, System.Func<AI.DataStructs.Algebraic.Vector, double> function, double alpha = 1, double beta = 2, double kappa = 0) { }
+    }
+}

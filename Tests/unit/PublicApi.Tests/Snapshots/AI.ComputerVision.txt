@@ -1,0 +1,313 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ComputerVision
+{
+    [System.Serializable]
+    public class BinaryImg
+    {
+        public BinaryImg(AI.DataStructs.Algebraic.Matrix matr) { }
+        public BinaryImg(SkiaSharp.SKBitmap bm) { }
+        public int Count { get; set; }
+        public bool this[int i, int j] { get; set; }
+        public int M { get; set; }
+        public SkiaSharp.SKBitmap ToBmp() { }
+        public AI.DataStructs.Algebraic.Matrix ToMatrixInvers() { }
+    }
+    [System.Serializable]
+    public class CalculateBinaryEl
+    {
+        public AI.ComputerVision.BinaryImg img;
+        public CalculateBinaryEl() { }
+        public int CalculateBinElements(SkiaSharp.SKBitmap bmp) { }
+    }
+    [System.Serializable]
+    public class CompImg
+    {
+        public CompImg() { }
+        public static AI.DataStructs.Algebraic.Vector GetVectorFromImg(SkiaSharp.SKBitmap bitmap) { }
+        public static AI.DataStructs.Algebraic.Vector GetVectorFromImg(SkiaSharp.SKBitmap bitmap, string pathNorm) { }
+        public static AI.DataStructs.Algebraic.Vector GetVectorFromImgI(SkiaSharp.SKBitmap bitmap, string pathNorm) { }
+        public static AI.DataStructs.Algebraic.Vector GetVectorFromPath(string path) { }
+        public static void SaveMeanStdVect(string path2fold, string pathSave) { }
+    }
+    [System.Serializable]
+    public class FeaturesInBinaryImg
+    {
+        public FeaturesInBinaryImg(bool isRot = false, bool isScale = false, bool isMove = false, int nGarm = 30) { }
+        public AI.DataStructs.Algebraic.Vector GetPoints(AI.DataStructs.Algebraic.Matrix img) { }
+        public AI.DataStructs.Algebraic.Vector KepstrFeatures(AI.DataStructs.Algebraic.Matrix img) { }
+        public AI.DataStructs.Algebraic.Vector MatrixFeatures(AI.DataStructs.Algebraic.Matrix img) { }
+    }
+    public static class ImageMatrixConverter
+    {
+        public static SkiaSharp.SKBitmap BmpResizeH(SkiaSharp.SKBitmap bitmap, int newH) { }
+        public static SkiaSharp.SKBitmap BmpResizeM(SkiaSharp.SKBitmap bitmap, int newM) { }
+        public static SkiaSharp.SKBitmap BmpResizeW(SkiaSharp.SKBitmap bitmap, int newW) { }
+        public static AI.DataStructs.Algebraic.Matrix BmpToHMatr(SkiaSharp.SKBitmap Bmp) { }
+        public static AI.DataStructs.Algebraic.Matrix BmpToMatr(SkiaSharp.SKBitmap Bmp) { }
+        public static AI.DataStructs.Algebraic.Matrix BmpToMatr(SkiaSharp.SKBitmap Bmp, AI.DataStructs.Algebraic.Vector colorW) { }
+        public static AI.DataStructs.Algebraic.Matrix BmpToMatrBlue(SkiaSharp.SKBitmap Bmp) { }
+        public static AI.DataStructs.Algebraic.Matrix BmpToMatrGreen(SkiaSharp.SKBitmap Bmp) { }
+        public static AI.DataStructs.Algebraic.Matrix BmpToMatrRed(SkiaSharp.SKBitmap Bmp) { }
+        public static AI.DataStructs.Algebraic.Tensor BmpToTensor(SkiaSharp.SKBitmap Bmp) { }
+        public static SkiaSharp.SKBitmap GetBitmap(string path) { }
+        public static double HComponent(SkiaSharp.SKColor rgb) { }
+        public static SkiaSharp.SKBitmap HorizontalReflectionBitmap(SkiaSharp.SKBitmap bmp) { }
+        public static byte[] ImgToByteArray(SkiaSharp.SKBitmap bitmap) { }
+        public static AI.DataStructs.Algebraic.Matrix LoadAsMatrix(string path) { }
+        public static AI.DataStructs.Algebraic.Matrix LoadAsMatrix(string path, AI.DataStructs.Algebraic.Vector colorW) { }
+        public static AI.DataStructs.Algebraic.Matrix LoadAsMatrix(string path, AI.DataStructs.Algebraic.Vector colorW, int width, int height) { }
+        public static AI.DataStructs.Algebraic.Tensor LoadAsTensor(string path) { }
+        public static SkiaSharp.SKBitmap RotateBitmap(SkiaSharp.SKBitmap bmp, float angleRotate) { }
+        public static SkiaSharp.SKBitmap ToBitmap(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static SkiaSharp.SKBitmap ToBitmap(AI.DataStructs.Algebraic.Tensor tensor) { }
+        public static SkiaSharp.SKBitmap VerticalReflectionBitmap(SkiaSharp.SKBitmap bmp) { }
+        public static SkiaSharp.SKBitmap Visualization(AI.DataStructs.Algebraic.Matrix matr) { }
+    }
+    public static class ImgFilters
+    {
+        public static AI.DataStructs.Algebraic.Matrix FunctionFilter(AI.DataStructs.Algebraic.Matrix img, System.Func<AI.DataStructs.Algebraic.Vector, double> func_filter, int w = 3, int h = 3) { }
+        public static AI.DataStructs.Algebraic.Matrix MedianFilter(AI.DataStructs.Algebraic.Matrix img, int h = 3, int w = 3) { }
+        public static AI.DataStructs.Algebraic.Matrix MedianFilterMask(AI.DataStructs.Algebraic.Matrix img, AI.DataStructs.Algebraic.Matrix filter) { }
+        public static AI.DataStructs.Algebraic.Matrix SpatialFilter(AI.DataStructs.Algebraic.Matrix img, AI.DataStructs.Algebraic.Matrix filter) { }
+        public static AI.DataStructs.Algebraic.Matrix StdFilter(AI.DataStructs.Algebraic.Matrix img, AI.DataStructs.Algebraic.Matrix filter) { }
+    }
+}
+namespace AI.ComputerVision.ComplexImg
+{
+    [System.Serializable]
+    public class BaseTransformsColorImg
+    {
+        protected BaseTransformsColorImg() { }
+        public BaseTransformsColorImg(SkiaSharp.SKBitmap bitmap) { }
+        public BaseTransformsColorImg(string path) { }
+        public SkiaSharp.SKBitmap Transform(System.Func<System.Numerics.Complex, System.Numerics.Complex> func, int h, int w) { }
+        public static AI.DataStructs.Algebraic.Vector GetPixel(int x, int y, AI.DataStructs.Algebraic.Tensor tensor) { }
+        public static void SetPixel(int x, int y, AI.DataStructs.Algebraic.Tensor tensor, AI.DataStructs.Algebraic.Vector pixel) { }
+    }
+}
+namespace AI.ComputerVision.FiltersEachElements
+{
+    [System.Serializable]
+    public class FilterEE : AI.ComputerVision.FiltersEachElements.IFilterEE
+    {
+        public FilterEE() { }
+        public FilterEE(System.Func<double, double> elem, bool prepNorm = false, bool postNorm = false) { }
+        public AI.DataStructs.Algebraic.Matrix Filtration(AI.DataStructs.Algebraic.Matrix input) { }
+        public SkiaSharp.SKBitmap Filtration(SkiaSharp.SKBitmap input) { }
+        public SkiaSharp.SKBitmap Filtration(string path) { }
+        public void Init(System.Func<double, double> elem, bool prepNorm = false, bool postNorm = false) { }
+    }
+    public interface IFilterEE
+    {
+        AI.DataStructs.Algebraic.Matrix Filtration(AI.DataStructs.Algebraic.Matrix input);
+        SkiaSharp.SKBitmap Filtration(SkiaSharp.SKBitmap input);
+        SkiaSharp.SKBitmap Filtration(string path);
+    }
+    [System.Serializable]
+    public class SigmoidalFilter : AI.ComputerVision.FiltersEachElements.FilterEE
+    {
+        public SigmoidalFilter(double offset = -0.5, double betta = 10) { }
+    }
+}
+namespace AI.ComputerVision.FrequencyDomain
+{
+    public static class CudaFftInfo
+    {
+        public static bool IsAvailable { get; }
+        public static string StatusMessage { get; }
+    }
+    [System.Serializable]
+    public static class FFT2D
+    {
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix BandPassFilter(AI.DataStructs.WithComplexElements.ComplexMatrix spectrum, double rLow, double rHigh) { }
+        public static void BandPassFilter(double[] re, double[] im, double rLow, double rHigh) { }
+        public static AI.DataStructs.Algebraic.Matrix ColorMagnitudeSpectrum(SkiaSharp.SKBitmap bitmap, bool logScale = true) { }
+        public static AI.DataStructs.Algebraic.Matrix ColorMagnitudeSpectrum(SkiaSharp.SKBitmap bitmap, bool logScale, AI.ComputerVision.FrequencyDomain.FftBackend backend) { }
+        public static AI.DataStructs.Algebraic.Matrix FFTShift(AI.DataStructs.Algebraic.Matrix spectrum) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix FFTShiftComplex(AI.DataStructs.WithComplexElements.ComplexMatrix spectrum) { }
+        public static SkiaSharp.SKBitmap FilterColor(SkiaSharp.SKBitmap bitmap, System.Action<double[], double[]> filter) { }
+        public static SkiaSharp.SKBitmap FilterColor(SkiaSharp.SKBitmap bitmap, System.Action<double[], double[]> filter, AI.ComputerVision.FrequencyDomain.FftBackend backend) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "re",
+                "im",
+                "fftH",
+                "fftW"})]
+        public static System.ValueTuple<double[], double[], int, int> Forward(AI.DataStructs.Algebraic.Matrix image) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "re",
+                "im",
+                "fftH",
+                "fftW"})]
+        public static System.ValueTuple<double[], double[], int, int> Forward(AI.DataStructs.Algebraic.Matrix image, AI.ComputerVision.FrequencyDomain.FftBackend backend) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "R",
+                "G",
+                "B"})]
+        public static System.ValueTuple<AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum, AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum, AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum> ForwardColor(SkiaSharp.SKBitmap bitmap) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "R",
+                "G",
+                "B"})]
+        public static System.ValueTuple<AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum, AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum, AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum> ForwardColor(SkiaSharp.SKBitmap bitmap, AI.ComputerVision.FrequencyDomain.FftBackend backend) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix ForwardMatrix(AI.DataStructs.Algebraic.Matrix image) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix GaussianFilter(AI.DataStructs.WithComplexElements.ComplexMatrix spectrum, double sigma, bool lowPass = true) { }
+        public static void GaussianFilter(double[] re, double[] im, double sigma, bool lowPass = true) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix HighPassFilter(AI.DataStructs.WithComplexElements.ComplexMatrix spectrum, double cutoffRadius) { }
+        public static void HighPassFilter(double[] re, double[] im, double cutoffRadius) { }
+        public static AI.DataStructs.Algebraic.Matrix Inverse(double[] re, double[] im, int origH, int origW) { }
+        public static AI.DataStructs.Algebraic.Matrix Inverse(double[] re, double[] im, int origH, int origW, AI.ComputerVision.FrequencyDomain.FftBackend backend) { }
+        public static SkiaSharp.SKBitmap InverseColor(AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum sR, AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum sG, AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum sB) { }
+        public static SkiaSharp.SKBitmap InverseColor(AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum sR, AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum sG, AI.ComputerVision.FrequencyDomain.FFT2D.ChannelSpectrum sB, AI.ComputerVision.FrequencyDomain.FftBackend backend) { }
+        public static AI.DataStructs.Algebraic.Matrix InverseMatrix(AI.DataStructs.WithComplexElements.ComplexMatrix spectrum, int origH, int origW) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix LowPassFilter(AI.DataStructs.WithComplexElements.ComplexMatrix spectrum, double cutoffRadius) { }
+        public static void LowPassFilter(double[] re, double[] im, double cutoffRadius) { }
+        public static AI.DataStructs.Algebraic.Matrix MagnitudeSpectrum(AI.DataStructs.WithComplexElements.ComplexMatrix spectrum, bool logScale = true) { }
+        public static AI.DataStructs.Algebraic.Matrix MagnitudeSpectrum(double[] re, double[] im, bool logScale = true) { }
+        public static AI.DataStructs.Algebraic.Matrix NormalizeTo255(AI.DataStructs.Algebraic.Matrix m) { }
+        public static AI.DataStructs.Algebraic.Matrix PhaseSpectrum(AI.DataStructs.WithComplexElements.ComplexMatrix spectrum) { }
+        public static AI.DataStructs.Algebraic.Matrix PhaseSpectrum(double[] re, double[] im) { }
+        public readonly struct ChannelSpectrum
+        {
+            public readonly int FftH;
+            public readonly int FftW;
+            public readonly double[] Im;
+            public readonly int OrigH;
+            public readonly int OrigW;
+            public readonly double[] Re;
+            public ChannelSpectrum(double[] re, double[] im, int fftH, int fftW, int origH, int origW) { }
+        }
+    }
+    public enum FftBackend
+    {
+        Cpu = 0,
+        Cuda = 1,
+    }
+}
+namespace AI.ComputerVision.ImgFeatureExtractions
+{
+    [System.Serializable]
+    public class ImgOnnxExtractor : AI.DataPrepaire.FeatureExtractors.FeaturesExtractor<SkiaSharp.SKBitmap>
+    {
+        public ImgOnnxExtractor(string pathToOnnxModel, AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Vector std, int inpH, int inpW, AI.ONNX.LibType back) { }
+        public override AI.DataStructs.Algebraic.Vector GetFeatures(SkiaSharp.SKBitmap data) { }
+    }
+}
+namespace AI.ComputerVision.ImgTransforms
+{
+    [System.Serializable]
+    public class HOG
+    {
+        public HOG(int bins = 8) { }
+        public HOG(AI.DataStructs.Algebraic.Matrix maskY, int bins = 8) { }
+        public AI.DataStructs.Algebraic.Vector CalcHist(AI.DataStructs.Algebraic.Matrix img, bool normalyze = false, bool centrNorm = true) { }
+    }
+    [System.Serializable]
+    public class SobelData
+    {
+        public SobelData(AI.DataStructs.Algebraic.Matrix gradX, AI.DataStructs.Algebraic.Matrix gradY) { }
+        public AI.DataStructs.Algebraic.Matrix GradImg { get; }
+        public AI.DataStructs.Algebraic.Matrix GradX { get; set; }
+        public AI.DataStructs.Algebraic.Matrix GradY { get; set; }
+        public AI.DataStructs.Algebraic.Matrix PhGrad { get; }
+    }
+    [System.Serializable]
+    public class SobelTransform
+    {
+        public SobelTransform() { }
+        public SobelTransform(AI.DataStructs.Algebraic.Matrix maskY) { }
+        public AI.ComputerVision.ImgTransforms.SobelData Transform(AI.DataStructs.Algebraic.Matrix img) { }
+    }
+}
+namespace AI.ComputerVision.SpatialFilters
+{
+    [System.Serializable]
+    public class CustomFilter : AI.ComputerVision.SpatialFilters.ISpatialFilterGray
+    {
+        protected AI.DataStructs.Algebraic.Matrix filter_kernel;
+        public CustomFilter() { }
+        public CustomFilter(AI.DataStructs.Algebraic.Matrix fMatrix) { }
+        public AI.DataStructs.Algebraic.Matrix Filtration(AI.DataStructs.Algebraic.Matrix input) { }
+        public SkiaSharp.SKBitmap Filtration(SkiaSharp.SKBitmap input) { }
+        public SkiaSharp.SKBitmap Filtration(string path) { }
+    }
+    [System.Serializable]
+    public class GaussianBlurFilter : AI.ComputerVision.SpatialFilters.CustomFilter
+    {
+        public GaussianBlurFilter() { }
+    }
+    [System.Serializable]
+    public class HLine : AI.ComputerVision.SpatialFilters.CustomFilter
+    {
+        public HLine() { }
+    }
+    public interface ISpatialFilterGray
+    {
+        AI.DataStructs.Algebraic.Matrix Filtration(AI.DataStructs.Algebraic.Matrix input);
+        SkiaSharp.SKBitmap Filtration(SkiaSharp.SKBitmap input);
+        SkiaSharp.SKBitmap Filtration(string path);
+    }
+    [System.Serializable]
+    public class Sharpness : AI.ComputerVision.SpatialFilters.CustomFilter
+    {
+        public Sharpness(double sharp = 1) { }
+    }
+    [System.Serializable]
+    public class Smoothing : AI.ComputerVision.SpatialFilters.CustomFilter
+    {
+        public Smoothing() { }
+    }
+    [System.Serializable]
+    public class WLine : AI.ComputerVision.SpatialFilters.CustomFilter
+    {
+        public WLine() { }
+    }
+}
+namespace AI.ComputerVision.Statistics
+{
+    public static class ImageHistogram
+    {
+        public static AI.DataStructs.Algebraic.Matrix Equalize(AI.DataStructs.Algebraic.Matrix image) { }
+        public static AI.DataStructs.Algebraic.Vector GetHistogram(AI.DataStructs.Algebraic.Matrix image) { }
+    }
+}
+namespace AI.ComputerVision.UInt8
+{
+    [System.Serializable]
+    public static class ConvolutionUInt16
+    {
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray Conv16Gray(AI.ComputerVision.UInt8.ImgUInt16Gray img, AI.ComputerVision.UInt8.ImgUInt16Gray filter) { }
+    }
+    [System.Serializable]
+    public class ImgUInt16Gray
+    {
+        public readonly int Height;
+        public readonly int Width;
+        public short[] img;
+        public ImgUInt16Gray(SkiaSharp.SKBitmap bitmap) { }
+        public ImgUInt16Gray(int h, int w) { }
+        public short this[int i, int j] { get; set; }
+        public SkiaSharp.SKBitmap ToBitmap() { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator *(AI.ComputerVision.UInt8.ImgUInt16Gray img, double k) { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator *(double k, AI.ComputerVision.UInt8.ImgUInt16Gray img) { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator +(AI.ComputerVision.UInt8.ImgUInt16Gray img, int k) { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator +(int k, AI.ComputerVision.UInt8.ImgUInt16Gray img) { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator -(AI.ComputerVision.UInt8.ImgUInt16Gray img, int k) { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator -(int k, AI.ComputerVision.UInt8.ImgUInt16Gray img) { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator /(AI.ComputerVision.UInt8.ImgUInt16Gray img, double k) { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator /(AI.ComputerVision.UInt8.ImgUInt16Gray img, int k) { }
+        public static AI.ComputerVision.UInt8.ImgUInt16Gray operator /(double k, AI.ComputerVision.UInt8.ImgUInt16Gray img) { }
+    }
+}
+namespace AI.Extensions
+{
+    [System.Serializable]
+    public static class CVExtension
+    {
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this SkiaSharp.SKBitmap bitmap) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this SkiaSharp.SKBitmap bitmap, AI.DataStructs.Algebraic.Vector colorW) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this SkiaSharp.SKBitmap bitmap, int newWidth, int newHeight) { }
+        public static AI.DataStructs.Algebraic.Tensor ToTensor(this SkiaSharp.SKBitmap bitmap) { }
+        public static AI.DataStructs.Algebraic.Tensor ToTensor(this SkiaSharp.SKBitmap bitmap, int newW, int newH) { }
+    }
+}

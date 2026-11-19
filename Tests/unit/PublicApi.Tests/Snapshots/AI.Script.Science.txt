@@ -1,0 +1,123 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Science
+{
+    [AI.Script.Binding.ScriptModule("bio", "Биология: ДНК, белки, выравнивание, деревья, популяции, генетика", Group="отрасли", Version="0.1")]
+    public static class BioModule
+    {
+        [AI.Script.Binding.ScriptFn("align", "Выравнивание двух последовательностей: глобальное или локальное, счёт", Example="bio.align(\"GATTACA\", \"GCATGCA\").identity")]
+        public static AI.Script.Runtime.ScriptRecord Align([AI.Script.Binding.ScriptParam("первая последовательность")] string first, [AI.Script.Binding.ScriptParam("вторая последовательность")] string second, [AI.Script.Binding.ScriptParam("\"global\" — целиком, \"local\" — лучший общий участок")] string kind = "global", [AI.Script.Binding.ScriptParam("матрица замен для белков: \"blosum62\"; пусто — нуклеотиды")] string matrix = "", [AI.Script.Binding.ScriptParam("награда за совпадение")] double match = 1, [AI.Script.Binding.ScriptParam("штраф за несовпадение")] double mismatch = -1, [AI.Script.Binding.ScriptParam("штраф открытия пропуска; nan — по умолчанию")] double gap_open = NaN, [AI.Script.Binding.ScriptParam("штраф продления пропуска")] double gap_extend = -0.5) { }
+        [AI.Script.Binding.ScriptFn("bray_curtis", "Несходство двух сообществ по Брею — Кёртису, от 0 до 1", Example="bio.bray_curtis(<10, 5, 0>, <8, 2, 4>)")]
+        public static double BrayCurtis([AI.Script.Binding.ScriptParam("численности видов в первом сообществе")] AI.DataStructs.Algebraic.Vector first, [AI.Script.Binding.ScriptParam("численности тех же видов во втором")] AI.DataStructs.Algebraic.Vector second) { }
+        [AI.Script.Binding.ScriptFn("carrier_frequency", "Доля носителей рецессивного аллеля по доле больных", Example="bio.carrier_frequency(1 / 10000)")]
+        public static double CarrierFrequency([AI.Script.Binding.ScriptParam("доля особей с рецессивным признаком")] double affected) { }
+        [AI.Script.Binding.ScriptFn("distance", "Эволюционное расстояние: p, Джукс — Кантор, Кимура или Пуассон", Example="bio.distance(\"ACGTACGTAC\", \"ACGTTCGTAA\", kind: \"kimura\")")]
+        public static double Distance([AI.Script.Binding.ScriptParam("первая выровненная последовательность")] string first, [AI.Script.Binding.ScriptParam("вторая выровненная последовательность той же длины")] string second, [AI.Script.Binding.ScriptParam("модель: \"p\", \"jukes_cantor\", \"kimura\", \"poisson\"")] string kind = "jukes_cantor") { }
+        [AI.Script.Binding.ScriptFn("diversity", "Разнообразие сообщества: число видов, индексы Шеннона и Симпсона", Example="bio.diversity(<50, 30, 15, 4, 1>).shannon")]
+        public static AI.Script.Runtime.ScriptRecord DiversityOf([AI.Script.Binding.ScriptParam("численности видов: целые неотрицательные")] AI.DataStructs.Algebraic.Vector counts) { }
+        [AI.Script.Binding.ScriptFn("doubling_time", "Время удвоения численности при экспоненциальном росте", Example="bio.doubling_time(0.03)")]
+        public static double DoublingTime([AI.Script.Binding.ScriptParam("удельная скорость роста r за единицу времени")] double rate) { }
+        [AI.Script.Binding.ScriptFn("gc", "Доля G и C в нуклеотидной последовательности, от 0 до 1", Example="bio.gc(\"ATGGCCATTGTAATGGGCCGC\")")]
+        public static double Gc([AI.Script.Binding.ScriptParam("последовательность ДНК или РНК")] string sequence) { }
+        [AI.Script.Binding.ScriptFn("growth", "Рост популяции во времени: экспоненциальный или логистический", Example="bio.growth(10, 0.3, until: 40, capacity: 1000)")]
+        public static AI.Script.Runtime.ScriptTable Growth(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("начальная численность")] double initial, [AI.Script.Binding.ScriptParam("удельная скорость роста r за единицу времени")] double rate, [AI.Script.Binding.ScriptParam("конечное время")] double until, [AI.Script.Binding.ScriptParam("ёмкость среды K; 0 — экспоненциальный рост без предела")] double capacity = 0, [AI.Script.Binding.ScriptParam("сколько строк в таблице")] int points = 100) { }
+        [AI.Script.Binding.ScriptFn("hamming", "Расстояние Хэмминга: число различающихся позиций строк равной длины", Example="bio.hamming(\"GATTACA\", \"GACTATA\")")]
+        public static double Hamming([AI.Script.Binding.ScriptParam("первая последовательность")] string first, [AI.Script.Binding.ScriptParam("вторая последовательность той же длины")] string second) { }
+        [AI.Script.Binding.ScriptFn("hardy_weinberg", "Равновесие Харди — Вайнберга: частоты аллелей и хи-квадрат", Example="bio.hardy_weinberg(298, 489, 213).equilibrium")]
+        public static AI.Script.Runtime.ScriptRecord HardyWeinbergTest([AI.Script.Binding.ScriptParam("число особей AA")] int aa, [AI.Script.Binding.ScriptParam("число особей Aa")] int ab, [AI.Script.Binding.ScriptParam("число особей aa")] int bb, [AI.Script.Binding.ScriptParam("уровень значимости")] double alpha = 0.05) { }
+        [AI.Script.Binding.ScriptFn("kmers", "Частоты слов длины k в последовательности: таблица kmer, count", Example="bio.kmers(\"ATGATGCC\", 3)")]
+        public static AI.Script.Runtime.ScriptTable Kmers([AI.Script.Binding.ScriptParam("последовательность ДНК или РНК")] string sequence, [AI.Script.Binding.ScriptParam("длина слова")] int k) { }
+        [AI.Script.Binding.ScriptFn("lotka_volterra", "Хищник и жертва по Лотке — Вольтерре: численности во времени", Example="bio.lotka_volterra(40, 9, alpha: 0.1, beta: 0.02, gamma: 0.1, delta: 0.01, until:" +
+            " 200)")]
+        public static AI.Script.Runtime.ScriptTable LotkaVolterraRun(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("начальная численность жертв")] double prey, [AI.Script.Binding.ScriptParam("начальная численность хищников")] double predators, [AI.Script.Binding.ScriptParam("скорость размножения жертв")] double alpha, [AI.Script.Binding.ScriptParam("скорость выедания жертв хищником")] double beta, [AI.Script.Binding.ScriptParam("смертность хищников")] double gamma, [AI.Script.Binding.ScriptParam("превращение съеденного в потомство хищников")] double delta, [AI.Script.Binding.ScriptParam("конечное время")] double until, [AI.Script.Binding.ScriptParam("сколько строк в таблице")] int points = 200) { }
+        [AI.Script.Binding.ScriptFn("melting", "Температура плавления праймера, °C: правило Уоллеса либо поправка на GC", Example="bio.melting(\"AGCTTAGCGGCATTAC\")")]
+        public static double Melting([AI.Script.Binding.ScriptParam("последовательность праймера")] string sequence) { }
+        [AI.Script.Binding.ScriptFn("mendel", "Расщепление в потомстве против ожидания 3:1, 9:3:3:1: хи-квадрат", Example="bio.mendel(<315, 108, 101, 32>, ratio: <9, 3, 3, 1>).fits")]
+        public static AI.Script.Runtime.ScriptRecord Mendel([AI.Script.Binding.ScriptParam("наблюдаемые численности классов")] AI.DataStructs.Algebraic.Vector observed, [AI.Script.Binding.ScriptParam("ожидаемое соотношение классов; по умолчанию 3 : 1")] AI.DataStructs.Algebraic.Vector? ratio = null, [AI.Script.Binding.ScriptParam("уровень значимости")] double alpha = 0.05) { }
+        [AI.Script.Binding.ScriptFn("orfs", "Открытые рамки считывания: от ATG до стоп-кодона, с белком", Example="bio.orfs(\"CCATGGCCATTGTAATGGGCTGAAA\", min_length: 3)")]
+        public static AI.Script.Runtime.ScriptTable Orfs([AI.Script.Binding.ScriptParam("последовательность ДНК или мРНК")] string sequence, [AI.Script.Binding.ScriptParam("наименьшая длина белка, аминокислот")] int min_length = 30) { }
+        [AI.Script.Binding.ScriptFn("reverse_complement", "Обратно-комплементарная цепь: вторая цепь в обратном порядке", Example="bio.reverse_complement(\"ATGGCC\")")]
+        public static string ReverseComplement([AI.Script.Binding.ScriptParam("последовательность ДНК или РНК")] string sequence) { }
+        [AI.Script.Binding.ScriptFn("sir", "Эпидемия SIR: ход по суткам, R₀, пик и итоговая доля переболевших", Example="bio.sir(0.3, 0.1).peak_time")]
+        public static AI.Script.Runtime.ScriptRecord Sir(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("скорость заражения β, в сутки")] double beta, [AI.Script.Binding.ScriptParam("скорость выздоровления γ, в сутки")] double gamma, [AI.Script.Binding.ScriptParam("начальная доля заразных")] double infected = 0.0001, [AI.Script.Binding.ScriptParam("длительность расчёта, сутки")] double until = 180, [AI.Script.Binding.ScriptParam("сколько строк в таблице")] int points = 361) { }
+        [AI.Script.Binding.ScriptFn("transcribe", "Транскрипция ДНК в мРНК: T заменяется на U", Example="bio.transcribe(\"ATGGCC\")")]
+        public static string Transcribe([AI.Script.Binding.ScriptParam("последовательность ДНК")] string sequence) { }
+        [AI.Script.Binding.ScriptFn("translate", "Трансляция нуклеотидов в белок по стандартному генетическому коду", Example="bio.translate(\"ATGGCCATTGTAATGGGCCGCTGA\")")]
+        public static string Translate([AI.Script.Binding.ScriptParam("последовательность ДНК или мРНК")] string sequence, [AI.Script.Binding.ScriptParam("сдвиг рамки считывания: 0, 1 или 2")] int frame = 0, [AI.Script.Binding.ScriptParam("останавливаться ли на первом стоп-кодоне")] bool to_stop = true) { }
+        [AI.Script.Binding.ScriptFn("tree", "Филогенетическое дерево: присоединение соседей или UPGMA, запись Newick", Example="bio.tree({ a: \"ACGTACGTAC\", b: \"ACGTACGTTC\", c: \"ACGAACTTTC\", d: \"TCGAACTTTA\" })." +
+            "newick")]
+        public static AI.Script.Runtime.ScriptRecord Tree([AI.Script.Binding.ScriptParam("выровненные последовательности: запись «имя: строка»")] AI.Script.Runtime.ScriptRecord sequences, [AI.Script.Binding.ScriptParam("метод: \"nj\" — присоединение соседей, \"upgma\"")] string kind = "nj", [AI.Script.Binding.ScriptParam("модель расстояния: \"p\", \"jukes_cantor\", \"kimura\", \"poisson\"")] string distance = "jukes_cantor") { }
+    }
+    [AI.Script.Binding.ScriptModule("fit", "Подгонка нелинейной модели к данным: параметры, ошибки, R²", Group="анализ", Version="0.1")]
+    public static class FitModule
+    {
+        [AI.Script.Binding.ScriptFn("curve", "Подгонка кривой y = f(x, p) методом Левенберга — Марквардта", Example="let r = fit.curve((x, p) => p.a * math.exp(-p.b * x), <0, 1, 2, 3, 4>, <5, 3, 1.8" +
+            ", 1.1, 0.7>, { a: 1, b: 0.1 })")]
+        public static AI.Script.Runtime.ScriptRecord Curve(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("модель: (x, p) => значение, p — запись параметров")] AI.Script.Runtime.ScriptCallable model, [AI.Script.Binding.ScriptParam("значения аргумента")] AI.DataStructs.Algebraic.Vector x, [AI.Script.Binding.ScriptParam("измеренные значения")] AI.DataStructs.Algebraic.Vector y, [AI.Script.Binding.ScriptParam("начальное приближение: запись «параметр: значение»")] AI.Script.Runtime.ScriptRecord start, [AI.Script.Binding.ScriptParam("предел числа итераций")] int max_iterations = 500) { }
+    }
+    [AI.Script.Binding.ScriptModule("ode", "ОДУ: задача Коши с точностью по допуску и событиями остановки", Group="решатели", Version="0.1")]
+    public static class OdeModule
+    {
+        [AI.Script.Binding.ScriptFn("solve", "Задача Коши: система ОДУ методом Дормана — Принса, с событиями остановки", Example="let r = ode.solve((t, s) => { y: -0.5 * s.y }, { y: 1 }, until: 10)")]
+        public static AI.Script.Runtime.ScriptRecord Solve(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("правая часть: (t, s) => запись производных с теми же именами, что в y0")] AI.Script.Runtime.ScriptCallable rhs, [AI.Script.Binding.ScriptParam("начальное состояние: запись «имя: значение»")] AI.Script.Runtime.ScriptRecord y0, [AI.Script.Binding.ScriptParam("конечный момент")] double until, [AI.Script.Binding.ScriptParam("начальный момент")] double from = 0, [AI.Script.Binding.ScriptParam("сколько строк в таблице траектории")] int points = 200, [AI.Script.Binding.ScriptParam("события остановки: запись «имя: (t, s) => число», стоп при смене знака")] AI.Script.Runtime.ScriptRecord? events = null, [AI.Script.Binding.ScriptParam("относительный допуск шага")] double rtol = 1E-06, [AI.Script.Binding.ScriptParam("абсолютный допуск шага")] double atol = 1E-09, [AI.Script.Binding.ScriptParam("наибольший шаг; 0 — без ограничения")] double max_step = 0) { }
+    }
+    [AI.Script.Binding.ScriptModule("phys", "Физика: броски, орбиты, газы, теплота, цепи, распад, атмосфера", Group="отрасли", Version="0.1")]
+    public static class PhysModule
+    {
+        [AI.Script.Binding.ScriptFn("activity", "Активность радионуклида, распадов в секунду (Бк)", Example="phys.activity(9.5e8, 2.56e21)")]
+        public static double Activity([AI.Script.Binding.ScriptParam("период полураспада, с")] double half_life, [AI.Script.Binding.ScriptParam("число ядер")] double atoms) { }
+        [AI.Script.Binding.ScriptFn("atmosphere", "Стандартная атмосфера на высоте: температура, давление, плотность", Example="phys.atmosphere(11000).pressure")]
+        public static AI.Script.Runtime.ScriptRecord Atmosphere([AI.Script.Binding.ScriptParam("высота над уровнем моря, м")] double altitude) { }
+        [AI.Script.Binding.ScriptFn("carnot", "Цикл Карно: предельный КПД и холодильный коэффициент, температуры в К", Example="phys.carnot(500, 300).efficiency")]
+        public static AI.Script.Runtime.ScriptRecord Carnot([AI.Script.Binding.ScriptParam("температура нагревателя, К")] double hot, [AI.Script.Binding.ScriptParam("температура холодильника, К")] double cold) { }
+        [AI.Script.Binding.ScriptFn("collision", "Удар двух тел вдоль прямой: скорости после удара и потеря энергии", Example="phys.collision(2, 3, 1, -1, restitution: 0.5)")]
+        public static AI.Script.Runtime.ScriptRecord Collision([AI.Script.Binding.ScriptParam("масса первого тела, кг")] double m1, [AI.Script.Binding.ScriptParam("скорость первого тела до удара, м/с")] double v1, [AI.Script.Binding.ScriptParam("масса второго тела, кг")] double m2, [AI.Script.Binding.ScriptParam("скорость второго тела до удара, м/с")] double v2, [AI.Script.Binding.ScriptParam("коэффициент восстановления: 1 — упругий удар, 0 — тела слипаются")] double restitution = 1) { }
+        [AI.Script.Binding.ScriptFn("cooling_time", "Время остывания тела до заданной температуры по закону Ньютона, с", Example="phys.cooling_time(90, 50, 20, tau: 900)")]
+        public static double CoolingTime([AI.Script.Binding.ScriptParam("начальная температура тела")] double start, [AI.Script.Binding.ScriptParam("температура, до которой остывает")] double target, [AI.Script.Binding.ScriptParam("температура среды")] double ambient, [AI.Script.Binding.ScriptParam("постоянная времени остывания, с")] double tau) { }
+        [AI.Script.Binding.ScriptFn("decay", "Радиоактивный распад: остаток через время, постоянная распада", Example="phys.decay(5730, 10000).fraction")]
+        public static AI.Script.Runtime.ScriptRecord Decay([AI.Script.Binding.ScriptParam("период полураспада")] double half_life, [AI.Script.Binding.ScriptParam("прошедшее время, в тех же единицах")] double time, [AI.Script.Binding.ScriptParam("начальное количество: ядра, граммы, беккерели")] double amount = 1) { }
+        [AI.Script.Binding.ScriptFn("decay_age", "Возраст образца по оставшейся доле радионуклида", Example="phys.decay_age(5730, 0.25)")]
+        public static double DecayAge([AI.Script.Binding.ScriptParam("период полураспада")] double half_life, [AI.Script.Binding.ScriptParam("оставшаяся доля, от 0 до 1")] double fraction) { }
+        [AI.Script.Binding.ScriptFn("drag", "Сила сопротивления воздуха или жидкости при движении тела, Н", Example="phys.drag(30, 0.0038)")]
+        public static double Drag([AI.Script.Binding.ScriptParam("скорость, м/с")] double speed, [AI.Script.Binding.ScriptParam("площадь поперечного сечения, м²")] double area, [AI.Script.Binding.ScriptParam("коэффициент сопротивления")] double cd = 0.47, [AI.Script.Binding.ScriptParam("плотность среды, кг/м³")] double density = 1.225) { }
+        [AI.Script.Binding.ScriptFn("escape_speed", "Вторая космическая скорость на расстоянии от центра тела, м/с", Example="phys.escape_speed()")]
+        public static double EscapeSpeed([AI.Script.Binding.ScriptParam("расстояние от центра тела, м; по умолчанию радиус Земли")] double radius = 6371000, [AI.Script.Binding.ScriptParam("масса тела, кг; по умолчанию Земля")] double mass = 5.9722E+24) { }
+        [AI.Script.Binding.ScriptFn("fall_time", "Время свободного падения с высоты без начальной скорости, с", Example="phys.fall_time(20)")]
+        public static double FallTime([AI.Script.Binding.ScriptParam("высота, м")] double height, [AI.Script.Binding.ScriptParam("ускорение свободного падения, м/с²")] double gravity = 9.80665) { }
+        [AI.Script.Binding.ScriptFn("heat_conduction", "Тепловой поток через стенку по закону Фурье, Вт", Example="phys.heat_conduction(0.8, 20, 0.25, area: 10)")]
+        public static double HeatConduction([AI.Script.Binding.ScriptParam("теплопроводность материала, Вт/(м·К)")] double conductivity, [AI.Script.Binding.ScriptParam("разность температур по сторонам стенки, К")] double delta_t, [AI.Script.Binding.ScriptParam("толщина стенки, м")] double thickness, [AI.Script.Binding.ScriptParam("площадь стенки, м²")] double area = 1) { }
+        [AI.Script.Binding.ScriptFn("hohmann", "Переход Гомана между круговыми орбитами: суммарный Δv и время перелёта", Example="phys.hohmann(6.771e6, 4.2164e7).delta_v")]
+        public static AI.Script.Runtime.ScriptRecord Hohmann([AI.Script.Binding.ScriptParam("радиус начальной орбиты, м")] double from, [AI.Script.Binding.ScriptParam("радиус конечной орбиты, м")] double to, [AI.Script.Binding.ScriptParam("масса центрального тела, кг; по умолчанию Земля")] double mass = 5.9722E+24) { }
+        [AI.Script.Binding.ScriptFn("ideal_gas", "Идеальный газ pV = nRT: недостающая величина по трём известным", Example="phys.ideal_gas(moles: 1, temperature: 273.15, pressure: 101325).volume")]
+        public static AI.Script.Runtime.ScriptRecord IdealGasState([AI.Script.Binding.ScriptParam("количество вещества, моль")] double moles = NaN, [AI.Script.Binding.ScriptParam("температура, К")] double temperature = NaN, [AI.Script.Binding.ScriptParam("объём, м³")] double volume = NaN, [AI.Script.Binding.ScriptParam("давление, Па")] double pressure = NaN) { }
+        [AI.Script.Binding.ScriptFn("lens", "Формула тонкой линзы: расстояние до изображения и увеличение", Example="phys.lens(0.1, 0.3)")]
+        public static AI.Script.Runtime.ScriptRecord Lens([AI.Script.Binding.ScriptParam("фокусное расстояние, м")] double focal, [AI.Script.Binding.ScriptParam("расстояние до предмета, м")] double distance) { }
+        [AI.Script.Binding.ScriptFn("lorentz", "Специальная относительность: доля скорости света и лоренц-фактор", Example="phys.lorentz(2.6e8).gamma")]
+        public static AI.Script.Runtime.ScriptRecord Lorentz([AI.Script.Binding.ScriptParam("скорость, м/с")] double speed) { }
+        [AI.Script.Binding.ScriptFn("ohm", "Закон Ома: ток и выделяемая мощность по напряжению и сопротивлению", Example="phys.ohm(220, 50).current")]
+        public static AI.Script.Runtime.ScriptRecord Ohm([AI.Script.Binding.ScriptParam("напряжение, В")] double voltage, [AI.Script.Binding.ScriptParam("сопротивление, Ом")] double resistance) { }
+        [AI.Script.Binding.ScriptFn("orbit", "Круговая орбита: скорость, период и вторая космическая на радиусе", Example="phys.orbit(6.371e6 + 4.2e5).period")]
+        public static AI.Script.Runtime.ScriptRecord Orbit([AI.Script.Binding.ScriptParam("радиус орбиты от центра тела, м")] double radius, [AI.Script.Binding.ScriptParam("масса центрального тела, кг; по умолчанию Земля")] double mass = 5.9722E+24) { }
+        [AI.Script.Binding.ScriptFn("orbit_radius", "Радиус орбиты по заданному периоду обращения, м", Example="phys.orbit_radius(86164)")]
+        public static double OrbitRadius([AI.Script.Binding.ScriptParam("период обращения, с")] double period, [AI.Script.Binding.ScriptParam("масса центрального тела, кг; по умолчанию Земля")] double mass = 5.9722E+24) { }
+        [AI.Script.Binding.ScriptFn("oscillator", "Осциллятор масса — пружина: частота, период, затухание, добротность", Example="phys.oscillator(1, 100, damping: 2).period")]
+        public static AI.Script.Runtime.ScriptRecord Oscillator([AI.Script.Binding.ScriptParam("масса, кг")] double mass, [AI.Script.Binding.ScriptParam("жёсткость, Н/м")] double stiffness, [AI.Script.Binding.ScriptParam("коэффициент вязкого трения, Н·с/м")] double damping = 0) { }
+        [AI.Script.Binding.ScriptFn("projectile", "Бросок под углом без сопротивления: дальность, высота, время полёта", Example="phys.projectile(50, 45).range")]
+        public static AI.Script.Runtime.ScriptRecord Projectile([AI.Script.Binding.ScriptParam("начальная скорость, м/с")] double speed, [AI.Script.Binding.ScriptParam("угол к горизонту, градусы")] double angle, [AI.Script.Binding.ScriptParam("ускорение свободного падения, м/с²")] double gravity = 9.80665) { }
+        [AI.Script.Binding.ScriptFn("rc", "RC-цепь: постоянная времени и напряжение на конденсаторе при заряде", Example="phys.rc(1000, 1e-6, supply: 5, time: 0.002).voltage")]
+        public static AI.Script.Runtime.ScriptRecord Rc([AI.Script.Binding.ScriptParam("сопротивление, Ом")] double resistance, [AI.Script.Binding.ScriptParam("ёмкость, Ф")] double capacitance, [AI.Script.Binding.ScriptParam("напряжение источника, В")] double supply = 1, [AI.Script.Binding.ScriptParam("время от начала заряда, с")] double time = 0) { }
+        [AI.Script.Binding.ScriptFn("refraction", "Угол преломления по закону Снеллиуса, градусы; nan — полное отражение", Example="phys.refraction(30, 1, 1.5)")]
+        public static double Refraction([AI.Script.Binding.ScriptParam("угол падения, градусы")] double angle, [AI.Script.Binding.ScriptParam("показатель преломления первой среды")] double n1, [AI.Script.Binding.ScriptParam("показатель преломления второй среды")] double n2) { }
+        [AI.Script.Binding.ScriptFn("rlc", "Колебательный контур: резонансная частота, добротность и режим", Example="phys.rlc(1e-3, 1e-6, resistance: 10).frequency")]
+        public static AI.Script.Runtime.ScriptRecord Rlc([AI.Script.Binding.ScriptParam("индуктивность, Гн")] double inductance, [AI.Script.Binding.ScriptParam("ёмкость, Ф")] double capacitance, [AI.Script.Binding.ScriptParam("сопротивление, Ом")] double resistance = 0) { }
+        [AI.Script.Binding.ScriptFn("stopping_distance", "Тормозной путь до остановки при постоянном замедлении, м", Example="phys.stopping_distance(20, 7)")]
+        public static double StoppingDistance([AI.Script.Binding.ScriptParam("начальная скорость, м/с")] double speed, [AI.Script.Binding.ScriptParam("модуль замедления, м/с²")] double deceleration) { }
+        [AI.Script.Binding.ScriptFn("terminal_speed", "Установившаяся скорость падения в воздухе или жидкости, м/с", Example="phys.terminal_speed(80, 0.7, cd: 1)")]
+        public static double TerminalSpeed([AI.Script.Binding.ScriptParam("масса тела, кг")] double mass, [AI.Script.Binding.ScriptParam("площадь поперечного сечения, м²")] double area, [AI.Script.Binding.ScriptParam("коэффициент сопротивления")] double cd = 0.47, [AI.Script.Binding.ScriptParam("плотность среды, кг/м³")] double density = 1.225, [AI.Script.Binding.ScriptParam("ускорение свободного падения, м/с²")] double gravity = 9.80665) { }
+    }
+    public static class ScienceLibrary
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Script.Binding.IScriptModule> Modules { get; }
+        public static AI.Script.Hosting.ScriptHost UseScience(this AI.Script.Hosting.ScriptHost host) { }
+    }
+}

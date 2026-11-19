@@ -1,0 +1,109 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.KNN.Json
+{
+    public static class AiKnnJsonOptions
+    {
+        public static readonly System.Text.Json.JsonSerializerOptions Default;
+    }
+}
+namespace AI.KNN
+{
+    [System.Serializable]
+    public class KNNCl : AI.DataStructs.IAlgorithm, AI.DataStructs.IEstimator<AI.DataStructs.Algebraic.Vector, int>, AI.DataStructs.ISavable, AI.ML.Classification.IClassifier
+    {
+        public KNNCl() { }
+        public KNNCl(AI.ML.Classification.StructClasses classifikator) { }
+        public KNNCl(AI.ML.DataHandling.DataSets.VectorDataset vectorClasses) { }
+        public AI.ML.Classification.StructClasses Classes { get; }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> Dist { get; set; }
+        public double H { get; set; }
+        public bool IsFixed { get; set; }
+        public bool IsParsenMethod { get; set; }
+        public int K { get; set; }
+        public System.Func<double, double> KernelParsenWindow { get; set; }
+        public void AddClass(AI.DataStructs.Algebraic.Vector features, int label) { }
+        public int Classify(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp) { }
+        public double RbfK(double r) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public void Train(AI.ML.DataHandling.DataSets.VectorDataset dataset) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes) { }
+        public static AI.KNN.KNNCl GetKNN(string pathToEtallonClassCsv) { }
+        public static AI.KNN.KNNCl Load(System.IO.Stream stream) { }
+        public static AI.KNN.KNNCl Load(string path) { }
+    }
+}
+namespace AI.KNN.Regression
+{
+    [System.Serializable]
+    public class KNNCorR : AI.DataStructs.IAlgorithm, AI.ML.Regression.IRegression
+    {
+        public bool isMutation;
+        public int mutCount;
+        public KNNCorR() { }
+        public KNNCorR(AI.ML.Regression.StructRegres reg) { }
+        public KNNCorR(string path) { }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> Dist { get; set; }
+        public bool FixedH { get; set; }
+        public int K { get; set; }
+        public AI.ML.Regression.StructRegres Reg { get; set; }
+        public AI.DataStructs.Algebraic.Vector ImpObj() { }
+        public void OnlyImp(int n = 60) { }
+        public void Open(string path) { }
+        public double Predict(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector PredictV(AI.DataStructs.Algebraic.Vector inp) { }
+        public void Save(string path) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] tData, AI.DataStructs.Algebraic.Vector targs) { }
+        public void Train(AI.DataStructs.Algebraic.Vector tData, AI.DataStructs.Algebraic.Vector targs) { }
+        public void Train(AI.DataStructs.Algebraic.Vector tData, double targ) { }
+    }
+    [System.Serializable]
+    public class KNNReg : AI.DataStructs.IAlgorithm, AI.ML.Regression.IRegression
+    {
+        public KNNReg() { }
+        public KNNReg(AI.ML.Regression.StructRegres reg) { }
+        public KNNReg(string path) { }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> Dist { get; set; }
+        public bool FixedH { get; set; }
+        public double H { get; set; }
+        public bool IsNadrMethod { get; set; }
+        public int K { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public System.Func<double, double> KernelWindow { get; set; }
+        public AI.ML.Regression.StructRegres Reg { get; set; }
+        public void Open(string path) { }
+        public double Predict(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector PredictV(AI.DataStructs.Algebraic.Vector inp) { }
+        public void Save(string path) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] tData, AI.DataStructs.Algebraic.Vector targs) { }
+        public void Train(AI.DataStructs.Algebraic.Vector tData, AI.DataStructs.Algebraic.Vector targs) { }
+        public void Train(AI.DataStructs.Algebraic.Vector tData, double targ) { }
+    }
+    [System.Serializable]
+    public class KnnMultyRegr : AI.ML.Regression.IMultyRegression<AI.DataStructs.Algebraic.Vector>
+    {
+        public KnnMultyRegr() { }
+        public KnnMultyRegr(AI.ML.Regression.StructRegresMulty reg) { }
+        public KnnMultyRegr(string path) { }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> Dist { get; set; }
+        public bool FixedH { get; set; }
+        public double H { get; set; }
+        public bool IsNadrMethod { get; set; }
+        public int K { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public System.Func<double, double> KernelWindow { get; set; }
+        public AI.ML.Regression.StructRegresMulty Reg { get; set; }
+        public void Open(string path) { }
+        public AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector[] PredictV(AI.DataStructs.Algebraic.Vector[] inp) { }
+        public void Save(string path) { }
+        public void Train(AI.DataStructs.Algebraic.Vector tData, AI.DataStructs.Algebraic.Vector targ) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] tData, AI.DataStructs.Algebraic.Vector[] targs) { }
+        public void Train(AI.DataStructs.Algebraic.Vector tData, AI.DataStructs.Algebraic.Vector[] targs) { }
+    }
+}

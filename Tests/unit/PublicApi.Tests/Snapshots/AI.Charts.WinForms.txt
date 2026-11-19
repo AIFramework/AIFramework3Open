@@ -1,0 +1,126 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatform("Windows7.0")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+[assembly: System.Runtime.Versioning.TargetPlatform("Windows7.0")]
+namespace AI.Charts.Forms
+{
+    [System.Serializable]
+    public class FormChart : System.Windows.Forms.Form
+    {
+        public FormChart() { }
+        public string ChartName { get; set; }
+        public string LabelX { get; set; }
+        public string LabelY { get; set; }
+        public void AddArea(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color) { }
+        public void AddBar(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color) { }
+        public void AddBarBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddBarBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddDiff(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, System.Drawing.Color color, string name, int w) { }
+        public void AddHistoramm(AI.DataStructs.Algebraic.Vector y, System.Drawing.Color color, string name) { }
+        public void AddIntegr(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, System.Drawing.Color color, string name, int w) { }
+        public void AddPlot(AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color, int width = 2, bool isSpline = false) { }
+        public void AddPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color, int width = 2, bool isSpline = false) { }
+        public void AddPlotBlack(AI.DataStructs.Algebraic.Vector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void AddPlotBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void AddRadialDegPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color, int width = 2) { }
+        public void AddRadialPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color, int width = 2) { }
+        public void AddScatter(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color) { }
+        public void AddScatterBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddScatterBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddSpectrum(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, System.Drawing.Color color, string name) { }
+        public void BarBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void BarBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void Clear() { }
+        protected override void Dispose(bool disposing) { }
+        public void PlotBlack(AI.DataStructs.Algebraic.Vector y, string name = "", int width = 1, bool isSpline = false) { }
+        public void PlotBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void PlotComplex(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void PlotComplex(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void RadPlotBlueDeg(AI.DataStructs.Algebraic.Vector y, string name = "", int width = 1) { }
+        public void ScatterBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void ScatterBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void ScatterComplex(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "") { }
+        public void ScatterComplexPlane(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", string xScale = "", string yScale = "") { }
+        public void VisualData(AI.Charts.ChartData chartDatas) { }
+    }
+}
+namespace AI.Charts.WinForms
+{
+    [System.Serializable]
+    public class ChartVisual : System.Windows.Forms.UserControl
+    {
+        public ChartVisual() { }
+        public AI.Charts.Rendering.Camera3D Camera3D { get; }
+        public string ChartName { get; set; }
+        public bool IsContextMenu { get; set; }
+        public bool IsLogScale { get; set; }
+        public bool IsMoove { get; set; }
+        public bool IsScale { get; set; }
+        public bool IsShowXY { get; set; }
+        public string LabelX { get; set; }
+        public string LabelY { get; set; }
+        public string LabelZ { get; set; }
+        public void AddArea(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color) { }
+        public void AddBar(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color) { }
+        public void AddBar(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color) { }
+        public void AddBarBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddBarBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddCircul(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name) { }
+        public void AddPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color, int width = 2, bool isSpline = false) { }
+        public void AddPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color? color = default, int width = 2, bool isSpline = false) { }
+        public void AddPlotBlack(AI.DataStructs.Algebraic.Vector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void AddPlotBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void AddRadialDegPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color, int width = 2) { }
+        public void AddRadialPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color, int width = 2) { }
+        public void AddRadialPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color, int width = 2) { }
+        public void AddScatter(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color) { }
+        public void AddScatter(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color) { }
+        public void AddScatter3D(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, AI.DataStructs.Algebraic.Vector z, string name, SkiaSharp.SKColor? color = default, AI.Charts.Rendering.ColormapKind colormap = 0, float markSize = 4) { }
+        public void AddScatterBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddScatterBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddScatterMark3(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color) { }
+        public void AddScatterMark6(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, System.Drawing.Color color) { }
+        public void AddSurface(AI.DataStructs.Algebraic.Vector xGrid, AI.DataStructs.Algebraic.Vector yGrid, double[] z, string name, AI.Charts.Rendering.ColormapKind colormap = 0, bool showEdges = true) { }
+        public void AddWireframe(AI.DataStructs.Algebraic.Vector xGrid, AI.DataStructs.Algebraic.Vector yGrid, double[] z, string name, SkiaSharp.SKColor? color = default, AI.Charts.Rendering.ColormapKind colormap = 0) { }
+        public void AutoScale() { }
+        public void BarBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void BarBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public System.Drawing.Bitmap ChartImg() { }
+        public void Clear() { }
+        protected override void Dispose(bool disposing) { }
+        public void PlotBlack(AI.DataStructs.Algebraic.Vector y, string name = "", int width = 1, bool isSpline = false) { }
+        public void PlotBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void PlotComplex(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void PlotComplex(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void RadPlotBlueDeg(AI.DataStructs.Algebraic.Vector y, string name = "", int width = 1) { }
+        public void ScatterBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void ScatterBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void ScatterComplex(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "") { }
+        public void ScatterComplexPlane(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", string xScale = "", string yScale = "") { }
+        public void ScatterComplexPlaneWithRing1(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", string xScale = "", string yScale = "") { }
+        public void SetAxisRange(double xMin, double xMax, double yMin, double yMax) { }
+        public void SetDefaultColor() { }
+        public void VisualData(AI.Charts.ChartData chartDatas) { }
+    }
+    [System.Serializable]
+    public class HeatMapControl : System.Windows.Forms.UserControl
+    {
+        public HeatMapControl() { }
+        public void CalculateHeatMap(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public void CalculateHeatMap(double[] data) { }
+        protected override void Dispose(bool disposing) { }
+    }
+    [System.Serializable]
+    public class SpectrumWelchAnalyzer : System.Windows.Forms.UserControl
+    {
+        public System.Func<int, AI.DataStructs.Algebraic.Vector> WindowFunc;
+        public SpectrumWelchAnalyzer() { }
+        public int FFTBlock { get; set; }
+        public double FreqOffset { get; set; }
+        public int SR { get; set; }
+        public AI.DSP.Analyse.WelchPSDType WelchPSDTypeData { get; set; }
+        public AI.DataStructs.Algebraic.Vector WindowW { get; }
+        public System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> Analyze(AI.DataStructs.Algebraic.Vector signal) { }
+        protected override void Dispose(bool disposing) { }
+    }
+}

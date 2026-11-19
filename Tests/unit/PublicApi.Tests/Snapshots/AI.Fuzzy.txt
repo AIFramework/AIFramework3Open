@@ -1,0 +1,236 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Fuzzy
+{
+    [System.Serializable]
+    public class ActivatedFuzzySet : AI.Fuzzy.ClassicFuzzySet
+    {
+        public ActivatedFuzzySet() { }
+        public double TruthDegree { get; set; }
+    }
+    [System.Serializable]
+    public class BaseVar
+    {
+        public BaseVar() { }
+        public AI.Fuzzy.ClassicFuzzySet Term { get; set; }
+        public AI.Fuzzy.FuzzyVariable Variable { get; set; }
+    }
+    [System.Serializable]
+    public class ClassicFuzzySet
+    {
+        public ClassicFuzzySet() { }
+        public System.Func<double, double> Fuzzyficator { get; set; }
+    }
+    [System.Serializable]
+    public class Conclusion : AI.Fuzzy.BaseVar
+    {
+        public Conclusion() { }
+        public double W { get; set; }
+    }
+    [System.Serializable]
+    public class FLV
+    {
+        public FLV() { }
+        public FLV(double flv) { }
+        public double Flv { get; set; }
+        public static AI.Fuzzy.FLV GImplication(AI.Fuzzy.FLV @if, AI.Fuzzy.FLV then) { }
+        public static AI.Fuzzy.FLV KDImplication(AI.Fuzzy.FLV @if, AI.Fuzzy.FLV then) { }
+        public static double LarsenImplication(double @if, double then) { }
+        public static AI.Fuzzy.FLV MamdaniImplication(AI.Fuzzy.FLV @if, AI.Fuzzy.FLV then) { }
+        public static double op_Implicit(AI.Fuzzy.FLV data) { }
+        public static AI.Fuzzy.FLV op_Implicit(double data) { }
+        public static AI.Fuzzy.FLV op_Implicit(float data) { }
+        public static AI.Fuzzy.FLV op_Implicit(int data) { }
+        public static AI.Fuzzy.FLV operator !(AI.Fuzzy.FLV a) { }
+        public static AI.Fuzzy.FLV operator &(AI.Fuzzy.FLV a, AI.Fuzzy.FLV b) { }
+        public static AI.Fuzzy.FLV operator |(AI.Fuzzy.FLV a, AI.Fuzzy.FLV b) { }
+    }
+    [System.Serializable]
+    public class FuzzyAnalogyInference
+    {
+        public FuzzyAnalogyInference() { }
+        public static AI.DataStructs.Algebraic.Matrix GetImplicationMatrix(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Matrix> impl, AI.DataStructs.Algebraic.Vector reward, double q = 0.5) { }
+        public static AI.DataStructs.Algebraic.Matrix GetImplicationMatrixG(AI.DataStructs.Algebraic.Vector @if, AI.DataStructs.Algebraic.Vector then) { }
+        public static AI.DataStructs.Algebraic.Matrix GetImplicationMatrixG(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> ifEn, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> thenEn) { }
+        public static AI.DataStructs.Algebraic.Matrix GetImplicationMatrixLarsen(AI.DataStructs.Algebraic.Vector ifVector, AI.DataStructs.Algebraic.Vector thenVector) { }
+        public static AI.DataStructs.Algebraic.Matrix GetImplicationMatrixMamdani(AI.DataStructs.Algebraic.Vector ifVector, AI.DataStructs.Algebraic.Vector thenVector) { }
+        public static AI.DataStructs.Algebraic.Vector Inference(AI.DataStructs.Algebraic.Matrix matrix, AI.DataStructs.Algebraic.Vector ifVector) { }
+    }
+    [System.Serializable]
+    public class FuzzyCondition : AI.Fuzzy.BaseVar
+    {
+        public FuzzyCondition() { }
+    }
+    [System.Serializable]
+    public class FuzzyRuleClassic
+    {
+        public FuzzyRuleClassic() { }
+        public AI.Fuzzy.Conclusion[] Conclusions { get; set; }
+        public AI.Fuzzy.FuzzyCondition[] FuzzyConditions { get; set; }
+    }
+    [System.Serializable]
+    public static class FuzzySetTools
+    {
+        public static System.Collections.Generic.Dictionary<T, double> Add<T>(System.Collections.Generic.Dictionary<T, double> set_1, System.Collections.Generic.Dictionary<T, double> set_2) { }
+        public static System.Collections.Generic.Dictionary<T, double> Array2FuzzySet<T>(System.Collections.Generic.IEnumerable<T> set) { }
+        public static bool DicObjIsDicT<T>(System.Collections.Generic.Dictionary<object, double> set) { }
+        public static System.Collections.Generic.Dictionary<T, double> Merge<T>(System.Collections.Generic.IEnumerable<System.Collections.Generic.Dictionary<T, double>> sets) { }
+        public static System.Collections.Generic.Dictionary<T, double> SetConvert<T>(System.Collections.Generic.Dictionary<object, double> set) { }
+        public static System.Collections.Generic.Dictionary<object, double> SetConvertToObj<T>(System.Collections.Generic.Dictionary<T, double> set) { }
+        public static double SetDiceSimModification(System.Collections.Generic.Dictionary<string, double> fuzzy_set1, System.Collections.Generic.Dictionary<string, double> fuzzy_set2) { }
+        public static double SetDiceSimModificationAsymmetric(System.Collections.Generic.Dictionary<string, double> main_set, System.Collections.Generic.Dictionary<string, double> fuzzy_set2) { }
+    }
+    [System.Serializable]
+    public class FuzzyVariable
+    {
+        public System.Collections.Generic.HashSet<AI.Fuzzy.ClassicFuzzySet> Terms;
+        public FuzzyVariable() { }
+    }
+}
+namespace AI.Fuzzy.Control
+{
+    [System.Serializable]
+    public sealed class FuzzyPIDController
+    {
+        public FuzzyPIDController() { }
+        public bool AccumulateOutput { get; set; }
+        public double AccumulatedControl { get; }
+        public double Integral { get; }
+        public double IntegralLimit { get; set; }
+        public double Kde { get; set; }
+        public double Ke { get; set; }
+        public double Kie { get; set; }
+        public double MamdaniConsequentHalfWidth { get; set; }
+        public int MamdaniOutputSamples { get; set; }
+        public AI.Fuzzy.Control.FuzzyPIDOutputMode Mode { get; set; }
+        public double OutputGain { get; set; }
+        public double PreviousError { get; }
+        public double Compute(double setpoint, double processValue, double dt) { }
+        public double ComputeOutputOnly(double setpoint, double processValue, double dt) { }
+        public double PreviewOutput(double error, double dError, double integralError) { }
+        public void Reset() { }
+    }
+    public enum FuzzyPIDOutputMode
+    {
+        Sugeno = 0,
+        Mamdani = 1,
+    }
+}
+namespace AI.Fuzzy.Fuzzification
+{
+    public interface IFuzzyficatorVector
+    {
+        AI.DataStructs.Algebraic.Vector DeFuzzyfication(AI.DataStructs.Algebraic.Vector valueF);
+        AI.DataStructs.Algebraic.Vector Fuzzyfication(AI.DataStructs.Algebraic.Vector value);
+    }
+    [System.Serializable]
+    public class LingVarGaussian
+    {
+        public LingVarGaussian(int k = 3) { }
+        public void AddVar(AI.DataStructs.Algebraic.Vector features, string nameVar) { }
+        public System.Collections.Generic.Dictionary<string, double> FeaturesToFuzzySet(AI.DataStructs.Algebraic.Vector features) { }
+        public System.Collections.Generic.Dictionary<string, double> FeaturesToFuzzySet(AI.DataStructs.Algebraic.Vector features, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> probTransformer, double pow = 1) { }
+        public string Recognition(AI.DataStructs.Algebraic.Vector features) { }
+    }
+    [System.Serializable]
+    public class SigmoidVectorFuzzyficator : AI.Fuzzy.Fuzzification.IFuzzyficatorVector
+    {
+        public SigmoidVectorFuzzyficator(double beta = 1) { }
+        public AI.DataStructs.Algebraic.Vector DeFuzzyfication(AI.DataStructs.Algebraic.Vector valueF) { }
+        public AI.DataStructs.Algebraic.Vector Fuzzyfication(AI.DataStructs.Algebraic.Vector value) { }
+    }
+}
+namespace AI.Fuzzy.Inference
+{
+    public static class FuzzyLarsenInference
+    {
+        public static AI.DataStructs.Algebraic.Vector AggregateMaxProduct(System.Collections.Generic.IReadOnlyList<double> ruleWeights, System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> outputTermSamples) { }
+        public static AI.DataStructs.Algebraic.Matrix GetImplicationMatrixLarsen(AI.DataStructs.Algebraic.Vector ifVector, AI.DataStructs.Algebraic.Vector thenVector) { }
+        public static double InferCentroid(System.Collections.Generic.IReadOnlyList<double> ruleWeights, System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> outputTermSamples, AI.DataStructs.Algebraic.Vector universe) { }
+    }
+    public static class FuzzyMamdaniInference
+    {
+        public static AI.DataStructs.Algebraic.Vector AggregateMaxMin(System.Collections.Generic.IReadOnlyList<double> ruleWeights, System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> outputTermSamples) { }
+        public static double DefuzzifyCentroid(AI.DataStructs.Algebraic.Vector universe, AI.DataStructs.Algebraic.Vector membership) { }
+        public static AI.DataStructs.Algebraic.Matrix GetImplicationMatrixMamdani(AI.DataStructs.Algebraic.Vector ifVector, AI.DataStructs.Algebraic.Vector thenVector) { }
+        public static double InferCentroid(System.Collections.Generic.IReadOnlyList<double> ruleWeights, System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> outputTermSamples, AI.DataStructs.Algebraic.Vector universe) { }
+    }
+    public static class FuzzyMembershipShapes
+    {
+        public static double Trapezoidal(double x, double a, double b, double c, double d) { }
+        public static double Triangular(double x, double a, double b, double c) { }
+    }
+    public static class FuzzySugenoInference
+    {
+        public static AI.DataStructs.Algebraic.Matrix GetProductImplicationMatrix(AI.DataStructs.Algebraic.Vector ifVector, AI.DataStructs.Algebraic.Vector thenVector) { }
+        public static double TakagiSugenoOrder1(AI.DataStructs.Algebraic.Vector inputs, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "weight",
+                "linearCoeffs",
+                "constant"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, AI.DataStructs.Algebraic.Vector, double>> rules) { }
+        public static double WeightedAverageSingletons(System.Collections.Generic.IReadOnlyList<double> ruleWeights, System.Collections.Generic.IReadOnlyList<double> consequentSingletons) { }
+    }
+    public static class FuzzyTsukamotoInference
+    {
+        public static double Infer(System.Collections.Generic.IReadOnlyList<double> ruleWeights, System.Collections.Generic.IReadOnlyList<System.Func<double, double>> consequentMemberships, double zMin, double zMax, AI.Fuzzy.Inference.TsukamotoOutputMonotonicity monotonicity) { }
+        public static double InverseMonotoneMembership(System.Func<double, double> membership, double alpha, double zMin, double zMax, AI.Fuzzy.Inference.TsukamotoOutputMonotonicity monotonicity, int bisectionIterations = 48) { }
+    }
+    public enum TsukamotoOutputMonotonicity
+    {
+        Increasing = 0,
+        Decreasing = 1,
+    }
+}
+namespace AI.Fuzzy.Sets
+{
+    [System.Serializable]
+    public class FuzzySetElement<ElType, ImgType>
+    {
+        public FuzzySetElement() { }
+        public ElType ElementValue { get; set; }
+        public ImgType Image { get; set; }
+        public double Mu { get; set; }
+    }
+    [System.Serializable]
+    public class FuzzySetGenerator<ElType, ImgType>
+    {
+        public FuzzySetGenerator() { }
+        public FuzzySetGenerator(AI.Fuzzy.Sets.IImageSet<ElType, ImgType> image, AI.Fuzzy.Sets.IMu<ElType, ImgType> mu) { }
+        public AI.Fuzzy.Sets.IImageSet<ElType, ImgType> Image { get; set; }
+        public AI.Fuzzy.Sets.IMu<ElType, ImgType> Mu { get; set; }
+        public string Name { get; set; }
+        public AI.Fuzzy.Sets.FuzzySetElement<ElType, ImgType> GetElement(ElType element) { }
+        public AI.Fuzzy.Sets.FuzzySet<ElType, ImgType> SetGenerate(System.Collections.Generic.IEnumerable<ElType> elements) { }
+        public static AI.Fuzzy.Sets.FuzzySet<ElType, ImgType> And(System.Collections.Generic.IEnumerable<ElType> elements, System.Collections.Generic.IEnumerable<AI.Fuzzy.Sets.FuzzySetGenerator<ElType, ImgType>> fuzzySets, double w = 1) { }
+        public static AI.Fuzzy.Sets.FuzzySet<ElType, ImgType> Or(System.Collections.Generic.IEnumerable<ElType> elements, System.Collections.Generic.IEnumerable<AI.Fuzzy.Sets.FuzzySetGenerator<ElType, ImgType>> fuzzySets, double w = 1) { }
+    }
+    [System.Serializable]
+    public class FuzzySet<ElType, ImgType> : System.Collections.Generic.List<AI.Fuzzy.Sets.FuzzySetElement<ElType, ImgType>>
+    {
+        public FuzzySet() { }
+        public FuzzySet(System.Collections.Generic.IEnumerable<AI.Fuzzy.Sets.FuzzySetElement<ElType, ImgType>> fuzzySet) { }
+        public AI.Fuzzy.Sets.FuzzySet<ElType, ImgType> Not(double w = 1) { }
+    }
+    public interface IImageSet<ElType, ImgType>
+    {
+        ImgType GetImage(ElType type);
+    }
+    public interface IMu<ElType, ImgType>
+    {
+        double Mu0 { get; set; }
+        double GetCoef(ElType data, ImgType image);
+    }
+}
+namespace AI.ML.Classification
+{
+    [System.Serializable]
+    public class FuzzyClassifier : AI.ML.Classification.BaseClassifier<AI.ML.Classification.FuzzyClassifier>
+    {
+        public FuzzyClassifier() { }
+        public AI.Fuzzy.Fuzzification.IFuzzyficatorVector FuzzyficatorVectorInp { get; set; }
+        public AI.Fuzzy.Fuzzification.IFuzzyficatorVector FuzzyficatorVectorOutp { get; set; }
+        public AI.DataStructs.Algebraic.Matrix ImplMatrix { get; protected set; }
+        public override int Classify(AI.DataStructs.Algebraic.Vector inp) { }
+        public override AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp) { }
+        public override void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes) { }
+    }
+}

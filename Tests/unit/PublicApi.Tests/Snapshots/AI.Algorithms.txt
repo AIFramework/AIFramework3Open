@@ -1,0 +1,901 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Algorithms.DynamicPathfinding
+{
+    [System.Serializable]
+    public class ARAStar<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public ARAStar(AI.Algorithms.EWG.GraphW<T> graph, int start, int goal, System.Func<int, double> heuristic, double initialEpsilon) { }
+        public double Epsilon { get; }
+        public double PathCost { get; }
+        public void DecreaseEpsilon(double delta) { }
+        public System.Collections.Generic.List<int> GetPath() { }
+        public void ImprovePath() { }
+    }
+    [System.Serializable]
+    public class DStarLite
+    {
+        public DStarLite(int width, int height, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})] System.ValueTuple<int, int> start, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})] System.ValueTuple<int, int> goal) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})]
+        public System.Collections.Generic.List<System.ValueTuple<int, int>> GetPath() { }
+        public void Replan() { }
+        public void SetBlocked(int x, int y, bool blocked) { }
+    }
+    [System.Serializable]
+    public class LPAStar
+    {
+        public LPAStar(int width, int height, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})] System.ValueTuple<int, int> start, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})] System.ValueTuple<int, int> goal) { }
+        public void ComputeShortestPath() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})]
+        public System.Collections.Generic.List<System.ValueTuple<int, int>> GetPath() { }
+        public void UpdateEdgeCost(int x, int y, bool blocked) { }
+    }
+}
+namespace AI.Algorithms.EWG
+{
+    [System.Serializable]
+    public class AStarSearch<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public AStarSearch(AI.Algorithms.EWG.GraphW<T> graph, int start, int goal, System.Func<int, double> heuristic) { }
+        public T[] CameFrom { get; }
+        public bool Found { get; }
+        public double[] GScore { get; }
+        public double PathCost { get; }
+        public System.Collections.Generic.List<int> GetPath() { }
+    }
+    [System.Serializable]
+    public class BFS
+    {
+        public BFS(AI.Algorithms.EWG.Graph graph, int startVertex) { }
+        public int[] DistanceTo { get; }
+        public int[] EdgeTo { get; }
+        public bool[] Visited { get; }
+        public System.Collections.Generic.IEnumerable<int> PathTo(int v) { }
+    }
+    [System.Serializable]
+    public class BaseEdge : System.IComparable<AI.Algorithms.EWG.BaseEdge>
+    {
+        public BaseEdge() { }
+        public BaseEdge(int startV, int endV, double w) { }
+        public int EndV { get; set; }
+        public int StartV { get; set; }
+        public double W { get; set; }
+        public virtual int CompareTo(AI.Algorithms.EWG.BaseEdge other) { }
+        public virtual int Either() { }
+        public virtual int Other(int vertex) { }
+    }
+    [System.Serializable]
+    public class BellmanFordSP<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public BellmanFordSP(AI.Algorithms.EWG.GraphW<T> graph, int startVertex) { }
+        public double[] Distances { get; }
+        public T[] Edges { get; }
+        public bool HasNegativeCycle { get; }
+        public System.Collections.Generic.IEnumerable<T> PathTo(int v) { }
+    }
+    [System.Serializable]
+    public class BidirectionalDijkstra<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public BidirectionalDijkstra(AI.Algorithms.EWG.GraphW<T> graph, int start, int goal) { }
+        public bool Found { get; }
+        public double PathCost { get; }
+        public System.Collections.Generic.List<int> GetPath() { }
+    }
+    [System.Serializable]
+    public class DFS
+    {
+        public DFS(AI.Algorithms.EWG.Graph graph, int startVertex) { }
+        public int[] EdgeTo { get; }
+        public bool[] Visited { get; }
+        public System.Collections.Generic.IEnumerable<int> PathTo(int v) { }
+    }
+    [System.Serializable]
+    public class DijkstraSPath<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public DijkstraSPath(AI.Algorithms.EWG.GraphW<T> graph, int vertex_start) { }
+        public double[] Distances { get; }
+        public T[] Edges { get; }
+    }
+    [System.Serializable]
+    public class Edge : AI.Algorithms.EWG.BaseEdge
+    {
+        public Edge() { }
+        public Edge(int startV, int endV, double w) { }
+    }
+    [System.Serializable]
+    public class FloydWarshall<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public FloydWarshall(AI.Algorithms.EWG.GraphW<T> graph) { }
+        public double[] Dist { get; }
+        public int[] Next { get; }
+        public double DistanceBetween(int u, int v) { }
+        public System.Collections.Generic.List<int> PathBetween(int u, int v) { }
+    }
+    [System.Serializable]
+    public class FringeSearch<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public FringeSearch(AI.Algorithms.EWG.GraphW<T> graph, int start, int goal, System.Func<int, double> heuristic) { }
+        public bool Found { get; }
+        public System.Collections.Generic.List<int> Path { get; }
+        public double PathCost { get; }
+    }
+    [System.Serializable]
+    public class Graph
+    {
+        public Graph(int numV) { }
+        public int Arcs { get; protected set; }
+        public int E { get; protected set; }
+        public int V { get; protected set; }
+        public virtual void AddArc(int i, int j) { }
+        public virtual void AddEdge(int i, int j) { }
+        public virtual int[] Adj(int i) { }
+        public int[] AllVertices() { }
+        public bool HasEdge(int i, int j) { }
+        public AI.Algorithms.EWG.Graph Reverse() { }
+        public override string ToString() { }
+        public static double AverageDegree(AI.Algorithms.EWG.Graph g) { }
+        public static int Degree(AI.Algorithms.EWG.Graph g, int i) { }
+        public static int MaxDegree(AI.Algorithms.EWG.Graph g) { }
+        public static int NumSelfLoops(AI.Algorithms.EWG.Graph g) { }
+    }
+    [System.Serializable]
+    public class GraphW<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public GraphW(int numV) { }
+        public int Arcs { get; protected set; }
+        public int E { get; protected set; }
+        public int V { get; protected set; }
+        public virtual void AddArce(int i, int j, double w = 1) { }
+        public virtual void AddArceW(T edge) { }
+        public virtual void AddEdge(int i, int j, double w = 1) { }
+        public virtual void AddEdgeW(T edge) { }
+        public virtual int[] Adj(int i) { }
+        public virtual T[] AdjEW(int i) { }
+        public T[] AllEdges() { }
+        public AI.Algorithms.EWG.Graph Reverse() { }
+        public override string ToString() { }
+        public static double AverageDegree(AI.Algorithms.EWG.Graph g) { }
+        public static int Degree(AI.Algorithms.EWG.Graph g, int i) { }
+        public static int MaxDegree(AI.Algorithms.EWG.Graph g) { }
+        public static int NumSelfLoops(AI.Algorithms.EWG.Graph g) { }
+    }
+    [System.Serializable]
+    public class IDAStarSearch<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public IDAStarSearch(AI.Algorithms.EWG.GraphW<T> graph, int start, int goal, System.Func<int, double> heuristic) { }
+        public bool Found { get; }
+        public System.Collections.Generic.List<int> Path { get; }
+        public double PathCost { get; }
+    }
+    [System.Serializable]
+    public class JohnsonAllPairs<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public JohnsonAllPairs(AI.Algorithms.EWG.GraphW<T> graph) { }
+        public bool HasNegativeCycle { get; }
+        public AI.Algorithms.EWG.ShortestPathTree<T>[] Trees { get; }
+        public double DistanceBetween(int u, int v) { }
+    }
+    [System.Serializable]
+    public class ShortestPathTree<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public ShortestPathTree(System.Collections.Generic.IEnumerable<T> eds, System.Collections.Generic.IEnumerable<double> dists) { }
+        public double DistanceTo(int endV) { }
+        public T[] GetPath(int endV) { }
+    }
+    [System.Serializable]
+    public abstract class ShortestPath<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        protected ShortestPath() { }
+        public abstract double DistanceTo(int endVertex);
+        public abstract System.Collections.Generic.IEnumerable<T> GetEdgesFromPath(int endVertex);
+        protected abstract void Init(AI.Algorithms.EWG.GraphW<T> graph, int startVertex);
+    }
+    [System.Serializable]
+    public class YenKShortestPaths<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public YenKShortestPaths(AI.Algorithms.EWG.GraphW<T> graph, int source, int target, int K) { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Path",
+                "Cost"})]
+        public System.Collections.Generic.List<System.ValueTuple<System.Collections.Generic.List<int>, double>> Paths { get; }
+    }
+}
+namespace AI.Algorithms.GraphStructure
+{
+    [System.Serializable]
+    public class ArticulationBridges
+    {
+        public ArticulationBridges(AI.Algorithms.EWG.Graph graph) { }
+        public System.Collections.Generic.List<int> ArticulationPoints { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "U",
+                "V"})]
+        public System.Collections.Generic.List<System.ValueTuple<int, int>> Bridges { get; }
+    }
+    [System.Serializable]
+    public class KosarajuSCC
+    {
+        public KosarajuSCC(AI.Algorithms.EWG.Graph graph) { }
+        public int[] ComponentId { get; }
+        public int Count { get; }
+        public bool StronglyConnected(int u, int v) { }
+    }
+    [System.Serializable]
+    public class PageRank
+    {
+        public PageRank(AI.Algorithms.EWG.Graph graph, double damping = 0.85, double tolerance = 1E-09, int maxIterations = 100, double[] personalization = null) { }
+        public bool Converged { get; }
+        public int Iterations { get; }
+        public double[] Scores { get; }
+        public static AI.Algorithms.GraphStructure.PageRank Weighted<T>(AI.Algorithms.EWG.GraphW<T> graph, double damping = 0.85, double tolerance = 1E-09, int maxIterations = 100, double[] personalization = null)
+            where T : AI.Algorithms.EWG.BaseEdge, new () { }
+    }
+    [System.Serializable]
+    public class TarjanSCC
+    {
+        public TarjanSCC(AI.Algorithms.EWG.Graph graph) { }
+        public int[] ComponentId { get; }
+        public int Count { get; }
+        public bool StronglyConnected(int u, int v) { }
+    }
+    [System.Serializable]
+    public class TopologicalSort
+    {
+        public TopologicalSort(AI.Algorithms.EWG.Graph graph) { }
+        public bool HasCycle { get; }
+        public int[] Order { get; }
+    }
+    [System.Serializable]
+    public class TwoSAT
+    {
+        public TwoSAT(int numVariables) { }
+        public bool[] Assignment { get; }
+        public void AddClause(int u, int v) { }
+        public bool Solve() { }
+    }
+}
+namespace AI.Algorithms.MAPF
+{
+    [System.Serializable]
+    public class CBS
+    {
+        public CBS(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, int timeLimit = 1000) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class ECBS
+    {
+        public ECBS(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, double suboptimalityBound = 1.5, int timeLimit = 1000) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class GridMap
+    {
+        public GridMap(int width, int height) { }
+        public int Height { get; }
+        public int Width { get; }
+        public bool InBounds(int x, int y) { }
+        public bool IsBlocked(int x, int y) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})]
+        public System.Collections.Generic.List<System.ValueTuple<int, int>> Neighbors(int x, int y, bool eightConnected = false) { }
+        public void SetBlocked(int x, int y, bool blocked) { }
+    }
+    [System.Serializable]
+    public class HCA
+    {
+        public HCA(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class ICBS
+    {
+        public ICBS(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, int timeLimit = 1000) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class ICTS
+    {
+        public ICTS(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, int timeLimit = 1000) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class LaCAM
+    {
+        public LaCAM(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, int maxIter = 10000) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class LaCAMStar
+    {
+        public LaCAMStar(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, int maxIter = 10000) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class MAPFAgent
+    {
+        public MAPFAgent() { }
+        public int GoalX { get; set; }
+        public int GoalY { get; set; }
+        public int Id { get; set; }
+        public int StartX { get; set; }
+        public int StartY { get; set; }
+    }
+    [System.Serializable]
+    public class MAPFSolution
+    {
+        public MAPFSolution() { }
+        public int Makespan { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})]
+        public System.Collections.Generic.List<System.Collections.Generic.List<System.ValueTuple<int, int>>> Paths { get; set; }
+        public int SumOfCosts { get; }
+        public bool IsValid(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents) { }
+    }
+    [System.Serializable]
+    public class PBS
+    {
+        public PBS(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, int timeLimit = 1000) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class PIBT
+    {
+        public PIBT(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, int maxTimesteps = 200) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class PushAndRotate
+    {
+        public PushAndRotate(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class PushAndSwap
+    {
+        public PushAndSwap(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class SIPP
+    {
+        public SIPP(AI.Algorithms.MAPF.GridMap map, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y",
+                "TimeStart",
+                "TimeEnd"})] System.Collections.Generic.List<System.ValueTuple<int, int, int, int>> dynamicObstacles) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})]
+        public System.Collections.Generic.List<System.ValueTuple<int, int>> FindPath(int sx, int sy, int gx, int gy, int startTime = 0) { }
+    }
+    [System.Serializable]
+    public class TokenPassing
+    {
+        public TokenPassing(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+    [System.Serializable]
+    public class WHCA
+    {
+        public WHCA(AI.Algorithms.MAPF.GridMap map, System.Collections.Generic.List<AI.Algorithms.MAPF.MAPFAgent> agents, int windowSize = 16) { }
+        public AI.Algorithms.MAPF.MAPFSolution Solve() { }
+    }
+}
+namespace AI.Algorithms.MST
+{
+    [System.Serializable]
+    public class Boruvka<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public Boruvka(AI.Algorithms.EWG.GraphW<T> graph) { }
+        public System.Collections.Generic.List<T> MSTEdges { get; }
+        public double TotalWeight { get; }
+    }
+    [System.Serializable]
+    public class Kruskal<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public Kruskal(AI.Algorithms.EWG.GraphW<T> graph) { }
+        public System.Collections.Generic.List<T> MSTEdges { get; }
+        public double TotalWeight { get; }
+    }
+    [System.Serializable]
+    public class Prim<T>
+        where T : AI.Algorithms.EWG.BaseEdge, new ()
+    {
+        public Prim(AI.Algorithms.EWG.GraphW<T> graph) { }
+        public T[] EdgeTo { get; }
+        public double[] KeyTo { get; }
+        public double TotalWeight { get; }
+        public System.Collections.Generic.IEnumerable<T> MSTEdges() { }
+    }
+}
+namespace AI.Algorithms.Matching
+{
+    [System.Serializable]
+    public class AuctionAlgorithm
+    {
+        public AuctionAlgorithm(double[] benefitMatrix, double epsilon = 1) { }
+        public int[] Assignment { get; }
+        public double TotalBenefit { get; }
+    }
+    [System.Serializable]
+    public class EdmondsBlossom
+    {
+        public EdmondsBlossom(int v) { }
+        public int[] Match { get; }
+        public void AddEdge(int u, int v) { }
+        public int MaxMatching() { }
+    }
+    [System.Serializable]
+    public class GaleShapley
+    {
+        public GaleShapley(int[][] menPrefs, int[][] womenPrefs) { }
+        public int[] ManPartner { get; }
+        public int[] WomanPartner { get; }
+    }
+    [System.Serializable]
+    public class HopcroftKarp
+    {
+        public HopcroftKarp(int leftSize, int rightSize) { }
+        public int[] MatchLeft { get; }
+        public int[] MatchRight { get; }
+        public void AddEdge(int left, int right) { }
+        public int MaxMatching() { }
+    }
+    [System.Serializable]
+    public class Hungarian
+    {
+        public Hungarian(double[] costMatrix) { }
+        public int[] Assignment { get; }
+        public double TotalCost { get; }
+    }
+    [System.Serializable]
+    public class KuhnMatching
+    {
+        public KuhnMatching(int leftSize, int rightSize) { }
+        public int[] MatchLeft { get; }
+        public int[] MatchRight { get; }
+        public void AddEdge(int l, int r) { }
+        public int Solve() { }
+    }
+    [System.Serializable]
+    public class SSPAssignment
+    {
+        public SSPAssignment(double[] costMatrix) { }
+        public int[] Assignment { get; }
+        public double TotalCost { get; }
+    }
+}
+namespace AI.Algorithms.NetworkFlow
+{
+    [System.Serializable]
+    public class CostScaling
+    {
+        public CostScaling(int v) { }
+        public void AddEdge(int from, int to, int capacity, double cost) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "flow",
+                "cost"})]
+        public System.ValueTuple<double, double> Solve(int s, int t) { }
+    }
+    [System.Serializable]
+    public class CycleCanceling
+    {
+        public CycleCanceling(int v) { }
+        public void AddEdge(int from, int to, int capacity, double cost) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "flow",
+                "cost"})]
+        public System.ValueTuple<double, double> Solve(int s, int t) { }
+    }
+    [System.Serializable]
+    public class Dinic
+    {
+        public Dinic(AI.Algorithms.NetworkFlow.FlowNetwork network, int s, int t) { }
+        public double MaxFlow { get; }
+    }
+    [System.Serializable]
+    public class EdmondsKarp
+    {
+        public EdmondsKarp(AI.Algorithms.NetworkFlow.FlowNetwork network, int s, int t) { }
+        public double MaxFlow { get; }
+        public bool InCut(int v) { }
+    }
+    [System.Serializable]
+    public class FlowEdge
+    {
+        public FlowEdge(int from, int to, double capacity) { }
+        public double Capacity { get; set; }
+        public double Flow { get; set; }
+        public int From { get; set; }
+        public int To { get; set; }
+        public void AddFlowTo(int v, double delta) { }
+        public int Other(int v) { }
+        public double ResidualCapacityTo(int v) { }
+        public override string ToString() { }
+    }
+    [System.Serializable]
+    public class FlowNetwork
+    {
+        public FlowNetwork(int v) { }
+        public int E { get; }
+        public int V { get; }
+        public void AddEdge(AI.Algorithms.NetworkFlow.FlowEdge e) { }
+        public System.Collections.Generic.List<AI.Algorithms.NetworkFlow.FlowEdge> Adj(int v) { }
+        public System.Collections.Generic.List<AI.Algorithms.NetworkFlow.FlowEdge> AllEdges() { }
+    }
+    [System.Serializable]
+    public class FordFulkerson
+    {
+        public FordFulkerson(AI.Algorithms.NetworkFlow.FlowNetwork network, int s, int t) { }
+        public double MaxFlow { get; }
+        public bool InCut(int v) { }
+    }
+    [System.Serializable]
+    public class GomoryHu
+    {
+        public GomoryHu(int v) { }
+        public void AddEdge(int u, int v, double w) { }
+        public void Build() { }
+        public double MinCut(int u, int v) { }
+        public System.Collections.Generic.List<int> MinCutPartition(int u, int v) { }
+    }
+    [System.Serializable]
+    public class PushRelabel
+    {
+        public PushRelabel(AI.Algorithms.NetworkFlow.FlowNetwork network, int s, int t) { }
+        public double MaxFlow { get; }
+    }
+    [System.Serializable]
+    public class StoerWagner
+    {
+        public StoerWagner(int v) { }
+        public void AddEdge(int u, int v, double w) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "MinCut",
+                "Partition"})]
+        public System.ValueTuple<double, System.Collections.Generic.List<int>> Solve() { }
+    }
+    [System.Serializable]
+    public class SuccessiveShortestPaths
+    {
+        public SuccessiveShortestPaths(int v) { }
+        public void AddEdge(int from, int to, int capacity, double cost) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "flow",
+                "cost"})]
+        public System.ValueTuple<double, double> Solve(int s, int t) { }
+    }
+}
+namespace AI.Algorithms.PriorityQueues
+{
+    public interface IPriorityQueueMax<T>
+        where T : System.IComparable<T>
+    {
+        T DelMax();
+        bool Insert(T data);
+        bool IsEmpty();
+        T KeyMax();
+        int Size();
+    }
+    public interface IPriorityQueueMin<T>
+        where T : System.IComparable<T>
+    {
+        T DelMin();
+        void Insert(T data);
+        bool IsEmpty();
+        T KeyMin();
+        int Size();
+    }
+    [System.Serializable]
+    public class IndexPriorityQueueMin<T>
+        where T : System.IComparable<T>
+    {
+        public IndexPriorityQueueMin(int capasity) { }
+        public System.Tuple<int, T> DelMin() { }
+        public int DelMinGetIndex() { }
+        public T DelMinGetValue() { }
+        public void Insert(int index, T element) { }
+        public bool IsContain(int index) { }
+        public bool IsEmpty() { }
+        public T KeyMin() { }
+        public int Size() { }
+        public void Update(int index, T element) { }
+    }
+    [System.Serializable]
+    public class SimplePriorityQueueMax<T> : AI.Algorithms.PriorityQueues.IPriorityQueueMax<T>
+        where T : System.IComparable<T>
+    {
+        public SimplePriorityQueueMax(T[] data) { }
+        public SimplePriorityQueueMax(int capasity) { }
+        public T DelMax() { }
+        public bool Insert(T element) { }
+        public bool IsEmpty() { }
+        public T KeyMax() { }
+        public int Size() { }
+    }
+    [System.Serializable]
+    public class SimplePriorityQueueMin<T> : AI.Algorithms.PriorityQueues.IPriorityQueueMin<T>
+        where T : System.IComparable<T>
+    {
+        public SimplePriorityQueueMin(T[] data) { }
+        public SimplePriorityQueueMin(int capasity) { }
+        public T DelMin() { }
+        public void Insert(T element) { }
+        public bool IsEmpty() { }
+        public T KeyMin() { }
+        public int Size() { }
+    }
+}
+namespace AI.Algorithms.TaskAllocation
+{
+    [System.Serializable]
+    public class ADOPT
+    {
+        public ADOPT(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks, int maxCycles = 200) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class AgentDef
+    {
+        public AgentDef() { }
+        public double[] Capabilities { get; set; }
+        public int Capacity { get; set; }
+        public int Id { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+    }
+    [System.Serializable]
+    public class AllocationResult
+    {
+        public AllocationResult() { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "AgentId",
+                "TaskId"})]
+        public System.Collections.Generic.List<System.ValueTuple<int, int>> Assignments { get; set; }
+        public double TotalCost { get; set; }
+        public double TotalValue { get; set; }
+        public int UnassignedTasks { get; set; }
+    }
+    [System.Serializable]
+    public class CBBA
+    {
+        public CBBA(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks, int maxIterations = 100) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class ContractNet
+    {
+        public ContractNet(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class DPOP
+    {
+        public DPOP(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class DSA
+    {
+        public DSA(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks, double activationProb = 0.7, int maxIterations = 100, int seed = 42) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class GreedyAllocation
+    {
+        public GreedyAllocation(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class MGM
+    {
+        public MGM(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks, int maxIterations = 100) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class MaxSum
+    {
+        public MaxSum(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks, int maxIterations = 50) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class SSIAuction
+    {
+        public SSIAuction(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class SequentialAuction
+    {
+        public SequentialAuction(System.Collections.Generic.List<AI.Algorithms.TaskAllocation.AgentDef> agents, System.Collections.Generic.List<AI.Algorithms.TaskAllocation.TaskDef> tasks) { }
+        public AI.Algorithms.TaskAllocation.AllocationResult Solve() { }
+    }
+    [System.Serializable]
+    public class TaskDef
+    {
+        public TaskDef() { }
+        public double[] CostVector { get; set; }
+        public int Id { get; set; }
+        public double Value { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+    }
+}
+namespace AI.Algorithms.TransportTask
+{
+    [System.Serializable]
+    public class BaseTransportTask
+    {
+        public BaseTransportTask() { }
+        public double[] Allocation { get; protected set; }
+        public int Cols { get; protected set; }
+        public double[] Costs { get; protected set; }
+        public double[] Demand { get; protected set; }
+        public int Rows { get; protected set; }
+        public double[] Supply { get; protected set; }
+        public double GetMeanCost() { }
+        public double GetTotalCost() { }
+        public bool IsOptimal(out double[] potentials, out int minDeltaI, out int minDeltaJ) { }
+        public void PrintSolution() { }
+        public override string ToString() { }
+        protected static bool[] BuildBasis(double[] plan, double[] costs, int m, int n, double tolerance, bool throwOnCycle) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "U",
+                "V"})]
+        protected static System.ValueTuple<double[], double[]> ComputePotentials(bool[] basis, double[] costs, int m, int n) { }
+        protected static double CostTolerance(double[] costs) { }
+        protected static double PlanTolerance(double[] supply) { }
+    }
+}
+namespace AI.Algorithms.TransportTask.Methods
+{
+    [System.Serializable]
+    public class PotentialMethod : AI.Algorithms.TransportTask.BaseTransportTask
+    {
+        public PotentialMethod(double[] costs, double[] supply, double[] demand, AI.Algorithms.TransportTask.PlanBuilders.IInitialPlanBuilder initialPlanBuilder) { }
+        public int Iterations { get; }
+        public bool ReachedOptimum { get; }
+        public void Solve() { }
+    }
+}
+namespace AI.Algorithms.TransportTask.PlanBuilders
+{
+    public interface IInitialPlanBuilder
+    {
+        double[] BuildInitialPlan(double[] costs, double[] supply, double[] demand);
+    }
+    public class VogelApproximationMethod : AI.Algorithms.TransportTask.PlanBuilders.IInitialPlanBuilder
+    {
+        public VogelApproximationMethod() { }
+        public double[] BuildInitialPlan(double[] costs, double[] supply, double[] demand) { }
+    }
+}
+namespace AI.Algorithms.VRP
+{
+    [System.Serializable]
+    public class ALNS
+    {
+        public ALNS(AI.Algorithms.VRP.VRPInstance inst, int maxIterations = 5000, int seed = 42) { }
+        public AI.Algorithms.VRP.VRPSolution Solve(AI.Algorithms.VRP.VRPSolution initial = null) { }
+    }
+    [System.Serializable]
+    public class AntColony
+    {
+        public AntColony(AI.Algorithms.VRP.VRPInstance inst, int numAnts = 30, int maxIterations = 200, double alpha = 1, double beta = 3, double evaporation = 0.1, int seed = 42) { }
+        public AI.Algorithms.VRP.VRPSolution Solve() { }
+    }
+    [System.Serializable]
+    public class Christofides
+    {
+        public const int ExactMatchingLimit = 20;
+        public Christofides(AI.Algorithms.VRP.VRPInstance inst) { }
+        public bool GuaranteeHolds { get; }
+        public AI.Algorithms.VRP.VRPSolution SolveAsSolution() { }
+        public System.Collections.Generic.List<int> SolveTSP() { }
+    }
+    [System.Serializable]
+    public class ClarkeWright
+    {
+        public ClarkeWright(AI.Algorithms.VRP.VRPInstance inst) { }
+        public AI.Algorithms.VRP.VRPSolution Solve() { }
+    }
+    [System.Serializable]
+    public class GeneticVRP
+    {
+        public GeneticVRP(AI.Algorithms.VRP.VRPInstance inst, int populationSize = 100, int generations = 500, int seed = 42) { }
+        public AI.Algorithms.VRP.VRPSolution Solve() { }
+    }
+    [System.Serializable]
+    public class LinKernighan
+    {
+        public LinKernighan(AI.Algorithms.VRP.VRPInstance inst) { }
+        public AI.Algorithms.VRP.VRPSolution Solve(AI.Algorithms.VRP.VRPSolution initial = null) { }
+    }
+    [System.Serializable]
+    public class LocalSearch
+    {
+        public LocalSearch(AI.Algorithms.VRP.VRPInstance inst) { }
+        public AI.Algorithms.VRP.VRPSolution OrOpt(AI.Algorithms.VRP.VRPSolution sol) { }
+        public AI.Algorithms.VRP.VRPSolution ThreeOpt(AI.Algorithms.VRP.VRPSolution sol) { }
+        public AI.Algorithms.VRP.VRPSolution TwoOpt(AI.Algorithms.VRP.VRPSolution sol) { }
+    }
+    [System.Serializable]
+    public class SimulatedAnnealingVRP
+    {
+        public SimulatedAnnealingVRP(AI.Algorithms.VRP.VRPInstance inst, double initialTemp = 1000, double coolingRate = 0.9995, int maxIterations = 50000, int seed = 42) { }
+        public AI.Algorithms.VRP.VRPSolution Solve(AI.Algorithms.VRP.VRPSolution initial = null) { }
+    }
+    [System.Serializable]
+    public class SolomonInsertion
+    {
+        public SolomonInsertion(AI.Algorithms.VRP.VRPInstance inst, double[] readyTime = null, double[] dueDate = null, double[] serviceTime = null) { }
+        public AI.Algorithms.VRP.VRPSolution Solve() { }
+    }
+    [System.Serializable]
+    public class Sweep
+    {
+        public Sweep(AI.Algorithms.VRP.VRPInstance inst) { }
+        public AI.Algorithms.VRP.VRPSolution Solve() { }
+    }
+    [System.Serializable]
+    public class TabuSearchVRP
+    {
+        public TabuSearchVRP(AI.Algorithms.VRP.VRPInstance inst, int maxIterations = 3000, int tabuTenure = 15, int seed = 42) { }
+        public AI.Algorithms.VRP.VRPSolution Solve(AI.Algorithms.VRP.VRPSolution initial = null) { }
+    }
+    [System.Serializable]
+    public class VRPInstance
+    {
+        public VRPInstance(double depotX, double depotY, double[] custX, double[] custY, double[] demand, double vehicleCapacity, int numVehicles) { }
+        public double[] CustomerX { get; }
+        public double[] CustomerY { get; }
+        public double[] Demand { get; }
+        public double[] DepotX { get; }
+        public double[] DepotY { get; }
+        public double[] DistanceMatrix { get; }
+        public int N { get; }
+        public int NumVehicles { get; }
+        public int TotalNodes { get; }
+        public double VehicleCapacity { get; }
+        public double Distance(int i, int j) { }
+    }
+    [System.Serializable]
+    public class VRPSolution
+    {
+        public VRPSolution() { }
+        public System.Collections.Generic.List<System.Collections.Generic.List<int>> Routes { get; set; }
+        public AI.Algorithms.VRP.VRPSolution Clone() { }
+        public bool IsValid(AI.Algorithms.VRP.VRPInstance inst) { }
+        public double TotalDistance(AI.Algorithms.VRP.VRPInstance inst) { }
+    }
+}

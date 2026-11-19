@@ -1,0 +1,20 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Data
+{
+    public static class DataLibrary
+    {
+        public static AI.Script.Binding.IScriptModule Module { get; }
+        public static AI.Script.Hosting.ScriptHost UseData(this AI.Script.Hosting.ScriptHost host) { }
+    }
+    [AI.Script.Binding.ScriptModule("data", "Parquet и SQLite на чтение: колонки и отбор строк при чтении", Group="данные", Version="0.1")]
+    public static class DataModule
+    {
+        [AI.Script.Binding.ScriptFn("parquet", "Читает Parquet: только названные колонки, условие и предел строк", Example="data.parquet(\"stock.parquet\", cols: [\"sku\", \"qty\"])", Reads="parquet")]
+        public static System.Threading.Tasks.Task<AI.Script.Runtime.ScriptTable> Parquet(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к файлу .parquet")] string path, [AI.Script.Binding.ScriptParam("какие колонки взять; нет — все")] string[]? cols = null, [AI.Script.Binding.ScriptParam("условие на строку-запись; нет — все строки")] AI.Script.Runtime.ScriptCallable? where = null, [AI.Script.Binding.ScriptParam("сколько строк отобрать; 0 — без предела")] int limit = 0) { }
+        [AI.Script.Binding.ScriptFn("sqlite", "Читает таблицу базы SQLite: колонки, условие и предел строк", Example="data.sqlite(\"shop.db\", table: \"orders\", limit: 100)", Reads="sqlite,sqlite3,db")]
+        public static System.Threading.Tasks.Task<AI.Script.Runtime.ScriptTable> Sqlite(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к файлу базы")] string path, [AI.Script.Binding.ScriptParam("таблица; пусто — единственная в базе")] string table = "", [AI.Script.Binding.ScriptParam("какие колонки взять; нет — все")] string[]? cols = null, [AI.Script.Binding.ScriptParam("условие на строку-запись; нет — все строки")] AI.Script.Runtime.ScriptCallable? where = null, [AI.Script.Binding.ScriptParam("сколько строк отобрать; 0 — без предела")] int limit = 0) { }
+        [AI.Script.Binding.ScriptFn("tables", "Таблицы базы SQLite", Example="data.tables(\"shop.db\")")]
+        public static System.Threading.Tasks.Task<string[]> Tables(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь к файлу базы")] string path) { }
+    }
+}

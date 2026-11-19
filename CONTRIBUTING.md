@@ -85,7 +85,7 @@ dotnet test AIFramework.sln -c Release --no-build
 
 ## Тесты
 
-- **xUnit:** проекты [Tests/unit/AIFramework.UnitTests/](Tests/unit/AIFramework.UnitTests/) и [Tests/unit/AI.LLM.UnitTests/](Tests/unit/AI.LLM.UnitTests/) подключены к `AIFramework.sln`; запускайте их локально через `dotnet test` (в CI автотесты пока не прогоняются — см. [CI](#ci)).
+- **xUnit:** модульные тесты лежат в [Tests/unit/](Tests/unit/), тесты нейросетей — в `Tests/NNW.V2.*`. Все они, кроме GPU, прогоняются в CI на каждый push и pull request — см. [CI](#ci); локально запускайте их через `dotnet test`.
 - **Интеграция AI.ML 4.x:** [Tests/AI.ML.Integration/AI.ML.Integration.csproj](Tests/AI.ML.Integration/AI.ML.Integration.csproj) — дымовые проверки доменов после рефакторинга.
 - **Общий код тестов:** [Tests/shared/AIFramework.TestHelpers/](Tests/shared/AIFramework.TestHelpers/) — разбор вывода калькулятора (`ProcessorOutputReader`); подключайте этот проект вместо копирования логики в консольных тестах.
 - **Консольные сценарии** в каталоге `Tests/` остаются дополнительными проверками и демо; при добавлении регрессий по возможности дублируйте критичные проверки в xUnit.
@@ -108,7 +108,57 @@ dotnet run --project Tools/DocsLint -- --strict
 dotnet run --project Tools/DocsLint -- --fix
 ```
 
-**Сборка и автотесты в CI пока не настроены** — прогоняйте их локально (см. [Сборка](#сборка) и [Тесты](#тесты)). Когда такой workflow появится, он должен запускаться на **Windows** (`windows-latest`): `AI.Charts.WinForms` нацелен на `net9.0-windows` и требует WinForms.
+Сборку и автотесты выполняет [`.github/workflows/build-and-test.yml`](.github/workflows/build-and-test.yml) («Build and test»):
+
+- **Когда запускается:** push в любую ветку, pull request и вручную (`workflow_dispatch`). Новый push в ту же ветку отменяет незаконченный прогон.
+- **Среда:** `windows-latest`, .NET SDK `9.0.x` и `10.0.x` (как локально: `global.json` нет, сборку ведёт SDK 10, тесты идут на среде выполнения .NET 9). Windows выбран потому, что локальный результат получен там: `AI.Charts.WinForms` и примеры нацелены на `net9.0-windows`, `libopenblas.dll` копируется рядом со сборкой только на Windows, нативные библиотеки `AI.Faiss` есть только под `win-x64`.
+- **Что делает:** `dotnet build AIFramework.Full.sln -c Release`, отдельно собирает `Tests/AI.ML.Integration` (он не входит ни в одно решение) и запускает каждый xUnit-проект через `dotnet test -c Release --no-build`. Упавший тест роняет проверку; результаты в формате `.trx` прикладываются к прогону.
+- **Список тестовых проектов** ведётся в самом workflow. Новый проект с `Microsoft.NET.Test.Sdk`, не внесённый ни в список запуска, ни в список исключений, роняет проверку.
+
+Повторить прогон CI локально:
+
+```powershell
+dotnet build AIFramework.Full.sln -c Release
+dotnet build Tests/AI.ML.Integration/AI.ML.Integration.csproj -c Release
+dotnet test Tests/unit/AIFramework.UnitTests/AIFramework.UnitTests.csproj -c Release --no-build
+# ...и так для каждого проекта из списка в build-and-test.yml
+```
+
+**GPU-тесты в CI не запускаются.** `Tests/NNW.V2.Gpu.Tests` сверяет вычисления на CPU и CUDA, а на раннерах GitHub нет GPU: каждый тест пропустился бы и создал видимость проверки. Проект собирается вместе с решением, а запускается вручную на машине с видеокартой NVIDIA и CUDA перед изменениями в `AI.NeuralNetworks` и `AI.NeuralNetworks.Gpu`:
+
+```powershell
+dotnet test Tests/NNW.V2.Gpu.Tests/NNW.V2.Gpu.Tests.csproj -c Release
+```
+
+В итоге должно быть «пропущено 0»: без CUDA тесты не падают, а пропускаются, и такой прогон ничего не проверил.
+
+## Изменение публичного API
+
+Публичный API каждой сборки `src` записан в снимок: [Tests/unit/PublicApi.Tests/Snapshots/](Tests/unit/PublicApi.Tests/Snapshots/), по файлу на сборку (`AI.LLM.txt`, `AI.SignalLab.txt` и т. д.). Тест `PublicApi.Tests` строит API собранных сборок и сравнивает его со снимком; любое расхождение роняет тест с построчной разницей: «-» — есть только в снимке, «+» — только в коде. Тест входит в решения `AIFramework.sln`, `AIFramework.Full.sln`, `AIFramework.Light.sln` и в CI.
+
+Снимок меняется при любом изменении публичной поверхности: новый или удалённый публичный тип или член, другая сигнатура, значение по умолчанию у параметра, базовый тип, атрибут (`[Obsolete]`, `InternalsVisibleTo` и т. п.).
+
+**Изменение публичного API требует решения владельца.** В pull request опишите, что меняется и зачем, и приложите обновлённый снимок — его разница и есть перечень изменений API для ревью.
+
+Обновить снимки (только явно, только локально):
+
+```powershell
+$env:AI_PUBLIC_API_UPDATE = '1'
+dotnet test Tests/unit/PublicApi.Tests -c Release
+Remove-Item Env:AI_PUBLIC_API_UPDATE
+```
+
+```bash
+AI_PUBLIC_API_UPDATE=1 dotnet test Tests/unit/PublicApi.Tests -c Release
+```
+
+Без переменной тест снимки не трогает. В CI (`CI=true`) обновление запрещено: тест падает, даже если переменная выставлена. После обновления просмотрите `git diff Tests/unit/PublicApi.Tests/Snapshots` и закоммитьте снимок вместе с кодом.
+
+**Удаление — через `[Obsolete]`.** Публичный тип или член не удаляют сразу: сначала его помечают `[Obsolete("Используйте <замена>.")]` (при необходимости вместе с `[EditorBrowsable(EditorBrowsableState.Never)]`) и оставляют рабочим хотя бы на одну опубликованную версию (`Version` в [Directory.Build.props](Directory.Build.props)). Удаление после этого — тоже решение владельца и тоже обновление снимка.
+
+Храповик: тест падает, если в `src` появилась сборка без снимка или снимок лежит для сборки, которой больше нет. Новая библиотека приходит со снимком, удалённая — без него. Исключения задаются только списком `SrcAssemblies.Excluded` с причиной в коде; сейчас там одна запись — `AI.NeuralNetworks.Gpu` в лёгкой сборке, которая GPU-библиотеку не собирает (в полной сборке и в CI её снимок проверяется).
+
+Текст строит [PublicApiGenerator](https://github.com/PublicApiGenerator/PublicApiGenerator) (MIT) по метаданным сборки. Его версия закреплена в `PublicApi.Tests.csproj`: после обновления генератора снимки пересоздаются отдельным коммитом без изменений кода.
 
 > **Пути в `.sln`.** Windows нечувствителен к регистру, поэтому опечатка в пути к проекту здесь не проявляется, а на Linux-раннере роняет `dotnet restore`. Записывайте пути ровно в том регистре, в каком каталоги лежат в репозитории (`Tests\unit\...`, а не `tests\unit\...`), и не оставляйте в решении записи об удалённых проектах.
 

@@ -1,0 +1,66 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ExplainitALL.Metrics
+{
+    [System.Serializable]
+    public struct AnalyzeElement
+    {
+        public string AnswerBlock { get; set; }
+        public System.Collections.Generic.List<string> SupportBlocks { get; set; }
+        public System.Collections.Generic.List<int> SupportBlocksIndexInDoc { get; set; }
+    }
+    [System.Serializable]
+    public class CheckingForHallucinations
+    {
+        public CheckingForHallucinations(AI.ExplainitALL.Metrics.ISimMatrix simMatrixAlg) { }
+        public AI.ExplainitALL.Metrics.ISimMatrix SimMatrixAlg { get; set; }
+        public double GetConf(string doc, string answer, double prob = 0.6) { }
+        public double GetHallucinationsProb(string doc, string answer, double prob = 0.6) { }
+        public System.Collections.Generic.List<AI.ExplainitALL.Metrics.AnalyzeElement> GetSupportSeq(string doc, string answer, double prob = 0.6, int topK = 1) { }
+        public string[] LoadDoc(string text) { }
+    }
+    public interface ISimMatrix
+    {
+        AI.DataStructs.Algebraic.Matrix GenerateMatrix(System.Collections.Generic.IEnumerable<string> ans, System.Collections.Generic.IEnumerable<string> support);
+    }
+    [System.Serializable]
+    public abstract class SimBiEncoderMatrix<T> : AI.ExplainitALL.Metrics.ISimMatrix
+    {
+        protected SimBiEncoderMatrix() { }
+        public AI.DataStructs.Algebraic.Matrix GenerateMatrix(System.Collections.Generic.IEnumerable<string> ans, System.Collections.Generic.IEnumerable<string> support) { }
+        public abstract double Sim(T text1, T text2);
+        public abstract T Transform(string text);
+    }
+}
+namespace AI.ExplainitALL.Metrics.SimAlgs
+{
+    [System.Serializable]
+    public class NgramJaccardSim : AI.ExplainitALL.Metrics.SimBiEncoderMatrix<System.Collections.Generic.HashSet<string>>
+    {
+        public NgramJaccardSim(int nGSize = 2, bool spaceDel = true, bool pDel = true) { }
+        protected AI.ExplainitALL.Metrics.SimMetrics.NgramJaccardMetric NgramJaccardMetric { get; set; }
+        public override double Sim(System.Collections.Generic.HashSet<string> set1, System.Collections.Generic.HashSet<string> set2) { }
+        public override System.Collections.Generic.HashSet<string> Transform(string text) { }
+    }
+}
+namespace AI.ExplainitALL.Metrics.SimMetrics
+{
+    [System.Serializable]
+    public class NgramJaccardMetric : AI.ExplainitALL.Metrics.SimMetrics.SimTextMetricsBase<System.Collections.Generic.HashSet<string>>
+    {
+        public NgramJaccardMetric(int nGSize = 2, bool spaceDel = true, bool pDel = true) { }
+        public int NGrammSize { get; protected set; }
+        public bool PDel { get; protected set; }
+        public bool SpaceDel { get; protected set; }
+        public override double Sim(System.Collections.Generic.HashSet<string> set1, System.Collections.Generic.HashSet<string> set2) { }
+        public override System.Collections.Generic.HashSet<string> Transform(string text) { }
+    }
+    [System.Serializable]
+    public abstract class SimTextMetricsBase<T>
+    {
+        protected SimTextMetricsBase() { }
+        public abstract double Sim(T text1, T text2);
+        public double Sim(string text1, string text2) { }
+        public abstract T Transform(string text);
+    }
+}

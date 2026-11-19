@@ -1,0 +1,173 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ML.NeuralNetworks.Gpu.CudaGraphs
+{
+    public sealed class StepShapeMonitor
+    {
+        public StepShapeMonitor() { }
+        public bool IsWarm { get; }
+        public int WarmSteps { get; }
+        public void RecordStep(int backpropCount, int batchSize, int seqLen) { }
+        public void Reset() { }
+    }
+    [System.Obsolete("Переименовано в StepShapeMonitor: класс не делает CUDA Graph capture, а лишь отсл" +
+        "еживает форму шага.", false)]
+    public sealed class TrainStepRecorder
+    {
+        public TrainStepRecorder() { }
+        public bool IsWarm { get; }
+        public int WarmSteps { get; }
+        public void RecordStep(int backpropCount, int batchSize, int seqLen) { }
+        public void Reset() { }
+    }
+}
+namespace AI.ML.NeuralNetworks.Gpu
+{
+    public sealed class GpuContext : System.IDisposable
+    {
+        public GpuContext(int deviceIndex = 0) { }
+        public ILGPU.Runtime.Accelerator Accelerator { get; }
+        public ILGPU.Context Context { get; }
+        public ILGPU.Runtime.AcceleratorStream CopyStream { get; }
+        public int DeviceIndex { get; }
+        public string DeviceName { get; }
+        public AI.ML.NeuralNetworks.Gpu.CudaGraphs.StepShapeMonitor StepRecorder { get; }
+        public void Dispose() { }
+        public void InitCopyStream() { }
+        public void Synchronize() { }
+    }
+}
+namespace AI.ML.NeuralNetworks.Gpu.V2
+{
+    public sealed class CudaStorage : AI.ML.NeuralNetworks.V2.Storage.TensorStorage, AI.ML.NeuralNetworks.V2.Storage.IHostCopyable
+    {
+        public AI.ML.NeuralNetworks.Gpu.GpuContext Gpu { get; }
+        public override System.ReadOnlySpan<T> AsReadOnlySpan<T>()
+            where T :  unmanaged { }
+        public override System.Span<T> AsSpan<T>()
+            where T :  unmanaged { }
+        public ILGPU.ArrayView<T> AsView<T>()
+            where T :  unmanaged { }
+        public void CopyFromHost(AI.ML.NeuralNetworks.V2.Storage.TensorStorage hostSrc, long dstOffset, long length) { }
+        public void CopyToHost(AI.ML.NeuralNetworks.V2.Storage.TensorStorage hostDst, long srcOffset, long length) { }
+        protected override void DisposeCore(bool disposing) { }
+        public static AI.ML.NeuralNetworks.Gpu.V2.CudaStorage Allocate(AI.ML.NeuralNetworks.Gpu.GpuContext gpu, AI.ML.NeuralNetworks.V2.DType dtype, long length) { }
+    }
+    public static class FusedKernels
+    {
+        public static void AdamWStep(ILGPU.Index1D i, ILGPU.ArrayView<float> p, ILGPU.ArrayView<float> g, ILGPU.ArrayView<float> m, ILGPU.ArrayView<float> v, float lr, float beta1, float beta2, float eps, float wd, float bc1, float bc2) { }
+        public static void AddBiasReluFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> bias, ILGPU.ArrayView<float> y, int stride) { }
+        public static void EnsureValidStride(int stride) { }
+        public static void LinearGeluFwd(ILGPU.Index2D idx, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> W, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y, int M, int N, int K) { }
+    }
+    public static class GpuBackend
+    {
+        public static AI.ML.NeuralNetworks.Gpu.GpuContext GetContext(int deviceIndex = 0) { }
+        public static AI.ML.NeuralNetworks.Gpu.GpuContext Initialize(int deviceIndex = 0) { }
+        public static void Shutdown() { }
+    }
+    public sealed class GpuMemoryPool : System.IDisposable
+    {
+        public GpuMemoryPool(ILGPU.Runtime.Accelerator acc) { }
+        public long Hits { get; }
+        public long Misses { get; }
+        public void Dispose() { }
+        public ILGPU.Runtime.MemoryBuffer1D<byte, ILGPU.Stride1D.Dense> Rent(long bytes, bool zero = true) { }
+        public void Return(ILGPU.Runtime.MemoryBuffer1D<byte, ILGPU.Stride1D.Dense> buffer) { }
+    }
+    public static class V2Kernels
+    {
+        public static void AbsBwdX(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void AbsFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void AddFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y) { }
+        public static void BatchedGemmNaive(ILGPU.Index3D idx, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y, int B, int M, int N, int K) { }
+        public static void BinaryBroadcast6D(ILGPU.Index1D i, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y, AI.ML.NeuralNetworks.Gpu.V2.V2Kernels.BroadcastArgs args) { }
+        public static void BroadcastFill6D(ILGPU.Index1D i, ILGPU.ArrayView<float> src, ILGPU.ArrayView<float> dst, AI.ML.NeuralNetworks.Gpu.V2.V2Kernels.StridedCopyArgs args) { }
+        public static void ContiguousCopy6D(ILGPU.Index1D i, ILGPU.ArrayView<float> src, ILGPU.ArrayView<float> dst, AI.ML.NeuralNetworks.Gpu.V2.V2Kernels.StridedCopyArgs args) { }
+        public static void CosBwdX(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void CosFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void DivBwd(ILGPU.Index1D i, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> ga, ILGPU.ArrayView<float> gb) { }
+        public static void DivFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y) { }
+        public static void ExpBwdY(ILGPU.Index1D i, ILGPU.ArrayView<float> y, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void ExpFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void Fill(ILGPU.Index1D i, ILGPU.ArrayView<float> x, float v) { }
+        public static void GeluBwdX(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void GeluFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void GemmNaive(ILGPU.Index2D idx, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y, int M, int N, int K) { }
+        public static void GruStepBwd(ILGPU.Index1D i, ILGPU.ArrayView<float> dh, ILGPU.ArrayView<float> saved, ILGPU.ArrayView<float> hPrev, ILGPU.ArrayView<float> dGx, ILGPU.ArrayView<float> dGh, ILGPU.ArrayView<float> dHPrev, int H, int planeBH) { }
+        public static void GruStepFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> gx, ILGPU.ArrayView<float> gh, ILGPU.ArrayView<float> hPrev, ILGPU.ArrayView<float> hOut, ILGPU.ArrayView<float> saved, int H, int planeBH, int needSave) { }
+        public static void LayerNormBwdWB(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> mean, ILGPU.ArrayView<float> rstd, ILGPU.ArrayView<float> gw, ILGPU.ArrayView<float> gb, int normSize) { }
+        public static void LayerNormBwdX(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> w, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> mean, ILGPU.ArrayView<float> rstd, ILGPU.ArrayView<float> gx, int normSize, int hasAffine) { }
+        public static void LayerNormFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> w, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y, ILGPU.ArrayView<float> meanOut, ILGPU.ArrayView<float> rstdOut, int normSize, float eps, int hasAffine) { }
+        public static void LogBwdX(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void LogFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void LogSoftmaxBwd(ILGPU.Index1D i, ILGPU.ArrayView<float> y, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx, int dim, int inner) { }
+        public static void LogSoftmaxFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y, int dim, int inner) { }
+        public static void LstmStepBwd(ILGPU.Index1D i, ILGPU.ArrayView<float> dh, ILGPU.ArrayView<float> dc, ILGPU.ArrayView<float> saved, ILGPU.ArrayView<float> cPrev, ILGPU.ArrayView<float> dPre, ILGPU.ArrayView<float> dCPrev, int H, int planeBH) { }
+        public static void LstmStepFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> preact, ILGPU.ArrayView<float> cPrev, ILGPU.ArrayView<float> hOut, ILGPU.ArrayView<float> cOut, ILGPU.ArrayView<float> saved, int H, int planeBH, int needSave) { }
+        public static void MulBwd(ILGPU.Index1D i, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> ga, ILGPU.ArrayView<float> gb) { }
+        public static void MulFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y) { }
+        public static void NegBwd(ILGPU.Index1D i, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void NegFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void PowFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y) { }
+        public static void ReluBwdX(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void ReluFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void ScalarMul(ILGPU.Index1D i, ILGPU.ArrayView<float> x, float s, ILGPU.ArrayView<float> y) { }
+        public static void ScatterContiguous6D(ILGPU.Index1D i, ILGPU.ArrayView<float> src, ILGPU.ArrayView<float> dst, AI.ML.NeuralNetworks.Gpu.V2.V2Kernels.StridedCopyArgs args) { }
+        public static void SigmoidBwdY(ILGPU.Index1D i, ILGPU.ArrayView<float> y, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void SigmoidFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void SiluBwdX(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void SiluFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void SinBwdX(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void SinFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void SoftmaxBwd(ILGPU.Index1D i, ILGPU.ArrayView<float> y, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx, int dim, int inner) { }
+        public static void SoftmaxFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y, int dim, int inner) { }
+        public static void SqrtBwdY(ILGPU.Index1D i, ILGPU.ArrayView<float> y, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void SqrtFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public static void SubFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> a, ILGPU.ArrayView<float> b, ILGPU.ArrayView<float> y) { }
+        public static void SumAll(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> outScalar) { }
+        public static void SumAxis(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y, int dim, int inner) { }
+        public static void TanhBwdY(ILGPU.Index1D i, ILGPU.ArrayView<float> y, ILGPU.ArrayView<float> gy, ILGPU.ArrayView<float> gx) { }
+        public static void TanhFwd(ILGPU.Index1D i, ILGPU.ArrayView<float> x, ILGPU.ArrayView<float> y) { }
+        public struct BroadcastArgs
+        {
+            public int AOffset;
+            public int BOffset;
+            public int O0;
+            public int O1;
+            public int O2;
+            public int O3;
+            public int O4;
+            public int O5;
+            public int Op;
+            public int SA0;
+            public int SA1;
+            public int SA2;
+            public int SA3;
+            public int SA4;
+            public int SA5;
+            public int SB0;
+            public int SB1;
+            public int SB2;
+            public int SB3;
+            public int SB4;
+            public int SB5;
+        }
+        public struct StridedCopyArgs
+        {
+            public int O0;
+            public int O1;
+            public int O2;
+            public int O3;
+            public int O4;
+            public int O5;
+            public int SS0;
+            public int SS1;
+            public int SS2;
+            public int SS3;
+            public int SS4;
+            public int SS5;
+            public int SrcOffset;
+        }
+    }
+}

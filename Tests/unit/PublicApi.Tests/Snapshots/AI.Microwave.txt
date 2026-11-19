@@ -1,0 +1,1305 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Microwave.Calculators
+{
+    public abstract class AntennaCalculatorBase : AI.Microwave.Calculators.IAntennaCalculator
+    {
+        protected const double NaturalConvectionCoefficient = 10D;
+        protected const double RequirementTolerance = 1E-06D;
+        protected AntennaCalculatorBase() { }
+        public abstract string AntennaType { get; }
+        public AI.Microwave.Calculators.AntennaDesignResult Calculate(AI.Microwave.Models.AntennaParameters parameters) { }
+        protected abstract void CalculateCore(AI.Microwave.Models.AntennaParameters param, AI.Microwave.Calculators.AntennaDesignResult result);
+        public abstract string GetAdvantages();
+        public abstract string GetDescription();
+        public abstract string GetDisadvantages();
+        protected static void AddEnvironmentRecommendations(AI.Microwave.Models.AntennaParameters param, AI.Microwave.Calculators.AntennaDesignResult result) { }
+        protected static void ApplyBreakdown(AI.Microwave.Calculators.AntennaDesignResult result, params AI.Microwave.Calculators.AntennaCalculatorBase.BreakdownPoint[] points) { }
+        protected static void ApplyMatching(AI.Microwave.Calculators.AntennaDesignResult result, double vswr, double impedanceOhm) { }
+        protected static void CheckRequirements(AI.Microwave.Models.AntennaParameters param, AI.Microwave.Calculators.AntennaDesignResult result) { }
+        protected static double TemperatureRise(double heatFluxWPerM2, double thicknessM, double thermalConductivity) { }
+        protected readonly struct BreakdownPoint : System.IEquatable<AI.Microwave.Calculators.AntennaCalculatorBase.BreakdownPoint>
+        {
+            public BreakdownPoint(string Location, double FieldVPerM, double BreakdownVPerM) { }
+            public double BreakdownVPerM { get; init; }
+            public double FieldVPerM { get; init; }
+            public string Location { get; init; }
+            public double Margin { get; }
+        }
+    }
+    public class AntennaDesignResult
+    {
+        public AntennaDesignResult() { }
+        public double ApertureHeightM { get; set; }
+        public double ApertureWidthM { get; set; }
+        public double AxialLengthM { get; set; }
+        public double BeamwidthEPlane { get; set; }
+        public double BeamwidthHPlane { get; set; }
+        public double BreakdownThreshold { get; set; }
+        public double CostRelative { get; set; }
+        public double DirectivityDbi { get; set; }
+        public double Efficiency { get; set; }
+        public double FarFieldDistanceM { get; set; }
+        public double FrontToBackRatio { get; set; }
+        public double GainDbi { get; set; }
+        public double GainLinear { get; set; }
+        public string HotSpot { get; set; }
+        public double Impedance { get; set; }
+        public bool IsSafe { get; }
+        public double MaxElectricField { get; set; }
+        public double MaxTemperatureRise { get; set; }
+        public bool MeetsAllRequirements { get; }
+        public bool MeetsBeamwidthRequirement { get; set; }
+        public bool MeetsSidelobeRequirement { get; set; }
+        public double OhmicLossesW { get; set; }
+        public double PowerDensityPeak { get; set; }
+        public System.Collections.Generic.List<string> Recommendations { get; set; }
+        public double RequiredSafetyMargin { get; set; }
+        public double ReturnLossDb { get; set; }
+        public double SafetyMargin { get; set; }
+        public double SideLobeLevel { get; set; }
+        public System.Collections.Generic.Dictionary<string, double> SpecificParameters { get; set; }
+        public double ThermalLoadWPerM2 { get; set; }
+        public double TotalLengthM { get; set; }
+        public double VSWR { get; set; }
+        public System.Collections.Generic.List<string> Warnings { get; set; }
+        public double WeightKg { get; set; }
+    }
+    public class HornAntennaCalculator : AI.Microwave.Calculators.AntennaCalculatorBase
+    {
+        public HornAntennaCalculator() { }
+        public override string AntennaType { get; }
+        protected override void CalculateCore(AI.Microwave.Models.AntennaParameters param, AI.Microwave.Calculators.AntennaDesignResult result) { }
+        public override string GetAdvantages() { }
+        public override string GetDescription() { }
+        public override string GetDisadvantages() { }
+    }
+    public class HornWithLensCalculator : AI.Microwave.Calculators.AntennaCalculatorBase
+    {
+        public HornWithLensCalculator() { }
+        public override string AntennaType { get; }
+        protected override void CalculateCore(AI.Microwave.Models.AntennaParameters param, AI.Microwave.Calculators.AntennaDesignResult result) { }
+        public override string GetAdvantages() { }
+        public override string GetDescription() { }
+        public override string GetDisadvantages() { }
+    }
+    public interface IAntennaCalculator
+    {
+        string AntennaType { get; }
+        AI.Microwave.Calculators.AntennaDesignResult Calculate(AI.Microwave.Models.AntennaParameters parameters);
+        string GetAdvantages();
+        string GetDescription();
+        string GetDisadvantages();
+    }
+    public class ParabolicAntennaCalculator : AI.Microwave.Calculators.AntennaCalculatorBase
+    {
+        public ParabolicAntennaCalculator() { }
+        public override string AntennaType { get; }
+        protected override void CalculateCore(AI.Microwave.Models.AntennaParameters param, AI.Microwave.Calculators.AntennaDesignResult result) { }
+        public override string GetAdvantages() { }
+        public override string GetDescription() { }
+        public override string GetDisadvantages() { }
+    }
+}
+namespace AI.Microwave.Coverage
+{
+    public sealed class CoverageGrid
+    {
+        public CoverageGrid(double minX, double minY, double cellSizeM, int columns, int rows) { }
+        public double CellSizeM { get; }
+        public int Columns { get; }
+        public int Count { get; }
+        public double MinX { get; }
+        public double MinY { get; }
+        public int Rows { get; }
+        public double X(int column) { }
+        public double Y(int row) { }
+        public static AI.Microwave.Coverage.CoverageGrid Square(double centerX, double centerY, double halfSizeM, double cellSizeM) { }
+    }
+    public sealed class CoverageMap : AI.Insights.IInterpretable
+    {
+        public double AreaCoverage { get; }
+        public System.Collections.Generic.IEnumerable<AI.Microwave.Coverage.PointCoverage> Cells { get; }
+        public AI.Microwave.Coverage.CoverageGrid Grid { get; }
+        public AI.Microwave.Coverage.PointCoverage this[int row, int column] { get; }
+        public double MeanThroughputBps { get; }
+        public double NoiseLimitedShare { get; }
+        public AI.Microwave.Coverage.CoverageScene Scene { get; }
+        public double SinrCoverage { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public double[] Layer(System.Func<AI.Microwave.Coverage.PointCoverage, double> selector) { }
+        public double ServingShare(int sector) { }
+        public double SinrPercentileDb(double q) { }
+    }
+    public sealed record CoverageReceiver : System.IEquatable<AI.Microwave.Coverage.CoverageReceiver>
+    {
+        public CoverageReceiver() { }
+        public double BandwidthHz { get; init; }
+        public AI.Microwave.Propagation.TerminalEnvironment Environment { get; init; }
+        public double GainDbi { get; init; }
+        public double HeightM { get; init; }
+        public double IndoorDistanceM { get; init; }
+        public double NoiseDbm { get; }
+        public double NoiseFigureDb { get; init; }
+        public double OtherLossesDb { get; init; }
+        public double PenetrationSigmaDb { get; }
+    }
+    public sealed class CoverageScene
+    {
+        public CoverageScene(AI.Microwave.Propagation.IPropagationModel model) { }
+        public double InterSiteShadowCorrelation { get; init; }
+        public AI.Microwave.Propagation.IPropagationModel Model { get; }
+        public double NeighbourLoad { get; init; }
+        public AI.Microwave.Coverage.CoverageReceiver Receiver { get; init; }
+        public System.Collections.Generic.List<AI.Microwave.Safety.RadiationSource> Sectors { get; }
+        public double SignalThresholdDbm { get; init; }
+        public double SinrThresholdDb { get; init; }
+        public AI.Microwave.Coverage.ThroughputMapping Throughput { get; init; }
+        public AI.Microwave.Safety.RadiationSource Add(AI.Microwave.Safety.RadiationSource sector) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Microwave.Safety.RadiationSource> AddHexagonalNetwork(int rings, double interSiteDistanceM, AI.Microwave.Safety.RadiationSource template, int sectorsPerSite = 3) { }
+        public AI.Microwave.Coverage.CoverageMap Compute(AI.Microwave.Coverage.CoverageGrid grid) { }
+        public AI.Microwave.Coverage.PointCoverage Evaluate(double x, double y) { }
+        public AI.Microwave.Coverage.CoverageSimulation Simulate(AI.Microwave.Coverage.CoverageGrid grid, int drops, System.Random rng) { }
+    }
+    public sealed class CoverageSimulation : AI.Insights.IInterpretable
+    {
+        public double AreaSignalCoverage { get; }
+        public double AreaSinrCoverage { get; }
+        public double AreaThroughputBps { get; }
+        public double CellEdgeThroughputBps { get; }
+        public int Drops { get; }
+        public AI.Microwave.Coverage.CoverageGrid Grid { get; }
+        public AI.Microwave.Coverage.CoverageScene Scene { get; }
+        public System.Collections.Generic.IReadOnlyList<double> SinrSamplesDb { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public double MeanThroughputBps(int row, int column) { }
+        public double SignalCoverage(int row, int column) { }
+        public double SinrCoverage(int row, int column) { }
+        public double SinrPercentileDb(double q) { }
+    }
+    public sealed record PointCoverage : System.IEquatable<AI.Microwave.Coverage.PointCoverage>
+    {
+        public PointCoverage(double X, double Y, int ServingSector, double ReceivedPowerDbm, double InterferenceDbm, double SinrDb, double CoverageProbability, double SpectralEfficiency, double ThroughputBps) { }
+        public double CoverageProbability { get; init; }
+        public double InterferenceDbm { get; init; }
+        public double ReceivedPowerDbm { get; init; }
+        public int ServingSector { get; init; }
+        public double SinrDb { get; init; }
+        public double SpectralEfficiency { get; init; }
+        public double ThroughputBps { get; init; }
+        public double X { get; init; }
+        public double Y { get; init; }
+    }
+    public sealed record ThroughputMapping : System.IEquatable<AI.Microwave.Coverage.ThroughputMapping>
+    {
+        public ThroughputMapping(double Attenuation, double MinimumSinrDb, double MaximumEfficiency) { }
+        public double Attenuation { get; init; }
+        public double MaximumEfficiency { get; init; }
+        public double MinimumSinrDb { get; init; }
+        public static AI.Microwave.Coverage.ThroughputMapping Lte36942Downlink { get; }
+        public static AI.Microwave.Coverage.ThroughputMapping Lte36942Uplink { get; }
+        public static AI.Microwave.Coverage.ThroughputMapping Nr256Qam { get; }
+        public static AI.Microwave.Coverage.ThroughputMapping Shannon { get; }
+        public double SpectralEfficiency(double sinrDb) { }
+    }
+}
+namespace AI.Microwave.Geometry
+{
+    public sealed class DielectricLens
+    {
+        public DielectricLens(AI.Microwave.Models.DielectricProperties material, double diameterM, double focalLengthM, double lambdaM, double edgeThicknessM) { }
+        public double ApertureAreaM2 { get; }
+        public double CenterThicknessM { get; }
+        public double DiameterM { get; }
+        public double EdgeThicknessM { get; }
+        public double FocalLengthM { get; }
+        public AI.Microwave.Models.DielectricProperties Material { get; }
+        public double MeanPathM { get; }
+        public double RimHalfAngleDeg { get; }
+        public double ThicknessToDiameter { get; }
+        public double VolumeM3 { get; }
+        public double WeightKg { get; }
+        public int ZoneCount { get; }
+        public double ZoneStepM { get; }
+        public double ZonedMaxThicknessM { get; }
+        public double ZonedMeanPathM { get; }
+        public double ZonedVolumeM3 { get; }
+        public double ZonedWeightKg { get; }
+        public double ThicknessAt(double rho) { }
+        public double ZonedThicknessAt(double rho) { }
+    }
+    public sealed class Paraboloid
+    {
+        public Paraboloid(double diameterM, double focalLengthM) { }
+        public double ApertureAreaM2 { get; }
+        public double DepthM { get; }
+        public double DiameterM { get; }
+        public double FocalLengthM { get; }
+        public double FocalToDiameterRatio { get; }
+        public double RimHalfAngleDeg { get; }
+        public double RimSlantDistanceM { get; }
+        public double SurfaceAreaM2 { get; }
+        public double WeightKg(double sheetThicknessM, double densityKgPerM3, double ribMassFraction) { }
+    }
+    public sealed class PyramidalHorn
+    {
+        public const double BeamFactorE = 56D;
+        public const double BeamFactorH = 67D;
+        public const double OptimalApertureEfficiency = 0.51D;
+        public const double SidelobeEPlaneDb = -13.3D;
+        public const double SidelobeHPlaneDb = -23D;
+        public PyramidalHorn(double apertureHeightM, double apertureWidthM, AI.Microwave.Models.RectangularWaveguide throat, double lambdaM) { }
+        public double ApertureAreaM2 { get; }
+        public bool ApertureClampedToThroat { get; }
+        public double ApertureHeightM { get; }
+        public double ApertureWidthM { get; }
+        public double AxialLengthM { get; }
+        public double FlareAngleEDeg { get; }
+        public double FlareAngleHDeg { get; }
+        public double PhaseErrorE { get; }
+        public double PhaseErrorH { get; }
+        public double SlantEPlaneM { get; }
+        public double SlantHPlaneM { get; }
+        public double WallAreaM2 { get; }
+        public double BeamwidthEPlaneDeg(double lambdaM) { }
+        public double BeamwidthHPlaneDeg(double lambdaM) { }
+        public double MeanBeamwidthDeg(double lambdaM) { }
+        public double WeightKg(AI.Microwave.Models.MaterialProperties material, double wallThicknessM) { }
+        public static AI.Microwave.Geometry.PyramidalHorn ForBeamwidth(double beamwidthDeg, AI.Microwave.Models.RectangularWaveguide throat, double lambdaM) { }
+    }
+}
+namespace AI.Microwave.Heating
+{
+    public readonly struct CavityMode : System.IEquatable<AI.Microwave.Heating.CavityMode>
+    {
+        public CavityMode(string Family, int M, int N, int P, double FrequencyHz) { }
+        public string Family { get; init; }
+        public double FrequencyHz { get; init; }
+        public int M { get; init; }
+        public int N { get; init; }
+        public int P { get; init; }
+    }
+    public static class DielectricHeating
+    {
+        public const double VacuumPermittivity = 8.8541878128E-12D;
+        public static double EnergyRequiredJ(double massKg, AI.Microwave.Heating.DielectricMaterial material, double deltaTemperatureK, double latentHeatJPerKg = 0) { }
+        public static double FieldForVolumetricPower(double frequencyHz, double lossFactor, double powerWPerM3) { }
+        public static double HeatingRateKPerS(double volumetricPowerWPerM3, AI.Microwave.Heating.DielectricMaterial material) { }
+        public static double HeatingTimeS(double massKg, AI.Microwave.Heating.DielectricMaterial material, double deltaTemperatureK, double appliedPowerW, double couplingEfficiency = 1, double latentHeatJPerKg = 0) { }
+        public static double MaxThicknessForUniformity(double penetrationDepthM, double allowedRatio) { }
+        public static double SurfaceToCenterRatio(double thicknessM, double penetrationDepthM) { }
+        public static double SurfaceToCenterRatioTwoSided(double thicknessM, double penetrationDepthM) { }
+        public static double ThermalRunawayMargin(double frequencyHz, AI.Microwave.Heating.DielectricMaterial material, double fieldRmsVPerM, double heatTransferCoefficient, double surfaceToVolumeRatio) { }
+        public static double ThroughputKgPerHour(double powerW, AI.Microwave.Heating.DielectricMaterial material, double deltaTemperatureK, double couplingEfficiency = 0.7, double latentHeatJPerKg = 0) { }
+        public static double VolumetricPowerWPerM3(double frequencyHz, double lossFactor, double fieldRmsVPerM) { }
+    }
+    public class DielectricMaterial
+    {
+        public DielectricMaterial() { }
+        public double DensityKgPerM3 { get; set; }
+        public double IntrinsicImpedance { get; }
+        public bool IsRunawayProne { get; }
+        public double LossFactor { get; set; }
+        public double LossFactorPerKelvin { get; set; }
+        public double LossTangent { get; }
+        public double MaxTemperatureC { get; set; }
+        public required string Name { get; set; }
+        public double RelativePermittivity { get; set; }
+        public double SpecificHeatJPerKgK { get; set; }
+        public double SurfaceReflectance { get; }
+        public double ThermalConductivity { get; set; }
+        public double LossFactorAt(double temperatureC) { }
+        public double PenetrationDepthM(double lambdaM, double temperatureC = 20) { }
+        public double WavelengthInMaterialM(double lambdaM) { }
+        public static System.Collections.Generic.List<AI.Microwave.Heating.DielectricMaterial> GetStandardLoads() { }
+    }
+    public class MultimodeCavity
+    {
+        public MultimodeCavity() { }
+        public double DepthM { get; set; }
+        public double HeightM { get; set; }
+        public double SurfaceAreaM2 { get; }
+        public double VolumeM3 { get; }
+        public double WidthM { get; set; }
+        public int EffectiveModeCount(double centerFrequencyHz, double sourceBandwidthHz, double loadedQualityFactor) { }
+        public double FillingFactor(double loadVolumeM3, double loadPermittivity) { }
+        public double HeatingEfficiency(double frequencyHz, double conductivity, double loadVolumeM3, AI.Microwave.Heating.DielectricMaterial load) { }
+        public double LoadQualityFactor(double loadVolumeM3, AI.Microwave.Heating.DielectricMaterial load) { }
+        public double LoadedQualityFactor(double frequencyHz, double conductivity, double loadVolumeM3, AI.Microwave.Heating.DielectricMaterial load) { }
+        public double ModeBandwidthHz(double frequencyHz, double loadedQualityFactor) { }
+        public int ModeCount(double frequencyMinHz, double frequencyMaxHz) { }
+        public double ModeDensityPerHz(double frequencyHz) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Microwave.Heating.CavityMode> Modes(double frequencyMinHz, double frequencyMaxHz) { }
+        public int ModesInSourceBandwidth(double centerFrequencyHz, double bandwidthHz) { }
+        public double ResonantFrequencyHz(int m, int n, int p) { }
+        public double WallQualityFactor(double frequencyHz, double conductivity) { }
+    }
+    public class TravelingWaveApplicator
+    {
+        public TravelingWaveApplicator() { }
+        public double InteractionLengthM { get; set; }
+        public required AI.Microwave.Heating.DielectricMaterial Load { get; set; }
+        public double ReflectedFraction { get; }
+        public double TemperatureC { get; set; }
+        public double ThicknessM { get; set; }
+        public bool TwoSided { get; set; }
+        public required AI.Microwave.Models.RectangularWaveguide Waveguide { get; set; }
+        public double AbsorbedFraction(double lambdaM) { }
+        public double FieldInLoadVPerM(double powerW, double lambdaM, double frequencyHz) { }
+        public double MaxThicknessM(double lambdaM, double allowedRatio = 2) { }
+        public double PenetrationDepthM(double lambdaM) { }
+        public double RequiredPowerW(double throughputKgPerHour, double lambdaM, double deltaTemperatureK, double latentHeatJPerKg = 0) { }
+        public double ThroughputKgPerHour(double powerW, double lambdaM, double deltaTemperatureK, double latentHeatJPerKg = 0) { }
+        public double TransmittedFraction(double lambdaM) { }
+        public double UniformityRatio(double lambdaM) { }
+    }
+}
+namespace AI.Microwave.Models
+{
+    public class AntennaParameters
+    {
+        public AntennaParameters() { }
+        public double EdgeTaperDb { get; set; }
+        public AI.Microwave.Models.EnvironmentalConditions Environment { get; set; }
+        public double FrequencyHz { get; }
+        public double FrequencyMHz { get; set; }
+        public double LensEdgeThicknessM { get; }
+        public double LensEdgeThicknessMm { get; set; }
+        public double LensFocalToDiameterRatio { get; set; }
+        public AI.Microwave.Models.DielectricProperties LensMaterial { get; set; }
+        public AI.Microwave.Models.MaterialProperties Material { get; set; }
+        public double MiscellaneousEfficiency { get; set; }
+        public double PowerWatts { get; set; }
+        public double ReflectorFocalToDiameterRatio { get; set; }
+        public double ReflectorRibMassFraction { get; set; }
+        public double ReflectorSheetThicknessM { get; }
+        public double ReflectorSheetThicknessMm { get; set; }
+        public double RequiredBeamwidthDegrees { get; set; }
+        public double RequiredSidelobeLevelDb { get; set; }
+        public double SurfaceToleranceM { get; }
+        public double SurfaceToleranceMm { get; set; }
+        public double WallThicknessM { get; }
+        public double WallThicknessMm { get; set; }
+        public AI.Microwave.Models.RectangularWaveguide Waveguide { get; set; }
+        public double WavelengthM { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Validate() { }
+    }
+    public class DielectricProperties
+    {
+        public DielectricProperties() { }
+        public double Cost { get; set; }
+        public double Density { get; set; }
+        public double DielectricStrength { get; set; }
+        public double LossTangent { get; set; }
+        public double MaxServiceTemperature { get; set; }
+        public required string Name { get; set; }
+        public double RefractiveIndex { get; }
+        public double RelativePermittivity { get; set; }
+        public double SlabTransmittance { get; }
+        public double SurfaceReflectance { get; }
+        public double ThermalConductivity { get; set; }
+        public double WorstCaseVswr { get; }
+        public double AntiReflectionLayerThicknessM(double lambdaM) { }
+        public double AttenuationNpPerM(double lambdaM) { }
+        public double ZoneStepM(double lambdaM) { }
+        public static System.Collections.Generic.List<AI.Microwave.Models.DielectricProperties> GetStandardDielectrics() { }
+    }
+    public class EnvironmentalConditions
+    {
+        public const double DryAirBreakdownAtSeaLevel = 3000000D;
+        public EnvironmentalConditions() { }
+        public double Altitude { get; set; }
+        public double Humidity { get; set; }
+        public double Pressure { get; set; }
+        public double Temperature { get; set; }
+        public double GetAbsolutePressureAtm() { }
+        public double GetBreakdownFieldStrength() { }
+        public double GetDewPoint() { }
+    }
+    public class MaterialProperties
+    {
+        public MaterialProperties() { }
+        public double Conductivity { get; set; }
+        public double Cost { get; set; }
+        public double Density { get; set; }
+        public double MeltingPoint { get; set; }
+        public required string Name { get; set; }
+        public double ThermalConductivity { get; set; }
+        public static System.Collections.Generic.List<AI.Microwave.Models.MaterialProperties> GetStandardMaterials() { }
+    }
+    public class RectangularWaveguide
+    {
+        public RectangularWaveguide() { }
+        public double BandHighHz { get; }
+        public double BandLowHz { get; }
+        public double CrossSectionAreaM2 { get; }
+        public double CutoffNextModeHz { get; }
+        public double CutoffTE10Hz { get; }
+        public double HeightM { get; }
+        public double HeightMm { get; set; }
+        public string Standard { get; set; }
+        public double WidthM { get; }
+        public double WidthMm { get; set; }
+        public double AttenuationDbPerM(double frequencyHz, double conductivity) { }
+        public double AttenuationNpPerM(double frequencyHz, double conductivity) { }
+        public double EquivalentLineImpedance(double frequencyHz) { }
+        public double GuideWavelength(double frequencyHz) { }
+        public bool IsPropagating(double frequencyHz) { }
+        public bool IsSingleMode(double frequencyHz) { }
+        public double PeakElectricField(double powerWatts, double frequencyHz) { }
+        public double WaveImpedanceTE10(double frequencyHz) { }
+        public static AI.Microwave.Models.RectangularWaveguide? Find(string standard) { }
+        public static System.Collections.Generic.List<AI.Microwave.Models.RectangularWaveguide> GetStandards() { }
+        public static AI.Microwave.Models.RectangularWaveguide SelectForFrequency(double frequencyHz) { }
+    }
+}
+namespace AI.Microwave.Physics
+{
+    public static class ApertureIllumination
+    {
+        public const double DefaultEdgeTaperDb = 10D;
+        public static double BeamwidthFactor(double edgeTaperDb) { }
+        public static double EdgeTaperDb(double offAxisDeg, double feedHpbwDeg) { }
+        public static double FeedBeamwidthForTaper(double offAxisDeg, double edgeTaperDb) { }
+        public static double SidelobeLevelDb(double edgeTaperDb) { }
+        public static double SidelobeWithBlockageDb(double sidelobeDb, double blockageRatio) { }
+        public static double SpilloverEfficiency(double edgeTaperDb) { }
+        public static double TaperEfficiency(double edgeTaperDb) { }
+    }
+    public static class MicrowavePhysics
+    {
+        public const double FreeSpaceImpedance = 376.730313412D;
+        public const double NeperToDb = 8.685889638065035D;
+        public const double SpeedOfLight = 299792458D;
+        public const double VacuumPermeability = 1.2566370614359173E-06D;
+        public static double ApertureGain(double physicalAreaM2, double efficiency, double lambdaM) { }
+        public static double FarFieldDistance(double maxApertureM, double lambdaM) { }
+        public static double FromDb(double db) { }
+        public static double MetalAbsorptance(double frequencyHz, double conductivity) { }
+        public static double MismatchEfficiency(double vswr) { }
+        public static double PeakFieldFromPowerDensity(double powerDensityWPerM2, double impedanceOhm = 376.730313412) { }
+        public static double ReflectionCoefficient(double vswr) { }
+        public static double ReturnLossDb(double vswr) { }
+        public static double RuzeEfficiency(double rmsSurfaceErrorM, double lambdaM) { }
+        public static double SkinDepth(double frequencyHz, double conductivity) { }
+        public static double SurfaceResistance(double frequencyHz, double conductivity) { }
+        public static double ToDb(double ratio) { }
+        public static double VswrFromReflection(double gamma) { }
+        public static double Wavelength(double frequencyHz) { }
+    }
+    public static class MicrowaveQuantities
+    {
+        public static AI.Units.Dimension Conductivity { get; }
+        public static AI.Units.Dimension ElectricField { get; }
+        public static AI.Units.Dimension PowerDensity { get; }
+        public static double ApertureGain(AI.Units.Quantity physicalArea, double efficiency, AI.Units.Quantity wavelength) { }
+        public static AI.Units.Quantity FarFieldDistance(AI.Units.Quantity maxAperture, AI.Units.Quantity wavelength) { }
+        public static double MetalAbsorptance(AI.Units.Quantity frequency, AI.Units.Quantity conductivity) { }
+        public static AI.Units.Quantity PeakFieldFromPowerDensity(AI.Units.Quantity powerDensity, AI.Units.Quantity impedance = default) { }
+        public static double RuzeEfficiency(AI.Units.Quantity rmsSurfaceError, AI.Units.Quantity wavelength) { }
+        public static AI.Units.Quantity SkinDepth(AI.Units.Quantity frequency, AI.Units.Quantity conductivity) { }
+        public static AI.Units.Quantity SurfaceResistance(AI.Units.Quantity frequency, AI.Units.Quantity conductivity) { }
+        public static AI.Units.Quantity Wavelength(AI.Units.Quantity frequency) { }
+    }
+}
+namespace AI.Microwave.Propagation
+{
+    public sealed record AntennaArray : System.IEquatable<AI.Microwave.Propagation.AntennaArray>
+    {
+        public const double Tr38901ElementGainDbi = 8D;
+        public AntennaArray(int rows = 1, int columns = 1) { }
+        public double BearingDeg { get; init; }
+        public int Columns { get; }
+        public double DowntiltDeg { get; init; }
+        public int ElementCount { get; }
+        public double GainDbi { get; init; }
+        public double HorizontalSpacingWavelengths { get; init; }
+        public double MechanicalSlantDeg { get; init; }
+        public AI.Microwave.Safety.AntennaPattern Pattern { get; init; }
+        public AI.Microwave.Propagation.ArrayPolarization Polarization { get; init; }
+        public double PolarizationSlantDeg { get; init; }
+        public int PolarizationsPerPosition { get; }
+        public int Rows { get; }
+        public double VerticalSpacingWavelengths { get; init; }
+        public static AI.Microwave.Propagation.AntennaArray Isotropic { get; }
+        public static AI.Microwave.Safety.AntennaPattern Tr38901ElementPattern { get; }
+        public AI.Geometry.Primitives.Vector3 ElementOffset(int element, double wavelengthM) { }
+        public double ElementSlantDeg(int element) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Theta",
+                "Phi"})]
+        public System.ValueTuple<double, double> FieldPattern(int element, double zenithDeg, double azimuthDeg) { }
+        public static AI.Microwave.Propagation.AntennaArray Tr38901Panel(int rows, int columns, bool dualPolarized = true) { }
+    }
+    public enum ArrayPolarization
+    {
+        Single = 0,
+        Dual = 1,
+    }
+    public enum ClutterCategory
+    {
+        WaterSea = 0,
+        OpenRural = 1,
+        Suburban = 2,
+        Urban = 3,
+        TreesForest = 4,
+        DenseUrban = 5,
+    }
+    public sealed class ClutterLossModel : AI.Microwave.Propagation.IPropagationModel
+    {
+        public ClutterLossModel(AI.Microwave.Propagation.IPropagationModel inner) { }
+        public bool BothEnds { get; init; }
+        public AI.Microwave.Propagation.IPropagationModel Inner { get; }
+        public string Name { get; }
+        public double ShadowCorrelationDistanceM { get; }
+        public double StateCorrelationDistanceM { get; }
+        public AI.Microwave.Propagation.LinkLoss Loss(AI.Geometry.Primitives.Vector3 transmitter, AI.Geometry.Primitives.Vector3 receiver, double frequencyHz) { }
+    }
+    public readonly struct DelayTap : System.IEquatable<AI.Microwave.Propagation.DelayTap>
+    {
+        public DelayTap(double NormalizedDelay, double PowerDb, bool LineOfSight = false) { }
+        public bool LineOfSight { get; init; }
+        public double NormalizedDelay { get; init; }
+        public double PowerDb { get; init; }
+    }
+    public readonly struct DeltaBullingtonLoss : System.IEquatable<AI.Microwave.Propagation.DeltaBullingtonLoss>
+    {
+        public DeltaBullingtonLoss(double Horizontal, double Vertical, double BullingtonActual, double BullingtonSmooth, double SphericalHorizontal, double SphericalVertical) { }
+        public double BullingtonActual { get; init; }
+        public double BullingtonSmooth { get; init; }
+        public double Horizontal { get; init; }
+        public double SphericalHorizontal { get; init; }
+        public double SphericalVertical { get; init; }
+        public double Vertical { get; init; }
+        public double For(AI.Microwave.Propagation.Polarization polarization) { }
+    }
+    public sealed class FadingProcess
+    {
+        public double KFactor { get; }
+        public double MaxDopplerHz { get; }
+        public int Sinusoids { get; }
+        public System.Numerics.Complex Gain(double timeSeconds) { }
+        public System.Numerics.Complex[] Sample(double sampleRate, int count, double startTimeSeconds = 0) { }
+        public static double Autocorrelation(double maxDopplerHz, double lagSeconds) { }
+        public static double AverageFadeDurationSeconds(double maxDopplerHz, double relativeLevel) { }
+        public static double LevelCrossingRate(double maxDopplerHz, double relativeLevel) { }
+        public static AI.Microwave.Propagation.FadingProcess LineOfSight(double dopplerHz, System.Random random) { }
+        public static AI.Microwave.Propagation.FadingProcess Rayleigh(double maxDopplerHz, System.Random random, int sinusoids = 32) { }
+        public static AI.Microwave.Propagation.FadingProcess Rician(double kFactor, double maxDopplerHz, System.Random random, double losDopplerRatio = 0.7, int sinusoids = 32) { }
+    }
+    public sealed class FlatTerrain : AI.Microwave.Propagation.ITerrainModel
+    {
+        public FlatTerrain() { }
+        public AI.Microwave.Propagation.ClutterCategory Clutter { get; init; }
+        public double ClutterHeightM { get; init; }
+        public double HeightM { get; init; }
+        public bool IsSea { get; init; }
+        public AI.Microwave.Propagation.ClutterCategory ClutterAt(double x, double y) { }
+        public double ClutterHeightAt(double x, double y) { }
+        public double GroundHeightAt(double x, double y) { }
+        public bool IsSeaAt(double x, double y) { }
+    }
+    public sealed class FreeSpaceModel : AI.Microwave.Propagation.IPropagationModel
+    {
+        public FreeSpaceModel() { }
+        public string Name { get; }
+        public double ShadowCorrelationDistanceM { get; init; }
+        public double ShadowSigmaDb { get; init; }
+        public double StateCorrelationDistanceM { get; }
+        public AI.Microwave.Propagation.LinkLoss Loss(AI.Geometry.Primitives.Vector3 transmitter, AI.Geometry.Primitives.Vector3 receiver, double frequencyHz) { }
+    }
+    public static class FresnelReflection
+    {
+        public static double BrewsterGrazingAngleRad(double relativePermittivity) { }
+        public static AI.Microwave.Propagation.ReflectionCoefficients Coefficients(System.Numerics.Complex relativePermittivity, double grazingAngleRad) { }
+        public static AI.Microwave.Propagation.ReflectionCoefficients Coefficients(AI.Microwave.Propagation.RadioMaterial material, double frequencyHz, double grazingAngleRad) { }
+    }
+    public sealed class GridTerrain : AI.Microwave.Propagation.ITerrainModel
+    {
+        public GridTerrain(double minX, double minY, double spacingM, double[] heights, AI.Microwave.Propagation.ClutterCategory[] clutter) { }
+        public GridTerrain(double minX, double minY, double spacingM, double[] heights, double[]? clutterHeights = null, bool[]? sea = null) { }
+        public int Columns { get; }
+        public double MinX { get; }
+        public double MinY { get; }
+        public int Rows { get; }
+        public double SpacingM { get; }
+        public AI.Microwave.Propagation.ClutterCategory ClutterAt(double x, double y) { }
+        public double ClutterHeightAt(double x, double y) { }
+        public double GroundHeightAt(double x, double y) { }
+        public bool IsSeaAt(double x, double y) { }
+    }
+    public enum HataEnvironment
+    {
+        MediumCity = 0,
+        LargeCity = 1,
+        Suburban = 2,
+        Open = 3,
+    }
+    public sealed class HataModel : AI.Microwave.Propagation.IPropagationModel
+    {
+        public HataModel(AI.Microwave.Propagation.HataEnvironment environment = 0, double shadowSigmaDb = 8) { }
+        public AI.Microwave.Propagation.HataEnvironment Environment { get; }
+        public string Name { get; }
+        public double ShadowCorrelationDistanceM { get; init; }
+        public double ShadowSigmaDb { get; }
+        public double StateCorrelationDistanceM { get; }
+        public AI.Microwave.Propagation.LinkLoss Loss(AI.Geometry.Primitives.Vector3 transmitter, AI.Geometry.Primitives.Vector3 receiver, double frequencyHz) { }
+    }
+    public interface IPropagationModel
+    {
+        string Name { get; }
+        double ShadowCorrelationDistanceM { get; }
+        double StateCorrelationDistanceM { get; }
+        AI.Microwave.Propagation.LinkLoss Loss(AI.Geometry.Primitives.Vector3 transmitter, AI.Geometry.Primitives.Vector3 receiver, double frequencyHz);
+    }
+    public interface ITerrainModel
+    {
+        AI.Microwave.Propagation.ClutterCategory ClutterAt(double x, double y);
+        double ClutterHeightAt(double x, double y);
+        double GroundHeightAt(double x, double y);
+        bool IsSeaAt(double x, double y);
+    }
+    public static class ItuP1812
+    {
+        public const double BetaEffectiveEarthRadiusKm = 19113D;
+        public const double EarthRadiusKm = 6371D;
+        public static double BullingtonDb(System.Collections.Generic.IReadOnlyList<double> distancesKm, System.Collections.Generic.IReadOnlyList<double> heightsM, double txHeightAmslM, double rxHeightAmslM, double effectiveRadiusKm, double frequencyHz) { }
+        public static AI.Microwave.Propagation.DeltaBullingtonLoss DeltaBullington(System.Collections.Generic.IReadOnlyList<double> distancesKm, System.Collections.Generic.IReadOnlyList<double> heightsM, double txHeightAmslM, double rxHeightAmslM, double smoothTxHeightM, double smoothRxHeightM, double effectiveRadiusKm, double frequencyHz, double seaFraction = 0) { }
+        public static double FreeSpaceDb(double distanceKm, double txHeightAmslM, double rxHeightAmslM, double frequencyHz) { }
+        public static double LocationVariabilityDb(double frequencyHz, double resolutionM = 100) { }
+        public static double MedianEffectiveEarthRadiusKm(double refractivityGradient = 45) { }
+        public static AI.Microwave.Propagation.P1812Loss MedianLoss(AI.Microwave.Propagation.TerrainProfile profile, double txHeightAglM, double rxHeightAglM, double frequencyHz, AI.Microwave.Propagation.Polarization polarization = 1, double refractivityGradient = 45, double? effectiveRadiusKm = default) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Hst",
+                "Hsr",
+                "Hstd",
+                "Hsrd"})]
+        public static System.ValueTuple<double, double, double, double> SmoothEarthHeights(System.Collections.Generic.IReadOnlyList<double> distancesKm, System.Collections.Generic.IReadOnlyList<double> groundHeightsM, double txHeightAmslM, double rxHeightAmslM) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Horizontal",
+                "Vertical"})]
+        public static System.ValueTuple<double, double> SphericalEarthDb(double distanceKm, double txEffectiveHeightM, double rxEffectiveHeightM, double effectiveRadiusKm, double frequencyHz, double seaFraction = 0) { }
+    }
+    public static class ItuP2108
+    {
+        public const double DefaultStreetWidthM = 27D;
+        public static double HeightGainCorrectionDb(double frequencyHz, double antennaHeightM, AI.Microwave.Propagation.ClutterCategory category, double? clutterHeightM = default, double streetWidthM = 27) { }
+        public static double ProfileClutterHeightM(AI.Microwave.Propagation.ClutterCategory category) { }
+        public static double RepresentativeHeightM(AI.Microwave.Propagation.ClutterCategory category) { }
+        public static double TerrestrialStatisticalLossDb(double frequencyHz, double distanceM, double locationPercent = 50) { }
+    }
+    public static class KnifeEdgeDiffraction
+    {
+        public static System.Numerics.Complex Coefficient(double nu) { }
+        public static double FresnelParameter(double clearanceM, double d1, double d2, double frequencyHz) { }
+        public static double ItuApproximationLossDb(double nu) { }
+        public static double LossDb(double nu) { }
+        public static AI.Microwave.Propagation.PropagationPath Path(double txHeightM, double rxHeightM, double edgeHeightM, double d1, double d2, double frequencyHz) { }
+    }
+    public enum LargeScaleParameter
+    {
+        DelaySpread = 0,
+        AzimuthSpreadDeparture = 1,
+        AzimuthSpreadArrival = 2,
+        ShadowFading = 3,
+        KFactor = 4,
+        ZenithSpreadArrival = 5,
+        ZenithSpreadDeparture = 6,
+    }
+    public sealed record LargeScaleParameters : System.IEquatable<AI.Microwave.Propagation.LargeScaleParameters>
+    {
+        public LargeScaleParameters(double DelaySpreadSeconds, double AzimuthSpreadDepartureDeg, double AzimuthSpreadArrivalDeg, double ZenithSpreadDepartureDeg, double ZenithSpreadArrivalDeg, double KFactorDb, double ShadowFadingDb) { }
+        public double AzimuthSpreadArrivalDeg { get; init; }
+        public double AzimuthSpreadDepartureDeg { get; init; }
+        public double DelaySpreadSeconds { get; init; }
+        public double KFactorDb { get; init; }
+        public double ShadowFadingDb { get; init; }
+        public double ZenithSpreadArrivalDeg { get; init; }
+        public double ZenithSpreadDepartureDeg { get; init; }
+    }
+    public static class LinkBudget
+    {
+        public static double CoverageProbability(double medianReceivedDbm, double sensitivityDbm, double shadowingSigmaDb) { }
+        public static double ReceivedPowerDbm(double eirpDbm, double pathLossDb, double receiverGainDbi = 0) { }
+        public static double ThermalNoiseDbm(double bandwidthHz, double noiseFigureDb = 0, double temperatureK = 290) { }
+    }
+    public readonly struct LinkLoss : System.IEquatable<AI.Microwave.Propagation.LinkLoss>
+    {
+        public LinkLoss(double LineOfSightProbability, double LineOfSightDb, double LineOfSightSigmaDb, double NonLineOfSightDb, double NonLineOfSightSigmaDb) { }
+        public double LineOfSightDb { get; init; }
+        public double LineOfSightProbability { get; init; }
+        public double LineOfSightSigmaDb { get; init; }
+        public double MeanDb { get; }
+        public double NonLineOfSightDb { get; init; }
+        public double NonLineOfSightSigmaDb { get; init; }
+        public double ProbabilityWithin(double allowedLossDb, double extraSigmaDb = 0) { }
+        public static AI.Microwave.Propagation.LinkLoss Single(double lossDb, double sigmaDb) { }
+    }
+    public sealed class LogDistanceModel : AI.Microwave.Propagation.IPropagationModel
+    {
+        public LogDistanceModel(double exponent, double shadowSigmaDb = 0, double referenceDistanceM = 1) { }
+        public double Exponent { get; }
+        public string Name { get; }
+        public double ReferenceDistanceM { get; }
+        public double ShadowCorrelationDistanceM { get; init; }
+        public double ShadowSigmaDb { get; }
+        public double StateCorrelationDistanceM { get; }
+        public AI.Microwave.Propagation.LinkLoss Loss(AI.Geometry.Primitives.Vector3 transmitter, AI.Geometry.Primitives.Vector3 receiver, double frequencyHz) { }
+    }
+    public readonly struct LogFrequencyLaw : System.IEquatable<AI.Microwave.Propagation.LogFrequencyLaw>
+    {
+        public LogFrequencyLaw(double Slope, double Offset, double Intercept) { }
+        public double Intercept { get; init; }
+        public double Offset { get; init; }
+        public double Slope { get; init; }
+        public double At(double frequencyGHz) { }
+        public static AI.Microwave.Propagation.LogFrequencyLaw Constant(double value) { }
+    }
+    public sealed record MimoPath : System.IEquatable<AI.Microwave.Propagation.MimoPath>
+    {
+        public MimoPath(double DelaySeconds, double DopplerHz, System.Numerics.Complex[] Coefficients, AI.Microwave.Propagation.PathKind Kind) { }
+        public double AzimuthOfArrivalDeg { get; init; }
+        public double AzimuthOfDepartureDeg { get; init; }
+        public int Cluster { get; init; }
+        public System.Numerics.Complex[] Coefficients { get; init; }
+        public double DelaySeconds { get; init; }
+        public double DopplerHz { get; init; }
+        public AI.Microwave.Propagation.PathKind Kind { get; init; }
+        public double LengthMetres { get; init; }
+        public double ZenithOfArrivalDeg { get; init; }
+        public double ZenithOfDepartureDeg { get; init; }
+    }
+    public sealed class MultipathChannel : AI.Insights.IInterpretable
+    {
+        public MultipathChannel(System.Collections.Generic.IEnumerable<AI.Microwave.Propagation.PropagationPath> paths, double carrierFrequencyHz = NaN) { }
+        public double CarrierFrequencyHz { get; }
+        public int Count { get; }
+        public double DopplerSpreadHz { get; }
+        public double FirstArrivalSeconds { get; }
+        public double MaxDopplerHz { get; }
+        public double MeanDelaySeconds { get; }
+        public double MeanDopplerHz { get; }
+        public double NarrowbandGainDb { get; }
+        public double PathGainDb { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.PropagationPath> Paths { get; }
+        public double RicianKFactor { get; }
+        public double RmsDelaySpreadSeconds { get; }
+        public double TotalPower { get; }
+        public System.Numerics.Complex[] Apply(System.Collections.Generic.IReadOnlyList<System.Numerics.Complex> input, double sampleRate, double startTimeSeconds = 0, bool relativeToFirstArrival = true) { }
+        public double CoherenceBandwidthHz(double level = 0.5) { }
+        public double CoherenceTimeSeconds(double level = 0.5) { }
+        public double FrequencyCorrelation(double separationHz) { }
+        public System.Numerics.Complex[] FrequencyResponse(System.Collections.Generic.IReadOnlyList<double> frequencyOffsetsHz) { }
+        public System.Numerics.Complex FrequencyResponse(double frequencyOffsetHz) { }
+        public System.Numerics.Complex[] ImpulseResponse(double sampleRate, int length, bool relativeToFirstArrival = true) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public double MaximumExcessDelaySeconds(double thresholdDb = 30) { }
+        public AI.Microwave.Propagation.MultipathChannel Snapshot(double timeSeconds) { }
+        public double TimeCorrelation(double lagSeconds) { }
+    }
+    public sealed record P1812Loss : AI.Insights.IInterpretable, System.IEquatable<AI.Microwave.Propagation.P1812Loss>
+    {
+        public P1812Loss(double FreeSpaceDb, AI.Microwave.Propagation.DeltaBullingtonLoss Diffraction, AI.Microwave.Propagation.Polarization Polarization, bool IsLineOfSight, double SmoothTxHeightM, double SmoothRxHeightM, double TerminalClutterDb = 0) { }
+        public AI.Microwave.Propagation.DeltaBullingtonLoss Diffraction { get; init; }
+        public double DiffractionDb { get; }
+        public double FreeSpaceDb { get; init; }
+        public bool IsLineOfSight { get; init; }
+        public AI.Microwave.Propagation.Polarization Polarization { get; init; }
+        public double SmoothRxHeightM { get; init; }
+        public double SmoothTxHeightM { get; init; }
+        public double TerminalClutterDb { get; init; }
+        public double TotalDb { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public enum PathKind
+    {
+        LineOfSight = 0,
+        Reflection = 1,
+        Diffraction = 2,
+        Scattered = 3,
+    }
+    public static class PathLoss
+    {
+        public static double FreeSpaceDb(double frequencyHz, double distanceM) { }
+        public static double HataDb(double frequencyHz, double distanceM, double baseHeightM, double mobileHeightM, AI.Microwave.Propagation.HataEnvironment environment) { }
+    }
+    public static class PenetrationLoss
+    {
+        public const double MeanIndoorDistanceM = 8.333333333333334D;
+        public static double CoatedGlassDb(double frequencyHz) { }
+        public static double ConcreteDb(double frequencyHz) { }
+        public static double LossDb(AI.Microwave.Propagation.TerminalEnvironment environment, double frequencyHz, double indoorDistanceM = 8.333333333333334) { }
+        public static double SigmaDb(AI.Microwave.Propagation.TerminalEnvironment environment) { }
+        public static double StandardGlassDb(double frequencyHz) { }
+        public static double WoodDb(double frequencyHz) { }
+    }
+    public sealed class PlanarReflector
+    {
+        public PlanarReflector(AI.Geometry.Primitives.Vector3 corner, AI.Geometry.Primitives.Vector3 edgeU, AI.Geometry.Primitives.Vector3 edgeV, AI.Microwave.Propagation.RadioMaterial material, string name = "") { }
+        public bool IsInfinite { get; }
+        public AI.Microwave.Propagation.RadioMaterial Material { get; }
+        public string Name { get; }
+        public AI.Geometry.Primitives.Vector3 Normal { get; }
+        public AI.Geometry.Primitives.Vector3 Origin { get; }
+        public AI.Geometry.Primitives.Vector3 Mirror(AI.Geometry.Primitives.Vector3 point) { }
+        public override string ToString() { }
+        public static AI.Microwave.Propagation.PlanarReflector Infinite(AI.Geometry.Primitives.Vector3 point, AI.Geometry.Primitives.Vector3 normal, AI.Microwave.Propagation.RadioMaterial material, string name = "") { }
+    }
+    public enum Polarization
+    {
+        Horizontal = 0,
+        Vertical = 1,
+    }
+    public sealed record PropagationPath : System.IEquatable<AI.Microwave.Propagation.PropagationPath>
+    {
+        public PropagationPath(double DelaySeconds, System.Numerics.Complex Gain, double DopplerHz = 0, AI.Microwave.Propagation.PathKind Kind = 3) { }
+        public double AzimuthOfArrivalDeg { get; init; }
+        public double AzimuthOfDepartureDeg { get; init; }
+        public double DelaySeconds { get; init; }
+        public double DopplerHz { get; init; }
+        public double ElevationOfArrivalDeg { get; init; }
+        public double ElevationOfDepartureDeg { get; init; }
+        public System.Numerics.Complex Gain { get; init; }
+        public AI.Microwave.Propagation.PathKind Kind { get; init; }
+        public double LengthMetres { get; init; }
+        public int Order { get; init; }
+        public double Power { get; }
+        public double PowerDb { get; }
+        public AI.Microwave.Propagation.PropagationPath At(double timeSeconds) { }
+    }
+    public sealed record RadioEndpoint : System.IEquatable<AI.Microwave.Propagation.RadioEndpoint>
+    {
+        public RadioEndpoint(AI.Geometry.Primitives.Vector3 Position) { }
+        public double BoresightAzimuthDeg { get; init; }
+        public double BoresightElevationDeg { get; init; }
+        public double GainDbi { get; init; }
+        public AI.Microwave.Safety.AntennaPattern Pattern { get; init; }
+        public AI.Geometry.Primitives.Vector3 Polarization { get; init; }
+        public AI.Geometry.Primitives.Vector3 Position { get; init; }
+        public AI.Geometry.Primitives.Vector3 Velocity { get; init; }
+    }
+    public sealed class RadioMaterial
+    {
+        public bool IsPerfectConductor { get; }
+        public double MaxFrequencyHz { get; }
+        public double MinFrequencyHz { get; }
+        public string Name { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Brick { get; }
+        public static AI.Microwave.Propagation.RadioMaterial CeilingBoard { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Chipboard { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Concrete { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Floorboard { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Glass { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Marble { get; }
+        public static AI.Microwave.Propagation.RadioMaterial MediumDryGround { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Metal { get; }
+        public static AI.Microwave.Propagation.RadioMaterial PerfectConductor { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Plasterboard { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Plywood { get; }
+        public static AI.Microwave.Propagation.RadioMaterial VeryDryGround { get; }
+        public static AI.Microwave.Propagation.RadioMaterial WetGround { get; }
+        public static AI.Microwave.Propagation.RadioMaterial Wood { get; }
+        public System.Numerics.Complex ComplexPermittivity(double frequencyHz) { }
+        public double Conductivity(double frequencyHz) { }
+        public double RelativePermittivity(double frequencyHz) { }
+        public override string ToString() { }
+        public static AI.Microwave.Propagation.RadioMaterial FromConstants(string name, double relativePermittivity, double conductivitySiemensPerMetre) { }
+        public static AI.Microwave.Propagation.RadioMaterial FromItuModel(string name, double a, double b, double c, double d, double minFrequencyGHz, double maxFrequencyGHz) { }
+    }
+    public sealed class RayTracingScene
+    {
+        public RayTracingScene(double frequencyHz) { }
+        public bool Blocking { get; init; }
+        public double FrequencyHz { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.PlanarReflector> Reflectors { get; }
+        public double WavelengthM { get; }
+        public AI.Microwave.Propagation.RayTracingScene Add(AI.Microwave.Propagation.PlanarReflector reflector) { }
+        public AI.Microwave.Propagation.MultipathChannel Trace(AI.Microwave.Propagation.RadioEndpoint transmitter, AI.Microwave.Propagation.RadioEndpoint receiver, int maxReflections = 2) { }
+    }
+    public readonly struct ReflectionCoefficients : System.IEquatable<AI.Microwave.Propagation.ReflectionCoefficients>
+    {
+        public ReflectionCoefficients(System.Numerics.Complex Perpendicular, System.Numerics.Complex Parallel) { }
+        public System.Numerics.Complex Parallel { get; init; }
+        public System.Numerics.Complex Perpendicular { get; init; }
+    }
+    public sealed class SrtmDownloader
+    {
+        public const string TerrainTilesUrl = "https://s3.amazonaws.com/elevation-tiles-prod/skadi/{0}/{1}.hgt.gz";
+        public SrtmDownloader(string cacheDirectory, System.Net.Http.HttpClient? httpClient = null) { }
+        public string CacheDirectory { get; }
+        public bool MissingTileIsSea { get; init; }
+        public string UrlTemplate { get; init; }
+        public System.Threading.Tasks.Task<AI.Microwave.Propagation.SrtmTile> GetTileAsync(int latitude, int longitude, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.SrtmTile>> GetTilesAsync(AI.Earth.Geodesy.GeoPoint origin, double halfSizeM, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<AI.Microwave.Propagation.GridTerrain> LoadTerrainAsync(AI.Earth.Geodesy.GeoPoint origin, double halfSizeM, double spacingM, System.Threading.CancellationToken cancellationToken = default) { }
+        public string TileUrl(int latitude, int longitude) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Latitude",
+                "Longitude"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int>> TilesAround(AI.Earth.Geodesy.GeoPoint origin, double halfSizeM) { }
+    }
+    public sealed class SrtmTile
+    {
+        public const short Void = -32768;
+        public SrtmTile(int latitude, int longitude, short[] heights) { }
+        public int Latitude { get; }
+        public int Longitude { get; }
+        public int Samples { get; }
+        public double StepDeg { get; }
+        public bool Contains(double latitude, double longitude) { }
+        public double HeightAt(double latitude, double longitude) { }
+        public static AI.Microwave.Propagation.SrtmTile Read(string path) { }
+        public static AI.Microwave.Propagation.SrtmTile Read(System.IO.Stream stream, int latitude, int longitude) { }
+        public static string TileName(int latitude, int longitude) { }
+        public static AI.Microwave.Propagation.GridTerrain ToLocalGrid(System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.SrtmTile> tiles, AI.Earth.Geodesy.GeoPoint origin, double halfSizeM, double spacingM) { }
+    }
+    public sealed class TappedDelayLineChannel
+    {
+        public AI.Microwave.Propagation.TappedDelayLineModel Model { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.FadingProcess> Processes { get; }
+        public System.Numerics.Complex[] Apply(System.Collections.Generic.IReadOnlyList<System.Numerics.Complex> input, double sampleRate, double startTimeSeconds = 0) { }
+        public AI.Microwave.Propagation.MultipathChannel Snapshot(double timeSeconds) { }
+    }
+    public sealed class TappedDelayLineModel
+    {
+        public double FirstTapKFactorDb { get; }
+        public bool HasLineOfSight { get; }
+        public string Name { get; }
+        public double NormalizedRmsDelaySpread { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.DelayTap> Taps { get; }
+        public static AI.Microwave.Propagation.TappedDelayLineModel TdlA { get; }
+        public static AI.Microwave.Propagation.TappedDelayLineModel TdlB { get; }
+        public static AI.Microwave.Propagation.TappedDelayLineModel TdlC { get; }
+        public static AI.Microwave.Propagation.TappedDelayLineModel TdlD { get; }
+        public static AI.Microwave.Propagation.TappedDelayLineModel TdlE { get; }
+        public AI.Microwave.Propagation.MultipathChannel AveragePowerDelayProfile(double delaySpreadSeconds) { }
+        public AI.Microwave.Propagation.TappedDelayLineChannel Realize(double delaySpreadSeconds, double maxDopplerHz, System.Random random, int sinusoids = 32, double losDopplerRatio = 0.7) { }
+        public override string ToString() { }
+        public static AI.Microwave.Propagation.TappedDelayLineModel Custom(string name, System.Collections.Generic.IEnumerable<AI.Microwave.Propagation.DelayTap> taps) { }
+    }
+    public enum TerminalEnvironment
+    {
+        Outdoor = 0,
+        IndoorLowLoss = 1,
+        IndoorHighLoss = 2,
+        InCar = 3,
+    }
+    public sealed class TerrainProfile
+    {
+        public TerrainProfile(System.Collections.Generic.IReadOnlyList<double> distancesM, System.Collections.Generic.IReadOnlyList<double> groundHeightsM, System.Collections.Generic.IReadOnlyList<double>? clutterHeightsM = null, System.Collections.Generic.IReadOnlyList<bool>? sea = null) { }
+        public System.Collections.Generic.IReadOnlyList<double> ClutterHeightsM { get; }
+        public int Count { get; }
+        public System.Collections.Generic.IReadOnlyList<double> DistancesM { get; }
+        public System.Collections.Generic.IReadOnlyList<double> GroundHeightsM { get; }
+        public double LengthM { get; }
+        public System.Collections.Generic.IReadOnlyList<bool> Sea { get; }
+        public double SeaFraction { get; }
+        public static AI.Microwave.Propagation.TerrainProfile Between(AI.Microwave.Propagation.ITerrainModel terrain, double x1, double y1, double x2, double y2, double maxStepM) { }
+    }
+    public sealed class TerrainPropagationModel : AI.Microwave.Propagation.IPropagationModel
+    {
+        public TerrainPropagationModel(AI.Microwave.Propagation.ITerrainModel terrain) { }
+        public double? LocationSigmaDb { get; init; }
+        public string Name { get; }
+        public AI.Microwave.Propagation.Polarization Polarization { get; init; }
+        public double ProfileStepM { get; init; }
+        public double RefractivityGradient { get; init; }
+        public double ShadowCorrelationDistanceM { get; init; }
+        public double StateCorrelationDistanceM { get; }
+        public double StreetWidthM { get; init; }
+        public bool TerminalClutter { get; init; }
+        public AI.Microwave.Propagation.ITerrainModel Terrain { get; }
+        public AI.Microwave.Propagation.P1812Loss Analyze(AI.Geometry.Primitives.Vector3 transmitter, AI.Geometry.Primitives.Vector3 receiver, double frequencyHz) { }
+        public AI.Microwave.Propagation.LinkLoss Loss(AI.Geometry.Primitives.Vector3 transmitter, AI.Geometry.Primitives.Vector3 receiver, double frequencyHz) { }
+    }
+    public sealed class Tr38901Channel : AI.Insights.IInterpretable
+    {
+        public AI.Geometry.Primitives.Vector3 BaseStation { get; }
+        public AI.Microwave.Propagation.AntennaArray BaseStationArray { get; }
+        public double CarrierFrequencyHz { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.Tr38901Cluster> Clusters { get; }
+        public double Distance2DM { get; }
+        public double Distance3DM { get; }
+        public double EnvironmentHeightM { get; }
+        public bool IsLineOfSight { get; }
+        public AI.Microwave.Propagation.LargeScaleParameters LargeScale { get; }
+        public double PathGainDb { get; }
+        public double PathLossDb { get; }
+        public int RayCount { get; }
+        public AI.Microwave.Propagation.Tr38901Scenario Scenario { get; }
+        public double ShadowFadingDb { get; }
+        public AI.Geometry.Primitives.Vector3 Terminal { get; }
+        public AI.Microwave.Propagation.AntennaArray TerminalArray { get; }
+        public AI.Geometry.Primitives.Vector3 TerminalVelocity { get; }
+        public double WavelengthM { get; }
+        public double CapacityBitsPerHz(double snrDb, double frequencyOffsetHz = 0, double timeSeconds = 0) { }
+        public System.Numerics.Complex[] ChannelMatrix(double frequencyOffsetHz = 0, double timeSeconds = 0) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.MimoPath> Paths(double timeSeconds = 0) { }
+        public AI.Geometry.Primitives.Vector3 TerminalAt(double timeSeconds) { }
+        public AI.Microwave.Propagation.MultipathChannel ToMultipathChannel(double timeSeconds = 0, int receiveElement = 0, int transmitElement = 0) { }
+    }
+    public sealed class Tr38901ChannelModel
+    {
+        public Tr38901ChannelModel(AI.Microwave.Propagation.Tr38901Scenario scenario, double carrierFrequencyHz) { }
+        public AI.Microwave.Propagation.AntennaArray BaseStationArray { get; init; }
+        public double CarrierFrequencyHz { get; }
+        public bool? LineOfSight { get; init; }
+        public AI.Microwave.Propagation.Tr38901Scenario Scenario { get; }
+        public AI.Microwave.Propagation.AntennaArray TerminalArray { get; init; }
+        public double WavelengthM { get; }
+        public AI.Microwave.Propagation.Tr38901Drop CreateDrop(AI.Geometry.Primitives.Vector3 baseStation, System.Random rng, bool spatiallyConsistent = true) { }
+        public AI.Microwave.Propagation.Tr38901Channel Generate(AI.Geometry.Primitives.Vector3 baseStation, AI.Geometry.Primitives.Vector3 terminal, System.Random rng, AI.Geometry.Primitives.Vector3 terminalVelocity = default) { }
+    }
+    public sealed record Tr38901Cluster : System.IEquatable<AI.Microwave.Propagation.Tr38901Cluster>
+    {
+        public Tr38901Cluster(double DelaySeconds, double Power, double AzimuthOfArrivalDeg, double ZenithOfArrivalDeg, double AzimuthOfDepartureDeg, double ZenithOfDepartureDeg) { }
+        public double AzimuthOfArrivalDeg { get; init; }
+        public double AzimuthOfDepartureDeg { get; init; }
+        public double DelaySeconds { get; init; }
+        public bool IsSplit { get; init; }
+        public double Power { get; init; }
+        public double ZenithOfArrivalDeg { get; init; }
+        public double ZenithOfDepartureDeg { get; init; }
+    }
+    public sealed class Tr38901Drop
+    {
+        public AI.Geometry.Primitives.Vector3 BaseStation { get; }
+        public bool IsSpatiallyConsistent { get; }
+        public AI.Microwave.Propagation.Tr38901ChannelModel Model { get; }
+        public bool IsLineOfSight(AI.Geometry.Primitives.Vector3 terminal) { }
+        public AI.Microwave.Propagation.LargeScaleParameters LargeScale(AI.Geometry.Primitives.Vector3 terminal, bool lineOfSight) { }
+        public AI.Microwave.Propagation.Tr38901Channel Link(AI.Geometry.Primitives.Vector3 terminal, AI.Geometry.Primitives.Vector3 terminalVelocity = default) { }
+    }
+    public enum Tr38901Environment
+    {
+        UrbanMacro = 0,
+        UrbanMicro = 1,
+        RuralMacro = 2,
+        IndoorMixedOffice = 3,
+        IndoorOpenOffice = 4,
+    }
+    public sealed class Tr38901Parameters
+    {
+        public double AzimuthScaling { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw AzimuthSpreadArrivalMean { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw AzimuthSpreadArrivalSigma { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw AzimuthSpreadDepartureMean { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw AzimuthSpreadDepartureSigma { get; }
+        public double ClusterAzimuthSpreadArrivalDeg { get; }
+        public double ClusterAzimuthSpreadDepartureDeg { get; }
+        public int ClusterCount { get; }
+        public double ClusterShadowingDb { get; }
+        public double ClusterZenithSpreadArrivalDeg { get; }
+        public double CorrelationRegularization { get; }
+        public double CrossPolarizationMeanDb { get; }
+        public double CrossPolarizationSigmaDb { get; }
+        public double DelayScaling { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw DelaySpreadMean { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw DelaySpreadSigma { get; }
+        public double KFactorMeanDb { get; }
+        public double KFactorSigmaDb { get; }
+        public int RaysPerCluster { get; }
+        public double ShadowFadingSigmaDb { get; }
+        public double ZenithScaling { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw ZenithSpreadArrivalMean { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw ZenithSpreadArrivalSigma { get; }
+        public AI.Microwave.Propagation.LogFrequencyLaw ZenithSpreadDepartureSigma { get; }
+        public double ClusterDelaySpreadNs(double frequencyGHz) { }
+        public double CorrelationDistanceM(AI.Microwave.Propagation.LargeScaleParameter parameter) { }
+        public double CrossCorrelation(AI.Microwave.Propagation.LargeScaleParameter first, AI.Microwave.Propagation.LargeScaleParameter second) { }
+    }
+    public sealed class Tr38901Scenario : AI.Microwave.Propagation.IPropagationModel
+    {
+        public AI.Microwave.Propagation.Tr38901Environment Environment { get; }
+        public AI.Microwave.Propagation.Tr38901Parameters LineOfSight { get; }
+        public double LineOfSightCorrelationDistanceM { get; }
+        public string Name { get; }
+        public AI.Microwave.Propagation.Tr38901Parameters NonLineOfSight { get; }
+        public double TypicalBaseStationHeightM { get; }
+        public double TypicalTerminalHeightM { get; }
+        public static System.Collections.Generic.IReadOnlyList<AI.Microwave.Propagation.Tr38901Scenario> All { get; }
+        public static AI.Microwave.Propagation.Tr38901Scenario IndoorMixedOffice { get; }
+        public static AI.Microwave.Propagation.Tr38901Scenario IndoorOpenOffice { get; }
+        public static AI.Microwave.Propagation.Tr38901Scenario RuralMacro { get; }
+        public static AI.Microwave.Propagation.Tr38901Scenario UrbanMacro { get; }
+        public static AI.Microwave.Propagation.Tr38901Scenario UrbanMicro { get; }
+        public double BreakpointDistanceM(double baseStationHeightM, double terminalHeightM, double carrierFrequencyHz, double environmentHeightM = 1) { }
+        public double LargeScaleFrequencyGHz(double carrierFrequencyHz) { }
+        public double LineOfSightProbability(double distance2DM, double terminalHeightM = 1.5) { }
+        public AI.Microwave.Propagation.LinkLoss Loss(AI.Geometry.Primitives.Vector3 transmitter, AI.Geometry.Primitives.Vector3 receiver, double frequencyHz) { }
+        public AI.Microwave.Propagation.Tr38901Parameters Parameters(bool lineOfSight) { }
+        public double PathLossDb(bool lineOfSight, double distance2DM, double baseStationHeightM, double terminalHeightM, double carrierFrequencyHz, double environmentHeightM = 1) { }
+        public double ShadowFadingSigmaDb(bool lineOfSight, double distance2DM, double baseStationHeightM, double terminalHeightM, double carrierFrequencyHz) { }
+        public override string ToString() { }
+        public double ZenithOffsetDepartureDeg(bool lineOfSight, double distance2DM, double terminalHeightM, double carrierFrequencyHz) { }
+        public double ZenithSpreadDepartureMean(bool lineOfSight, double distance2DM, double baseStationHeightM, double terminalHeightM, double carrierFrequencyHz) { }
+    }
+    public static class TwoRayGround
+    {
+        public static double BreakpointDistanceM(double txHeightM, double rxHeightM, double frequencyHz) { }
+        public static AI.Microwave.Propagation.MultipathChannel Channel(double distanceM, double txHeightM, double rxHeightM, double frequencyHz, AI.Microwave.Propagation.RadioMaterial ground, AI.Microwave.Propagation.Polarization polarization = 1) { }
+        public static double PathLossDb(double distanceM, double txHeightM, double rxHeightM, double frequencyHz, AI.Microwave.Propagation.RadioMaterial ground, AI.Microwave.Propagation.Polarization polarization = 1) { }
+        public static double PlaneEarthLossDb(double distanceM, double txHeightM, double rxHeightM) { }
+    }
+    public static class VegetationLoss
+    {
+        public static double Itu833Db(double depthM, double specificAttenuationDbPerM, double maxAttenuationDb) { }
+        public static double WeissbergerDb(double frequencyHz, double depthM) { }
+    }
+}
+namespace AI.Microwave.Safety
+{
+    public abstract class AntennaPattern
+    {
+        protected AntennaPattern() { }
+        public abstract double AttenuationDb(double azimuthDeg, double elevationDeg);
+        public double RelativeGain(double azimuthDeg, double elevationDeg) { }
+        protected static double Wrap180(double angleDeg) { }
+        protected static double Wrap360(double angleDeg) { }
+    }
+    public readonly struct ExposureAssessment : System.IEquatable<AI.Microwave.Safety.ExposureAssessment>
+    {
+        public ExposureAssessment(AI.Microwave.Safety.SitePoint Point, double PowerDensityWPerM2, double ElectricFieldVPerM, double Ratio) { }
+        public double ElectricFieldVPerM { get; init; }
+        public bool IsCompliant { get; }
+        public double MarginDb { get; }
+        public AI.Microwave.Safety.SitePoint Point { get; init; }
+        public double PowerDensityMicroWattPerCm2 { get; }
+        public double PowerDensityWPerM2 { get; init; }
+        public double Ratio { get; init; }
+    }
+    public enum ExposureCategory
+    {
+        General = 0,
+        Occupational = 1,
+    }
+    public readonly struct ExposureLimit : System.IEquatable<AI.Microwave.Safety.ExposureLimit>
+    {
+        public ExposureLimit(AI.Microwave.Safety.ExposureStandard Standard, AI.Microwave.Safety.ExposureCategory Category, double FrequencyMinHz, double FrequencyMaxHz, double? PowerDensityWPerM2, double? ElectricFieldVPerM, double AveragingMinutes, double? FrequencyScaledMHz = default) { }
+        public double AveragingMinutes { get; init; }
+        public AI.Microwave.Safety.ExposureCategory Category { get; init; }
+        public double? ElectricFieldVPerM { get; init; }
+        public double FrequencyMaxHz { get; init; }
+        public double FrequencyMinHz { get; init; }
+        public double? FrequencyScaledMHz { get; init; }
+        public double? PowerDensityWPerM2 { get; init; }
+        public AI.Microwave.Safety.ExposureStandard Standard { get; init; }
+    }
+    public static class ExposureLimits
+    {
+        public static System.Collections.Generic.List<AI.Microwave.Safety.ExposureLimit> Custom { get; }
+        public static System.Collections.Generic.IReadOnlyList<AI.Microwave.Safety.ExposureLimit> FccOet65 { get; }
+        public static System.Collections.Generic.IReadOnlyList<AI.Microwave.Safety.ExposureLimit> Icnirp2020 { get; }
+        public static System.Collections.Generic.IReadOnlyList<AI.Microwave.Safety.ExposureLimit> Sanpin { get; }
+        public static double AveragingMinutes(AI.Microwave.Safety.ExposureStandard standard, double frequencyHz, AI.Microwave.Safety.ExposureCategory category = 0) { }
+        public static double ElectricFieldLimit(AI.Microwave.Safety.ExposureStandard standard, double frequencyHz, AI.Microwave.Safety.ExposureCategory category = 0) { }
+        public static AI.Microwave.Safety.ExposureLimit? Find(AI.Microwave.Safety.ExposureStandard standard, double frequencyHz, AI.Microwave.Safety.ExposureCategory category) { }
+        public static double PowerDensityLimit(AI.Microwave.Safety.ExposureStandard standard, double frequencyHz, AI.Microwave.Safety.ExposureCategory category = 0) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Microwave.Safety.ExposureLimit> Table(AI.Microwave.Safety.ExposureStandard standard) { }
+    }
+    public class ExposureScene
+    {
+        public ExposureScene() { }
+        public AI.Microwave.Safety.ExposureCategory Category { get; set; }
+        public AI.Microwave.Safety.FieldDecayModel DecayModel { get; set; }
+        public System.Collections.Generic.List<AI.Microwave.Safety.RadiationSource> Sources { get; }
+        public AI.Microwave.Safety.ExposureStandard Standard { get; set; }
+        public AI.Microwave.Safety.RadiationSource Add(AI.Microwave.Safety.RadiationSource source) { }
+        public AI.Microwave.Safety.ExposureAssessment AssessAt(AI.Microwave.Safety.SitePoint point) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "AzimuthDeg",
+                "DistanceM"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> BoundaryContour(double heightM, double stepDeg = 5, double maxRangeM = 2000) { }
+        public double BoundaryDistance(double azimuthDeg, double heightM, double originX = 0, double originY = 0, double maxRangeM = 2000) { }
+        public double ExposureRatioAt(AI.Microwave.Safety.SitePoint point) { }
+        public double MaxBoundaryDistance(double heightM, double stepDeg = 5, double maxRangeM = 2000) { }
+        public double PowerDensityAt(AI.Microwave.Safety.SitePoint point) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "DistanceM",
+                "PowerDensityWPerM2",
+                "Ratio"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double, double>> Profile(double azimuthDeg, double heightM, double fromM, double toM, int points = 200) { }
+    }
+    public enum ExposureStandard
+    {
+        Sanpin = 0,
+        Icnirp2020 = 1,
+        FccOet65 = 2,
+    }
+    public enum FieldDecayModel
+    {
+        InverseSquare = 0,
+        ApertureThreeRegion = 1,
+    }
+    public sealed class GaussianPattern : AI.Microwave.Safety.AntennaPattern
+    {
+        public GaussianPattern() { }
+        public double AzimuthBeamwidthDeg { get; init; }
+        public double ElevationBeamwidthDeg { get; init; }
+        public double FrontToBackDb { get; init; }
+        public override double AttenuationDb(double azimuthDeg, double elevationDeg) { }
+    }
+    public sealed class IsotropicPattern : AI.Microwave.Safety.AntennaPattern
+    {
+        public IsotropicPattern() { }
+        public override double AttenuationDb(double azimuthDeg, double elevationDeg) { }
+    }
+    public class RadiationSource
+    {
+        public RadiationSource() { }
+        public double ApertureEfficiency { get; set; }
+        public double ApertureHeightM { get; set; }
+        public double ApertureWidthM { get; set; }
+        public double AzimuthDeg { get; set; }
+        public double DowntiltDeg { get; set; }
+        public double DutyCycle { get; set; }
+        public double EirpDbm { get; }
+        public double EirpW { get; }
+        public double EquivalentApertureDiameterM { get; }
+        public double FarFieldBoundaryM { get; }
+        public double FeederLossDb { get; set; }
+        public double FrequencyHz { get; set; }
+        public double GainDbi { get; set; }
+        public string Name { get; set; }
+        public double NearFieldBoundaryM { get; }
+        public double NearFieldPowerDensityWPerM2 { get; }
+        public AI.Microwave.Safety.AntennaPattern Pattern { get; set; }
+        public AI.Microwave.Safety.SitePoint Position { get; set; }
+        public double PowerReductionFactor { get; set; }
+        public double RadiatedPowerW { get; }
+        public double TransmitPowerW { get; set; }
+        public double WavelengthM { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "AzimuthDeg",
+                "ElevationDeg",
+                "RangeM"})]
+        public System.ValueTuple<double, double, double> DirectionTo(AI.Microwave.Safety.SitePoint target) { }
+        public double ElectricFieldAt(AI.Microwave.Safety.SitePoint target, AI.Microwave.Safety.FieldDecayModel model = 1) { }
+        public double PowerDensityAt(AI.Microwave.Safety.SitePoint target, AI.Microwave.Safety.FieldDecayModel model = 1) { }
+    }
+    public readonly struct SitePoint : System.IEquatable<AI.Microwave.Safety.SitePoint>
+    {
+        public SitePoint(double X, double Y, double Z) { }
+        public double X { get; init; }
+        public double Y { get; init; }
+        public double Z { get; init; }
+    }
+    public sealed class TabulatedPattern : AI.Microwave.Safety.AntennaPattern
+    {
+        public TabulatedPattern() { }
+        public double FrequencyMHz { get; init; }
+        public double GainDbi { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Horizontal { get; }
+        public string Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Vertical { get; }
+        public override double AttenuationDb(double azimuthDeg, double elevationDeg) { }
+        public void SetHorizontal([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "AngleDeg",
+                "AttenuationDb"})] System.Collections.Generic.IEnumerable<System.ValueTuple<double, double>> samples) { }
+        public void SetVertical([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "AngleDeg",
+                "AttenuationDb"})] System.Collections.Generic.IEnumerable<System.ValueTuple<double, double>> samples) { }
+        public static AI.Microwave.Safety.TabulatedPattern ParseMsi(string text) { }
+    }
+}

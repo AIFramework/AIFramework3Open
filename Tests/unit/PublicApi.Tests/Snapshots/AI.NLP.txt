@@ -1,0 +1,521 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.DataPrepaire.NLPUtils.RegexpNLP
+{
+    [System.Serializable]
+    public class SentencesTokenizer
+    {
+        public SentencesTokenizer() { }
+        public SentencesTokenizer(System.Collections.Generic.IEnumerable<string> abbreviations) { }
+        public AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.SpecialNers.AbbreviationsNerProcessor AbbreviationsProcessor { get; set; }
+        public System.Collections.Generic.List<string> Tokenize(string text, bool withTrim = true) { }
+        public System.Collections.Generic.List<string> TokenizeWithNer(string text, bool withTrim = true) { }
+    }
+}
+namespace AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER
+{
+    public interface INerProcessor
+    {
+        System.Collections.Generic.Dictionary<string, string> NerToNerToken { get; }
+        System.Collections.Generic.Dictionary<string, string> NerTokenToNer { get; }
+        string NerDecoder(string text);
+        string RunProcessor(string text);
+    }
+    public abstract class NerProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.INerProcessor
+    {
+        public NerProcessor() { }
+        public System.Collections.Generic.Dictionary<string, string> NerToNerToken { get; protected set; }
+        public System.Collections.Generic.Dictionary<string, string> NerTokenToNer { get; protected set; }
+        protected int TokenCounter { get; set; }
+        public string NerDecoder(string text) { }
+        public abstract string RunProcessor(string text);
+    }
+    [System.Serializable]
+    public class RegexNer : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.NerProcessor
+    {
+        public RegexNer(string pattern, string nameToken) { }
+        public string NameToken { get; set; }
+        public string Pattern { get; set; }
+        public override string RunProcessor(string text) { }
+    }
+}
+namespace AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.SpecialNers
+{
+    [System.Serializable]
+    public class AbbreviationsNerProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.INerProcessor
+    {
+        public AbbreviationsNerProcessor(System.Collections.Generic.IEnumerable<string> abbreviations) { }
+        public System.Collections.Generic.Dictionary<string, string> NerToNerToken { get; }
+        public System.Collections.Generic.Dictionary<string, string> NerTokenToNer { get; }
+        public string NerDecoder(string text) { }
+        public string RunProcessor(string text) { }
+    }
+    [System.Serializable]
+    public class AdressProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.RegexNer
+    {
+        public AdressProcessor() { }
+    }
+    [System.Serializable]
+    public class CombineNerProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.INerProcessor
+    {
+        public CombineNerProcessor() { }
+        public System.Collections.Generic.Dictionary<string, string> NerToNerToken { get; }
+        public System.Collections.Generic.Dictionary<string, string> NerTokenToNer { get; }
+        public string NerDecoder(string text) { }
+        public string RunProcessor(string text) { }
+    }
+    [System.Serializable]
+    public class EmailAdressProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.RegexNer
+    {
+        public EmailAdressProcessor() { }
+    }
+    [System.Serializable]
+    public class NameRusNerProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.RegexNer
+    {
+        public NameRusNerProcessor() { }
+    }
+    public class OrderNumberNerProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.RegexNer
+    {
+        public OrderNumberNerProcessor() { }
+    }
+    [System.Serializable]
+    public class PhoneNerProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.RegexNer
+    {
+        public PhoneNerProcessor() { }
+    }
+    [System.Serializable]
+    public class SiteAdressProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.RegexNer
+    {
+        public SiteAdressProcessor() { }
+    }
+    [System.Serializable]
+    public class TimeProcessor : AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.RegexNer
+    {
+        public TimeProcessor() { }
+    }
+}
+namespace AI.NLP
+{
+    [System.Serializable]
+    public class BM25
+    {
+        public BM25(System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<string>> tokenizedDocs, double k1 = 1.5, double b = 0.75) { }
+        public BM25(string[] docs, double k1 = 1.5, double b = 0.75) { }
+        public double B { get; }
+        public int DocumentCount { get; }
+        public double K1 { get; }
+        public int DocumentFrequency(string term) { }
+        public double IDFWord(string term) { }
+        public double Score(System.Collections.Generic.IReadOnlyList<string> terms, int docIndex) { }
+        public double Score(string query, int docIndex) { }
+        public int Search(string query) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "index",
+                "score"})]
+        public System.ValueTuple<int, double>[] SearchTopN(System.Collections.Generic.IReadOnlyList<string> terms, int n) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "index",
+                "score"})]
+        public System.ValueTuple<int, double>[] SearchTopN(string query, int n) { }
+        public int TFWord(string term, int docIndex) { }
+    }
+    [System.Serializable]
+    public class BoWModel
+    {
+        public int Len;
+        public AI.DataStructs.Algebraic.Vector vector;
+        public BoWModel(string pathModel) { }
+        public bool IsNormalise { get; set; }
+        public bool isDig { get; set; }
+        public bool isStop { get; set; }
+        public AI.DataStructs.Algebraic.Vector GetVector(string text) { }
+        public static void ModelGen(string text, string path, bool isStop = false) { }
+    }
+    public class DataSummText
+    {
+        public DataSummText(string str, double w) { }
+        public string Str { get; set; }
+        public double W { get; set; }
+    }
+    [System.Serializable]
+    public class ProbabilityDictionary
+    {
+        public static string[] stop;
+        public ProbabilityDictionary(bool isStopDel = true, bool isDigitDel = true, bool isStem = true) { }
+        public bool IsDigitDel { get; set; }
+        public bool IsStem { get; set; }
+        public bool IsStopDel { get; set; }
+        public AI.NLP.ProbabilityDictionaryData<string>[] pDictionary { get; }
+        public static string[] StopWords { get; }
+        public void GetWords(string text) { }
+        public string[] GetWordsRun(string text, int numW = 30) { }
+        public string[] GetWordsRunAll(string text) { }
+        public AI.NLP.ProbabilityDictionaryData<string>[] Run(string text) { }
+        public string ToString(int index) { }
+        public static string[] GetWords(string text, bool IsStem) { }
+    }
+    [System.Serializable]
+    public class ProbabilityDictionaryData<T>
+    {
+        public ProbabilityDictionaryData() { }
+        public double Probability { get; set; }
+        public T Word { get; set; }
+    }
+    [System.Serializable]
+    public class ProbabilityDictionaryHash
+    {
+        public ProbabilityDictionaryHash(bool isStem = true) { }
+        public bool IsStem { get; set; }
+        public System.Collections.Generic.Dictionary<string, double> pDictionary { get; }
+        public System.Collections.Generic.Dictionary<string, double> Run(string text) { }
+    }
+    public static class RussianStopWords
+    {
+        public static readonly string[] Default;
+    }
+    [System.Serializable]
+    public static class StringExtention
+    {
+        public static string Concatinate(this string[] strings, string sep = "
+") { }
+        public static string Diff(this string text1, string text2) { }
+        public static string ReReplace(this string text, string pattern, string new_string) { }
+        public static string ReTransform(this string text, string pattern, System.Func<string, string> transformer) { }
+        public static string Remove(this string text, string[] delStrs) { }
+        public static string[] Split(this string text, string strSpliter) { }
+    }
+    [System.Serializable]
+    public class TFIDF
+    {
+        public TFIDF(string[] docs) { }
+        public double IDFWord(string t) { }
+        public int Search(string req) { }
+        public double TFWord(string t, int dIndex) { }
+        public double TF_IDF(string t, int dIndex) { }
+        public double TF_IDF_Str(string str, int dIndex) { }
+    }
+    [System.Serializable]
+    public class TFIDFDictionary
+    {
+        public TFIDFDictionary(string pathToDir) { }
+        public AI.NLP.TFIDF TfIdf { get; set; }
+        public double Sim(string word1, string word2) { }
+        public AI.DataStructs.Algebraic.Vector ToVect(string word) { }
+        public System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> VectorDictionary() { }
+    }
+    [System.Serializable]
+    public static class TextStandard
+    {
+        public static System.Collections.Generic.HashSet<string> GetWords(string input, System.Func<string, string> preprocessingString, System.Func<string, string> preprocessingWord, System.Func<string, bool> appendWord) { }
+        public static string NoDoubleWord(string input) { }
+        public static string Normalize(string input, bool isLower = true) { }
+        public static string OnlyChars(string input, bool isLower = true) { }
+        public static string OnlyCharsAndDigit(string input, bool isLower = true) { }
+        public static string OnlyRusChars(string input) { }
+        public static double SimTextDice(System.Collections.Generic.HashSet<string> set1, System.Collections.Generic.HashSet<string> set2) { }
+        public static double SimTextDiceAsymmetric(System.Collections.Generic.HashSet<string> main, System.Collections.Generic.HashSet<string> set) { }
+    }
+    [System.Serializable]
+    public class TextSummarization
+    {
+        public TextSummarization() { }
+        public string Summarization(string text, int num = 1) { }
+        public static string[] GetSeqs(string text) { }
+    }
+    [System.Serializable]
+    public class TextTokenizer
+    {
+        public string[] Words;
+        public TextTokenizer(bool isLower = true, bool isStem = false, char[] deleted = null, string[] separaters = null) { }
+        public int Count { get; set; }
+        public char[] DelChars { get; set; }
+        public bool IsLower { get; set; }
+        public bool IsStem { get; set; }
+        public string[] Separaters { get; set; }
+        public int WordCount { get; set; }
+        public int GetDimWithUnKnowWord() { }
+        public AI.DataStructs.Algebraic.Vector GetSeq2Tokens(string seq) { }
+        public AI.DataStructs.Algebraic.Vector GetWord2OneHot(string word) { }
+        public int GetWord2Token(string word) { }
+        public void Train(string text) { }
+    }
+}
+namespace AI.NLP.Evaluation
+{
+    public enum CorpusSection
+    {
+        Base = 0,
+        Suppletive = 1,
+        Ambiguous = 2,
+    }
+    public sealed class LemmaCorpus
+    {
+        public LemmaCorpus(System.Collections.Generic.IEnumerable<AI.NLP.Evaluation.LemmaSample> samples) { }
+        public int Count { get; }
+        public System.Collections.Generic.IReadOnlyList<string> PartsOfSpeech { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.NLP.Evaluation.LemmaSample> Samples { get; }
+        public static AI.NLP.Evaluation.LemmaCorpus Russian { get; }
+        public AI.NLP.Evaluation.LemmaCorpus ForPartOfSpeech(string partOfSpeech) { }
+        public AI.NLP.Evaluation.LemmaCorpus Section(AI.NLP.Evaluation.CorpusSection section) { }
+        public static AI.NLP.Evaluation.LemmaCorpus Load(string path) { }
+        public static AI.NLP.Evaluation.LemmaCorpus Parse(string text) { }
+    }
+    public readonly struct LemmaError : System.IEquatable<AI.NLP.Evaluation.LemmaError>
+    {
+        public LemmaError(string Form, string Expected, string Actual, string PartOfSpeech, bool Unchanged) { }
+        public string Actual { get; init; }
+        public string Expected { get; init; }
+        public string Form { get; init; }
+        public string PartOfSpeech { get; init; }
+        public bool Unchanged { get; init; }
+        public override string ToString() { }
+    }
+    public readonly struct LemmaSample : System.IEquatable<AI.NLP.Evaluation.LemmaSample>
+    {
+        public LemmaSample(string Form, string Lemma, string PartOfSpeech, AI.NLP.Evaluation.CorpusSection Section, string Note = "") { }
+        public string Form { get; init; }
+        public string Lemma { get; init; }
+        public string Note { get; init; }
+        public string PartOfSpeech { get; init; }
+        public AI.NLP.Evaluation.CorpusSection Section { get; init; }
+        public override string ToString() { }
+    }
+    public sealed class LemmatizationReport : AI.Insights.IInterpretable
+    {
+        public double Accuracy { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Total",
+                "Correct"})]
+        public System.Collections.Generic.IReadOnlyDictionary<string, System.ValueTuple<int, int>> ByPartOfSpeech { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Total",
+                "Correct"})]
+        public System.Collections.Generic.IReadOnlyDictionary<AI.NLP.Evaluation.CorpusSection, System.ValueTuple<int, int>> BySection { get; }
+        public int Correct { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.NLP.Evaluation.LemmaError> Errors { get; }
+        public string Name { get; }
+        public int Total { get; }
+        public double UnchangedShare { get; }
+        public double AccuracyFor(AI.NLP.Evaluation.CorpusSection section) { }
+        public double AccuracyFor(string partOfSpeech) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+    public static class LemmatizerEvaluation
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Difference",
+                "Diverged"})]
+        public static System.ValueTuple<double, System.Collections.Generic.IReadOnlyList<string>> Compare(AI.NLP.Lemmatization.ILemmatizer first, AI.NLP.Lemmatization.ILemmatizer second, AI.NLP.Evaluation.LemmaCorpus corpus = null) { }
+        public static AI.NLP.Evaluation.LemmatizationReport Evaluate(AI.NLP.Lemmatization.ILemmatizer lemmatizer, AI.NLP.Evaluation.LemmaCorpus corpus = null, bool includeAmbiguous = false, string name = null) { }
+    }
+    public readonly struct PosError : System.IEquatable<AI.NLP.Evaluation.PosError>
+    {
+        public PosError(string Form, AI.NLP.Morphology.PartOfSpeech Expected, AI.NLP.Morphology.PartOfSpeech Actual) { }
+        public AI.NLP.Morphology.PartOfSpeech Actual { get; init; }
+        public AI.NLP.Morphology.PartOfSpeech Expected { get; init; }
+        public string Form { get; init; }
+        public override string ToString() { }
+    }
+    public static class PosTaggerEvaluation
+    {
+        public static AI.NLP.Evaluation.PosTaggingReport Evaluate(AI.NLP.Morphology.IPosTagger tagger, AI.NLP.Evaluation.LemmaCorpus corpus = null, bool includeAmbiguous = false, string name = null) { }
+    }
+    public sealed class PosTaggingReport : AI.Insights.IInterpretable
+    {
+        public double Accuracy { get; }
+        public AI.DataStructs.Algebraic.Matrix Confusion { get; }
+        public int Correct { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.NLP.Evaluation.PosError> Errors { get; }
+        public double FMeasure { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Forms { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.NLP.Morphology.PartOfSpeech> Labels { get; }
+        public string Name { get; }
+        public AI.DataStructs.Algebraic.Vector Precision { get; }
+        public AI.DataStructs.Algebraic.Vector Recall { get; }
+        public int Total { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public double PrecisionFor(AI.NLP.Morphology.PartOfSpeech partOfSpeech) { }
+        public double RecallFor(AI.NLP.Morphology.PartOfSpeech partOfSpeech) { }
+        public override string ToString() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Expected",
+                "Actual",
+                "Count"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<AI.NLP.Morphology.PartOfSpeech, AI.NLP.Morphology.PartOfSpeech, int>> TopConfusions(int count = 3) { }
+    }
+}
+namespace AI.NLP.Lemmatization
+{
+    [System.Serializable]
+    public sealed class CachingLemmatizer : AI.NLP.Lemmatization.LemmatizerBase
+    {
+        public CachingLemmatizer(AI.NLP.Lemmatization.ILemmatizer inner, int maxSize = 0) { }
+        public int CacheSize { get; }
+        public void ClearCache() { }
+        public override string Lemmatize(string word) { }
+    }
+    [System.Serializable]
+    public sealed class DictionaryLemmatizer : AI.NLP.Lemmatization.LemmatizerBase
+    {
+        public DictionaryLemmatizer(System.Collections.Generic.IDictionary<string, string> wordFormToLemma, AI.NLP.Lemmatization.ILemmatizer fallback = null) { }
+        public int Count { get; }
+        public AI.NLP.Lemmatization.ILemmatizer Fallback { get; }
+        public void Add(string form, string lemma) { }
+        public override string Lemmatize(string word) { }
+        public static AI.NLP.Lemmatization.DictionaryLemmatizer LoadFromFile(string path, AI.NLP.Lemmatization.ILemmatizer fallback = null, char separator = 	) { }
+        public static AI.NLP.Lemmatization.DictionaryLemmatizer LoadFromReader(System.IO.TextReader reader, AI.NLP.Lemmatization.ILemmatizer fallback = null, char separator = 	) { }
+    }
+    public interface ILemmatizer
+    {
+        string Lemmatize(string word);
+        string[] LemmatizeAll(System.Collections.Generic.IEnumerable<string> words);
+        string LemmatizeSentence(string sentence);
+        string[] LemmatizeToWords(string text);
+    }
+    [System.Serializable]
+    public sealed class IdentityLemmatizer : AI.NLP.Lemmatization.LemmatizerBase
+    {
+        public static readonly AI.NLP.Lemmatization.IdentityLemmatizer Instance;
+        public IdentityLemmatizer() { }
+        public override string Lemmatize(string word) { }
+    }
+    public static class Lemmatizer
+    {
+        public static AI.NLP.Lemmatization.ILemmatizer CreateFromDictionary(System.Collections.Generic.IDictionary<string, string> dictionary, AI.NLP.Lemmatization.ILemmatizer fallback = null, bool withCache = true) { }
+        public static AI.NLP.Lemmatization.ILemmatizer CreateRussian(bool withCache = true) { }
+        public static AI.NLP.Lemmatization.ILemmatizer CreateRussianFromFile(string dictionaryPath, bool withCache = true, char separator = 	) { }
+        public static AI.NLP.Lemmatization.ILemmatizer CreateRussianRules(bool withCache = true) { }
+    }
+    [System.Serializable]
+    public abstract class LemmatizerBase : AI.NLP.Lemmatization.ILemmatizer
+    {
+        protected static readonly System.Text.RegularExpressions.Regex WordRegex;
+        protected LemmatizerBase() { }
+        public abstract string Lemmatize(string word);
+        public virtual string[] LemmatizeAll(System.Collections.Generic.IEnumerable<string> words) { }
+        public virtual string LemmatizeSentence(string sentence) { }
+        public virtual string[] LemmatizeToWords(string text) { }
+    }
+    [System.Serializable]
+    public sealed class MorphologicalLemmatizer : AI.NLP.Lemmatization.LemmatizerBase
+    {
+        public static readonly AI.NLP.Lemmatization.MorphologicalLemmatizer Instance;
+        public MorphologicalLemmatizer() { }
+        public MorphologicalLemmatizer(AI.NLP.Morphology.IPosTagger tagger) { }
+        public AI.NLP.Morphology.MorphAnalysis Analyze(string word) { }
+        public override string Lemmatize(string word) { }
+    }
+    [System.Serializable]
+    public sealed class RussianLemmatizer : AI.NLP.Lemmatization.LemmatizerBase
+    {
+        public static readonly AI.NLP.Lemmatization.RussianLemmatizer Instance;
+        public RussianLemmatizer() { }
+        public override string Lemmatize(string word) { }
+    }
+}
+namespace AI.NLP.Morphology
+{
+    public interface IPosTagger
+    {
+        System.Collections.Generic.IReadOnlyList<AI.NLP.Morphology.PartOfSpeech> Tag(System.Collections.Generic.IReadOnlyList<string> words);
+        AI.NLP.Morphology.PartOfSpeech Tag(string word);
+    }
+    public readonly struct MorphAnalysis : System.IEquatable<AI.NLP.Morphology.MorphAnalysis>
+    {
+        public MorphAnalysis(string Lemma, AI.NLP.Morphology.PartOfSpeech PartOfSpeech) { }
+        public string Lemma { get; init; }
+        public AI.NLP.Morphology.PartOfSpeech PartOfSpeech { get; init; }
+        public override string ToString() { }
+    }
+    public enum PartOfSpeech
+    {
+        Unknown = 0,
+        Noun = 1,
+        Adjective = 2,
+        Verb = 3,
+        Adverb = 4,
+        Pronoun = 5,
+        Numeral = 6,
+        Preposition = 7,
+        Conjunction = 8,
+        Particle = 9,
+        Interjection = 10,
+    }
+    public static class PartOfSpeechCodes
+    {
+        public static AI.NLP.Morphology.PartOfSpeech Parse(string code) { }
+        public static string ToCode(this AI.NLP.Morphology.PartOfSpeech partOfSpeech) { }
+        public static string ToRussian(this AI.NLP.Morphology.PartOfSpeech partOfSpeech) { }
+    }
+    public static class RussianClosedClassLexicon
+    {
+        public static int Count { get; }
+        public static bool TryGetLemmaNormalized(string normalized, out string lemma) { }
+        public static bool TryLookup(string word, out AI.NLP.Morphology.MorphAnalysis analysis) { }
+        public static bool TryLookupNormalized(string normalized, out AI.NLP.Morphology.MorphAnalysis analysis) { }
+    }
+    public static class RussianNounInflection
+    {
+        public static string ToNominative(string word) { }
+    }
+    public static class RussianPhonetics
+    {
+        public static bool CanEndWord(string stem) { }
+        public static bool ContainsVowel(string s) { }
+        public static bool IsHushOrVelar(char c) { }
+        public static bool IsVowel(char c) { }
+        public static string Normalize(string s) { }
+    }
+    public sealed class RussianPosTagger : AI.NLP.Morphology.IPosTagger
+    {
+        public static readonly AI.NLP.Morphology.RussianPosTagger Instance;
+        public RussianPosTagger() { }
+        public System.Collections.Generic.IReadOnlyList<AI.NLP.Morphology.PartOfSpeech> Tag(System.Collections.Generic.IReadOnlyList<string> words) { }
+        public AI.NLP.Morphology.PartOfSpeech Tag(string word) { }
+    }
+}
+namespace AI.NLP.Similarity
+{
+    public sealed class MinHash
+    {
+        public MinHash(int size = 128, int seed = 1) { }
+        public int Size { get; }
+        public ulong[] Signature(System.Collections.Generic.IEnumerable<ulong> items) { }
+        public static ulong Combine(System.ReadOnlySpan<ulong> parts) { }
+        public static ulong Hash(string text) { }
+        public static double Jaccard<T>(System.Collections.Generic.IReadOnlySet<T> a, System.Collections.Generic.IReadOnlySet<T> b) { }
+        public static double Similarity(ulong[] a, ulong[] b) { }
+    }
+    public sealed class MinHashLsh
+    {
+        public MinHashLsh(int bands = 32, int rows = 4) { }
+        public double Threshold { get; }
+        public void Add(int id, ulong[] signature) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "A",
+                "B"})]
+        public System.Collections.Generic.IReadOnlyCollection<System.ValueTuple<int, int>> CandidatePairs(int maxBucket = 64) { }
+        public System.Collections.Generic.IReadOnlyCollection<int> Query(ulong[] signature) { }
+    }
+}
+namespace AI.NLP.Stemmers
+{
+    public static class StemmerEng
+    {
+        public static string TransformingWord(string word) { }
+        public static string[] TransformingWordsArray(string[] words) { }
+    }
+    [System.Serializable]
+    public static class StemmerRus
+    {
+        public static string TransformingWord(string word) { }
+        public static string[] TransformingWordsArray(string[] words) { }
+    }
+    [System.Serializable]
+    public class WordEndingsRU
+    {
+        public WordEndingsRU() { }
+        public static string[] Endings(string text) { }
+    }
+}

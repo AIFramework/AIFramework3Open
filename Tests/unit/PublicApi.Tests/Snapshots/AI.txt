@@ -1,0 +1,2079 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI
+{
+    public static class AISettings
+    {
+        public static double GlobalEps { get; set; }
+        public static System.Globalization.NumberFormatInfo GetProvider() { }
+        public static System.Globalization.NumberFormatInfo GetProviderComa() { }
+    }
+    [System.Serializable]
+    public static class Convolution
+    {
+        public static AI.DataStructs.Algebraic.Vector ConvolutionNormal(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector Ht) { }
+        public static AI.DataStructs.Algebraic.Vector DirectConvolution(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector Ht) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector DirectConvolution(AI.DataStructs.WithComplexElements.ComplexVector A, AI.DataStructs.WithComplexElements.ComplexVector B) { }
+        public static AI.DataStructs.Algebraic.Vector DirectConvolution(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector ht, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector StWithHt(AI.DataStructs.Algebraic.Vector st, int htLen) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector StWithHt(AI.DataStructs.WithComplexElements.ComplexVector st, int htLen) { }
+    }
+    [System.Serializable]
+    public static class Correlation
+    {
+        public static AI.DataStructs.Algebraic.Vector AutoCorrelation(AI.DataStructs.Algebraic.Vector A) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector AutoCorrelation(AI.DataStructs.WithComplexElements.ComplexVector A) { }
+        public static AI.DataStructs.Algebraic.Vector CrossCorrelation(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector CrossCorrelation(AI.DataStructs.WithComplexElements.ComplexVector A, AI.DataStructs.WithComplexElements.ComplexVector B) { }
+    }
+    [System.Serializable]
+    public static class Functions
+    {
+        public static AI.DataStructs.Algebraic.Vector Diff(AI.DataStructs.Algebraic.Vector A) { }
+        public static AI.DataStructs.Algebraic.Vector Diff(AI.DataStructs.Algebraic.Vector A, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector Diff(AI.DataStructs.Algebraic.Vector A, int i) { }
+        public static AI.DataStructs.Algebraic.Vector DiffWithOutF(AI.DataStructs.Algebraic.Vector A, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector Integral(AI.DataStructs.Algebraic.Vector A) { }
+        public static AI.DataStructs.Algebraic.Vector Integral(AI.DataStructs.Algebraic.Vector A, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector IntegralInterp(AI.DataStructs.Algebraic.Vector A) { }
+        public static double Multiplication(AI.DataStructs.Algebraic.Vector vect) { }
+        public static double Multiplication(double[] mass) { }
+        public static int Multiplication(int[] mass) { }
+        public static AI.DataStructs.Algebraic.Vector MultiplicationFunction(AI.DataStructs.Algebraic.Vector vect) { }
+        public static int NextPow2(int n) { }
+        public static AI.DataStructs.Algebraic.Vector PowFunction(double inp, int pow) { }
+        public static double Summ(AI.DataStructs.Algebraic.Vector vect) { }
+        public static AI.DataStructs.Algebraic.Vector Summ(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public static System.Numerics.Complex Summ(AI.DataStructs.WithComplexElements.ComplexVector vect) { }
+        public static double Summ(double[] mass) { }
+        public static float Summ(float[] mass) { }
+        public static int Summ(int[] mass) { }
+        public static AI.DataStructs.Algebraic.Vector WindowFunc(AI.DataStructs.Algebraic.Vector vect, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> Function, int window) { }
+        public static AI.DataStructs.Algebraic.Vector WindowFuncDouble(AI.DataStructs.Algebraic.Vector vect, System.Func<AI.DataStructs.Algebraic.Vector, double> Function, int window) { }
+        public static AI.DataStructs.Algebraic.Vector WindowFuncDouble(AI.DataStructs.Algebraic.Vector vect, System.Func<AI.DataStructs.Algebraic.Vector, double> Function, int window, int stride) { }
+    }
+    [System.Serializable]
+    public class IntervalData
+    {
+        public IntervalData() { }
+        public void Add(int bI, int eI) { }
+        public AI.DataStructs.Algebraic.Vector GetVect(System.Func<AI.DataStructs.Algebraic.Vector, double> vect2doub, AI.DataStructs.Algebraic.Vector input) { }
+        public AI.DataStructs.Algebraic.Vector[] GetVects(AI.DataStructs.Algebraic.Vector inputVector) { }
+    }
+    [System.Serializable]
+    public class Sound
+    {
+        public int bitDepth;
+        public int channels;
+        public int chunkID;
+        public int dataID;
+        public int dataSize;
+        public int fileSize;
+        public int fmtAvgBPS;
+        public int fmtBlockAlign;
+        public int fmtCode;
+        public int fmtID;
+        public int fmtSize;
+        public int riffType;
+        public int sampleRate;
+        public Sound() { }
+        public void SaveVector(string path, AI.DataStructs.Algebraic.Vector vector, int fd) { }
+        public AI.DataStructs.Algebraic.Vector SoundLoad(string path) { }
+    }
+}
+namespace AI.DataStructs.Algebraic
+{
+    public interface IAlgebraicStructure<T>
+    {
+        T[] Data { get; }
+        AI.DataStructs.Shapes.Shape Shape { get; }
+    }
+    [System.Diagnostics.DebuggerDisplay("Height = {Height}, Width = {Width}")]
+    [System.Serializable]
+    public class Matrix : AI.DataStructs.Algebraic.IAlgebraicStructure<double>, AI.DataStructs.IByteConvertable, AI.DataStructs.ISavable, AI.DataStructs.ITextSavable, System.IEquatable<AI.DataStructs.Algebraic.Matrix>
+    {
+        public Matrix() { }
+        public Matrix(AI.DataStructs.Shapes.Shape shape) { }
+        public Matrix(double[] matr) { }
+        public Matrix(int height, int width) { }
+        public double[] Data { get; set; }
+        public AI.DataStructs.Algebraic.MatrixType DataType { get; set; }
+        public double Determinant { get; }
+        public int Height { get; }
+        public bool IsDiagonal { get; }
+        public bool IsSquared { get; }
+        public bool IsTriangle { get; }
+        public bool IsZero { get; }
+        public double this[int i, int j] { get; set; }
+        public double this[int i] { get; set; }
+        public AI.DataStructs.Shapes.Shape Shape { get; }
+        public int Width { get; }
+        public AI.DataStructs.Algebraic.Matrix AdamarProduct(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public AI.DataStructs.Algebraic.Matrix Copy() { }
+        public double Dispersion() { }
+        public bool Equals(AI.DataStructs.Algebraic.Matrix other) { }
+        public override bool Equals(object obj) { }
+        public byte[] GetBytes() { }
+        public override int GetHashCode() { }
+        public AI.DataStructs.Algebraic.Matrix GetInvertMatrix() { }
+        public double GetMinor(int h, int w) { }
+        public AI.DataStructs.Algebraic.Vector GetVector(int index, int dimension) { }
+        public AI.DataStructs.Algebraic.Matrix GradientMatrixConvDelts(AI.DataStructs.Algebraic.Matrix core, AI.DataStructs.Algebraic.Matrix delts) { }
+        public AI.DataStructs.Algebraic.Vector LikeVector() { }
+        public double Max() { }
+        public AI.DataStructs.Algebraic.Matrix MaxPool(int poolH, int poolW, out int[] indexPool) { }
+        public double Mean() { }
+        public double Min() { }
+        public AI.DataStructs.Algebraic.Matrix Minimax(double maxValue = 1, double minValue = 0) { }
+        public AI.DataStructs.Algebraic.Vector MulMatrOnVectColumn(AI.DataStructs.Algebraic.Vector vectCol) { }
+        public AI.DataStructs.Algebraic.Matrix NanToMean() { }
+        public AI.DataStructs.Algebraic.Matrix NanToValue(double value = 0) { }
+        public AI.DataStructs.Algebraic.Matrix Region(int x, int y, int dx, int dy) { }
+        public AI.DataStructs.Algebraic.Matrix Round(int n) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public void SaveAsText(string path) { }
+        public double Std() { }
+        public double Sum() { }
+        public void Swap(int i, int j, int dimension) { }
+        public override string ToString() { }
+        public string ToString(System.Globalization.NumberFormatInfo provider) { }
+        public AI.DataStructs.Algebraic.Matrix ToTriangularMatr() { }
+        public double Trace() { }
+        public AI.DataStructs.Algebraic.Matrix Transform(System.Func<double, double> transformFunc) { }
+        public AI.DataStructs.Algebraic.Matrix Transpose() { }
+        public static AI.DataStructs.Algebraic.Matrix AlternativMatrix(System.Func<double, double>[] functions, AI.DataStructs.Algebraic.Vector values) { }
+        public static AI.DataStructs.Algebraic.Matrix DispersionMatrix(AI.DataStructs.Algebraic.Matrix[] matrices) { }
+        public static AI.DataStructs.Algebraic.Matrix FromBytes(byte[] data) { }
+        public static AI.DataStructs.Algebraic.Matrix FromDataStream(AI.DataStructs.InMemoryDataStream dataStream) { }
+        public static AI.DataStructs.Algebraic.Matrix FromStrings(string[] arr) { }
+        public static AI.DataStructs.Algebraic.Matrix FromStrings(string[] arr, System.Globalization.NumberFormatInfo provider) { }
+        public static AI.DataStructs.Algebraic.Matrix FromVectorsAsColumns(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> colums) { }
+        public static AI.DataStructs.Algebraic.Matrix FromVectorsAsRows(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> rows) { }
+        public static AI.DataStructs.Algebraic.Vector[] GetColumns(AI.DataStructs.Algebraic.Matrix matr) { }
+        public static AI.DataStructs.Algebraic.Matrix GetCorrelationMatrixNorm(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public static AI.DataStructs.Algebraic.Matrix GetCovMatrix(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public static AI.DataStructs.Algebraic.Matrix GetCovMatrixFromColumns(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.DataStructs.Algebraic.Vector[] GetRows(AI.DataStructs.Algebraic.Matrix matr) { }
+        public static AI.DataStructs.Algebraic.Matrix Identity(int n) { }
+        public static AI.DataStructs.Algebraic.Matrix Load(System.IO.Stream stream) { }
+        public static AI.DataStructs.Algebraic.Matrix Load(string path) { }
+        public static AI.DataStructs.Algebraic.Matrix LoadAsText(string path) { }
+        public static AI.DataStructs.Algebraic.Matrix MeanMatrix(AI.DataStructs.Algebraic.Matrix[] matrices) { }
+        public static AI.DataStructs.Algebraic.Matrix Mul2Vec(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Matrix Mul2VecFast(AI.DataStructs.Algebraic.Vector ABinaryBip, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Matrix[] NanToMeanOfFeatures(AI.DataStructs.Algebraic.Matrix[] matrices) { }
+        public static AI.DataStructs.Algebraic.Matrix Norm2Vec(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Matrix OrtogonalMatrix(System.Func<int, double, double> functions, AI.DataStructs.Algebraic.Vector values, int count) { }
+        public static AI.DataStructs.Algebraic.Matrix Parse(string str) { }
+        public static AI.DataStructs.Algebraic.Matrix Parse(string str, System.Globalization.NumberFormatInfo provider) { }
+        public static AI.DataStructs.Algebraic.Matrix Pow(AI.DataStructs.Algebraic.Matrix A, int exponent) { }
+        public static AI.DataStructs.Algebraic.Matrix StdMatrix(AI.DataStructs.Algebraic.Matrix[] matrices) { }
+        public static AI.DataStructs.Algebraic.Matrix Sum2Vec(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static bool TryParse(string str, out AI.DataStructs.Algebraic.Matrix result) { }
+        public static bool TryParse(string str, out AI.DataStructs.Algebraic.Matrix result, System.Globalization.NumberFormatInfo provider) { }
+        public static bool operator !=(AI.DataStructs.Algebraic.Matrix left, AI.DataStructs.Algebraic.Matrix right) { }
+        public static AI.DataStructs.Algebraic.Matrix operator *(AI.DataStructs.Algebraic.Matrix A, AI.DataStructs.Algebraic.Matrix B) { }
+        public static AI.DataStructs.Algebraic.Matrix operator *(AI.DataStructs.Algebraic.Matrix A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Matrix operator *(AI.DataStructs.Algebraic.Matrix A, double k) { }
+        public static AI.DataStructs.Algebraic.Vector operator *(AI.DataStructs.Algebraic.Vector B, AI.DataStructs.Algebraic.Matrix A) { }
+        public static AI.DataStructs.Algebraic.Matrix operator *(double k, AI.DataStructs.Algebraic.Matrix A) { }
+        public static AI.DataStructs.Algebraic.Matrix operator +(AI.DataStructs.Algebraic.Matrix A, AI.DataStructs.Algebraic.Matrix B) { }
+        public static AI.DataStructs.Algebraic.Matrix operator +(AI.DataStructs.Algebraic.Matrix A, double k) { }
+        public static AI.DataStructs.Algebraic.Matrix operator +(double k, AI.DataStructs.Algebraic.Matrix A) { }
+        public static AI.DataStructs.Algebraic.Matrix operator -(AI.DataStructs.Algebraic.Matrix A, AI.DataStructs.Algebraic.Matrix B) { }
+        public static AI.DataStructs.Algebraic.Matrix operator -(AI.DataStructs.Algebraic.Matrix A, double k) { }
+        public static AI.DataStructs.Algebraic.Matrix operator -(double k, AI.DataStructs.Algebraic.Matrix A) { }
+        public static AI.DataStructs.Algebraic.Matrix operator /(AI.DataStructs.Algebraic.Matrix A, double k) { }
+        public static AI.DataStructs.Algebraic.Matrix operator /(double k, AI.DataStructs.Algebraic.Matrix A) { }
+        public static bool operator ==(AI.DataStructs.Algebraic.Matrix left, AI.DataStructs.Algebraic.Matrix right) { }
+    }
+    public enum MatrixType : byte
+    {
+        Image = 0,
+        MatStruct = 1,
+    }
+    [System.Diagnostics.DebuggerDisplay("Shape = {Shape.ToString(),nq}")]
+    [System.Serializable]
+    public class NDTensor : AI.DataStructs.Algebraic.IAlgebraicStructure<double>, AI.DataStructs.IByteConvertable, AI.DataStructs.ISavable, System.IEquatable<AI.DataStructs.Algebraic.NDTensor>
+    {
+        public NDTensor(AI.DataStructs.Shapes.Shape shape) { }
+        public NDTensor(int[] shape) { }
+        public double[] Data { get; }
+        public double this[int[] indexes] { get; set; }
+        public AI.DataStructs.Shapes.Shape Shape { get; }
+        public bool Equals(AI.DataStructs.Algebraic.NDTensor other) { }
+        public override bool Equals(object obj) { }
+        public byte[] GetBytes() { }
+        public override int GetHashCode() { }
+        public AI.DataStructs.Algebraic.NDTensor Reshape(AI.DataStructs.Shapes.Shape new_shape) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public AI.DataStructs.Algebraic.Matrix ToMatrix() { }
+        public AI.DataStructs.Algebraic.Tensor ToTensor() { }
+        public AI.DataStructs.Algebraic.Vector ToVector() { }
+        public static AI.DataStructs.Algebraic.NDTensor FromBytes(byte[] data) { }
+        public static AI.DataStructs.Algebraic.NDTensor FromDataStream(AI.DataStructs.InMemoryDataStream dataStream) { }
+        public static AI.DataStructs.Algebraic.NDTensor FromIAlgStruct(AI.DataStructs.Algebraic.IAlgebraicStructure<double> alg_structure) { }
+        public static AI.DataStructs.Algebraic.NDTensor Load(System.IO.Stream stream) { }
+        public static AI.DataStructs.Algebraic.NDTensor Load(string path) { }
+        public static bool operator !=(AI.DataStructs.Algebraic.NDTensor left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator %(AI.DataStructs.Algebraic.NDTensor left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator %(AI.DataStructs.Algebraic.NDTensor left, double right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator %(double left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator *(AI.DataStructs.Algebraic.NDTensor left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator *(AI.DataStructs.Algebraic.NDTensor left, double right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator *(double left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator +(AI.DataStructs.Algebraic.NDTensor left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator +(AI.DataStructs.Algebraic.NDTensor left, double right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator +(double left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator -(AI.DataStructs.Algebraic.NDTensor left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator -(AI.DataStructs.Algebraic.NDTensor left, double right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator -(double left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator /(AI.DataStructs.Algebraic.NDTensor left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator /(AI.DataStructs.Algebraic.NDTensor left, double right) { }
+        public static AI.DataStructs.Algebraic.NDTensor operator /(double left, AI.DataStructs.Algebraic.NDTensor right) { }
+        public static bool operator ==(AI.DataStructs.Algebraic.NDTensor left, AI.DataStructs.Algebraic.NDTensor right) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("Height = {Height}, Width = {Width}, Depth = {Depth}")]
+    [System.Serializable]
+    public class Tensor : AI.DataStructs.Algebraic.IAlgebraicStructure<double>, AI.DataStructs.IByteConvertable, AI.DataStructs.ISavable, System.IEquatable<AI.DataStructs.Algebraic.Tensor>
+    {
+        public Tensor(AI.DataStructs.Shapes.Shape3D shape) { }
+        public Tensor(double[] data) { }
+        public Tensor(double[] data) { }
+        public Tensor(int height, int width, int depth) { }
+        public double[] Data { get; set; }
+        public int Depth { get; }
+        public int Height { get; }
+        public double this[int i, int j, int k] { get; set; }
+        public AI.DataStructs.Shapes.Shape Shape { get; }
+        public int Width { get; }
+        public AI.DataStructs.Algebraic.Tensor Copy() { }
+        public double Dispersion() { }
+        public double Dispersion(double mean) { }
+        public bool Equals(AI.DataStructs.Algebraic.Tensor other) { }
+        public override bool Equals(object obj) { }
+        public byte[] GetBytes() { }
+        public override int GetHashCode() { }
+        public double Mean() { }
+        public AI.DataStructs.Algebraic.Tensor PlusD(AI.DataStructs.Algebraic.Vector ps) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public double Std() { }
+        public double Std(double mean) { }
+        public AI.DataStructs.Algebraic.Tensor SubtractingDepth(AI.DataStructs.Algebraic.Vector minus) { }
+        public double Sum() { }
+        public AI.DataStructs.Algebraic.Matrix[] ToMatrices() { }
+        public override string ToString() { }
+        public string ToString(System.Globalization.NumberFormatInfo provider) { }
+        public AI.DataStructs.Algebraic.Tensor Transform(System.Func<double, double> transform) { }
+        public static AI.DataStructs.Algebraic.Tensor FromBytes(byte[] data) { }
+        public static AI.DataStructs.Algebraic.Tensor FromDataStream(AI.DataStructs.InMemoryDataStream dataStream) { }
+        public static AI.DataStructs.Algebraic.Tensor FromMatrices(AI.DataStructs.Algebraic.Matrix[] matrices) { }
+        public static AI.DataStructs.Algebraic.Tensor Load(System.IO.Stream stream) { }
+        public static AI.DataStructs.Algebraic.Tensor Load(string path) { }
+        public static AI.DataStructs.Algebraic.Tensor VectorToTensor(AI.DataStructs.Algebraic.Vector data, int h, int w) { }
+        public static bool operator !=(AI.DataStructs.Algebraic.Tensor left, AI.DataStructs.Algebraic.Tensor right) { }
+        public static AI.DataStructs.Algebraic.Tensor operator *(AI.DataStructs.Algebraic.Tensor A, AI.DataStructs.Algebraic.Tensor B) { }
+        public static AI.DataStructs.Algebraic.Tensor operator *(AI.DataStructs.Algebraic.Tensor A, double K) { }
+        public static AI.DataStructs.Algebraic.Tensor operator *(double K, AI.DataStructs.Algebraic.Tensor A) { }
+        public static AI.DataStructs.Algebraic.Tensor operator +(AI.DataStructs.Algebraic.Tensor A, AI.DataStructs.Algebraic.Tensor B) { }
+        public static AI.DataStructs.Algebraic.Tensor operator +(AI.DataStructs.Algebraic.Tensor A, double b) { }
+        public static AI.DataStructs.Algebraic.Tensor operator +(double b, AI.DataStructs.Algebraic.Tensor A) { }
+        public static AI.DataStructs.Algebraic.Tensor operator -(AI.DataStructs.Algebraic.Tensor A, double b) { }
+        public static AI.DataStructs.Algebraic.Tensor operator -(AI.DataStructs.Algebraic.Tensor B, AI.DataStructs.Algebraic.Tensor A) { }
+        public static AI.DataStructs.Algebraic.Tensor operator -(double b, AI.DataStructs.Algebraic.Tensor A) { }
+        public static AI.DataStructs.Algebraic.Tensor operator /(AI.DataStructs.Algebraic.Tensor A, AI.DataStructs.Algebraic.Tensor B) { }
+        public static AI.DataStructs.Algebraic.Tensor operator /(AI.DataStructs.Algebraic.Tensor A, double b) { }
+        public static AI.DataStructs.Algebraic.Tensor operator /(double b, AI.DataStructs.Algebraic.Tensor A) { }
+        public static bool operator ==(AI.DataStructs.Algebraic.Tensor left, AI.DataStructs.Algebraic.Tensor right) { }
+    }
+    [System.Serializable]
+    public class Vector : System.Collections.Generic.List<double>, AI.DataStructs.Algebraic.IAlgebraicStructure<double>, AI.DataStructs.IByteConvertable, AI.DataStructs.ISavable, AI.DataStructs.ITextSavable, System.IEquatable<AI.DataStructs.Algebraic.Vector>, System.IEquatable<System.Collections.Generic.List<double>>
+    {
+        public Vector() { }
+        public Vector(System.Collections.Generic.IEnumerable<double> data) { }
+        public Vector(System.Collections.Generic.IEnumerable<float> data) { }
+        public Vector(double value) { }
+        public Vector(params double[] vector) { }
+        public Vector(int n) { }
+        public new double this[int i] { get; set; }
+        public AI.DataStructs.Algebraic.Vector this[bool[] mask] { get; set; }
+        public AI.DataStructs.Algebraic.Vector this[int? start, int? end, int step] { get; set; }
+        public AI.DataStructs.Shapes.Shape Shape { get; }
+        public int AbsoluteMaxElementIndex() { }
+        public int AbsoluteMaxElementIndexInRegion(int a, int b) { }
+        public int AbsoluteMinElementIndex() { }
+        public int AbsoluteMinElementIndexInRegion(int a, int b) { }
+        public void AddCB(double item) { }
+        public void AddCBE(double item) { }
+        public AI.DataStructs.Algebraic.Vector AddOne() { }
+        public AI.DataStructs.Algebraic.Vector AddSimmetr() { }
+        public AI.DataStructs.Algebraic.Vector Clone() { }
+        public bool ContainsNan() { }
+        public double Cos(AI.DataStructs.Algebraic.Vector vect) { }
+        public AI.DataStructs.Algebraic.Vector CutAndZero(int n) { }
+        public AI.DataStructs.Algebraic.Vector[] Decomposition() { }
+        public double Dispersion() { }
+        public double Dot(AI.DataStructs.Algebraic.Vector features) { }
+        public AI.DataStructs.Algebraic.Vector Downsampling(int n) { }
+        public AI.DataStructs.Algebraic.Vector ElementsDel(AI.DataStructs.Algebraic.Vector elements) { }
+        public AI.DataStructs.Algebraic.Vector ElementsDel(System.Collections.Generic.List<double> elements) { }
+        public AI.DataStructs.Algebraic.Vector ElementsDel(double[] elements) { }
+        public bool Equals(AI.DataStructs.Algebraic.Vector other) { }
+        public bool Equals(System.Collections.Generic.IEnumerable<double> other) { }
+        public bool Equals(System.Collections.Generic.List<double> other) { }
+        public override bool Equals(object obj) { }
+        public byte[] GetBytes() { }
+        public override int GetHashCode() { }
+        public AI.DataStructs.Algebraic.Vector GetInterval(int a, int b) { }
+        public AI.DataStructs.Algebraic.Vector GetUnitVector() { }
+        public int IndexValueNeighborhoodMin(double value) { }
+        public AI.DataStructs.Algebraic.Vector InterpolayrZero(int kInterp) { }
+        public bool IsFilledWithZeros() { }
+        public bool IsFilledWithZeros(int n) { }
+        public double Max() { }
+        public double MaxAbs() { }
+        public int MaxElementIndex() { }
+        public int MaxElementIndexInRegion(int a, int b) { }
+        public AI.DataStructs.Algebraic.Vector MaxOutVector(double max = 1, double rest = -1) { }
+        public double Mean() { }
+        public double Min() { }
+        public double MinAbs() { }
+        public int MinElementIndex() { }
+        public int MinElementIndexInRegion(int a, int b) { }
+        public AI.DataStructs.Algebraic.Vector Minimax() { }
+        public AI.DataStructs.Algebraic.Vector NanToMean() { }
+        public AI.DataStructs.Algebraic.Vector NanToValue(double value = 0) { }
+        public double NormL1() { }
+        public double NormL2() { }
+        public AI.DataStructs.Algebraic.Vector Normalise(AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Vector std) { }
+        public AI.DataStructs.Algebraic.Vector Repeat(int count) { }
+        public AI.DataStructs.Algebraic.Vector Revers() { }
+        public AI.DataStructs.Algebraic.Vector Round(int num) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public void SaveAsText(string path) { }
+        public AI.DataStructs.Algebraic.Vector Shift(int valueShift) { }
+        public double Std() { }
+        public double Sum() { }
+        public AI.DataStructs.Algebraic.Matrix ToMatrix() { }
+        public override string ToString() { }
+        public string ToString(System.Globalization.NumberFormatInfo numberFormatInfo) { }
+        public AI.DataStructs.Algebraic.Vector Transform(System.Func<double, double> transformFunc) { }
+        public AI.DataStructs.Algebraic.Vector TransformByIndex(System.Func<int, double> transformFunc) { }
+        public AI.DataStructs.Algebraic.Vector TransformFromIndexAndValue(System.Func<int, double, double> transformFunc) { }
+        public AI.DataStructs.Algebraic.Vector TransformWithArguments(AI.DataStructs.Algebraic.Vector x, System.Func<double, double, double> transformFunc) { }
+        public AI.DataStructs.Algebraic.Vector UnPooling(int kUnPool) { }
+        public AI.DataStructs.Algebraic.Vector ZNormalise() { }
+        public static AI.DataStructs.Algebraic.Vector Concat(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public static AI.DataStructs.Algebraic.Vector Cross(AI.DataStructs.Algebraic.Vector v1, AI.DataStructs.Algebraic.Vector v2) { }
+        public static AI.DataStructs.Algebraic.Vector Crosser(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, System.Func<double, double, double> cross) { }
+        public static double Dot(AI.DataStructs.Algebraic.Vector v1, AI.DataStructs.Algebraic.Vector v2) { }
+        public static AI.DataStructs.Algebraic.Vector FromBytes(byte[] data) { }
+        public static AI.DataStructs.Algebraic.Vector FromDataStream(AI.DataStructs.InMemoryDataStream dataStream) { }
+        public static AI.DataStructs.Algebraic.Vector FromList(System.Collections.Generic.IEnumerable<double> dbs) { }
+        public static AI.DataStructs.Algebraic.Vector FromStrings(string[] arr) { }
+        public static AI.DataStructs.Algebraic.Vector FromStrings(string[] arr, System.Globalization.NumberFormatInfo provider) { }
+        public static AI.DataStructs.Algebraic.Vector GetIntervalDouble(int a, int b, double[] data) { }
+        public static AI.DataStructs.Algebraic.Vector[] GetWindows(AI.DataStructs.Algebraic.Vector inp, int w, int step = 2) { }
+        public static AI.DataStructs.Algebraic.Vector[] GetWindowsWithFunc(System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> transformer, AI.DataStructs.Algebraic.Vector inp, int w, int step = 2) { }
+        public static AI.DataStructs.Algebraic.Vector GetWindowsWithFuncVect(System.Func<AI.DataStructs.Algebraic.Vector, double> transformer, AI.DataStructs.Algebraic.Vector inp, int w, int step = 2) { }
+        public static AI.DataStructs.Algebraic.Vector Lerp(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b, double t) { }
+        public static AI.DataStructs.Algebraic.Vector Load(System.IO.Stream stream) { }
+        public static AI.DataStructs.Algebraic.Vector Load(string path) { }
+        public static AI.DataStructs.Algebraic.Vector LoadAsBinary(string path) { }
+        public static AI.DataStructs.Algebraic.Vector LoadAsText(string path) { }
+        public static AI.DataStructs.Algebraic.Vector Mean(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public static AI.DataStructs.Algebraic.Vector OneHotBePol(int index, int maxInd) { }
+        public static AI.DataStructs.Algebraic.Vector OneHotPol(int index, int maxInd) { }
+        public static AI.DataStructs.Algebraic.Vector Parse(string str) { }
+        public static AI.DataStructs.Algebraic.Vector Parse(string str, System.Globalization.NumberFormatInfo provider) { }
+        public static AI.DataStructs.Algebraic.Vector Reflect(AI.DataStructs.Algebraic.Vector v, AI.DataStructs.Algebraic.Vector normal) { }
+        public static void SaveAsBinary(string path, AI.DataStructs.Algebraic.Vector vect) { }
+        public static AI.DataStructs.Algebraic.Vector[] ScaleData(AI.DataStructs.Algebraic.Vector[] data) { }
+        public static AI.DataStructs.Algebraic.Vector Seq(double start, double step, double end) { }
+        public static AI.DataStructs.Algebraic.Vector SeqBeginsWithZero(double step, double end) { }
+        public static AI.DataStructs.Algebraic.Vector Slerp(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b, double t) { }
+        public static AI.DataStructs.Algebraic.Vector Std(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public static AI.DataStructs.Algebraic.Vector SummWithCollision(AI.DataStructs.Algebraic.Vector[] data, int col = 0) { }
+        public static AI.DataStructs.Algebraic.Vector Time0(double fd, double t) { }
+        public static double TripleProduct(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b, AI.DataStructs.Algebraic.Vector c) { }
+        public static bool TryParse(string str, out AI.DataStructs.Algebraic.Vector result) { }
+        public static bool TryParse(string str, out AI.DataStructs.Algebraic.Vector result, System.Globalization.NumberFormatInfo provider) { }
+        public static float[] op_Explicit(AI.DataStructs.Algebraic.Vector data) { }
+        public static int[] op_Explicit(AI.DataStructs.Algebraic.Vector vector) { }
+        public static double[] op_Implicit(AI.DataStructs.Algebraic.Vector vector) { }
+        public static AI.DataStructs.Algebraic.Vector op_Implicit(double[] data) { }
+        public static AI.DataStructs.Algebraic.Vector op_Implicit(float[] data) { }
+        public static AI.DataStructs.Algebraic.Vector op_Implicit(int[] data) { }
+        public static bool operator !=(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static bool operator !=(AI.DataStructs.Algebraic.Vector left, System.Collections.Generic.IList<double> right) { }
+        public static bool operator !=(System.Collections.Generic.List<double> left, AI.DataStructs.Algebraic.Vector right) { }
+        public static AI.DataStructs.Algebraic.Vector operator %(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Vector operator %(AI.DataStructs.Algebraic.Vector A, double k) { }
+        public static AI.DataStructs.Algebraic.Vector operator %(double k, AI.DataStructs.Algebraic.Vector A) { }
+        public static AI.DataStructs.Algebraic.Vector operator *(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Vector operator *(AI.DataStructs.Algebraic.Vector A, double k) { }
+        public static AI.DataStructs.Algebraic.Vector operator *(double k, AI.DataStructs.Algebraic.Vector A) { }
+        public static AI.DataStructs.Algebraic.Vector operator +(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Vector operator +(AI.DataStructs.Algebraic.Vector A, double k) { }
+        public static AI.DataStructs.Algebraic.Vector operator +(double k, AI.DataStructs.Algebraic.Vector A) { }
+        public static AI.DataStructs.Algebraic.Vector operator -(AI.DataStructs.Algebraic.Vector A) { }
+        public static AI.DataStructs.Algebraic.Vector operator -(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Vector operator -(AI.DataStructs.Algebraic.Vector A, double k) { }
+        public static AI.DataStructs.Algebraic.Vector operator -(double k, AI.DataStructs.Algebraic.Vector A) { }
+        public static AI.DataStructs.Algebraic.Vector operator /(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Vector operator /(AI.DataStructs.Algebraic.Vector A, double k) { }
+        public static AI.DataStructs.Algebraic.Vector operator /(double k, AI.DataStructs.Algebraic.Vector A) { }
+        public static bool operator ==(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static bool operator ==(AI.DataStructs.Algebraic.Vector left, System.Collections.Generic.IList<double> right) { }
+        public static bool operator ==(System.Collections.Generic.List<double> left, AI.DataStructs.Algebraic.Vector right) { }
+    }
+}
+namespace AI.DataStructs
+{
+    [System.Obsolete("BinarySerializer использует BinaryFormatter (RCE-риск) и удалён. Используйте Safe" +
+        "Serializer или методы Save/Load конкретных типов.", true)]
+    public static class BinarySerializer
+    {
+        public static T Load<T>(System.IO.Stream stream) { }
+        public static T Load<T>(string filePath) { }
+        public static void Save<T>(System.IO.Stream stream, T data) { }
+        public static void Save<T>(string filePath, T data) { }
+    }
+    public interface IAlgorithm { }
+    public interface IByteConvertable
+    {
+        byte[] GetBytes();
+    }
+    public interface IEstimator<TInput, TLabel> : AI.DataStructs.IAlgorithm
+    {
+        void Fit(TInput[] data, TLabel[] labels);
+        TLabel Predict(TInput input);
+    }
+    public interface ISavable
+    {
+        void Save(System.IO.Stream stream);
+        void Save(string path);
+    }
+    public interface ITextSavable
+    {
+        void SaveAsText(string path);
+    }
+    public interface ITransformer<TInput, TOutput> : AI.DataStructs.IAlgorithm
+    {
+        void Fit(TInput[] data);
+        TOutput[] Transform(TInput[] data);
+        TOutput Transform(TInput input);
+    }
+    [System.Diagnostics.DebuggerDisplay("Length = {_data.Length}")]
+    [System.Serializable]
+    public class InMemoryDataStream
+    {
+        public InMemoryDataStream() { }
+        public InMemoryDataStream(System.IO.Stream stream, bool isEncrypted = false, bool isZipped = false) { }
+        public InMemoryDataStream(byte[] data, bool isEncrypted = false, bool isZipped = false) { }
+        public InMemoryDataStream(string path, bool isEncrypted = false, bool isZipped = false) { }
+        public bool IsEncrypted { get; }
+        public bool IsForReading { get; }
+        public bool IsForWriting { get; }
+        public bool IsZipped { get; }
+        public static byte[] IV { get; set; }
+        public byte[] AsByteArray() { }
+        public bool CheckIfEqual(byte n) { }
+        public bool CheckIfEqual(char ch) { }
+        public bool CheckIfEqual(double n) { }
+        public bool CheckIfEqual(float n) { }
+        public bool CheckIfEqual(int n) { }
+        public bool CheckIfEqual(long n) { }
+        public bool CheckIfEqual(short n) { }
+        public bool CheckIfEqual(string str) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(byte n, out bool result) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(char ch, out bool result) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(double n, out bool result) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(float n, out bool result) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(int n, out bool result) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(long n, out bool result) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(short n, out bool result) { }
+        public bool CheckIfEqual(string str, System.Text.Encoding encoding) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(string str, out bool result) { }
+        public AI.DataStructs.InMemoryDataStream CheckIfEqual(string str, System.Text.Encoding encoding, out bool result) { }
+        public AI.DataStructs.InMemoryDataStream Decrypt(string password, string salt = "AI Framework") { }
+        public AI.DataStructs.InMemoryDataStream Encrypt(string password, string salt = "AI Framework") { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(byte n) { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(char ch) { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(double n) { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(float n) { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(int n) { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(long n) { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(short n) { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(string str) { }
+        public AI.DataStructs.InMemoryDataStream NullIfEqual(string str, System.Text.Encoding encoding) { }
+        public byte ReadByte() { }
+        public AI.DataStructs.InMemoryDataStream ReadByte(out byte result) { }
+        public byte[] ReadBytes() { }
+        public AI.DataStructs.InMemoryDataStream ReadBytes(out byte[] result) { }
+        public char ReadChar() { }
+        public AI.DataStructs.InMemoryDataStream ReadChar(out char result) { }
+        public char[] ReadChars() { }
+        public AI.DataStructs.InMemoryDataStream ReadChars(out char[] result) { }
+        public char[] ReadChars(int length) { }
+        public AI.DataStructs.InMemoryDataStream ReadChars(int length, out char[] result) { }
+        public double ReadDouble() { }
+        public AI.DataStructs.InMemoryDataStream ReadDouble(out double result) { }
+        public double[] ReadDoubles() { }
+        public AI.DataStructs.InMemoryDataStream ReadDoubles(out double[] result) { }
+        public double[] ReadDoubles(int length) { }
+        public AI.DataStructs.InMemoryDataStream ReadDoubles(int length, out double[] result) { }
+        public float ReadFloat() { }
+        public AI.DataStructs.InMemoryDataStream ReadFloat(out float result) { }
+        public float[] ReadFloats() { }
+        public AI.DataStructs.InMemoryDataStream ReadFloats(out float[] result) { }
+        public float[] ReadFloats(int length) { }
+        public AI.DataStructs.InMemoryDataStream ReadFloats(int length, out float[] result) { }
+        public int ReadInt() { }
+        public AI.DataStructs.InMemoryDataStream ReadInt(out int result) { }
+        public int[] ReadInts() { }
+        public int[] ReadInts(int length) { }
+        public AI.DataStructs.InMemoryDataStream ReadInts(out int[] result) { }
+        public AI.DataStructs.InMemoryDataStream ReadInts(int length, out int[] result) { }
+        public long ReadLong() { }
+        public AI.DataStructs.InMemoryDataStream ReadLong(out long result) { }
+        public long[] ReadLongs() { }
+        public long[] ReadLongs(int length) { }
+        public AI.DataStructs.InMemoryDataStream ReadLongs(out long[] result) { }
+        public AI.DataStructs.InMemoryDataStream ReadLongs(int length, out long[] result) { }
+        public short ReadShort() { }
+        public AI.DataStructs.InMemoryDataStream ReadShort(out short result) { }
+        public short[] ReadShorts() { }
+        public short[] ReadShorts(int length) { }
+        public AI.DataStructs.InMemoryDataStream ReadShorts(out short[] result) { }
+        public AI.DataStructs.InMemoryDataStream ReadShorts(int length, out short[] result) { }
+        public string ReadString() { }
+        public string ReadString(System.Text.Encoding encoding) { }
+        public AI.DataStructs.InMemoryDataStream ReadString(out string result) { }
+        public AI.DataStructs.InMemoryDataStream ReadString(out string result, System.Text.Encoding encoding) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public AI.DataStructs.InMemoryDataStream Skip() { }
+        public AI.DataStructs.InMemoryDataStream Skip(int count) { }
+        public AI.DataStructs.InMemoryDataStream SkipIfEqual(char value) { }
+        public AI.DataStructs.InMemoryDataStream SkipIfEqual(double value) { }
+        public AI.DataStructs.InMemoryDataStream SkipIfEqual(float value) { }
+        public AI.DataStructs.InMemoryDataStream SkipIfEqual(int value) { }
+        public AI.DataStructs.InMemoryDataStream SkipIfEqual(long value) { }
+        public AI.DataStructs.InMemoryDataStream SkipIfEqual(short value) { }
+        public AI.DataStructs.InMemoryDataStream SkipIfEqual(string value) { }
+        public AI.DataStructs.InMemoryDataStream SkipIfEqual(string value, System.Text.Encoding encoding) { }
+        public System.IO.MemoryStream ToMemoryStream() { }
+        public override string ToString() { }
+        public bool TryReadByte(out byte result) { }
+        public AI.DataStructs.InMemoryDataStream TryReadByte(out byte result, out bool succeeded) { }
+        public bool TryReadChar(out char result) { }
+        public AI.DataStructs.InMemoryDataStream TryReadChar(out char result, out bool succeeded) { }
+        public bool TryReadDouble(out double result) { }
+        public AI.DataStructs.InMemoryDataStream TryReadDouble(out double result, out bool succeeded) { }
+        public bool TryReadFloat(out float result) { }
+        public AI.DataStructs.InMemoryDataStream TryReadFloat(out float result, out bool succeeded) { }
+        public bool TryReadInt(out int result) { }
+        public AI.DataStructs.InMemoryDataStream TryReadInt(out int result, out bool succeeded) { }
+        public bool TryReadLong(out long result) { }
+        public AI.DataStructs.InMemoryDataStream TryReadLong(out long result, out bool succeeded) { }
+        public bool TryReadShort(out short result) { }
+        public AI.DataStructs.InMemoryDataStream TryReadShort(out short result, out bool succeeded) { }
+        public bool TryReadString(out string result) { }
+        public bool TryReadString(out string result, System.Text.Encoding encoding) { }
+        public AI.DataStructs.InMemoryDataStream TryReadString(out string result, out bool succeeded) { }
+        public AI.DataStructs.InMemoryDataStream TryReadString(out string result, System.Text.Encoding encoding, out bool succeeded) { }
+        public AI.DataStructs.InMemoryDataStream UnZip() { }
+        public AI.DataStructs.InMemoryDataStream Write(byte[] arr) { }
+        public AI.DataStructs.InMemoryDataStream Write(byte n) { }
+        public AI.DataStructs.InMemoryDataStream Write(char[] arr) { }
+        public AI.DataStructs.InMemoryDataStream Write(char ch) { }
+        public AI.DataStructs.InMemoryDataStream Write(double[] arr) { }
+        public AI.DataStructs.InMemoryDataStream Write(double n) { }
+        public AI.DataStructs.InMemoryDataStream Write(float[] arr) { }
+        public AI.DataStructs.InMemoryDataStream Write(float n) { }
+        public AI.DataStructs.InMemoryDataStream Write(int[] arr) { }
+        public AI.DataStructs.InMemoryDataStream Write(int n) { }
+        public AI.DataStructs.InMemoryDataStream Write(long[] arr) { }
+        public AI.DataStructs.InMemoryDataStream Write(long n) { }
+        public AI.DataStructs.InMemoryDataStream Write(short[] arr) { }
+        public AI.DataStructs.InMemoryDataStream Write(short n) { }
+        public AI.DataStructs.InMemoryDataStream Write(string str) { }
+        public AI.DataStructs.InMemoryDataStream Write(string str, System.Text.Encoding encoding) { }
+        public AI.DataStructs.InMemoryDataStream WriteOnlyContent(char[] dat) { }
+        public AI.DataStructs.InMemoryDataStream WriteOnlyContent(double[] dat) { }
+        public AI.DataStructs.InMemoryDataStream WriteOnlyContent(float[] dat) { }
+        public AI.DataStructs.InMemoryDataStream WriteOnlyContent(int[] dat) { }
+        public AI.DataStructs.InMemoryDataStream WriteOnlyContent(long[] dat) { }
+        public AI.DataStructs.InMemoryDataStream WriteOnlyContent(short[] dat) { }
+        public AI.DataStructs.InMemoryDataStream WriteOnlyContent(string str) { }
+        public AI.DataStructs.InMemoryDataStream WriteOnlyContent(string str, System.Text.Encoding encoding) { }
+        public AI.DataStructs.InMemoryDataStream Zip() { }
+        public static AI.DataStructs.InMemoryDataStream Create() { }
+        public static AI.DataStructs.InMemoryDataStream FromBase64String(string strBase64, bool isEncrypted = false, bool isZipped = false) { }
+        public static AI.DataStructs.InMemoryDataStream FromByteArray(byte[] data, bool isEncrypted = false, bool isZipped = false) { }
+        public static AI.DataStructs.InMemoryDataStream FromFile(string path, bool isEncrypted = false, bool isZipped = false) { }
+        public static AI.DataStructs.InMemoryDataStream FromSystemStream(System.IO.Stream stream, bool isEncrypted = false, bool isZipped = false) { }
+    }
+    public static class KeyWords
+    {
+        public const string ComplexMatrix = "complmatr";
+        public const string ComplexVector = "complvect";
+        public const string Matrix = "matr";
+        public const string NDTensor = "ndt";
+        public const string Tensor = "tens";
+        public const string Vector = "vect";
+    }
+    public static class SafeSerializer
+    {
+        public static T Load<T>(System.IO.Stream stream, System.Text.Json.JsonSerializerOptions? options = null) { }
+        public static T Load<T>(string path, System.Text.Json.JsonSerializerOptions? options = null) { }
+        public static byte[] LoadBytes(System.IO.Stream stream) { }
+        public static byte[] LoadBytes(string path) { }
+        public static void Save<T>(System.IO.Stream stream, T obj, System.Text.Json.JsonSerializerOptions? options = null) { }
+        public static void Save<T>(string path, T obj, System.Text.Json.JsonSerializerOptions? options = null) { }
+        public static void SaveBytes(System.IO.Stream stream, byte[] payload) { }
+        public static void SaveBytes(string path, byte[] payload) { }
+    }
+    [System.Serializable]
+    public class TableOfContentsOfTheSortedVector
+    {
+        public TableOfContentsOfTheSortedVector(AI.DataStructs.Algebraic.Vector vect, int numCh = 50) { }
+        public int IndexValueNeighborhoodMin(double value) { }
+    }
+}
+namespace AI.DataStructs.Data
+{
+    [System.Serializable]
+    public class IntArrayEqualityComparer : System.Collections.Generic.IEqualityComparer<int[]>
+    {
+        public IntArrayEqualityComparer() { }
+        public bool Equals(int[] left, int[] right) { }
+        public int GetHashCode(int[] array) { }
+    }
+    [System.Serializable]
+    public class RingBuffer<T>
+    {
+        public RingBuffer(int length) { }
+        public RingBuffer(int length, T defoultElement) { }
+        public T[] Data { get; set; }
+        public T this[int i] { get; set; }
+        public int Length { get; set; }
+        public void AddElement(T element) { }
+        public static AI.DataStructs.Data.RingBuffer<T> op_Explicit(T[] elements) { }
+        public static T[] op_Implicit(AI.DataStructs.Data.RingBuffer<T> buffer) { }
+    }
+}
+namespace AI.DataStructs.Json
+{
+    public sealed class VectorJsonConverter : System.Text.Json.Serialization.JsonConverter<AI.DataStructs.Algebraic.Vector>
+    {
+        public VectorJsonConverter() { }
+        public override AI.DataStructs.Algebraic.Vector Read(ref System.Text.Json.Utf8JsonReader reader, System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options) { }
+        public override void Write(System.Text.Json.Utf8JsonWriter writer, AI.DataStructs.Algebraic.Vector value, System.Text.Json.JsonSerializerOptions options) { }
+    }
+}
+namespace AI.DataStructs.Shapes
+{
+    [System.Diagnostics.DebuggerDisplay("Rank = {Rank}")]
+    [System.Serializable]
+    public class Shape : System.IEquatable<AI.DataStructs.Shapes.Shape>
+    {
+        public Shape(params int[] values) { }
+        public int Count { get; }
+        public int this[int dimension] { get; }
+        public int Rank { get; }
+        public bool Equals(AI.DataStructs.Shapes.Shape other) { }
+        public override bool Equals(object obj) { }
+        public virtual AI.DataStructs.Shapes.Shape Expand(int newDimensionLength) { }
+        public bool FuzzyEquals(AI.DataStructs.Shapes.Shape other) { }
+        public int[] GetDataCopy() { }
+        public override int GetHashCode() { }
+        public virtual AI.DataStructs.Shapes.Shape Shrink() { }
+        public override string ToString() { }
+        public static bool operator !=(AI.DataStructs.Shapes.Shape shape1, AI.DataStructs.Shapes.Shape shape2) { }
+        public static bool operator ==(AI.DataStructs.Shapes.Shape shape1, AI.DataStructs.Shapes.Shape shape2) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("Width = {Width}")]
+    [System.Serializable]
+    public sealed class Shape1D : AI.DataStructs.Shapes.Shape, System.IEquatable<AI.DataStructs.Shapes.Shape1D>
+    {
+        public Shape1D(int width = 1) { }
+        public int Width { get; }
+        public bool Equals(AI.DataStructs.Shapes.Shape1D other) { }
+        public override bool Equals(object obj) { }
+        public override AI.DataStructs.Shapes.Shape Expand(int newDimensionLength) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+        public static AI.DataStructs.Shapes.Shape2D op_Implicit(AI.DataStructs.Shapes.Shape1D shape) { }
+        public static AI.DataStructs.Shapes.Shape3D op_Implicit(AI.DataStructs.Shapes.Shape1D shape) { }
+        public static AI.DataStructs.Shapes.Shape4D op_Implicit(AI.DataStructs.Shapes.Shape1D shape) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("Height = {Height}, Width = {Width}")]
+    [System.Serializable]
+    public sealed class Shape2D : AI.DataStructs.Shapes.Shape, System.IEquatable<AI.DataStructs.Shapes.Shape2D>
+    {
+        public Shape2D(int height = 1, int width = 1) { }
+        public int Area { get; }
+        public int Height { get; }
+        public int Width { get; }
+        public bool Equals(AI.DataStructs.Shapes.Shape2D other) { }
+        public override bool Equals(object obj) { }
+        public override AI.DataStructs.Shapes.Shape Expand(int newDimensionLength) { }
+        public override int GetHashCode() { }
+        public override AI.DataStructs.Shapes.Shape Shrink() { }
+        public override string ToString() { }
+        public static AI.DataStructs.Shapes.Shape3D op_Implicit(AI.DataStructs.Shapes.Shape2D shape) { }
+        public static AI.DataStructs.Shapes.Shape4D op_Implicit(AI.DataStructs.Shapes.Shape2D shape) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("Height = {Height}, Width = {Width}, Depth = {Depth}")]
+    [System.Serializable]
+    public sealed class Shape3D : AI.DataStructs.Shapes.Shape, System.IEquatable<AI.DataStructs.Shapes.Shape3D>
+    {
+        public Shape3D(int height = 1, int width = 1, int depth = 1) { }
+        public int Area { get; }
+        public int Depth { get; }
+        public int Height { get; }
+        public int Volume { get; }
+        public int Width { get; }
+        public bool Equals(AI.DataStructs.Shapes.Shape3D other) { }
+        public override bool Equals(object obj) { }
+        public override AI.DataStructs.Shapes.Shape Expand(int newDimensionLength) { }
+        public override int GetHashCode() { }
+        public override AI.DataStructs.Shapes.Shape Shrink() { }
+        public override string ToString() { }
+        public static AI.DataStructs.Shapes.Shape3D FromShape(AI.DataStructs.Shapes.Shape shape) { }
+        public static AI.DataStructs.Shapes.Shape4D op_Implicit(AI.DataStructs.Shapes.Shape3D shape) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("Height = {Height}, Width = {Width}, Depth = {Depth}, X = {X}")]
+    [System.Serializable]
+    public sealed class Shape4D : AI.DataStructs.Shapes.Shape, System.IEquatable<AI.DataStructs.Shapes.Shape4D>
+    {
+        public Shape4D(int height = 1, int width = 1, int depth = 1, int x = 1) { }
+        public int Area { get; }
+        public int Depth { get; }
+        public int Height { get; }
+        public int Volume { get; }
+        public int Width { get; }
+        public int X { get; }
+        public bool Equals(AI.DataStructs.Shapes.Shape4D other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+        public override AI.DataStructs.Shapes.Shape Shrink() { }
+        public override string ToString() { }
+    }
+}
+namespace AI.DataStructs.WithComplexElements
+{
+    [System.Serializable]
+    public class ComplexVector : System.Collections.Generic.List<System.Numerics.Complex>, AI.DataStructs.IByteConvertable, AI.DataStructs.ISavable, AI.DataStructs.WithComplexElements.IComplexStructure
+    {
+        public ComplexVector() { }
+        public ComplexVector(AI.DataStructs.Algebraic.Vector vectorReal) { }
+        public ComplexVector(System.Collections.Generic.IEnumerable<System.Numerics.Complex> data) { }
+        public ComplexVector(System.Numerics.Complex value) { }
+        public ComplexVector(double[] vectorReal) { }
+        public ComplexVector(int n) { }
+        public ComplexVector(AI.DataStructs.Algebraic.Vector vectorReal, AI.DataStructs.Algebraic.Vector vectorImg) { }
+        public ComplexVector(double[] vectorReal, double[] vectorImg) { }
+        public AI.DataStructs.Algebraic.Vector ImaginaryVector { get; }
+        public AI.DataStructs.Algebraic.Vector MagnitudeVector { get; }
+        public AI.DataStructs.Algebraic.Vector PhaseVector { get; }
+        public AI.DataStructs.Algebraic.Vector RealVector { get; }
+        public AI.DataStructs.Shapes.Shape Shape { get; }
+        public AI.DataStructs.WithComplexElements.ComplexVector AddSimmetr() { }
+        public AI.DataStructs.WithComplexElements.ComplexVector Clone() { }
+        public AI.DataStructs.WithComplexElements.ComplexVector ComplexConjugate() { }
+        public void ComplexConjugateSelf() { }
+        public AI.DataStructs.WithComplexElements.ComplexVector CutAndZero(int n) { }
+        public AI.DataStructs.WithComplexElements.ComplexVector Decimation(int kDecim) { }
+        public AI.DataStructs.WithComplexElements.ComplexVector FurCentr() { }
+        public byte[] GetBytes() { }
+        public AI.DataStructs.WithComplexElements.ComplexVector InterpolayZero(int kInterp) { }
+        public System.Numerics.Complex Mean() { }
+        public AI.DataStructs.WithComplexElements.ComplexVector Revers() { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public AI.DataStructs.WithComplexElements.ComplexVector Shift(int valueShift) { }
+        public System.Numerics.Complex Sum() { }
+        public AI.DataStructs.WithComplexElements.ComplexVector Transform(System.Func<System.Numerics.Complex, System.Numerics.Complex> func) { }
+        public void TransformSelf(System.Func<System.Numerics.Complex, System.Numerics.Complex> func) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector ComplexVectorPhaseDegMagnDb(AI.DataStructs.Algebraic.Vector magnDb, AI.DataStructs.Algebraic.Vector phaseDeg, AI.DataStructs.WithComplexElements.DbType dbType = 0) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector ComplexVectorPhaseMagn(AI.DataStructs.Algebraic.Vector magn, AI.DataStructs.Algebraic.Vector phase) { }
+        public static System.Numerics.Complex Dot(AI.DataStructs.WithComplexElements.ComplexVector v1, AI.DataStructs.WithComplexElements.ComplexVector v2) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector FromBytes(byte[] data) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector FromDataStream(AI.DataStructs.InMemoryDataStream dataStream) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector Load(System.IO.Stream stream) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector Load(string path) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector Pow(AI.DataStructs.WithComplexElements.ComplexVector v, System.Numerics.Complex c) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector Pow(AI.DataStructs.WithComplexElements.ComplexVector v1, AI.DataStructs.WithComplexElements.ComplexVector v2) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector Pow(System.Numerics.Complex c, AI.DataStructs.WithComplexElements.ComplexVector v) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector TransformVectorX(AI.DataStructs.Algebraic.Vector x, System.Func<double, System.Numerics.Complex> transformFunc) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector TransformVectorX(AI.DataStructs.WithComplexElements.ComplexVector x, System.Func<System.Numerics.Complex, System.Numerics.Complex> transformFunc) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector op_Implicit(AI.DataStructs.Algebraic.Vector dbs) { }
+        public static System.Numerics.Complex[] op_Implicit(AI.DataStructs.WithComplexElements.ComplexVector vect) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector op_Implicit(System.Numerics.Complex[] dbs) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector op_Implicit(double[] dbs) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator %(AI.DataStructs.WithComplexElements.ComplexVector left, AI.DataStructs.WithComplexElements.ComplexVector right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator %(AI.DataStructs.WithComplexElements.ComplexVector left, System.Numerics.Complex right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator %(System.Numerics.Complex left, AI.DataStructs.WithComplexElements.ComplexVector right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator *(AI.DataStructs.Algebraic.Vector left, AI.DataStructs.WithComplexElements.ComplexVector right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator *(AI.DataStructs.WithComplexElements.ComplexVector left, AI.DataStructs.Algebraic.Vector right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator *(AI.DataStructs.WithComplexElements.ComplexVector left, AI.DataStructs.WithComplexElements.ComplexVector right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator *(AI.DataStructs.WithComplexElements.ComplexVector vector, System.Numerics.Complex k) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator *(System.Numerics.Complex k, AI.DataStructs.WithComplexElements.ComplexVector vector) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator +(AI.DataStructs.WithComplexElements.ComplexVector left, AI.DataStructs.WithComplexElements.ComplexVector right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator +(AI.DataStructs.WithComplexElements.ComplexVector vector, System.Numerics.Complex k) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator +(AI.DataStructs.WithComplexElements.ComplexVector vector, double k) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator +(System.Numerics.Complex k, AI.DataStructs.WithComplexElements.ComplexVector vector) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator +(double k, AI.DataStructs.WithComplexElements.ComplexVector vector) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator -(AI.DataStructs.WithComplexElements.ComplexVector vector) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator -(AI.DataStructs.WithComplexElements.ComplexVector left, AI.DataStructs.WithComplexElements.ComplexVector right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator -(AI.DataStructs.WithComplexElements.ComplexVector vector, System.Numerics.Complex k) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator -(AI.DataStructs.WithComplexElements.ComplexVector vector, double k) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator -(System.Numerics.Complex k, AI.DataStructs.WithComplexElements.ComplexVector vector) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator -(double k, AI.DataStructs.WithComplexElements.ComplexVector vector) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator /(AI.DataStructs.WithComplexElements.ComplexVector left, AI.DataStructs.WithComplexElements.ComplexVector right) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator /(AI.DataStructs.WithComplexElements.ComplexVector vector, System.Numerics.Complex k) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector operator /(System.Numerics.Complex k, AI.DataStructs.WithComplexElements.ComplexVector vector) { }
+    }
+    public enum DbType
+    {
+        Energy = 0,
+        Ampl = 1,
+    }
+    public interface IComplexStructure
+    {
+        System.Numerics.Complex[] Data { get; }
+        AI.DataStructs.Shapes.Shape Shape { get; }
+    }
+}
+namespace AI.Distances
+{
+    [System.Serializable]
+    public static class BaseDist
+    {
+        public static double Cos(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        public static double CosDist(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        public static double CosDistRelu(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        public static double EuclideanDistance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> A, AI.DataStructs.Algebraic.IAlgebraicStructure<double> B) { }
+        public static double EuclideanDistanceC(AI.DataStructs.WithComplexElements.ComplexVector A, AI.DataStructs.WithComplexElements.ComplexVector B) { }
+        public static double JaccardCoef<T>(System.Collections.Generic.HashSet<T> set1, System.Collections.Generic.HashSet<T> set2) { }
+        public static double JaccardCoefMin<T>(System.Collections.Generic.HashSet<T> set1, System.Collections.Generic.HashSet<T> set2) { }
+        public static double L2(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a) { }
+        public static double L2(AI.DataStructs.WithComplexElements.ComplexVector cv) { }
+        public static double LinfDist(AI.DataStructs.Algebraic.IAlgebraicStructure<double> A, AI.DataStructs.Algebraic.IAlgebraicStructure<double> B) { }
+        public static double LpDist(AI.DataStructs.Algebraic.IAlgebraicStructure<double> A, AI.DataStructs.Algebraic.IAlgebraicStructure<double> B, int p) { }
+        public static double ManhattanDistance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        public static double SquareEucl(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        public static System.Numerics.Complex SquareEucl(AI.DataStructs.WithComplexElements.ComplexVector a, AI.DataStructs.WithComplexElements.ComplexVector b) { }
+    }
+    [System.Serializable]
+    public static class DistancesBetweenDistributions { }
+    [System.Serializable]
+    public static class DistancesIntoAccountDistributions { }
+    [System.Serializable]
+    public static class ProbabilityDistances
+    {
+        public static double DKL(AI.DataStructs.Algebraic.Vector v1, AI.DataStructs.Algebraic.Vector v2) { }
+        public static double DKLSymmetrical(AI.DataStructs.Algebraic.Vector v1, AI.DataStructs.Algebraic.Vector v2) { }
+    }
+}
+namespace AI.Extensions
+{
+    public static class AlgebraicStructsExtensions
+    {
+        public static bool ApproxEquals(this AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b, double relTol = 1E-09, double absTol = 1E-12) { }
+        public static bool ApproxEquals(this AI.DataStructs.WithComplexElements.IComplexStructure a, AI.DataStructs.WithComplexElements.IComplexStructure b, double relTol = 1E-09, double absTol = 1E-12) { }
+        public static bool ApproxEquals(this System.Numerics.Complex a, System.Numerics.Complex b, double relTol = 1E-09, double absTol = 1E-12) { }
+        public static bool ApproxEquals(double a, double b, double relTol = 1E-09, double absTol = 1E-12) { }
+        public static AI.DataStructs.Algebraic.Vector GetDimention(this AI.DataStructs.Algebraic.Vector[] array, int dim) { }
+        public static AI.DataStructs.Algebraic.Tensor MatricesToTensor(this AI.DataStructs.Algebraic.Matrix[] matrices) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this byte[] matrixData) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this double[] matrixData) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this float[] matrixData) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this int[] matrixData) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this long[] matrixData) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this short[] matrixData) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this byte[] matrixData, int H, int W) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this decimal[] matrixData, int H, int W) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this double[] matrixData, int H, int W) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this float[] matrixData, int H, int W) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this int[] matrixData, int H, int W) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this long[] matrixData, int H, int W) { }
+        public static AI.DataStructs.Algebraic.Matrix ToMatrix(this short[] matrixData, int H, int W) { }
+        public static AI.DataStructs.Algebraic.Vector ToVector(this byte[] array) { }
+        public static AI.DataStructs.Algebraic.Vector ToVector(this decimal[] array) { }
+        public static AI.DataStructs.Algebraic.Vector ToVector(this double[] array) { }
+        public static AI.DataStructs.Algebraic.Vector ToVector(this float[] array) { }
+        public static AI.DataStructs.Algebraic.Vector ToVector(this int[] array) { }
+        public static AI.DataStructs.Algebraic.Vector ToVector(this long[] array) { }
+        public static AI.DataStructs.Algebraic.Vector ToVector(this short[] array) { }
+    }
+    public static class ArraysExtensions
+    {
+        public static bool ElementWiseEqual<T>(this T[] arr1, T[] arr2) { }
+        public static double[] ToDoubArray2D(this byte[] array) { }
+        public static double[] ToDoubleArray(this byte[] array) { }
+        public static double[] ToDoubleArray(this decimal[] array) { }
+        public static double[] ToDoubleArray(this float[] array) { }
+        public static double[] ToDoubleArray(this int[] array) { }
+        public static double[] ToDoubleArray(this long[] array) { }
+        public static double[] ToDoubleArray(this short[] array) { }
+        public static double[] ToDoubleArray2D(this decimal[] array) { }
+        public static double[] ToDoubleArray2D(this float[] array) { }
+        public static double[] ToDoubleArray2D(this int[] array) { }
+        public static double[] ToDoubleArray2D(this long[] array) { }
+        public static double[] ToDoubleArray2D(this short[] array) { }
+        public static float[] ToFloatArray(this byte[] array) { }
+        public static float[] ToFloatArray(this decimal[] array) { }
+        public static float[] ToFloatArray(this double[] array) { }
+        public static float[] ToFloatArray(this int[] array) { }
+        public static float[] ToFloatArray(this long[] array) { }
+        public static float[] ToFloatArray(this short[] array) { }
+        public static TO[] Transform<TI, TO>(this TI[] array, System.Func<TI, TO> function) { }
+    }
+    public static class DataStreamExtensions
+    {
+        public static AI.DataStructs.WithComplexElements.ComplexVector ReadComplexVector(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadComplexVector(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.WithComplexElements.ComplexVector result) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector[] ReadComplexVectors(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadComplexVectors(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.WithComplexElements.ComplexVector[] result) { }
+        public static AI.DataStructs.Algebraic.Matrix[] ReadMatrices(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadMatrices(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.Algebraic.Matrix[] result) { }
+        public static AI.DataStructs.Algebraic.Matrix ReadMatrix(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadMatrix(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.Algebraic.Matrix result) { }
+        public static AI.DataStructs.Algebraic.NDTensor ReadNDTensor(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadNDTensor(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.Algebraic.NDTensor result) { }
+        public static AI.DataStructs.Algebraic.NDTensor[] ReadNDTensors(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadNDTensors(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.Algebraic.NDTensor[] result) { }
+        public static AI.DataStructs.Algebraic.Tensor ReadTensor(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadTensor(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.Algebraic.Tensor result) { }
+        public static AI.DataStructs.Algebraic.Tensor[] ReadTensors(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadTensors(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.Algebraic.Tensor[] result) { }
+        public static AI.DataStructs.Algebraic.Vector ReadVector(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadVector(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.Algebraic.Vector result) { }
+        public static AI.DataStructs.Algebraic.Vector[] ReadVectors(this AI.DataStructs.InMemoryDataStream stream) { }
+        public static AI.DataStructs.InMemoryDataStream ReadVectors(this AI.DataStructs.InMemoryDataStream stream, out AI.DataStructs.Algebraic.Vector[] result) { }
+        public static AI.DataStructs.InMemoryDataStream ToDataStream(this AI.DataStructs.IByteConvertable convertable) { }
+        public static AI.DataStructs.InMemoryDataStream ToDataStream(this byte[] array, bool isEncrypted = false, bool isZipped = false) { }
+        public static AI.DataStructs.InMemoryDataStream Write(this AI.DataStructs.InMemoryDataStream stream, AI.DataStructs.IByteConvertable convertable) { }
+        public static AI.DataStructs.InMemoryDataStream Write(this AI.DataStructs.InMemoryDataStream stream, AI.DataStructs.IByteConvertable[] convertables) { }
+    }
+    public static class ShuffleExtensions
+    {
+        public static void Shuffle<T>(this System.Collections.Generic.IList<T> data, int? seed = default) { }
+        public static void Shuffle<T>(this T[] data, int? seed = default) { }
+    }
+    public static class StatisticsExtensions
+    {
+        public static double Disp(this byte[] array) { }
+        public static double Disp(this decimal[] array) { }
+        public static double Disp(this double[] array) { }
+        public static double Disp(this float[] array) { }
+        public static double Disp(this int[] array) { }
+        public static double Disp(this long[] array) { }
+        public static double Disp(this short[] array) { }
+        public static double Mean(this byte[] array) { }
+        public static double Mean(this decimal[] array) { }
+        public static double Mean(this double[] array) { }
+        public static float Mean(this float[] array) { }
+        public static double Mean(this int[] array) { }
+        public static double Mean(this long[] array) { }
+        public static double Mean(this short[] array) { }
+        public static double Std(this byte[] array) { }
+        public static double Std(this decimal[] array) { }
+        public static double Std(this double[] array) { }
+        public static double Std(this float[] array) { }
+        public static double Std(this int[] array) { }
+        public static double Std(this long[] array) { }
+        public static double Std(this short[] array) { }
+    }
+    public static class StringExtensions
+    {
+        public static string ToSingleString(this decimal[] array, System.Globalization.NumberFormatInfo provider, string separator = " ") { }
+        public static string ToSingleString(this double[] array, System.Globalization.NumberFormatInfo provider, string separator = " ") { }
+        public static string ToSingleString(this float[] array, System.Globalization.NumberFormatInfo provider, string separator = " ") { }
+        public static string ToSingleString<T>(this T[] array, string separator = " ") { }
+        public static string[] ToStringArray(this decimal[] array, System.Globalization.NumberFormatInfo provider) { }
+        public static string[] ToStringArray(this double[] array, System.Globalization.NumberFormatInfo provider) { }
+        public static string[] ToStringArray(this float[] array, System.Globalization.NumberFormatInfo provider) { }
+        public static string[] ToStringArray<T>(this T[] array) { }
+    }
+}
+namespace AI.HighLevelFunctions
+{
+    public static class AnalyticGeometryFunctions
+    {
+        public static double AngleVect(AI.DataStructs.Algebraic.Vector vector1, AI.DataStructs.Algebraic.Vector vector2) { }
+        public static double Cos(AI.DataStructs.Algebraic.Vector vector1, AI.DataStructs.Algebraic.Vector vector2) { }
+        public static double DistanceFromAToB(AI.DataStructs.Algebraic.Vector pointA, AI.DataStructs.Algebraic.Vector pointB) { }
+        public static double Dot(AI.DataStructs.Algebraic.Vector vector1, AI.DataStructs.Algebraic.Vector vector2) { }
+        public static System.Numerics.Complex Dot(AI.DataStructs.WithComplexElements.ComplexVector vector1, AI.DataStructs.WithComplexElements.ComplexVector vector2) { }
+        public static AI.DataStructs.Algebraic.Vector L2DistancesPoints2Center(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> points) { }
+        public static AI.DataStructs.Algebraic.Vector L2DistancesPoints2Center(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> points, AI.DataStructs.Algebraic.Vector centr) { }
+        public static double NormVect(AI.DataStructs.Algebraic.Vector vector) { }
+        public static AI.DataStructs.Algebraic.Vector ProjectionAtoB(AI.DataStructs.Algebraic.Vector A, AI.DataStructs.Algebraic.Vector B) { }
+        public static AI.DataStructs.Algebraic.Vector VectorFromAToB(AI.DataStructs.Algebraic.Vector pointA, AI.DataStructs.Algebraic.Vector pointB) { }
+        public static AI.DataStructs.Algebraic.Vector VectorRotate(AI.DataStructs.Algebraic.Vector inp, double angl, int indAx1, int indAx2) { }
+    }
+    public static class FunctionsForEachElements
+    {
+        public static AI.DataStructs.Algebraic.Matrix Abs(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Abs(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Acos(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Acos(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Asin(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Asin(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Atan(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Atan(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Cos(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Cos(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Cosec(AI.DataStructs.Algebraic.Matrix Inp) { }
+        public static AI.DataStructs.Algebraic.Vector Cosec(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Ctan(AI.DataStructs.Algebraic.Matrix Inp) { }
+        public static AI.DataStructs.Algebraic.Vector Erf(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static double Erf(double x) { }
+        public static double Erfc(double x) { }
+        public static AI.DataStructs.Algebraic.Matrix Exp(AI.DataStructs.Algebraic.Matrix Inp) { }
+        public static AI.DataStructs.Algebraic.Vector Exp(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Vector Factorial(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static long Factorial(int x) { }
+        public static double Gamma(double x) { }
+        public static AI.DataStructs.Algebraic.Vector GenerateTheSequence(double began, double end) { }
+        public static AI.DataStructs.Algebraic.Vector GenerateTheSequence(double began, double step, double end) { }
+        public static AI.DataStructs.Algebraic.Vector GradToRad(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static double GradToRad(double grad) { }
+        public static AI.DataStructs.Algebraic.Matrix Ln(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Ln(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Log10(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Log10(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static double LogGamma(double x) { }
+        public static int MinusOnePow(int pow) { }
+        public static AI.DataStructs.Algebraic.Vector PeakDel(AI.DataStructs.Algebraic.Vector data) { }
+        public static AI.DataStructs.Algebraic.Vector Pow(double a, AI.DataStructs.Algebraic.Vector pow) { }
+        public static AI.DataStructs.Algebraic.Vector Rad(AI.DataStructs.Algebraic.Vector x, int num) { }
+        public static double Rad(double x, int num) { }
+        public static AI.DataStructs.Algebraic.Vector RadToGrad(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static double RadToGrad(double rad) { }
+        public static AI.DataStructs.Algebraic.Vector Round(AI.DataStructs.Algebraic.Vector Inp, int digits) { }
+        public static AI.DataStructs.Algebraic.Matrix Sec(AI.DataStructs.Algebraic.Matrix Inp) { }
+        public static AI.DataStructs.Algebraic.Vector Sec(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Vector Sign(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Sin(AI.DataStructs.Algebraic.Matrix Inp) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Sqrt(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Sqrt(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Tan(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Tan(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Tanh(AI.DataStructs.Algebraic.Matrix inp) { }
+        public static AI.DataStructs.Algebraic.Vector Tanh(AI.DataStructs.Algebraic.Vector Inp) { }
+        public static AI.DataStructs.Algebraic.Vector Unwrap(AI.DataStructs.Algebraic.Vector data, double diffMax = 2) { }
+        public static AI.DataStructs.Algebraic.Vector Walsh(AI.DataStructs.Algebraic.Vector x, int num) { }
+        public static double Walsh(double x, int num) { }
+        public static AI.DataStructs.Algebraic.Vector ctg(AI.DataStructs.Algebraic.Vector Inp) { }
+    }
+    public static class SpecialFunctions
+    {
+        public static double BesselJ0(double x) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "C",
+                "S"})]
+        public static System.ValueTuple<double, double> Fresnel(double x) { }
+        public static double FresnelC(double x) { }
+        public static double FresnelS(double x) { }
+    }
+}
+namespace AI.Insights
+{
+    public static class Fmt
+    {
+        public static string Int(double value) { }
+        public static string Money(double value) { }
+        public static string Num(double value, int digits = 2) { }
+        public static string Pct(double value, int digits = 1) { }
+    }
+    public interface IInterpretable
+    {
+        AI.Insights.Interpretation Interpret();
+    }
+    public sealed record Interpretation : System.IEquatable<AI.Insights.Interpretation>
+    {
+        public Interpretation() { }
+        public System.Collections.Generic.IReadOnlyList<string> Findings { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Insights.InterpretedMetric> Metrics { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Recommendations { get; init; }
+        public string Summary { get; init; }
+        public string Title { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Warnings { get; init; }
+        public string ToLlmText() { }
+        public override string ToString() { }
+    }
+    public sealed class InterpretationBuilder
+    {
+        public InterpretationBuilder(string title = "") { }
+        public AI.Insights.Interpretation Build() { }
+        public AI.Insights.InterpretationBuilder Finding(string text) { }
+        public AI.Insights.InterpretationBuilder FindingIf(bool condition, string text) { }
+        public AI.Insights.InterpretationBuilder Metric(string name, string value, string? unit = null, string? meaning = null, AI.Insights.MetricQuality quality = 2) { }
+        public AI.Insights.InterpretationBuilder Metric(string name, double value, string? unit = null, string? meaning = null, AI.Insights.MetricQuality quality = 2, int digits = 2) { }
+        public AI.Insights.InterpretationBuilder Recommendation(string text) { }
+        public AI.Insights.InterpretationBuilder RecommendationIf(bool condition, string text) { }
+        public AI.Insights.InterpretationBuilder Summary(string summary) { }
+        public AI.Insights.InterpretationBuilder Title(string title) { }
+        public AI.Insights.InterpretationBuilder Warning(string text) { }
+        public AI.Insights.InterpretationBuilder WarningIf(bool condition, string text) { }
+    }
+    public sealed record InterpretedMetric : System.IEquatable<AI.Insights.InterpretedMetric>
+    {
+        public InterpretedMetric(string Name, string Value, string? Unit = null, string? Meaning = null, AI.Insights.MetricQuality Quality = 2) { }
+        public string? Meaning { get; init; }
+        public string Name { get; init; }
+        public AI.Insights.MetricQuality Quality { get; init; }
+        public string? Unit { get; init; }
+        public string Value { get; init; }
+    }
+    public enum MetricQuality
+    {
+        Unknown = 0,
+        Good = 1,
+        Neutral = 2,
+        Warning = 3,
+        Critical = 4,
+    }
+}
+namespace AI.Statistics
+{
+    public static class CircularStatistics
+    {
+        public static double DifferenceDegrees(double from, double to) { }
+        public static double DifferenceRadians(double from, double to) { }
+        public static double MeanDirection(AI.DataStructs.Algebraic.Vector angles) { }
+        public static double MeanDirection(AI.DataStructs.Algebraic.Vector angles, AI.DataStructs.Algebraic.Vector weights) { }
+        public static double MeanResultantLength(AI.DataStructs.Algebraic.Vector angles) { }
+        public static double MeanResultantLength(AI.DataStructs.Algebraic.Vector angles, AI.DataStructs.Algebraic.Vector weights) { }
+        public static double WrapDegrees(double angle) { }
+        public static double WrapRadians(double angle) { }
+    }
+    [System.Obsolete("Используйте FormStatistics (без опечатки).", false)]
+    [System.Serializable]
+    public static class FormStatistcs
+    {
+        public static double CrestFactor(AI.DataStructs.Algebraic.Vector vector) { }
+    }
+    [System.Serializable]
+    public static class FormStatistics
+    {
+        public static double CrestFactor(AI.DataStructs.Algebraic.Vector vector) { }
+        public static double ImpulseFactor(AI.DataStructs.Algebraic.Vector vector) { }
+        public static double ShapeFactor(AI.DataStructs.Algebraic.Vector vector) { }
+    }
+    public sealed class HaltonSequence
+    {
+        public HaltonSequence(int dimension, long skip = 0, System.Random? scramble = null) { }
+        public int Dimension { get; }
+        public long Index { get; }
+        public AI.DataStructs.Algebraic.Matrix Generate(int count) { }
+        public AI.DataStructs.Algebraic.Vector Next() { }
+        public AI.DataStructs.Algebraic.Vector Point(long index) { }
+        public static double RadicalInverse(long index, int radix) { }
+    }
+    [System.Serializable]
+    public class Histogramm
+    {
+        public Histogramm() { }
+        public Histogramm(int bins) { }
+        public string Info { get; set; }
+        public string Name { get; set; }
+        public AI.DataStructs.Algebraic.Vector X { get; set; }
+        public string XLabel { get; set; }
+        [System.Obsolete("Используйте XLabel.", false)]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string XLable { get; set; }
+        public AI.DataStructs.Algebraic.Vector Y { get; set; }
+        public string YLabel { get; set; }
+        [System.Obsolete("Используйте YLabel.", false)]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string YLables { get; set; }
+        public void Open(string path) { }
+        public void Save(string path) { }
+        public static AI.DataStructs.Algebraic.Matrix HarAnd(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.DataStructs.Algebraic.Matrix HarNorm(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.DataStructs.Algebraic.Matrix HarSumm(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.DataStructs.Algebraic.Vector IntegralValueH(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.DataStructs.Algebraic.Vector IntegralValueHMean(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.DataStructs.Algebraic.Vector IntegralValueW(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.DataStructs.Algebraic.Vector IntegralValueWMean(AI.DataStructs.Algebraic.Matrix matrix) { }
+    }
+    public static class InverseTransformSampling
+    {
+        public static int Poisson(double u, double lambda) { }
+    }
+    [System.Serializable]
+    public class Quantile
+    {
+        public Quantile(AI.DataStructs.Algebraic.IAlgebraicStructure<double> structureDouble) { }
+        public AI.DataStructs.Algebraic.Vector SortVec { get; }
+        public double GetQuantile(double q) { }
+        public static double FastQuantile(AI.DataStructs.Algebraic.IAlgebraicStructure<double> structure, double q) { }
+    }
+    [System.Serializable]
+    public class QuickSelection<T>
+        where T : System.IComparable<T>
+    {
+        public QuickSelection() { }
+        public static T Selection(T[] data, int orderStatistic) { }
+    }
+    public static class RandomEngine
+    {
+        public static System.Random Shared { get; }
+        public static System.Random Create(int? seed = default) { }
+        public static void FillGaussian(System.Span<double> buffer, System.Random rng) { }
+        public static void FillUniform(System.Span<double> buffer, System.Random rng) { }
+        public static double NextBeta(System.Random rng, double alpha, double beta) { }
+        public static double NextCauchy(System.Random rng, double location = 0, double scale = 1) { }
+        public static double NextExponential(System.Random rng, double rate = 1) { }
+        public static double NextGamma(System.Random rng, double shape, double scale = 1) { }
+        public static double NextGaussian() { }
+        public static double NextGaussian(System.Random rng) { }
+        public static double NextGaussian(System.Random rng, double mean, double std) { }
+        public static double NextLaplace(System.Random rng, double mu = 0, double b = 1) { }
+        public static int NextPoisson(System.Random rng, double lambda) { }
+        public static double NextRayleigh(System.Random rng, double sigma = 1) { }
+        public static double NextRice(System.Random rng, double nu, double sigma = 1) { }
+        public static double NextTruncatedGaussian(System.Random rng, double mean, double std, double lower, double upper) { }
+        public static double NextUniform() { }
+        public static double NextUniform(System.Random rng) { }
+        public static double NextVonMises(System.Random rng, double mu, double kappa) { }
+        public static double NextWeibull(System.Random rng, double shape, double scale = 1) { }
+    }
+    [System.Serializable]
+    public class RandomItemSelection
+    {
+        public RandomItemSelection() { }
+        public static T GetElement<T>(AI.DataStructs.Algebraic.Vector distributionFunction, T[] arrayStates) { }
+        public static T GetElement<T>(AI.DataStructs.Algebraic.Vector distributionFunction, T[] arrayStates, System.Random random) { }
+        public static int GetIndex(AI.DataStructs.Algebraic.Vector distributionFunction, double t = 1) { }
+        public static int GetIndex(AI.DataStructs.Algebraic.Vector distributionFunction, System.Random random, double t = 1) { }
+    }
+    public sealed class SobolSequence
+    {
+        public const int MaxDimension = 21;
+        public SobolSequence(int dimension, long skip = 0, System.Random? shift = null) { }
+        public int Dimension { get; }
+        public long Index { get; }
+        public AI.DataStructs.Algebraic.Matrix Generate(int count) { }
+        public AI.DataStructs.Algebraic.Vector Next() { }
+        public AI.DataStructs.Algebraic.Vector Point(long index) { }
+    }
+    public sealed class SpatialRandomField
+    {
+        public SpatialRandomField(double correlationDistance, System.Random rng, int harmonics = 512) { }
+        public double CorrelationDistance { get; }
+        public int Harmonics { get; }
+        public double[] Sample(System.Collections.Generic.IReadOnlyList<double> xs, System.Collections.Generic.IReadOnlyList<double> ys) { }
+        public double Value(double x, double y) { }
+        public static double Correlation(double distance, double correlationDistance) { }
+    }
+    public static class StatInference
+    {
+        public static AI.Statistics.StatInference.TestResult AndersonDarlingTest(double[] sortedData, int n, double mean, double std, double alpha = 0.05) { }
+        public static double ChiSquaredCdf(double x, int df) { }
+        public static double ChiSquaredQuantile(double p, int df) { }
+        public static AI.Statistics.StatInference.TestResult ChiSquaredVarianceTest(double sampleVariance, int n, double sigma0Sq, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult CochranMantelHaenszelTest(System.ReadOnlySpan<AI.Statistics.StatInference.CmhStratum2x2> strata, double alpha = 0.05, bool continuityCorrection = true) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public static System.ValueTuple<double, double> ConfidenceIntervalStd(double std, int n, double confidence = 0.95) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public static System.ValueTuple<double, double> ConfidenceIntervalT(double mean, double std, int n, double confidence = 0.95) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public static System.ValueTuple<double, double> ConfidenceIntervalVariance(double variance, int n, double confidence = 0.95) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public static System.ValueTuple<double, double> ConfidenceIntervalZ(double mean, double sigma, int n, double confidence = 0.95) { }
+        public static double Erf(double x) { }
+        public static double Erfc(double x) { }
+        public static AI.Statistics.StatInference.TestResult FisherExactTestGreater(int a, int b, int c, int d, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult FisherExactTestTwoSided(int a, int b, int c, int d, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult JarqueBeraTest(double skewness, double excessKurtosis, int n, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult LikelihoodRatioNestedModels(double logLikelihoodNested, double logLikelihoodGeneral, int parameterDifference, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult LjungBoxTest(int sampleSize, System.ReadOnlySpan<double> autocorrelations, int adjustedChiSquareDf, double alpha = 0.05) { }
+        public static double LogGamma(double x) { }
+        public static double MantelHaenszelOddsRatio(System.ReadOnlySpan<AI.Statistics.StatInference.CmhStratum2x2> strata) { }
+        public static AI.Statistics.StatInference.TestResult McNemarNoContinuity(int b, int c, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult McNemarWithContinuity(int b, int c, double alpha = 0.05) { }
+        public static double NormalCdf(double x) { }
+        public static double NormalPdf(double x) { }
+        public static double NormalQuantile(double p) { }
+        public static AI.Statistics.StatInference.TestResult PearsonChiSquare2x2(int a, int b, int c, int d, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult PearsonChiSquareContingency(System.ReadOnlySpan<int> observed, int rows, int cols, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult PearsonChiSquareGoodnessOfFit(System.ReadOnlySpan<double> observed, System.ReadOnlySpan<double> expected, int estimatedParameters, double alpha = 0.05) { }
+        public static double PoissonLogPmf(int k, double lambda) { }
+        public static double StudentizedRangeCriticalValueAlpha05(int numberOfGroups, int degreesOfFreedomError) { }
+        public static double TCdf(double t, int df) { }
+        public static double TPdf(double t, int df) { }
+        public static double TQuantile(double p, int df) { }
+        public static AI.Statistics.StatInference.TestResult TTest(double mean, double std, int n, double mu0, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult TTestTwoSample(double mean1, double std1, int n1, double mean2, double std2, int n2, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TukeyHsdSummary TukeyHsdBalanced(System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>> groups) { }
+        public static AI.Statistics.StatInference.TukeyHsdSummary TukeyHsdUnbalanced(System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>> groups) { }
+        public static AI.Statistics.StatInference.TestResult YatesChiSquare2x2(int a, int b, int c, int d, double alpha = 0.05) { }
+        public static AI.Statistics.StatInference.TestResult ZTest(double mean, double sigma, int n, double mu0, double alpha = 0.05) { }
+        public readonly struct CmhStratum2x2 : System.IEquatable<AI.Statistics.StatInference.CmhStratum2x2>
+        {
+            public CmhStratum2x2(int A, int B, int C, int D) { }
+            public int A { get; init; }
+            public int B { get; init; }
+            public int C { get; init; }
+            public int D { get; init; }
+        }
+        public readonly struct TestResult
+        {
+            public double CriticalLower { get; init; }
+            public double CriticalUpper { get; init; }
+            public double PValue { get; init; }
+            public bool Reject { get; init; }
+            public double Statistic { get; init; }
+        }
+        public readonly struct TukeyHsdSummary : System.IEquatable<AI.Statistics.StatInference.TukeyHsdSummary>
+        {
+            public TukeyHsdSummary(double GrandMean, double MeanSquareWithin, int DegreesOfFreedomWithin, double StudentizedRangeQ, double CriticalDifferenceBalanced, System.Collections.Generic.IReadOnlyList<double> GroupMeans, System.Collections.Generic.IReadOnlyList<AI.Statistics.StatInference.TukeyPairwiseResult> PairwiseComparisons) { }
+            public double CriticalDifferenceBalanced { get; init; }
+            public int DegreesOfFreedomWithin { get; init; }
+            public double GrandMean { get; init; }
+            public System.Collections.Generic.IReadOnlyList<double> GroupMeans { get; init; }
+            public double MeanSquareWithin { get; init; }
+            public System.Collections.Generic.IReadOnlyList<AI.Statistics.StatInference.TukeyPairwiseResult> PairwiseComparisons { get; init; }
+            public double StudentizedRangeQ { get; init; }
+        }
+        public readonly struct TukeyPairwiseResult : System.IEquatable<AI.Statistics.StatInference.TukeyPairwiseResult>
+        {
+            public TukeyPairwiseResult(int GroupI, int GroupJ, double MeanI, double MeanJ, double Difference, double CriticalDifference) { }
+            public double CriticalDifference { get; init; }
+            public double Difference { get; init; }
+            public int GroupI { get; init; }
+            public int GroupJ { get; init; }
+            public double MeanI { get; init; }
+            public double MeanJ { get; init; }
+        }
+    }
+    public static class StatUtils
+    {
+        public static void LogSoftmax(System.ReadOnlySpan<double> logs, System.Span<double> target) { }
+        public static double LogSumExp(System.ReadOnlySpan<double> logs) { }
+        public static double LogSumExp(double a, double b) { }
+        public static int LowerBound(System.ReadOnlySpan<double> sortedAsc, double value) { }
+        public static double SafeLog(double x, double eps = 1E-300) { }
+        public static double SafeStd(double std) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "mean",
+                "variance",
+                "count"})]
+        public static System.ValueTuple<double, double, int> Welford(System.ReadOnlySpan<double> data, bool skipNaN = true, bool unbiased = true) { }
+    }
+    [System.Serializable]
+    public class Statistic
+    {
+        public Statistic(AI.DataStructs.Algebraic.IAlgebraicStructure<double> data) { }
+        public double Expected { get; }
+        public double MaxValue { get; }
+        public double MinValue { get; }
+        public double STD { get; }
+        public double Variance { get; }
+        public double Asymmetry() { }
+        public double CentralMoment(int n) { }
+        public double Excess() { }
+        public AI.Statistics.Histogramm Histogramm(int bins) { }
+        public double InitialMoment(int n) { }
+        public double RandNorm() { }
+        public static double CalcStd(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double CalcVariance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double CorrelationCoefficient(AI.DataStructs.Algebraic.IAlgebraicStructure<double> X, AI.DataStructs.Algebraic.IAlgebraicStructure<double> Y) { }
+        public static double CorrelationCoefficient(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
+        public static double Cov(AI.DataStructs.Algebraic.IAlgebraicStructure<double> xS, AI.DataStructs.Algebraic.IAlgebraicStructure<double> yS) { }
+        public static double DivFreq(AI.DataStructs.Algebraic.Vector signal) { }
+        public static AI.DataStructs.Algebraic.Vector EnsembleDispersion(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors) { }
+        public static AI.DataStructs.Algebraic.Vector EnsembleDispersion(AI.DataStructs.Algebraic.Vector[] ensemble, AI.DataStructs.Algebraic.Vector mean) { }
+        public static AI.DataStructs.Algebraic.Vector EnsembleStd(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> ensemble) { }
+        public static AI.DataStructs.Algebraic.Vector EnsembleStd(AI.DataStructs.Algebraic.Vector[] ensemble, AI.DataStructs.Algebraic.Vector mean) { }
+        public static double ExpectedValue(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double ExpectedValueAbs(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double ExpectedValueAbsNotCheckNaN(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double ExpectedValueNotCheckNaN(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double Gauss(System.Random rng) { }
+        public static double Gauss2(System.Random rng, int iter) { }
+        public static AI.DataStructs.Algebraic.Vector MaxEnergeVector(AI.DataStructs.Algebraic.Vector[] ens) { }
+        public static AI.DataStructs.Algebraic.Vector MaxEns(AI.DataStructs.Algebraic.Vector[] ensemble) { }
+        public static double MaximalValue(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double MeanFreq(AI.DataStructs.Algebraic.Vector signal, double fd) { }
+        public static double MeanGarmonic(AI.DataStructs.Algebraic.Vector vect) { }
+        public static double MeanGeom(AI.DataStructs.Algebraic.Vector vect) { }
+        public static double MeanStep(AI.DataStructs.Algebraic.Vector vector, double eps = 5E-324) { }
+        public static double MeanStep2(AI.DataStructs.Algebraic.Vector vector, double eps = 5E-324) { }
+        public static AI.DataStructs.Algebraic.Vector MeanVector(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors) { }
+        public static double MinimalValue(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double RMS(AI.DataStructs.Algebraic.Vector vect) { }
+        public static AI.DataStructs.Algebraic.Vector RandNorm(int n) { }
+        public static AI.DataStructs.Algebraic.Matrix RandNorm(short n) { }
+        public static AI.DataStructs.Algebraic.Matrix RandNorm(int m, int n) { }
+        public static AI.DataStructs.Algebraic.Vector RandNorm(int n, System.Random rng) { }
+        public static AI.DataStructs.Algebraic.Tensor RandNorm(int h, int w, int d) { }
+        public static AI.DataStructs.Algebraic.Matrix RandNorm(int m, int n, System.Random rng) { }
+        public static AI.DataStructs.Algebraic.Tensor RandNorm(int h, int w, int d, System.Random random) { }
+        public static AI.DataStructs.Algebraic.Vector RandNormP(int n, int iter = 100) { }
+        public static AI.DataStructs.Algebraic.Vector RandNormP(int n, System.Random rng, int iter = 100) { }
+        public static double SimpleMeanFreq(AI.DataStructs.Algebraic.Vector signal) { }
+        public static AI.DataStructs.Algebraic.Vector UniformDistribution(int n) { }
+        public static AI.DataStructs.Algebraic.Matrix UniformDistribution(short n) { }
+        public static AI.DataStructs.Algebraic.Matrix UniformDistribution(int m, int n) { }
+        public static AI.DataStructs.Algebraic.Vector UniformDistribution(int n, System.Random random) { }
+        public static AI.DataStructs.Algebraic.Tensor UniformDistribution(int h, int w, int d) { }
+        public static AI.DataStructs.Algebraic.Matrix UniformDistribution(int m, int n, System.Random random) { }
+        public static AI.DataStructs.Algebraic.Tensor UniformDistribution(int h, int w, int d, System.Random random) { }
+        [System.Obsolete("Используйте CalcVariance (латинская С). Метод оставлен для обратной совместимости" +
+            ".", false)]
+        public static double СalcVariance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+    }
+    public static class WeightedStatistics
+    {
+        public static double EffectiveSampleSize(AI.DataStructs.Algebraic.Vector weights) { }
+        public static double Mean(AI.DataStructs.Algebraic.Vector values, AI.DataStructs.Algebraic.Vector weights) { }
+        public static double Quantile(AI.DataStructs.Algebraic.Vector values, AI.DataStructs.Algebraic.Vector weights, double q) { }
+        public static double Variance(AI.DataStructs.Algebraic.Vector values, AI.DataStructs.Algebraic.Vector weights) { }
+    }
+}
+namespace AI.Statistics.Distributions
+{
+    [System.Serializable]
+    public sealed class BoundDistribution1D : AI.Statistics.Distributions.IDistributionWithoutParams, AI.Statistics.Distributions.ISamplableDistribution
+    {
+        public BoundDistribution1D(AI.Statistics.Distributions.IDistribution inner, System.Collections.Generic.Dictionary<string, double> parameters) { }
+        public bool IsOneDimensional { get; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Parameters { get; }
+        public double CulcLogProb(AI.DataStructs.Algebraic.Vector x) { }
+        public double CulcLogProb(double x) { }
+        public double CulcProb(AI.DataStructs.Algebraic.Vector x) { }
+        public double CulcProb(double x) { }
+        public double Sample1D(System.Random rng) { }
+        public AI.DataStructs.Algebraic.Vector SampleND(System.Random rng) { }
+    }
+    [System.Serializable]
+    public sealed class BoundDistributionND : AI.Statistics.Distributions.IDistributionWithoutParams, AI.Statistics.Distributions.ISamplableDistribution
+    {
+        public BoundDistributionND(AI.Statistics.Distributions.IDistribution inner, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> parameters) { }
+        public bool IsOneDimensional { get; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, AI.DataStructs.Algebraic.Vector> Parameters { get; }
+        public double CulcLogProb(AI.DataStructs.Algebraic.Vector x) { }
+        public double CulcLogProb(double x) { }
+        public double CulcProb(AI.DataStructs.Algebraic.Vector x) { }
+        public double CulcProb(double x) { }
+        public double Sample1D(System.Random rng) { }
+        public AI.DataStructs.Algebraic.Vector SampleND(System.Random rng) { }
+    }
+    public sealed class ExponentialDist1D : AI.Statistics.Distributions.SimpleDist1DBase
+    {
+        public ExponentialDist1D(double rate, double shift = 0) { }
+        public double Rate { get; }
+        public double Shift { get; }
+        public override double CulcLogProb(double x) { }
+        public override double CulcProb(double x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count) { }
+        public override double Sample1D(System.Random rng) { }
+    }
+    public sealed class GaussianDist1D : AI.Statistics.Distributions.SimpleDist1DBase
+    {
+        public GaussianDist1D(double mu, double sigma) { }
+        public double Mu { get; }
+        public double Sigma { get; }
+        public override double CulcLogProb(double x) { }
+        public override double CulcProb(double x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count) { }
+        public override double Sample1D(System.Random rng) { }
+    }
+    public sealed class GaussianDistFullCov : AI.Statistics.Distributions.SimpleDistNDBase
+    {
+        public GaussianDistFullCov(AI.DataStructs.Algebraic.Vector mean, double[] covariance) { }
+        public override int Dim { get; }
+        public AI.DataStructs.Algebraic.Vector Mean { get; }
+        public override double CulcLogProb(AI.DataStructs.Algebraic.Vector x) { }
+        public override double CulcProb(AI.DataStructs.Algebraic.Vector x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams RefitND(AI.DataStructs.Algebraic.Vector[] data, int count) { }
+        public override AI.DataStructs.Algebraic.Vector SampleND(System.Random rng) { }
+    }
+    public sealed class GaussianDistND : AI.Statistics.Distributions.SimpleDistNDBase
+    {
+        public GaussianDistND(AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Vector std) { }
+        public override int Dim { get; }
+        public AI.DataStructs.Algebraic.Vector Mean { get; }
+        public AI.DataStructs.Algebraic.Vector Std { get; }
+        public override double CulcLogProb(AI.DataStructs.Algebraic.Vector x) { }
+        public override double CulcProb(AI.DataStructs.Algebraic.Vector x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams RefitND(AI.DataStructs.Algebraic.Vector[] data, int count) { }
+        public override AI.DataStructs.Algebraic.Vector SampleND(System.Random rng) { }
+    }
+    public interface IDistribution
+    {
+        double CalcLogProb(AI.DataStructs.Algebraic.Vector x, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> param_dist);
+        double CalcLogProb(double x, System.Collections.Generic.Dictionary<string, double> param_dist);
+        double CalcProb(AI.DataStructs.Algebraic.Vector x, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> param_dist);
+        double CalcProb(double x, System.Collections.Generic.Dictionary<string, double> param_dist);
+        double CulcLogProb(AI.DataStructs.Algebraic.Vector x, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> param_dist);
+        double CulcLogProb(double x, System.Collections.Generic.Dictionary<string, double> param_dist);
+        double CulcProb(AI.DataStructs.Algebraic.Vector x, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> param_dist);
+        double CulcProb(double x, System.Collections.Generic.Dictionary<string, double> param_dist);
+    }
+    public interface IDistributionWithoutParams
+    {
+        double CalcLogProb(AI.DataStructs.Algebraic.Vector x);
+        double CalcLogProb(double x);
+        double CalcProb(AI.DataStructs.Algebraic.Vector x);
+        double CalcProb(double x);
+        double CulcLogProb(AI.DataStructs.Algebraic.Vector x);
+        double CulcLogProb(double x);
+        double CulcProb(AI.DataStructs.Algebraic.Vector x);
+        double CulcProb(double x);
+    }
+    public interface IRefittable
+    {
+        AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count);
+        AI.Statistics.Distributions.IDistributionWithoutParams RefitND(AI.DataStructs.Algebraic.Vector[] data, int count);
+    }
+    public interface ISamplableDistribution
+    {
+        bool IsOneDimensional { get; }
+        double Sample1D(System.Random rng);
+        AI.DataStructs.Algebraic.Vector SampleND(System.Random rng);
+    }
+    public sealed class LaplaceDist1D : AI.Statistics.Distributions.SimpleDist1DBase
+    {
+        public LaplaceDist1D(double mu, double b) { }
+        public double B { get; }
+        public double Mu { get; }
+        public override double CulcLogProb(double x) { }
+        public override double CulcProb(double x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count) { }
+        public override double Sample1D(System.Random rng) { }
+    }
+    [System.Serializable]
+    public class NonCorrelatedGaussian : AI.Statistics.Distributions.IDistribution
+    {
+        public const string KeyMean = "mean";
+        public const string KeyStd = "std";
+        public NonCorrelatedGaussian() { }
+        public double CulcLogProb(AI.DataStructs.Algebraic.Vector x, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> param_dist) { }
+        public double CulcLogProb(double x, System.Collections.Generic.Dictionary<string, double> param_dist) { }
+        public double CulcProb(AI.DataStructs.Algebraic.Vector x, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> param_dist) { }
+        public double CulcProb(double x, System.Collections.Generic.Dictionary<string, double> param_dist) { }
+        public AI.DataStructs.Algebraic.Vector Sample(System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> param_dist, System.Random rng) { }
+        public double Sample(System.Collections.Generic.Dictionary<string, double> param_dist, System.Random rng) { }
+        public static System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector> FitMaximumLikelihood(System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> samples) { }
+        public static System.Collections.Generic.Dictionary<string, double> FitMaximumLikelihood(System.ReadOnlySpan<double> data) { }
+        public static AI.DataStructs.Algebraic.Vector Sample(AI.DataStructs.Algebraic.Vector mean, AI.DataStructs.Algebraic.Vector std, System.Random rng) { }
+        public static double Sample(double mean, double std, System.Random rng) { }
+    }
+    public sealed class RayleighDist1D : AI.Statistics.Distributions.SimpleDist1DBase
+    {
+        public RayleighDist1D(double sigma) { }
+        public double Sigma { get; }
+        public override double CulcLogProb(double x) { }
+        public override double CulcProb(double x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count) { }
+        public override double Sample1D(System.Random rng) { }
+    }
+    public abstract class SimpleDist1DBase : AI.Statistics.Distributions.IDistributionWithoutParams, AI.Statistics.Distributions.IRefittable, AI.Statistics.Distributions.ISamplableDistribution
+    {
+        protected static readonly double LogProbFloor;
+        protected SimpleDist1DBase() { }
+        public bool IsOneDimensional { get; }
+        public double CulcLogProb(AI.DataStructs.Algebraic.Vector x) { }
+        public virtual double CulcLogProb(double x) { }
+        public double CulcProb(AI.DataStructs.Algebraic.Vector x) { }
+        public abstract double CulcProb(double x);
+        public abstract AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count);
+        public AI.Statistics.Distributions.IDistributionWithoutParams RefitND(AI.DataStructs.Algebraic.Vector[] data, int count) { }
+        public abstract double Sample1D(System.Random rng);
+        public AI.DataStructs.Algebraic.Vector SampleND(System.Random rng) { }
+    }
+    public abstract class SimpleDistNDBase : AI.Statistics.Distributions.IDistributionWithoutParams, AI.Statistics.Distributions.IRefittable, AI.Statistics.Distributions.ISamplableDistribution
+    {
+        protected SimpleDistNDBase() { }
+        public abstract int Dim { get; }
+        public bool IsOneDimensional { get; }
+        public abstract double CulcLogProb(AI.DataStructs.Algebraic.Vector x);
+        public double CulcLogProb(double x) { }
+        public abstract double CulcProb(AI.DataStructs.Algebraic.Vector x);
+        public double CulcProb(double x) { }
+        public AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count) { }
+        public abstract AI.Statistics.Distributions.IDistributionWithoutParams RefitND(AI.DataStructs.Algebraic.Vector[] data, int count);
+        public double Sample1D(System.Random rng) { }
+        public abstract AI.DataStructs.Algebraic.Vector SampleND(System.Random rng);
+    }
+    public sealed class TruncatedGaussianDist1D : AI.Statistics.Distributions.SimpleDist1DBase
+    {
+        public TruncatedGaussianDist1D(double mu, double sigma, double lower, double upper = Infinity) { }
+        public double Lower { get; }
+        public double Mean { get; }
+        public double Mu { get; }
+        public double Sigma { get; }
+        public double Upper { get; }
+        public override double CulcLogProb(double x) { }
+        public override double CulcProb(double x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count) { }
+        public override double Sample1D(System.Random rng) { }
+    }
+    public sealed class UniformDist1D : AI.Statistics.Distributions.SimpleDist1DBase
+    {
+        public UniformDist1D(double a, double b) { }
+        public double A { get; }
+        public double B { get; }
+        public override double CulcLogProb(double x) { }
+        public override double CulcProb(double x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count) { }
+        public override double Sample1D(System.Random rng) { }
+    }
+    public sealed class VonMisesDist1D : AI.Statistics.Distributions.SimpleDist1DBase
+    {
+        public VonMisesDist1D(double mu, double kappa) { }
+        public double Kappa { get; }
+        public double Mu { get; }
+        public override double CulcLogProb(double x) { }
+        public override double CulcProb(double x) { }
+        public override AI.Statistics.Distributions.IDistributionWithoutParams Refit1D(double[] data, int count) { }
+        public override double Sample1D(System.Random rng) { }
+        public static AI.Statistics.Distributions.VonMisesDist1D FromStandardDeviation(double mu, double sigma) { }
+    }
+}
+namespace AI.Statistics.MixtureModeling
+{
+    [System.Serializable]
+    public class Bayesian
+    {
+        public Bayesian(System.Collections.Generic.IEnumerable<AI.Statistics.Distributions.IDistributionWithoutParams> distributions, AI.DataStructs.Algebraic.Vector apriori) { }
+        public AI.DataStructs.Algebraic.Vector Apriori { get; }
+        public int[] GetIndicators(AI.DataStructs.Algebraic.Vector inps) { }
+        public int[] GetIndicators(AI.DataStructs.Algebraic.Vector[] inps) { }
+        public int LogArgmax1D(double inp) { }
+        public int LogArgmaxND(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector Posterior(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector Posterior(double inp) { }
+        public static AI.DataStructs.Algebraic.Vector CalcAposteori(AI.DataStructs.Algebraic.Vector conditionalProbabilities, AI.DataStructs.Algebraic.Vector apriori) { }
+        public static int[] GetIndicators(AI.DataStructs.Algebraic.Vector[] inps, AI.Statistics.Distributions.IDistribution distribution, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector>[] param_dist, AI.DataStructs.Algebraic.Vector apriori) { }
+        public static int[] GetIndicators(AI.DataStructs.Algebraic.Vector inps, AI.Statistics.Distributions.IDistribution distribution, System.Collections.Generic.Dictionary<string, double>[] param_dist, AI.DataStructs.Algebraic.Vector apriori) { }
+        public static int LogArgmax1D(double inp, AI.Statistics.Distributions.IDistribution distribution, System.Collections.Generic.Dictionary<string, double>[] param_dist, AI.DataStructs.Algebraic.Vector apriori) { }
+        public static int LogArgmaxND(AI.DataStructs.Algebraic.Vector inp, AI.Statistics.Distributions.IDistribution distribution, System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector>[] param_dist, AI.DataStructs.Algebraic.Vector apriori) { }
+    }
+    public static class ClassificationEM
+    {
+        public static AI.Statistics.MixtureModeling.ClassificationEM.FitResult Fit(double[] data, AI.Statistics.Distributions.IDistributionWithoutParams[] initialComponents, int maxIter = 100, double tol = 1E-05, System.Threading.CancellationToken token = default) { }
+        public static AI.Statistics.MixtureModeling.ClassificationEM.FitResult FitND(AI.DataStructs.Algebraic.Vector[] data, AI.Statistics.Distributions.IDistributionWithoutParams[] initialComponents, int maxIter = 100, double tol = 1E-05, System.Threading.CancellationToken token = default) { }
+        public sealed class FitResult
+        {
+            public FitResult() { }
+            public int[] Assignments { get; init; }
+            public AI.Statistics.Distributions.IDistributionWithoutParams[] Components { get; init; }
+            public int Iterations { get; init; }
+            public double LogLikelihood { get; init; }
+            public double[] Weights { get; init; }
+            public AI.Statistics.MixtureModeling.MixtureModel ToMixtureModel() { }
+        }
+    }
+    public static class EM
+    {
+        public const int DefaultMaxIter = 200;
+        public const double DefaultTol = 1E-06D;
+        public static AI.Statistics.MixtureModeling.GaussianMixture Fit(System.Collections.Generic.IReadOnlyList<AI.DataStructs.Algebraic.Vector> data, int numComponents, int maxIter = 200, double tol = 1E-06, int? seed = default, System.Threading.CancellationToken token = default) { }
+        public static AI.Statistics.MixtureModeling.GaussianMixture Fit(System.Collections.Generic.IReadOnlyList<double> data, int numComponents, int maxIter = 200, double tol = 1E-06, int? seed = default, System.Threading.CancellationToken token = default) { }
+    }
+    [System.Serializable]
+    public sealed class GaussianMixture : AI.Statistics.Distributions.IDistributionWithoutParams, AI.Statistics.Distributions.ISamplableDistribution
+    {
+        public GaussianMixture(AI.DataStructs.Algebraic.Vector weights, AI.DataStructs.Algebraic.Vector[] means, AI.DataStructs.Algebraic.Vector[] stds) { }
+        public double Aic { get; }
+        public int Dim { get; }
+        public bool IsOneD { get; }
+        public bool IsOneDimensional { get; }
+        public int K { get; }
+        public double LogLikelihood { get; }
+        public AI.DataStructs.Algebraic.Vector[] Means { get; }
+        public double Median { get; }
+        public double MinStd { get; set; }
+        public int NumFreeParameters { get; }
+        public AI.DataStructs.Algebraic.Vector[] Stds { get; }
+        public AI.DataStructs.Algebraic.Vector Weights { get; }
+        public int Argmax(AI.DataStructs.Algebraic.Vector x) { }
+        public double Bic(int sampleCount) { }
+        public double Cdf(double x) { }
+        public double ComponentLogProb(int k, AI.DataStructs.Algebraic.Vector x) { }
+        public double ComponentLogProb(int k, double x) { }
+        public double CulcLogProb(AI.DataStructs.Algebraic.Vector x) { }
+        public double CulcLogProb(double x) { }
+        public double CulcProb(AI.DataStructs.Algebraic.Vector x) { }
+        public double CulcProb(double x) { }
+        public AI.DataStructs.Algebraic.Vector Posterior(AI.DataStructs.Algebraic.Vector x) { }
+        public double Quantile(double p, double tolerance = 1E-09) { }
+        public double Sample1D(System.Random rng) { }
+        public AI.DataStructs.Algebraic.Vector SampleND(System.Random rng) { }
+        public AI.Statistics.MixtureModeling.MixtureModel ToMixtureModel() { }
+        public static AI.Statistics.MixtureModeling.GaussianMixture From1D(double[] weights, double[] means, double[] stds) { }
+    }
+    [System.Serializable]
+    public class MixtureModel : AI.Statistics.Distributions.IDistributionWithoutParams, AI.Statistics.Distributions.ISamplableDistribution
+    {
+        public MixtureModel(System.Collections.Generic.IReadOnlyList<AI.Statistics.Distributions.IDistributionWithoutParams> components, AI.DataStructs.Algebraic.Vector weights) { }
+        public MixtureModel(AI.Statistics.Distributions.IDistribution perentDistribution, System.Collections.Generic.IEnumerable<System.Collections.Generic.Dictionary<string, AI.DataStructs.Algebraic.Vector>> paramDists, AI.DataStructs.Algebraic.Vector w) { }
+        public MixtureModel(AI.Statistics.Distributions.IDistribution perentDistribution, System.Collections.Generic.IEnumerable<System.Collections.Generic.Dictionary<string, double>> paramDists, AI.DataStructs.Algebraic.Vector w) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Statistics.Distributions.IDistributionWithoutParams> Components { get; }
+        public bool IsOneD { get; }
+        public bool IsOneDimensional { get; }
+        public AI.DataStructs.Algebraic.Vector Weights { get; }
+        public int Argmax(AI.DataStructs.Algebraic.Vector x) { }
+        public int Argmax(double x) { }
+        public double CulcLogProb(AI.DataStructs.Algebraic.Vector x) { }
+        public double CulcLogProb(double x) { }
+        public double CulcProb(AI.DataStructs.Algebraic.Vector x) { }
+        public double CulcProb(double x) { }
+        public AI.DataStructs.Algebraic.Vector Posterior(AI.DataStructs.Algebraic.Vector x) { }
+        public AI.DataStructs.Algebraic.Vector Posterior(double x) { }
+        public double Sample1D(System.Random rng) { }
+        public AI.DataStructs.Algebraic.Vector SampleND(System.Random rng) { }
+    }
+}
+namespace AI.Statistics.MonteCarlo
+{
+    [System.Serializable]
+    public class Integration
+    {
+        public Integration() { }
+        public static double CalcIntegral1D(System.Func<double, double> func, double a, double b, int n = 50000, int iter = 20, int? seed = default) { }
+        public static double CalcIntegralND(System.Func<AI.DataStructs.Algebraic.Vector, double> func, AI.DataStructs.Algebraic.Vector lower, AI.DataStructs.Algebraic.Vector upper, int n = 50000, int iter = 10, int? seed = default) { }
+    }
+    [System.Serializable]
+    public class MCMC_1D
+    {
+        public MCMC_1D(System.Func<double, double> distr_log, int stepsTrPro = 400) { }
+        public int Seed { get; set; }
+        public int StepsTrPro { get; set; }
+        public bool UseSeed { get; set; }
+        public double AcceptProb(double old_value, double new_value) { }
+        public double[] Generate(int len, double min = 0, double max = 1, double start = 0, bool decorelate = true) { }
+    }
+    [System.Serializable]
+    public class SimulatedAnnealing
+    {
+        public SimulatedAnnealing(double startLoss, int seed = -1) { }
+        public double Kt { get; set; }
+        public double LastLoss { get; set; }
+        public double T { get; set; }
+        public double TMin { get; set; }
+        public bool IsAccept(double newLoss) { }
+    }
+}
+namespace AI.Units
+{
+    [System.Serializable]
+    public readonly struct Dimension : System.IEquatable<AI.Units.Dimension>
+    {
+        public Dimension(int length, int mass = 0, int time = 0, int current = 0, int temperature = 0, int amount = 0, int luminousIntensity = 0) { }
+        public double Amount { get; }
+        public double Current { get; }
+        public bool IsDimensionless { get; }
+        public double Length { get; }
+        public double LuminousIntensity { get; }
+        public double Mass { get; }
+        public double Temperature { get; }
+        public double Time { get; }
+        public static AI.Units.Dimension Acceleration { get; }
+        public static AI.Units.Dimension AmountDim { get; }
+        public static AI.Units.Dimension Area { get; }
+        public static AI.Units.Dimension Capacitance { get; }
+        public static AI.Units.Dimension Charge { get; }
+        public static AI.Units.Dimension CurrentDim { get; }
+        public static AI.Units.Dimension Density { get; }
+        public static AI.Units.Dimension Energy { get; }
+        public static AI.Units.Dimension Force { get; }
+        public static AI.Units.Dimension Frequency { get; }
+        public static AI.Units.Dimension Inductance { get; }
+        public static AI.Units.Dimension LengthDim { get; }
+        public static AI.Units.Dimension LuminousIntensityDim { get; }
+        public static AI.Units.Dimension MagneticFluxDensity { get; }
+        public static AI.Units.Dimension MassDim { get; }
+        public static AI.Units.Dimension None { get; }
+        public static AI.Units.Dimension Power { get; }
+        public static AI.Units.Dimension Pressure { get; }
+        public static AI.Units.Dimension Resistance { get; }
+        public static AI.Units.Dimension TemperatureDim { get; }
+        public static AI.Units.Dimension TimeDim { get; }
+        public static AI.Units.Dimension Velocity { get; }
+        public static AI.Units.Dimension Voltage { get; }
+        public static AI.Units.Dimension Volume { get; }
+        public bool Equals(AI.Units.Dimension other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public AI.Units.Dimension Pow(int exponent) { }
+        public AI.Units.Dimension Sqrt() { }
+        public override string ToString() { }
+        public static AI.Units.Dimension FromHalves(int length, int mass = 0, int time = 0, int current = 0, int temperature = 0, int amount = 0, int luminousIntensity = 0) { }
+        public static bool operator !=(AI.Units.Dimension a, AI.Units.Dimension b) { }
+        public static AI.Units.Dimension operator *(AI.Units.Dimension a, AI.Units.Dimension b) { }
+        public static AI.Units.Dimension operator /(AI.Units.Dimension a, AI.Units.Dimension b) { }
+        public static bool operator ==(AI.Units.Dimension a, AI.Units.Dimension b) { }
+    }
+    [System.Serializable]
+    public class DimensionMismatchException : System.InvalidOperationException
+    {
+        public DimensionMismatchException(AI.Units.Dimension expected, AI.Units.Dimension actual, string? context = null) { }
+        public AI.Units.Dimension Actual { get; }
+        public AI.Units.Dimension Expected { get; }
+    }
+    [System.Serializable]
+    public readonly struct Measurement : System.IEquatable<AI.Units.Measurement>, System.IFormattable
+    {
+        public Measurement(AI.Units.Quantity value, double siUncertainty = 0) { }
+        public AI.Units.Dimension Dimension { get; }
+        public double RelativeUncertainty { get; }
+        public double SiUncertainty { get; }
+        public AI.Units.Quantity Value { get; }
+        public AI.Units.Measurement Apply(System.Func<double, double> function, AI.Units.Dimension resultDimension) { }
+        public bool Equals(AI.Units.Measurement other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Low",
+                "High"})]
+        public System.ValueTuple<AI.Units.Quantity, AI.Units.Quantity> Interval(double k = 2) { }
+        public bool IsConsistentWith(AI.Units.Measurement other, double k = 2) { }
+        public AI.Units.Measurement Pow(int exponent) { }
+        public AI.Units.Measurement Sqrt() { }
+        public override string ToString() { }
+        public string ToString(string? format, System.IFormatProvider? formatProvider) { }
+        public string ToString(AI.Units.Unit unit, string? format = null, System.IFormatProvider? formatProvider = null) { }
+        public double UncertaintyIn(AI.Units.Unit unit) { }
+        public static AI.Units.Measurement Exact(AI.Units.Quantity value) { }
+        public static AI.Units.Measurement Of(double value, double uncertainty, AI.Units.Unit unit) { }
+        public static AI.Units.Measurement Relative(AI.Units.Quantity value, double relativeUncertainty) { }
+        public static AI.Units.Quantity op_Explicit(AI.Units.Measurement measurement) { }
+        public static AI.Units.Measurement op_Implicit(AI.Units.Quantity value) { }
+        public static bool operator !=(AI.Units.Measurement a, AI.Units.Measurement b) { }
+        public static AI.Units.Measurement operator *(AI.Units.Measurement a, AI.Units.Measurement b) { }
+        public static AI.Units.Measurement operator *(AI.Units.Measurement a, double k) { }
+        public static AI.Units.Measurement operator *(double k, AI.Units.Measurement a) { }
+        public static AI.Units.Measurement operator +(AI.Units.Measurement a, AI.Units.Measurement b) { }
+        public static AI.Units.Measurement operator -(AI.Units.Measurement a) { }
+        public static AI.Units.Measurement operator -(AI.Units.Measurement a, AI.Units.Measurement b) { }
+        public static AI.Units.Measurement operator /(AI.Units.Measurement a, AI.Units.Measurement b) { }
+        public static AI.Units.Measurement operator /(AI.Units.Measurement a, double k) { }
+        public static bool operator ==(AI.Units.Measurement a, AI.Units.Measurement b) { }
+    }
+    public static class PhysicalConstants
+    {
+        public static AI.Units.Quantity AtomicMassUnit { get; }
+        public static AI.Units.Quantity AvogadroConstant { get; }
+        public static AI.Units.Quantity BohrRadius { get; }
+        public static AI.Units.Quantity BoltzmannConstant { get; }
+        public static AI.Units.Quantity ElectronMass { get; }
+        public static AI.Units.Quantity ElementaryCharge { get; }
+        public static AI.Units.Quantity FaradayConstant { get; }
+        public static AI.Units.Quantity FineStructureConstant { get; }
+        public static AI.Units.Quantity GasConstant { get; }
+        public static AI.Units.Quantity GravitationalConstant { get; }
+        public static AI.Units.Quantity Icepoint { get; }
+        public static AI.Units.Quantity NeutronMass { get; }
+        public static AI.Units.Quantity PlanckConstant { get; }
+        public static AI.Units.Quantity ProtonMass { get; }
+        public static AI.Units.Quantity ReducedPlanckConstant { get; }
+        public static AI.Units.Quantity RydbergConstant { get; }
+        public static AI.Units.Quantity SpeedOfLight { get; }
+        public static AI.Units.Quantity StandardAtmosphere { get; }
+        public static AI.Units.Quantity StandardGravity { get; }
+        public static AI.Units.Quantity StefanBoltzmannConstant { get; }
+        public static AI.Units.Quantity VacuumPermeability { get; }
+        public static AI.Units.Quantity VacuumPermittivity { get; }
+        public static class WithUncertainty
+        {
+            public static AI.Units.Measurement AtomicMassUnit { get; }
+            public static AI.Units.Measurement BohrRadius { get; }
+            public static AI.Units.Measurement BoltzmannConstant { get; }
+            public static AI.Units.Measurement ElectronMass { get; }
+            public static AI.Units.Measurement FineStructureConstant { get; }
+            public static AI.Units.Measurement GravitationalConstant { get; }
+            public static AI.Units.Measurement NeutronMass { get; }
+            public static AI.Units.Measurement PlanckConstant { get; }
+            public static AI.Units.Measurement ProtonMass { get; }
+            public static AI.Units.Measurement RydbergConstant { get; }
+            public static AI.Units.Measurement SpeedOfLight { get; }
+            public static AI.Units.Measurement VacuumPermeability { get; }
+            public static AI.Units.Measurement VacuumPermittivity { get; }
+        }
+    }
+    [System.Serializable]
+    public readonly struct Quantity : System.IComparable<AI.Units.Quantity>, System.IEquatable<AI.Units.Quantity>, System.IFormattable
+    {
+        public Quantity(double siValue, AI.Units.Dimension dimension) { }
+        public AI.Units.Dimension Dimension { get; }
+        public double SiValue { get; }
+        public double Value { get; }
+        public AI.Units.Quantity Abs() { }
+        public bool AlmostEquals(AI.Units.Quantity other, double relativeTolerance = 1E-09) { }
+        public int CompareTo(AI.Units.Quantity other) { }
+        public bool Equals(AI.Units.Quantity other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public double In(AI.Units.Unit unit) { }
+        public double In(string unit) { }
+        public bool IsCompatibleWith(AI.Units.Quantity other) { }
+        public AI.Units.Quantity Pow(int exponent) { }
+        public double RequireSi(AI.Units.Dimension expected, string? paramName = null) { }
+        public AI.Units.Quantity Sqrt() { }
+        public override string ToString() { }
+        public string ToString(string? format, System.IFormatProvider? formatProvider) { }
+        public string ToString(AI.Units.Unit unit, string? format = null, System.IFormatProvider? formatProvider = null) { }
+        public static AI.Units.Quantity Dimensionless(double value) { }
+        public static AI.Units.Quantity Of(double value, AI.Units.Unit unit) { }
+        public static AI.Units.Quantity Of(double value, string unit) { }
+        public static AI.Units.Quantity Parse(string text) { }
+        public static bool TryParse(string? text, out AI.Units.Quantity result) { }
+        public static AI.Units.Quantity Zero(AI.Units.Dimension dimension) { }
+        public static AI.Units.Quantity op_Implicit(double value) { }
+        public static bool operator !=(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static AI.Units.Quantity operator *(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static AI.Units.Quantity operator *(AI.Units.Quantity a, double k) { }
+        public static AI.Units.Quantity operator *(double k, AI.Units.Quantity a) { }
+        public static AI.Units.Quantity operator +(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static AI.Units.Quantity operator -(AI.Units.Quantity a) { }
+        public static AI.Units.Quantity operator -(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static AI.Units.Quantity operator /(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static AI.Units.Quantity operator /(AI.Units.Quantity a, double k) { }
+        public static AI.Units.Quantity operator /(double k, AI.Units.Quantity a) { }
+        public static bool operator <(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static bool operator <=(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static bool operator ==(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static bool operator >(AI.Units.Quantity a, AI.Units.Quantity b) { }
+        public static bool operator >=(AI.Units.Quantity a, AI.Units.Quantity b) { }
+    }
+    [System.Serializable]
+    public sealed class QuantityVector : System.Collections.Generic.IEnumerable<AI.Units.Quantity>, System.Collections.IEnumerable
+    {
+        public QuantityVector(AI.DataStructs.Algebraic.Vector siValues, AI.Units.Dimension dimension) { }
+        public int Count { get; }
+        public AI.Units.Dimension Dimension { get; }
+        public AI.Units.Quantity this[int index] { get; }
+        public System.Collections.Generic.IEnumerator<AI.Units.Quantity> GetEnumerator() { }
+        public AI.Units.Quantity Mean() { }
+        public AI.DataStructs.Algebraic.Vector RequireSi(AI.Units.Dimension expected, string? paramName = null) { }
+        public AI.Units.Quantity Sum() { }
+        public AI.DataStructs.Algebraic.Vector ToSiVector() { }
+        public override string ToString() { }
+        public AI.DataStructs.Algebraic.Vector ToVector(AI.Units.Unit unit) { }
+        public AI.DataStructs.Algebraic.Vector ToVector(string unit) { }
+        public static AI.Units.QuantityVector Of(AI.DataStructs.Algebraic.Vector values, AI.Units.Unit unit) { }
+        public static AI.Units.QuantityVector Of(AI.DataStructs.Algebraic.Vector values, string unit) { }
+        public static AI.Units.QuantityVector operator *(AI.Units.QuantityVector a, AI.Units.Quantity k) { }
+        public static AI.Units.QuantityVector operator +(AI.Units.QuantityVector a, AI.Units.QuantityVector b) { }
+        public static AI.Units.QuantityVector operator -(AI.Units.QuantityVector a, AI.Units.QuantityVector b) { }
+        public static AI.Units.QuantityVector operator /(AI.Units.QuantityVector a, AI.Units.Quantity k) { }
+    }
+    public static class Si
+    {
+        public static AI.Units.Unit Ampere { get; }
+        public static AI.Units.Unit Angstrom { get; }
+        public static AI.Units.Unit AstronomicalUnit { get; }
+        public static AI.Units.Unit Atmosphere { get; }
+        public static AI.Units.Unit Bar { get; }
+        public static AI.Units.Unit Becquerel { get; }
+        public static AI.Units.Unit Calorie { get; }
+        public static AI.Units.Unit Candela { get; }
+        public static AI.Units.Unit Coulomb { get; }
+        public static AI.Units.Unit CubicMetre { get; }
+        public static AI.Units.Unit Dalton { get; }
+        public static AI.Units.Unit Day { get; }
+        public static AI.Units.Unit Degree { get; }
+        public static AI.Units.Unit DegreeCelsius { get; }
+        public static AI.Units.Unit DegreeFahrenheit { get; }
+        public static AI.Units.Unit ElectronVolt { get; }
+        public static AI.Units.Unit Farad { get; }
+        public static AI.Units.Unit Foot { get; }
+        public static AI.Units.Unit Gram { get; }
+        public static AI.Units.Unit Gray { get; }
+        public static AI.Units.Unit Hectare { get; }
+        public static AI.Units.Unit Henry { get; }
+        public static AI.Units.Unit Hertz { get; }
+        public static AI.Units.Unit Hour { get; }
+        public static AI.Units.Unit Inch { get; }
+        public static AI.Units.Unit Joule { get; }
+        public static AI.Units.Unit Katal { get; }
+        public static AI.Units.Unit Kelvin { get; }
+        public static AI.Units.Unit Kilogram { get; }
+        public static AI.Units.Unit KilogramPerCubicMetre { get; }
+        public static AI.Units.Unit Litre { get; }
+        public static AI.Units.Unit Lumen { get; }
+        public static AI.Units.Unit Lux { get; }
+        public static AI.Units.Unit Metre { get; }
+        public static AI.Units.Unit MetrePerSecond { get; }
+        public static AI.Units.Unit MetrePerSecondSquared { get; }
+        public static AI.Units.Unit Mile { get; }
+        public static AI.Units.Unit MillimetreOfMercury { get; }
+        public static AI.Units.Unit Minute { get; }
+        public static AI.Units.Unit Mole { get; }
+        public static AI.Units.Unit Newton { get; }
+        public static AI.Units.Unit Ohm { get; }
+        public static AI.Units.Unit One { get; }
+        public static AI.Units.Unit Pascal { get; }
+        public static AI.Units.Unit Percent { get; }
+        public static AI.Units.Unit Pound { get; }
+        public static AI.Units.Unit Radian { get; }
+        public static AI.Units.Unit Second { get; }
+        public static AI.Units.Unit Siemens { get; }
+        public static AI.Units.Unit Sievert { get; }
+        public static AI.Units.Unit SquareMetre { get; }
+        public static AI.Units.Unit Steradian { get; }
+        public static AI.Units.Unit Tesla { get; }
+        public static AI.Units.Unit Tonne { get; }
+        public static AI.Units.Unit Volt { get; }
+        public static AI.Units.Unit Watt { get; }
+        public static AI.Units.Unit WattHour { get; }
+        public static AI.Units.Unit Weber { get; }
+        public static AI.Units.Unit Year { get; }
+    }
+    [System.Serializable]
+    public sealed class Unit : System.IEquatable<AI.Units.Unit>
+    {
+        public Unit(string symbol, AI.Units.Dimension dimension, double factor = 1, double offset = 0, bool allowPrefix = true) { }
+        public bool AllowPrefix { get; }
+        public AI.Units.Dimension Dimension { get; }
+        public double Factor { get; }
+        public bool IsAffine { get; }
+        public double Offset { get; }
+        public string Symbol { get; }
+        public static AI.Units.Unit One { get; }
+        public bool Equals(AI.Units.Unit? other) { }
+        public override bool Equals(object? obj) { }
+        public double FromSi(double siValue) { }
+        public override int GetHashCode() { }
+        public AI.Units.Unit Pow(int exponent) { }
+        public double ToSi(double value) { }
+        public override string ToString() { }
+        public AI.Units.Unit WithSymbol(string symbol) { }
+        public static AI.Units.Unit operator *(AI.Units.Unit a, AI.Units.Unit b) { }
+        public static AI.Units.Unit operator *(double scale, AI.Units.Unit unit) { }
+        public static AI.Units.Unit operator /(AI.Units.Unit a, AI.Units.Unit b) { }
+    }
+    public static class UnitRegistry
+    {
+        public static AI.Units.Unit DisplayUnitFor(AI.Units.Dimension dimension) { }
+        public static AI.Units.Unit Parse(string text) { }
+        public static void Register(AI.Units.Unit unit) { }
+        public static void RegisterDisplayUnit(AI.Units.Unit unit) { }
+        public static bool TryParse(string? text, out AI.Units.Unit? unit) { }
+    }
+}

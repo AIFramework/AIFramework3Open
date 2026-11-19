@@ -1,0 +1,1779 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Solvers.Chem.Core
+{
+    public class ChemEngine : AI.Solvers.Chem.Core.IChemEngine
+    {
+        public ChemEngine(AI.Solvers.Chem.Core.VerbosityLevel verbosity = 1) { }
+        public AI.Solvers.Chem.Core.ChemResult Execute(string command) { }
+        public System.Threading.Tasks.Task<AI.Solvers.Chem.Core.ChemResult> ExecuteAsync(string command) { }
+        public void LoadCustomDatabase(string jsonPath) { }
+        public void LoadReactionRules(string rulesPath) { }
+        public void SetVerbosity(AI.Solvers.Chem.Core.VerbosityLevel level) { }
+    }
+    public class ChemResult
+    {
+        public ChemResult() { }
+        public System.Collections.Generic.Dictionary<string, object> Data { get; set; }
+        public string DetailedExplanation { get; set; }
+        public string ErrorMessage { get; set; }
+        public string Result { get; set; }
+        public System.Collections.Generic.List<string> Steps { get; set; }
+        public bool Success { get; set; }
+        public AI.Solvers.Chem.Core.ChemVisualization Visualization { get; set; }
+        public static AI.Solvers.Chem.Core.ChemResult Error(string message) { }
+        public static AI.Solvers.Chem.Core.ChemResult Ok(string result) { }
+    }
+    public class ChemVisualization
+    {
+        public ChemVisualization() { }
+        public string ASCII { get; set; }
+        public byte[] PNG { get; set; }
+        public string SVG { get; set; }
+    }
+    public static class HelpSystem
+    {
+        public static string GetHelp(string topic = "") { }
+    }
+    public interface IChemEngine
+    {
+        AI.Solvers.Chem.Core.ChemResult Execute(string command);
+        System.Threading.Tasks.Task<AI.Solvers.Chem.Core.ChemResult> ExecuteAsync(string command);
+        void LoadCustomDatabase(string jsonPath);
+        void LoadReactionRules(string rulesPath);
+        void SetVerbosity(AI.Solvers.Chem.Core.VerbosityLevel level);
+    }
+    public enum VerbosityLevel
+    {
+        Silent = 0,
+        Normal = 1,
+        Detailed = 2,
+        Debug = 3,
+    }
+}
+namespace AI.Solvers.Chem.Crystallography
+{
+    public static class AtomicScattering
+    {
+        public static double Factor(string element, double sinThetaOverLambda, AI.Solvers.Chem.Database.ChemDatabase database) { }
+        public static bool HasCoefficients(string element) { }
+        public static void Register(string element, double[] a, double[] b, double c) { }
+    }
+    public sealed class Crystal
+    {
+        public Crystal(AI.Solvers.Chem.Structures.MolecularStructure asymmetricUnit, System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Structures.SymmetryOperation> symmetry = null) { }
+        public AI.Solvers.Chem.Structures.MolecularStructure AsymmetricUnit { get; }
+        public int AtomsInCell { get; }
+        public AI.Solvers.Chem.Structures.UnitCell Cell { get; }
+        public AI.Solvers.Chem.Structures.MolecularStructure Contents { get; }
+        public string SpaceGroup { get; init; }
+        public int SpaceGroupNumber { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Structures.SymmetryOperation> Symmetry { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "First",
+                "Second",
+                "Distance"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<string, string, double>> Contacts(double maxDistance) { }
+        public double Density(AI.Solvers.Chem.Database.ChemDatabase database) { }
+        public double FormulaUnits(int formulaUnitAtoms) { }
+        public string Report(AI.Solvers.Chem.Database.ChemDatabase database = null) { }
+        public static AI.Solvers.Chem.Crystallography.Crystal FromCif(string text) { }
+    }
+    public readonly struct IndexedLine : System.IEquatable<AI.Solvers.Chem.Crystallography.IndexedLine>
+    {
+        public IndexedLine(double TwoTheta, double Spacing, int H, int K, int L, double CalculatedTwoTheta) { }
+        public double CalculatedTwoTheta { get; init; }
+        public double Delta { get; }
+        public int H { get; init; }
+        public string Indices { get; }
+        public int K { get; init; }
+        public int L { get; init; }
+        public double Spacing { get; init; }
+        public int SquaredSum { get; }
+        public double TwoTheta { get; init; }
+        public override string ToString() { }
+    }
+    public sealed class IndexingResult : AI.Insights.IInterpretable
+    {
+        public IndexingResult() { }
+        public AI.Solvers.Chem.Structures.UnitCell Cell { get; init; }
+        public AI.Solvers.Chem.Crystallography.LatticeCentering Centering { get; init; }
+        public double FigureOfMerit { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Crystallography.IndexedLine> Lines { get; init; }
+        public double MaxDeviation { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+        public string Report() { }
+    }
+    public enum LatticeCentering
+    {
+        Primitive = 0,
+        BodyCentred = 1,
+        FaceCentred = 2,
+    }
+    public readonly struct PhaseQuantity : AI.Insights.IInterpretable, System.IEquatable<AI.Solvers.Chem.Crystallography.PhaseQuantity>
+    {
+        public PhaseQuantity(string Phase, double Intensity, double ReferenceIntensityRatio, double MassFraction) { }
+        public double Intensity { get; init; }
+        public double MassFraction { get; init; }
+        public string Phase { get; init; }
+        public double ReferenceIntensityRatio { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class PowderAnalysis
+    {
+        public static AI.Units.Quantity AngleFromSpacing(AI.Units.Quantity spacing, AI.Units.Quantity wavelength) { }
+        public static double AngleFromSpacing(double spacing, double wavelength) { }
+        public static AI.Solvers.Chem.Crystallography.IndexingResult IndexCubic(System.Collections.Generic.IReadOnlyList<double> twoThetaValues, double wavelength = 1.5406, double tolerance = 0.03) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Crystallography.PhaseQuantity> QuantifyByRir(System.Collections.Generic.IReadOnlyList<string> phases, System.Collections.Generic.IReadOnlyList<double> intensities, System.Collections.Generic.IReadOnlyList<double> referenceIntensityRatios) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Cell",
+                "Fit"})]
+        public static System.ValueTuple<AI.Solvers.Chem.Structures.UnitCell, AI.Solvers.Chem.Kinetics.NonlinearFitResult> RefineCell(System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Crystallography.IndexedLine> lines, AI.Solvers.Chem.Structures.UnitCell start, double wavelength = 1.5406, AI.Solvers.Chem.Structures.CrystalSystem? system = default) { }
+        public static AI.Units.Quantity ScherrerSize(AI.Units.Quantity twoTheta, AI.Units.Quantity fullWidth, AI.Units.Quantity wavelength, double shapeFactor = 0.9, AI.Units.Quantity instrumentalWidth = default) { }
+        public static double ScherrerSize(double twoTheta, double fullWidth, double wavelength = 1.5406, double shapeFactor = 0.9, double instrumentalWidth = 0) { }
+        public static AI.Units.Quantity SpacingFromAngle(AI.Units.Quantity twoTheta, AI.Units.Quantity wavelength) { }
+        public static double SpacingFromAngle(double twoTheta, double wavelength) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Size",
+                "Strain",
+                "R2"})]
+        public static System.ValueTuple<double, double, double> WilliamsonHall(System.Collections.Generic.IReadOnlyList<double> twoThetaValues, System.Collections.Generic.IReadOnlyList<double> fullWidths, double wavelength = 1.5406, double shapeFactor = 0.9, double instrumentalWidth = 0) { }
+    }
+    public sealed class PowderPattern
+    {
+        public const double CobaltKAlpha = 1.789D;
+        public const double CopperKAlpha = 1.5406D;
+        public const double MolybdenumKAlpha = 0.7107D;
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Crystallography.Reflection> Reflections { get; }
+        public double Wavelength { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "TwoTheta",
+                "Intensity"})]
+        public System.ValueTuple<double[], double[]> Profile(double from = 5, double to = 90, double step = 0.02, double fullWidth = 0.15, double lorentzFraction = 0.5) { }
+        public string Report(int count = 10) { }
+        public static AI.Solvers.Chem.Crystallography.PowderPattern Calculate(AI.Solvers.Chem.Crystallography.Crystal crystal, AI.Solvers.Chem.Database.ChemDatabase database, double wavelength = 1.5406, double maxTwoTheta = 90, int maxIndex = 6) { }
+    }
+    public readonly struct Reflection : System.IEquatable<AI.Solvers.Chem.Crystallography.Reflection>
+    {
+        public Reflection(int H, int K, int L, double Spacing, double TwoTheta, int Multiplicity, double StructureFactorSquared, double Intensity) { }
+        public int H { get; init; }
+        public string Indices { get; }
+        public double Intensity { get; init; }
+        public int K { get; init; }
+        public int L { get; init; }
+        public int Multiplicity { get; init; }
+        public double Spacing { get; init; }
+        public double StructureFactorSquared { get; init; }
+        public double TwoTheta { get; init; }
+        public override string ToString() { }
+    }
+}
+namespace AI.Solvers.Chem.Database
+{
+    public class ChemDatabase
+    {
+        public ChemDatabase() { }
+        public AI.Solvers.Chem.Models.Element GetElement(string symbol) { }
+        public double? GetStandardEnthalpy(string formula, string state = null) { }
+        public double? GetStandardPotential(string halfReaction) { }
+        public void Initialize() { }
+        public bool IsElementInStandardState(string formula) { }
+        public void LoadFromJson(string path) { }
+        public AI.Solvers.Chem.Models.Compound LookupCompound(string identifier) { }
+    }
+    public class SynthesisDatabaseManager
+    {
+        public SynthesisDatabaseManager(string? customPath = null) { }
+        public void AddCompound(AI.Solvers.Chem.Models.TargetCompound compound) { }
+        public AI.Solvers.Chem.Models.TargetCompound? FindCompound(string name) { }
+        public AI.Solvers.Chem.Models.SynthesisRoute? FindRoute(string target, string? startingMaterial = null) { }
+        public System.Collections.Generic.List<AI.Solvers.Chem.Models.SynthesisRoute> GetAllRoutes(string target) { }
+        public System.Collections.Generic.List<string> GetAvailableCompounds() { }
+        public string GetStatistics() { }
+        public void LoadDatabase() { }
+        public void SaveDatabase() { }
+        public void UpdateCompound(AI.Solvers.Chem.Models.TargetCompound compound) { }
+    }
+}
+namespace AI.Solvers.Chem.Dynamics
+{
+    public readonly struct AlignmentResult : System.IEquatable<AI.Solvers.Chem.Dynamics.AlignmentResult>
+    {
+        public AlignmentResult(AI.Solvers.Chem.Structures.MolecularStructure Aligned, double Rmsd, AI.DataStructs.Algebraic.Matrix Rotation) { }
+        public AI.Solvers.Chem.Structures.MolecularStructure Aligned { get; init; }
+        public double Rmsd { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Rotation { get; init; }
+    }
+    public readonly struct DiffusionResult : System.IEquatable<AI.Solvers.Chem.Dynamics.DiffusionResult>
+    {
+        public DiffusionResult(double Value, double StandardError, double R2) { }
+        public double R2 { get; init; }
+        public double SquareCentimetresPerSecond { get; }
+        public double StandardError { get; init; }
+        public double Value { get; init; }
+        public override string ToString() { }
+    }
+    public readonly struct HydrogenBond : System.IEquatable<AI.Solvers.Chem.Dynamics.HydrogenBond>
+    {
+        public HydrogenBond(int Donor, int Hydrogen, int Acceptor, double Distance, double Angle) { }
+        public int Acceptor { get; init; }
+        public double Angle { get; init; }
+        public double Distance { get; init; }
+        public int Donor { get; init; }
+        public int Hydrogen { get; init; }
+    }
+    public static class StructureAlignment
+    {
+        public static AI.Solvers.Chem.Dynamics.AlignmentResult Align(AI.Solvers.Chem.Structures.MolecularStructure mobile, AI.Solvers.Chem.Structures.MolecularStructure reference, System.Collections.Generic.IReadOnlyList<int> indices = null) { }
+        public static double[] Fluctuations(AI.Solvers.Chem.Dynamics.Trajectory trajectory, bool align = true) { }
+        public static double Rmsd(AI.Solvers.Chem.Structures.MolecularStructure first, AI.Solvers.Chem.Structures.MolecularStructure second) { }
+        public static double[] RmsdOverTime(AI.Solvers.Chem.Dynamics.Trajectory trajectory, AI.Solvers.Chem.Structures.MolecularStructure reference = null, System.Collections.Generic.IReadOnlyList<int> indices = null) { }
+    }
+    public sealed class Trajectory
+    {
+        public Trajectory(System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Structures.MolecularStructure> frames, double timeStep = 1) { }
+        public int AtomCount { get; }
+        public AI.Solvers.Chem.Structures.UnitCell Cell { get; }
+        public int Count { get; }
+        public double Duration { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Structures.MolecularStructure> Frames { get; }
+        public bool IsPeriodic { get; }
+        public double TimeStep { get; }
+        public System.Collections.Generic.IReadOnlyList<int> AllIndices() { }
+        public System.Collections.Generic.IReadOnlyList<int> IndicesOf(string element) { }
+        public AI.Geometry.Primitives.Vector3 Position(int frame, int atom) { }
+        public double Time(int frame) { }
+        public AI.Solvers.Chem.Dynamics.Trajectory Unwrapped() { }
+        public static AI.Solvers.Chem.Dynamics.Trajectory FromXyz(string text, double timeStep = 1) { }
+    }
+    public static class TrajectoryAnalysis
+    {
+        public static double[] Autocorrelation(System.Collections.Generic.IReadOnlyList<double> values, int maxLag = 0) { }
+        public static double CoordinationNumber(System.Collections.Generic.IReadOnlyList<double> distances, System.Collections.Generic.IReadOnlyList<double> g, double density, double radius) { }
+        public static double CoordinationNumber(AI.Solvers.Chem.Dynamics.Trajectory trajectory, System.Collections.Generic.IReadOnlyList<double> distances, System.Collections.Generic.IReadOnlyList<double> g, double radius, string first, string second = null) { }
+        public static double CorrelationTime(System.Collections.Generic.IReadOnlyList<double> autocorrelation, double timeStep) { }
+        public static AI.Solvers.Chem.Dynamics.DiffusionResult Diffusion(System.Collections.Generic.IReadOnlyList<double> time, System.Collections.Generic.IReadOnlyList<double> displacement, double skipFraction = 0.2) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Average",
+                "PerFrame"})]
+        public static System.ValueTuple<double, double[]> HydrogenBondCount(AI.Solvers.Chem.Dynamics.Trajectory trajectory, double maxDistance = 2.5, double minAngle = 120) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Dynamics.HydrogenBond> HydrogenBonds(AI.Solvers.Chem.Structures.MolecularStructure structure, double maxDistance = 2.5, double minAngle = 120, double maxCovalent = 1.2) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Time",
+                "Displacement"})]
+        public static System.ValueTuple<double[], double[]> MeanSquareDisplacement(AI.Solvers.Chem.Dynamics.Trajectory trajectory, System.Collections.Generic.IReadOnlyList<int> indices = null, int maxLag = 0) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Distance",
+                "G"})]
+        public static System.ValueTuple<double[], double[]> RadialDistribution(AI.Solvers.Chem.Dynamics.Trajectory trajectory, string first, string second = null, double maxDistance = 10, int bins = 200) { }
+        public static string Report(AI.Solvers.Chem.Dynamics.Trajectory trajectory) { }
+    }
+}
+namespace AI.Solvers.Chem.Kinetics
+{
+    public static class ArrheniusAnalysis
+    {
+        public const double GasConstant = 8.314462618D;
+        public static double ActivationEnergyFromTwoPoints(double temperature1, double rateConstant1, double temperature2, double rateConstant2) { }
+        public static AI.Solvers.Chem.Kinetics.ArrheniusResult Fit(System.Collections.Generic.IReadOnlyList<double> temperatures, System.Collections.Generic.IReadOnlyList<double> rateConstants, double confidence = 0.95) { }
+    }
+    public sealed class ArrheniusResult
+    {
+        public ArrheniusResult() { }
+        public double ActivationEnergy { get; init; }
+        public double ActivationEnergyError { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public System.ValueTuple<double, double> ActivationEnergyInterval { get; init; }
+        public double Confidence { get; init; }
+        public int PointCount { get; init; }
+        public double PreExponentialFactor { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public System.ValueTuple<double, double> PreExponentialInterval { get; init; }
+        public double R2 { get; init; }
+        public double AccelerationFactor(double temperature, double increase) { }
+        public double RateConstantAt(double temperature) { }
+        public string Report() { }
+    }
+    public sealed class KineticDataset
+    {
+        public KineticDataset() { }
+        public System.Collections.Generic.IReadOnlyList<double> Initial { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double[]> Measurements { get; init; }
+        public int PointCount { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Times { get; init; }
+        public void Validate(AI.Solvers.Chem.Kinetics.KineticScheme scheme) { }
+    }
+    public static class KineticFit
+    {
+        public static AI.Solvers.Chem.Kinetics.ReactionOrderResult DetermineOrder(System.Collections.Generic.IReadOnlyList<double> times, System.Collections.Generic.IReadOnlyList<double> concentrations, System.Collections.Generic.IReadOnlyList<double> orders = null, AI.Solvers.Chem.Kinetics.NonlinearFitOptions options = null) { }
+        public static AI.Solvers.Chem.Kinetics.KineticFitResult Fit(AI.Solvers.Chem.Kinetics.KineticScheme scheme, AI.Solvers.Chem.Kinetics.KineticDataset data, double[] initialGuess = null, AI.Solvers.Chem.Kinetics.NonlinearFitOptions options = null) { }
+    }
+    public sealed class KineticFitResult
+    {
+        public KineticFitResult() { }
+        public double Confidence { get; init; }
+        public bool Converged { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public System.ValueTuple<double, double>[] Intervals { get; init; }
+        public int Iterations { get; init; }
+        public double R2 { get; init; }
+        public double[] RateConstants { get; init; }
+        public double ResidualStd { get; init; }
+        public double ResidualSumOfSquares { get; init; }
+        public AI.Solvers.Chem.Kinetics.KineticScheme Scheme { get; init; }
+        public double[] StandardErrors { get; init; }
+        public double RelativeErrorPercent(int index) { }
+        public string Report() { }
+    }
+    public sealed class KineticScheme
+    {
+        public KineticScheme(System.Collections.Generic.IEnumerable<string> species, System.Collections.Generic.IEnumerable<AI.Solvers.Chem.Kinetics.ReactionStep> steps) { }
+        public int RateConstantCount { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Species { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Kinetics.ReactionStep> Steps { get; }
+        public int StepsPerInterval { get; set; }
+        public AI.DataStructs.Algebraic.Vector Derivatives(AI.DataStructs.Algebraic.Vector concentrations, System.Collections.Generic.IReadOnlyList<double> rateConstants) { }
+        public int IndexOf(string species) { }
+        public AI.DataStructs.Algebraic.Vector[] Simulate(System.Collections.Generic.IReadOnlyList<double> initial, System.Collections.Generic.IReadOnlyList<double> rateConstants, System.Collections.Generic.IReadOnlyList<double> times) { }
+        public double[] SimulateSpecies(string species, System.Collections.Generic.IReadOnlyList<double> initial, System.Collections.Generic.IReadOnlyList<double> rateConstants, System.Collections.Generic.IReadOnlyList<double> times) { }
+        public override string ToString() { }
+        public static AI.Solvers.Chem.Kinetics.KineticScheme Bimolecular() { }
+        public static AI.Solvers.Chem.Kinetics.KineticScheme Consecutive() { }
+        public static AI.Solvers.Chem.Kinetics.KineticScheme Parallel() { }
+        public static AI.Solvers.Chem.Kinetics.KineticScheme Reversible() { }
+        public static AI.Solvers.Chem.Kinetics.KineticScheme Simple(double order = 1) { }
+    }
+    public static class NonlinearFit
+    {
+        public static AI.Solvers.Chem.Kinetics.NonlinearFitResult Fit(System.Func<double[], double[]> residuals, double[] start, double observedVariance = 0, AI.Solvers.Chem.Kinetics.NonlinearFitOptions options = null) { }
+    }
+    public sealed class NonlinearFitOptions
+    {
+        public NonlinearFitOptions() { }
+        public int AnnealingIterations { get; set; }
+        public double AnnealingScale { get; set; }
+        public double Confidence { get; set; }
+        public double DerivativeStep { get; set; }
+        public int MaxIterations { get; set; }
+        public int Seed { get; set; }
+        public double Tolerance { get; set; }
+    }
+    public sealed class NonlinearFitResult
+    {
+        public NonlinearFitResult() { }
+        public double Confidence { get; init; }
+        public bool Converged { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public System.ValueTuple<double, double>[] Intervals { get; init; }
+        public int Iterations { get; init; }
+        public double[] Parameters { get; init; }
+        public double R2 { get; init; }
+        public double ResidualStd { get; init; }
+        public double ResidualSumOfSquares { get; init; }
+        public double[] Residuals { get; init; }
+        public double[] StandardErrors { get; init; }
+    }
+    public readonly struct ReactionOrderResult : System.IEquatable<AI.Solvers.Chem.Kinetics.ReactionOrderResult>
+    {
+        public ReactionOrderResult(double Order, double RateConstant, double ResidualSumOfSquares, double R2, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Order",
+                "RateConstant",
+                "ResidualSumOfSquares"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double, double>> Candidates) { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Order",
+                "RateConstant",
+                "ResidualSumOfSquares"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double, double>> Candidates { get; init; }
+        public double Order { get; init; }
+        public double R2 { get; init; }
+        public double RateConstant { get; init; }
+        public double ResidualSumOfSquares { get; init; }
+    }
+    public sealed class ReactionStep
+    {
+        public ReactionStep() { }
+        public string Name { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Orders { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Products { get; init; }
+        public int RateConstantIndex { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Reactants { get; init; }
+        public double OrderOf(string species) { }
+        public override string ToString() { }
+    }
+    public sealed class RunawayParameters
+    {
+        public RunawayParameters() { }
+        public double ActivationEnergy { get; init; }
+        public double AdiabaticTemperatureRise { get; }
+        public double HeatCapacity { get; init; }
+        public double InitialConversion { get; init; }
+        public double InitialTemperature { get; init; }
+        public double PreExponentialFactor { get; init; }
+        public double ReactionHeat { get; init; }
+        public double ReactionOrder { get; init; }
+        public double HeatReleaseRate(double temperature, double conversion = 0) { }
+        public double RateConstantAt(double temperature) { }
+    }
+    public sealed class RunawayResult
+    {
+        public RunawayResult() { }
+        public double AdiabaticTemperatureRise { get; init; }
+        public double[] Conversions { get; init; }
+        public double MaximumHeatingRate { get; init; }
+        public double MaximumTemperature { get; init; }
+        public bool RunawayWithinWindow { get; init; }
+        public double TemperatureAtMaximumRate { get; init; }
+        public double[] Temperatures { get; init; }
+        public double TimeToMaximumRate { get; init; }
+        public double TimeToMaximumRateHours { get; }
+        public double[] Times { get; init; }
+        public string Report() { }
+    }
+    public static class StochasticKinetics
+    {
+        public static AI.Solvers.Chem.Kinetics.StochasticTrajectory Simulate(AI.Solvers.Chem.Kinetics.KineticScheme scheme, System.Collections.Generic.IReadOnlyList<int> initialCounts, System.Collections.Generic.IReadOnlyList<double> rateConstants, double finalTime, System.Random random, int maxEvents = 10000000) { }
+    }
+    public sealed class StochasticTrajectory
+    {
+        public int Events { get; }
+        public double FinalTime { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Species { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Times { get; }
+        public bool Truncated { get; }
+        public int[] At(double time) { }
+        public int CountAt(string species, double time) { }
+        public int[] CountsAt(int index) { }
+        public double TimeAverage(string species, double from = 0, double? to = default) { }
+        public double TimeVariance(string species, double from = 0, double? to = default) { }
+    }
+    public static class ThermalRunaway
+    {
+        public static AI.Solvers.Chem.Kinetics.RunawayResult Simulate(AI.Solvers.Chem.Kinetics.RunawayParameters parameters, double duration, int points = 400) { }
+        public static double TemperatureForTimeToMaximumRate(AI.Solvers.Chem.Kinetics.RunawayParameters parameters, double targetHours = 24, double lowerTemperature = 250, double upperTemperature = 700) { }
+        public static double TimeToMaximumRateEstimate(AI.Solvers.Chem.Kinetics.RunawayParameters parameters, double temperature = 0) { }
+    }
+}
+namespace AI.Solvers.Chem.Metrology
+{
+    public sealed class AnalyticalCalibration
+    {
+        public AnalyticalCalibration(AI.Solvers.Chem.Metrology.LinearFit fit) { }
+        public AnalyticalCalibration(double[] concentrations, double[] signals, AI.Solvers.Chem.Metrology.WeightingScheme weighting = 0) { }
+        public double DetectionLimit { get; }
+        public AI.Solvers.Chem.Metrology.LinearFit Fit { get; }
+        public double QuantitationLimit { get; }
+        public double RangeMax { get; }
+        public double RangeMin { get; }
+        public double Sensitivity { get; }
+        public AI.Solvers.Chem.Metrology.CalibrationCheck Check(double minR2 = 0.99) { }
+        public AI.Solvers.Chem.Metrology.ConcentrationEstimate Concentration(double signal, int replicates = 1, double confidence = 0.95) { }
+        public string Report(double confidence = 0.95) { }
+        public double Signal(double concentration) { }
+    }
+    public readonly struct CalibrationCheck : System.IEquatable<AI.Solvers.Chem.Metrology.CalibrationCheck>
+    {
+        public CalibrationCheck(bool Linear, double R2, bool InterceptSignificant, double MaxDeviationPercent, double DetectionLimit, double QuantitationLimit) { }
+        public double DetectionLimit { get; init; }
+        public bool InterceptSignificant { get; init; }
+        public bool Linear { get; init; }
+        public double MaxDeviationPercent { get; init; }
+        public double QuantitationLimit { get; init; }
+        public double R2 { get; init; }
+    }
+    public readonly struct ConcentrationEstimate : System.IEquatable<AI.Solvers.Chem.Metrology.ConcentrationEstimate>
+    {
+        public ConcentrationEstimate(double Value, double StandardUncertainty, double Lower, double Upper, double Confidence, bool WithinRange) { }
+        public double Confidence { get; init; }
+        public double Lower { get; init; }
+        public double RelativeUncertaintyPercent { get; }
+        public double StandardUncertainty { get; init; }
+        public double Upper { get; init; }
+        public double Value { get; init; }
+        public bool WithinRange { get; init; }
+        public override string ToString() { }
+    }
+    public sealed class ControlChart
+    {
+        public ControlChart(double[] values, double? centerLine = default, double? sigma = default) { }
+        public double CenterLine { get; }
+        public bool InControl { get; }
+        public double LowerControlLimit { get; }
+        public double LowerWarningLimit { get; }
+        public double[] MovingRanges { get; }
+        public double Sigma { get; }
+        public double UpperControlLimit { get; }
+        public double UpperWarningLimit { get; }
+        public double[] Values { get; }
+        public string Report() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Metrology.ControlViolation> Violations() { }
+    }
+    public readonly struct ControlViolation : System.IEquatable<AI.Solvers.Chem.Metrology.ControlViolation>
+    {
+        public ControlViolation(int Index, double Value, string Rule) { }
+        public int Index { get; init; }
+        public string Rule { get; init; }
+        public double Value { get; init; }
+        public override string ToString() { }
+    }
+    public enum DistributionKind
+    {
+        Normal = 0,
+        Rectangular = 1,
+        Triangular = 2,
+        UShaped = 3,
+    }
+    public sealed class LinearFit
+    {
+        public LinearFit() { }
+        public int DegreesOfFreedom { get; }
+        public double Intercept { get; }
+        public double InterceptStdError { get; }
+        public double MeanX { get; }
+        public int PointCount { get; }
+        public double R2 { get; }
+        public double ResidualStd { get; }
+        public double[] Residuals { get; }
+        public double Slope { get; }
+        public double SlopeStdError { get; }
+        public double Sxx { get; }
+        public double WeightSum { get; }
+        public AI.Solvers.Chem.Metrology.WeightingScheme Weighting { get; }
+        public double[] Weights { get; }
+        public double[] X { get; }
+        public double[] Y { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public System.ValueTuple<double, double> InterceptInterval(double confidence = 0.95) { }
+        public bool InterceptIsSignificant(double confidence = 0.95) { }
+        public double Predict(double x) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Lower",
+                "Upper"})]
+        public System.ValueTuple<double, double> SlopeInterval(double confidence = 0.95) { }
+        public double TValue(double confidence = 0.95) { }
+        public static AI.Solvers.Chem.Metrology.LinearFit Fit(double[] x, double[] y, AI.Solvers.Chem.Metrology.WeightingScheme weighting = 0) { }
+        public static AI.Solvers.Chem.Metrology.LinearFit Fit(double[] x, double[] y, double[] weights) { }
+    }
+    public static class MethodValidation
+    {
+        public static double DetectionLimitFromBlank(double[] blankSignals, double slope, double k = 3) { }
+        public static AI.Solvers.Chem.Metrology.PrecisionResult Precision(double[][] groups) { }
+        public static AI.Solvers.Chem.Metrology.RecoveryResult Recovery(double[] found, double[] added, double confidence = 0.95) { }
+        public static string Report(AI.Solvers.Chem.Metrology.PrecisionResult result) { }
+    }
+    public readonly struct OutlierResult : System.IEquatable<AI.Solvers.Chem.Metrology.OutlierResult>
+    {
+        public OutlierResult(bool IsOutlier, int Index, double Value, double Statistic, double CriticalValue, double Alpha, string Method) { }
+        public double Alpha { get; init; }
+        public double CriticalValue { get; init; }
+        public int Index { get; init; }
+        public bool IsOutlier { get; init; }
+        public string Method { get; init; }
+        public double Statistic { get; init; }
+        public double Value { get; init; }
+        public override string ToString() { }
+    }
+    public static class OutlierTests
+    {
+        public static AI.Solvers.Chem.Metrology.OutlierResult Dixon(double[] data, double confidence = 0.95) { }
+        public static AI.Solvers.Chem.Metrology.OutlierResult Grubbs(double[] data, double alpha = 0.05) { }
+        public static double GrubbsCritical(int n, double alpha = 0.05) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Clean",
+                "Removed"})]
+        public static System.ValueTuple<double[], System.Collections.Generic.List<double>> GrubbsIterative(double[] data, double alpha = 0.05) { }
+    }
+    public readonly struct PrecisionResult : System.IEquatable<AI.Solvers.Chem.Metrology.PrecisionResult>
+    {
+        public PrecisionResult(double GrandMean, double RepeatabilityStd, double BetweenGroupStd, double IntermediateStd, int GroupCount, int TotalCount) { }
+        public double BetweenGroupStd { get; init; }
+        public double GrandMean { get; init; }
+        public int GroupCount { get; init; }
+        public double IntermediateLimit { get; }
+        public double IntermediateRsdPercent { get; }
+        public double IntermediateStd { get; init; }
+        public double RepeatabilityLimit { get; }
+        public double RepeatabilityRsdPercent { get; }
+        public double RepeatabilityStd { get; init; }
+        public int TotalCount { get; init; }
+    }
+    public readonly struct RecoveryResult : System.IEquatable<AI.Solvers.Chem.Metrology.RecoveryResult>
+    {
+        public RecoveryResult(double MeanRecoveryPercent, double StdPercent, double Lower, double Upper, bool BiasSignificant, int Count) { }
+        public bool BiasSignificant { get; init; }
+        public int Count { get; init; }
+        public double Lower { get; init; }
+        public double MeanRecoveryPercent { get; init; }
+        public double StdPercent { get; init; }
+        public double Upper { get; init; }
+    }
+    public sealed class UncertaintyBudget : AI.Insights.IInterpretable
+    {
+        public UncertaintyBudget(string measurand, double value, AI.Units.Unit unit) { }
+        public UncertaintyBudget(string measurand, double value, string unit = "") { }
+        public double CombinedStandardUncertainty { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Metrology.UncertaintyComponent> Components { get; }
+        public double EffectiveDegreesOfFreedom { get; }
+        public string Measurand { get; }
+        public AI.Units.Unit? MeasurementUnit { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Metrology.UncertaintyComponent> Ranked { get; }
+        public string Unit { get; }
+        public double Value { get; }
+        public AI.Solvers.Chem.Metrology.UncertaintyBudget Add(AI.Solvers.Chem.Metrology.UncertaintyComponent component) { }
+        public AI.Solvers.Chem.Metrology.UncertaintyBudget Add(string name, double halfWidth, double sensitivity = 1) { }
+        public double ContributionPercent(AI.Solvers.Chem.Metrology.UncertaintyComponent component) { }
+        public double CoverageFactor(double confidence = 0.95) { }
+        public double ExpandedUncertainty(double confidence = 0.95) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public AI.Insights.Interpretation Interpret(double confidence) { }
+        public double RelativeExpandedPercent(double confidence = 0.95) { }
+        public string Report(double confidence = 0.95) { }
+        public AI.Units.Measurement ToMeasurement() { }
+        public AI.Units.Quantity ToQuantity() { }
+    }
+    public sealed class UncertaintyComponent
+    {
+        public UncertaintyComponent() { }
+        public double Contribution { get; }
+        public int DegreesOfFreedom { get; init; }
+        public AI.Solvers.Chem.Metrology.DistributionKind Distribution { get; init; }
+        public double Divisor { get; }
+        public bool IsTypeA { get; init; }
+        public string Name { get; init; }
+        public double Sensitivity { get; init; }
+        public double StandardUncertainty { get; }
+        public string Unit { get; init; }
+        public double Value { get; init; }
+        public static AI.Solvers.Chem.Metrology.UncertaintyComponent FromMeasurement(string name, AI.Units.Measurement measurement, AI.Units.Unit unit, double sensitivity = 1) { }
+        public static AI.Solvers.Chem.Metrology.UncertaintyComponent FromSeries(string name, double[] values, double sensitivity = 1, string unit = "") { }
+        public static AI.Solvers.Chem.Metrology.UncertaintyComponent FromTolerance(string name, double halfWidth, double sensitivity = 1, string unit = "") { }
+    }
+    public enum WeightingScheme
+    {
+        None = 0,
+        InverseX = 1,
+        InverseX2 = 2,
+        InverseY = 3,
+        InverseY2 = 4,
+    }
+}
+namespace AI.Solvers.Chem.Models
+{
+    public sealed class BalancedReaction
+    {
+        public BalancedReaction(System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Models.MolecularFormula> reactants, System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Models.MolecularFormula> products, System.Collections.Generic.IReadOnlyList<int> coefficients, System.Collections.Generic.IReadOnlyList<string> elements, bool hasCharge, int nullity, string equation) { }
+        public System.Collections.Generic.IReadOnlyList<int> Coefficients { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Elements { get; }
+        public string Equation { get; }
+        public bool HasCharge { get; }
+        public int Nullity { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Models.MolecularFormula> Products { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Models.MolecularFormula> Reactants { get; }
+        public double AtomEconomyPercent(string product, AI.Solvers.Chem.Database.ChemDatabase database) { }
+        public int ProductCoefficient(int index) { }
+        public int ReactantCoefficient(int index) { }
+        public override string ToString() { }
+        public bool TryFind(string formula, out AI.Solvers.Chem.Models.MolecularFormula species, out int coefficient, out bool isProduct) { }
+    }
+    public class Compound
+    {
+        public Compound() { }
+        public string CommonName { get; set; }
+        public string Formula { get; set; }
+        public double MolarMass { get; set; }
+        public AI.Solvers.Chem.Models.PhysicalProperties Properties { get; set; }
+        public string SMILES { get; set; }
+    }
+    public class Element
+    {
+        public Element() { }
+        public double AtomicMass { get; set; }
+        public int AtomicNumber { get; set; }
+        public double AtomicRadius { get; set; }
+        public string Block { get; set; }
+        public double ElectronAffinity { get; set; }
+        public string ElectronConfiguration { get; set; }
+        public double Electronegativity { get; set; }
+        public int Group { get; set; }
+        public double IonizationEnergy { get; set; }
+        public string Name { get; set; }
+        public int[] OxidationStates { get; set; }
+        public int Period { get; set; }
+        public string Symbol { get; set; }
+    }
+    public sealed class MolecularFormula
+    {
+        public MolecularFormula(string formula) { }
+        public int Charge { get; }
+        public int Coefficient { get; }
+        public string CoreFormula { get; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, int> Elements { get; }
+        public string Formula { get; }
+        public string State { get; }
+        public double CalculateMolarMass(AI.Solvers.Chem.Database.ChemDatabase database) { }
+        public int GetCount(string element) { }
+        public override string ToString() { }
+        public bool TryCalculateMolarMass(AI.Solvers.Chem.Database.ChemDatabase database, out double mass, out string error) { }
+        public static System.Collections.Generic.List<AI.Solvers.Chem.Models.MolecularFormula> ParseSide(string side) { }
+        public static string[] SplitSide(string side) { }
+        public static bool TryParse(string formula, out AI.Solvers.Chem.Models.MolecularFormula result, out string error) { }
+        public static bool TrySplitEquation(string equation, out string reactants, out string products) { }
+    }
+    public class PhysicalProperties
+    {
+        public PhysicalProperties() { }
+        public double? BoilingPoint { get; set; }
+        public double? DeltaHf { get; set; }
+        public double? Density { get; set; }
+        public double? MeltingPoint { get; set; }
+        public double? PKa { get; set; }
+    }
+    public class SynthesisDatabase
+    {
+        public SynthesisDatabase() { }
+        public System.Collections.Generic.List<AI.Solvers.Chem.Models.TargetCompound> Compounds { get; set; }
+        public string LastUpdated { get; set; }
+        public string Version { get; set; }
+    }
+    public class SynthesisRoute
+    {
+        public SynthesisRoute() { }
+        public string Difficulty { get; set; }
+        public string Notes { get; set; }
+        public string RouteType { get; set; }
+        public string StartingMaterial { get; set; }
+        public int StepCount { get; set; }
+        public System.Collections.Generic.List<AI.Solvers.Chem.Models.SynthesisStep> Steps { get; set; }
+        public string Yield { get; set; }
+    }
+    public class SynthesisStep
+    {
+        public SynthesisStep() { }
+        public string Catalyst { get; set; }
+        public System.Collections.Generic.List<string> Conditions { get; set; }
+        public string Description { get; set; }
+        public string Equation { get; set; }
+        public string Mechanism { get; set; }
+        public string Pressure { get; set; }
+        public string ReactionType { get; set; }
+        public System.Collections.Generic.List<string> Reagents { get; set; }
+        public int StepNumber { get; set; }
+        public string Temperature { get; set; }
+        public string Time { get; set; }
+        public System.Collections.Generic.List<string> Warnings { get; set; }
+        public string Yield { get; set; }
+    }
+    public class TargetCompound
+    {
+        public TargetCompound() { }
+        public System.Collections.Generic.List<string> Aliases { get; set; }
+        public string Description { get; set; }
+        public string Formula { get; set; }
+        public string IUPAC { get; set; }
+        public string Name { get; set; }
+        public System.Collections.Generic.List<AI.Solvers.Chem.Models.SynthesisRoute> Routes { get; set; }
+        public string SMILES { get; set; }
+    }
+}
+namespace AI.Solvers.Chem.Parsing
+{
+    public class CommandParser
+    {
+        public CommandParser() { }
+        public AI.Solvers.Chem.Parsing.ParsedCommand Parse(string input) { }
+    }
+    public enum CommandType
+    {
+        Unknown = 0,
+        Balance = 1,
+        CalculateMass = 2,
+        Stoichiometry = 3,
+        MolarityCalculation = 4,
+        Dilution = 5,
+        MixSolutions = 6,
+        PhCalculation = 7,
+        BufferPH = 8,
+        Titration = 9,
+        OxidationStates = 10,
+        RedoxBalance = 11,
+        IdealGas = 12,
+        CombinedGas = 13,
+        PartialPressure = 14,
+        ThermoCalculation = 15,
+        HessLaw = 16,
+        RateLaw = 17,
+        HalfLife = 18,
+        Arrhenius = 19,
+        NernstEquation = 20,
+        FaradayLaw = 21,
+        Solubility = 22,
+        SolubilityCommonIon = 23,
+        PredictPrecipitation = 24,
+        FractionalPrecipitation = 25,
+        ComplexFormation = 26,
+        StepwiseComplexation = 27,
+        ComplexationAtPH = 28,
+        ChelateEffect = 29,
+        DetermineOrder = 30,
+        IntegratedRateLaw = 31,
+        ParseSmiles = 32,
+        GenerateSmiles = 33,
+        GenerateIsomers = 34,
+        FunctionalGroups = 35,
+        PredictProduct = 36,
+        Retrosynthesis = 37,
+        IUPACNaming = 38,
+        ElementInfo = 39,
+        CompoundLookup = 40,
+        Help = 41,
+        Properties = 42,
+        Pharmacokinetics = 43,
+        PharmacokineticsHalfLife = 44,
+        CalculateDose = 45,
+        BloodGasAnalysis = 46,
+        CalculateBicarbonate = 47,
+        BaseExcess = 48,
+        MichaelisMenten = 49,
+        LineweaverBurk = 50,
+        EnzymeInhibition = 51,
+        SpecificActivity = 52,
+        BeersLaw = 53,
+        MixtureAnalysis = 54,
+        CalibrationCurve = 55,
+    }
+    public sealed class MissingParameterException : System.Exception
+    {
+        public MissingParameterException(System.Collections.Generic.IReadOnlyList<string> expectedNames) { }
+        public System.Collections.Generic.IReadOnlyList<string> ExpectedNames { get; }
+    }
+    public class ParsedCommand
+    {
+        public ParsedCommand() { }
+        public AI.Solvers.Chem.Parsing.CommandType CommandType { get; set; }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> ConcentrationParameters { get; }
+        public string ErrorMessage { get; set; }
+        public string OriginalCommand { get; set; }
+        public System.Collections.Generic.Dictionary<string, string> Parameters { get; set; }
+        public bool Success { get; set; }
+        public double[] GetArray(params string[] names) { }
+        public double GetDouble(params string[] names) { }
+        public double GetDoubleOrDefault(double fallback, params string[] names) { }
+        public int GetInt(params string[] names) { }
+        public int GetIntOrDefault(int fallback, params string[] names) { }
+        public string GetString(params string[] names) { }
+        public string GetStringOrDefault(string fallback, params string[] names) { }
+        public bool Has(params string[] names) { }
+        public bool TryGet(out string value, params string[] names) { }
+        public bool TryGetConcentration(out double value, string species) { }
+        public bool TryGetDouble(out double value, params string[] names) { }
+        public static AI.Solvers.Chem.Parsing.ParsedCommand Error(string message) { }
+    }
+}
+namespace AI.Solvers.Chem.Polymers
+{
+    public sealed class MolarMassDistribution : AI.Insights.IInterpretable
+    {
+        public MolarMassDistribution(System.Collections.Generic.IReadOnlyList<double> masses, System.Collections.Generic.IReadOnlyList<double> weights) { }
+        public double Dispersity { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Masses { get; }
+        public double NumberAverage { get; }
+        public double PeakMass { get; }
+        public double WeightAverage { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Weights { get; }
+        public double ZAverage { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public string Report() { }
+        public double ViscosityAverage(double exponent) { }
+        public static AI.Solvers.Chem.Metrology.LinearFit Calibrate(System.Collections.Generic.IReadOnlyList<double> retentionVolumes, System.Collections.Generic.IReadOnlyList<double> molarMasses) { }
+        public static AI.Solvers.Chem.Polymers.MolarMassDistribution Flory(double monomerMass, double conversion, int maxDegree = 2000) { }
+        public static AI.Solvers.Chem.Polymers.MolarMassDistribution FromChromatogram(System.Collections.Generic.IReadOnlyList<double> retentionVolumes, System.Collections.Generic.IReadOnlyList<double> signal, AI.Solvers.Chem.Metrology.LinearFit calibration, double baseline = 0) { }
+    }
+    public static class PolymerKinetics
+    {
+        public static double AverageFunctionality(System.Collections.Generic.IReadOnlyList<double> amounts, System.Collections.Generic.IReadOnlyList<double> functionalities) { }
+        public static double? AzeotropicComposition(double r1, double r2) { }
+        public static double CarothersDegree(double conversion, double stoichiometricRatio = 1) { }
+        public static double ConversionForDegree(double degree, double stoichiometricRatio = 1) { }
+        public static double CopolymerComposition(double monomerFraction, double r1, double r2) { }
+        public static AI.Solvers.Chem.Polymers.ReactivityRatios FinemanRoss(System.Collections.Generic.IReadOnlyList<double> monomerFractions, System.Collections.Generic.IReadOnlyList<double> copolymerFractions) { }
+        public static double GelPoint(double averageFunctionality) { }
+        public static AI.Solvers.Chem.Polymers.ReactivityRatios KelenTudos(System.Collections.Generic.IReadOnlyList<double> monomerFractions, System.Collections.Generic.IReadOnlyList<double> copolymerFractions) { }
+        public static double MayoDegree(double degreeWithoutTransfer, double transferConstant, double transferAgentConcentration, double monomerConcentration) { }
+        public static AI.Solvers.Chem.Metrology.LinearFit TransferConstant(System.Collections.Generic.IReadOnlyList<double> agentToMonomerRatios, System.Collections.Generic.IReadOnlyList<double> degrees) { }
+    }
+    public static class PolymerProperties
+    {
+        public static double Crystallinity(double meltingEnthalpy, double perfectCrystalEnthalpy, double polymerFraction = 1) { }
+        public static double FoxGlassTransition(System.Collections.Generic.IReadOnlyList<double> weightFractions, System.Collections.Generic.IReadOnlyList<double> glassTemperatures) { }
+        public static double GordonTaylorGlassTransition(double firstFraction, double firstGlassTemperature, double secondGlassTemperature, double k) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "IntrinsicViscosity",
+                "HugginsConstant",
+                "R2"})]
+        public static System.ValueTuple<double, double, double> HugginsExtrapolation(System.Collections.Generic.IReadOnlyList<double> concentrations, System.Collections.Generic.IReadOnlyList<double> reducedViscosities) { }
+        public static double IntrinsicViscosity(double molarMass, double k, double a) { }
+        public static double MassBetweenCrosslinks(double modulus, double density, double temperature) { }
+        public static double ViscosityAverageMass(double intrinsicViscosity, double k, double a) { }
+    }
+    public readonly struct ReactivityRatios : System.IEquatable<AI.Solvers.Chem.Polymers.ReactivityRatios>
+    {
+        public ReactivityRatios(double R1, double R2, double R1Error, double R2Error, double R2Coefficient, string Method) { }
+        public string Behaviour { get; }
+        public string Method { get; init; }
+        public double Product { get; }
+        public double R1 { get; init; }
+        public double R1Error { get; init; }
+        public double R2 { get; init; }
+        public double R2Coefficient { get; init; }
+        public double R2Error { get; init; }
+    }
+}
+namespace AI.Solvers.Chem.Processors.Analytical
+{
+    public class SpectroscopyCalculator
+    {
+        public SpectroscopyCalculator(AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult BeersLaw(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalibrationCurve(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult MixtureAnalysis(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+}
+namespace AI.Solvers.Chem.Processors.Inorganic
+{
+    public class AcidBaseCalculator
+    {
+        public AcidBaseCalculator(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateBufferPH(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculatePH(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult Titration(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class ComplexCompoundsCalculator
+    {
+        public ComplexCompoundsCalculator(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateComplexConcentration(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult ChelateEffect(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult ComplexationAtPH(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult StepwiseComplexation(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class EquationBalancer
+    {
+        public EquationBalancer(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult Balance(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public bool TryBalance(string equation, out AI.Solvers.Chem.Models.BalancedReaction reaction, out string error) { }
+        public bool TryBalance(string reactants, string products, out AI.Solvers.Chem.Models.BalancedReaction reaction, out string error) { }
+    }
+    public class RedoxProcessor
+    {
+        public RedoxProcessor(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult BalanceRedox(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult FindOxidationStates(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class SolubilityCalculator
+    {
+        public SolubilityCalculator(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateSolubility(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateSolubilityWithCommonIon(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult FractionalPrecipitation(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult PredictPrecipitation(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class SolutionCalculator
+    {
+        public SolutionCalculator(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateMolarity(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult Dilute(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult Mix(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class StoichiometryCalculator
+    {
+        public StoichiometryCalculator(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult Calculate(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateMolarMass(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class ThermochemistryCalculator
+    {
+        public ThermochemistryCalculator(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateDeltaH(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult HessLaw(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+}
+namespace AI.Solvers.Chem.Processors.Medical
+{
+    public class BloodGasAnalyzer
+    {
+        public BloodGasAnalyzer(AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult AnalyzeBloodGas(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateBaseExcess(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateBicarbonate(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class EnzymeKineticsCalculator
+    {
+        public EnzymeKineticsCalculator(AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateSpecificActivity(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CompetitiveInhibition(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult LineweaverBurk(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult MichaelisMenten(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult NonCompetitiveInhibition(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class PharmacokineticCalculator
+    {
+        public PharmacokineticCalculator(AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateDose(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateHalfLife(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult OneCompartmentModel(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult TwoCompartmentModel(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+}
+namespace AI.Solvers.Chem.Processors
+{
+    public class MolecularPropertiesCalculator
+    {
+        public MolecularPropertiesCalculator(AI.Solvers.Chem.Core.VerbosityLevel verbosity = 1) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateProperties(string smiles) { }
+    }
+}
+namespace AI.Solvers.Chem.Processors.Organic.Graph
+{
+    public class AlkeneCleavageRule : AI.Solvers.Chem.Processors.Organic.Graph.IRetroRule
+    {
+        public AlkeneCleavageRule() { }
+        public string Name { get; }
+        public string PatternString { get; }
+        public System.Collections.Generic.List<NCDK.IAtomContainer>? Apply(NCDK.IAtomContainer target) { }
+    }
+    public class AlkylAmineCleavageRule : AI.Solvers.Chem.Processors.Organic.Graph.IRetroRule
+    {
+        public AlkylAmineCleavageRule() { }
+        public string Name { get; }
+        public string PatternString { get; }
+        public System.Collections.Generic.List<NCDK.IAtomContainer>? Apply(NCDK.IAtomContainer target) { }
+    }
+    public class AmideHydrolysisRule : AI.Solvers.Chem.Processors.Organic.Graph.IRetroRule
+    {
+        public AmideHydrolysisRule() { }
+        public string Name { get; }
+        public string PatternString { get; }
+        public System.Collections.Generic.List<NCDK.IAtomContainer>? Apply(NCDK.IAtomContainer target) { }
+    }
+    public class AromaticAlkylCleavageRule : AI.Solvers.Chem.Processors.Organic.Graph.IRetroRule
+    {
+        public AromaticAlkylCleavageRule() { }
+        public string Name { get; }
+        public string PatternString { get; }
+        public System.Collections.Generic.List<NCDK.IAtomContainer>? Apply(NCDK.IAtomContainer target) { }
+    }
+    public class EsterHydrolysisRule : AI.Solvers.Chem.Processors.Organic.Graph.IRetroRule
+    {
+        public EsterHydrolysisRule() { }
+        public string Name { get; }
+        public string PatternString { get; }
+        public System.Collections.Generic.List<NCDK.IAtomContainer>? Apply(NCDK.IAtomContainer target) { }
+    }
+    public class GraphRetrosynthesisSolver
+    {
+        public GraphRetrosynthesisSolver() { }
+        public string FormatTree(AI.Solvers.Chem.Processors.Organic.Graph.RetroNode node, string indent = "") { }
+        public AI.Solvers.Chem.Processors.Organic.Graph.RetroNode Solve(NCDK.IAtomContainer target, int maxDepth = 3) { }
+    }
+    public interface IRetroRule
+    {
+        string Name { get; }
+        string PatternString { get; }
+        System.Collections.Generic.List<NCDK.IAtomContainer>? Apply(NCDK.IAtomContainer target);
+    }
+    public class RetroNode
+    {
+        public RetroNode(NCDK.IAtomContainer mol, string transform, int depth) { }
+        public System.Collections.Generic.List<AI.Solvers.Chem.Processors.Organic.Graph.RetroNode> Children { get; set; }
+        public int Depth { get; set; }
+        public bool IsSimple { get; set; }
+        public NCDK.IAtomContainer Molecule { get; set; }
+        public string SMILES { get; set; }
+        public string TransformationName { get; set; }
+    }
+}
+namespace AI.Solvers.Chem.Processors.Organic
+{
+    public class OrganicChemProcessor
+    {
+        public OrganicChemProcessor(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult GenerateIsomers(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult GenerateSmiles(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public string GetSynthesisDatabaseStats() { }
+        public AI.Solvers.Chem.Core.ChemResult IUPACName(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult IdentifyFunctionalGroups(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public void LoadCustomSynthesisDatabase(string jsonPath) { }
+        public void LoadReactionRules(string path) { }
+        public AI.Solvers.Chem.Core.ChemResult ParseSmiles(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult PredictProduct(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult Retrosynthesis(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+}
+namespace AI.Solvers.Chem.Processors.Physical
+{
+    public class ElectrochemistryCalculator
+    {
+        public ElectrochemistryCalculator(AI.Solvers.Chem.Database.ChemDatabase database, AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult Faraday(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult Nernst(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class GasLawCalculator
+    {
+        public GasLawCalculator(AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult CombinedGasLaw(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult DaltonLaw(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult IdealGasLaw(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+    public class KineticsCalculator
+    {
+        public KineticsCalculator(AI.Solvers.Chem.Core.VerbosityLevel verbosity) { }
+        public AI.Solvers.Chem.Core.ChemResult Arrhenius(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateHalfLife(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult CalculateRate(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult DetermineOrder(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+        public AI.Solvers.Chem.Core.ChemResult IntegratedRateLaw(AI.Solvers.Chem.Parsing.ParsedCommand cmd) { }
+    }
+}
+namespace AI.Solvers.Chem.Production
+{
+    public sealed class BatchCost
+    {
+        public BatchCost() { }
+        public double BatchSize { get; init; }
+        public double BreakEvenPrice { get; }
+        public double CostPerKg { get; }
+        public double EnergyCost { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Production.CostItem> Items { get; init; }
+        public double LaborCost { get; init; }
+        public double MaterialCost { get; init; }
+        public double MaterialSharePercent { get; }
+        public double OverheadCost { get; init; }
+        public double PackagingCost { get; init; }
+        public string Product { get; init; }
+        public double TotalCost { get; }
+        public double MarginPercent(double pricePerKg) { }
+        public double PriceForMargin(double targetMarginPercent) { }
+        public double Profit(double pricePerKg) { }
+        public string Report(double pricePerKg = 0) { }
+    }
+    public enum ComponentRole
+    {
+        RawMaterial = 0,
+        Solvent = 1,
+        Catalyst = 2,
+        Auxiliary = 3,
+        Packaging = 4,
+    }
+    public readonly struct CostDriver : System.IEquatable<AI.Solvers.Chem.Production.CostDriver>
+    {
+        public CostDriver(string Name, double CostInBatch, double SharePercent, double NewCostPerKg, double CostPerKgChangePercent) { }
+        public double CostInBatch { get; init; }
+        public double CostPerKgChangePercent { get; init; }
+        public string Name { get; init; }
+        public double NewCostPerKg { get; init; }
+        public double SharePercent { get; init; }
+    }
+    public readonly struct CostItem : System.IEquatable<AI.Solvers.Chem.Production.CostItem>
+    {
+        public CostItem(string Name, double Cost, string Group) { }
+        public double Cost { get; init; }
+        public string Group { get; init; }
+        public string Name { get; init; }
+    }
+    public static class MaterialBalance
+    {
+        public static AI.Solvers.Chem.Production.ReactionDemand FromReaction(string equation, string product, double productMass, AI.Solvers.Chem.Database.ChemDatabase database, double yieldFraction = 1, System.Collections.Generic.IReadOnlyDictionary<string, double> excess = null) { }
+    }
+    public sealed class ReactionDemand
+    {
+        public ReactionDemand() { }
+        public double AtomEconomyPercent { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Production.ReagentDemand> ByProducts { get; init; }
+        public double EFactor { get; }
+        public double MassIntensity { get; }
+        public string Product { get; init; }
+        public double ProductMass { get; init; }
+        public AI.Solvers.Chem.Models.BalancedReaction Reaction { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Production.ReagentDemand> Reagents { get; init; }
+        public double TheoreticalProductMass { get; init; }
+        public double TotalInputMass { get; }
+        public double WasteMass { get; }
+        public double YieldFraction { get; init; }
+        public string Report() { }
+        public AI.Solvers.Chem.Production.Recipe ToRecipe(System.Collections.Generic.IReadOnlyDictionary<string, double> prices = null, System.Collections.Generic.IReadOnlyDictionary<string, double> purities = null) { }
+    }
+    public readonly struct ReagentDemand : System.IEquatable<AI.Solvers.Chem.Production.ReagentDemand>
+    {
+        public ReagentDemand(string Formula, int Coefficient, double MolarMass, double Kilomoles, double StoichiometricMass, double ExcessFraction) { }
+        public int Coefficient { get; init; }
+        public double ExcessFraction { get; init; }
+        public string Formula { get; init; }
+        public double Kilomoles { get; init; }
+        public double MassWithExcess { get; }
+        public double MolarMass { get; init; }
+        public double StoichiometricMass { get; init; }
+    }
+    public sealed class Recipe
+    {
+        public Recipe(string product, double batchSize) { }
+        public double BatchSize { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Production.RecipeComponent> Components { get; }
+        public double EnergyCost { get; set; }
+        public double LaborHours { get; set; }
+        public double LaborRatePerHour { get; set; }
+        public double OverheadPercent { get; set; }
+        public double PackagingCost { get; set; }
+        public string Product { get; }
+        public double YieldFraction { get; set; }
+        public AI.Solvers.Chem.Production.Recipe Add(AI.Solvers.Chem.Production.RecipeComponent component) { }
+        public AI.Solvers.Chem.Production.Recipe Add(string name, double quantity, double pricePerKg, double purity = 1, AI.Solvers.Chem.Production.ComponentRole role = 0) { }
+        public AI.Solvers.Chem.Production.BatchCost Cost() { }
+        public AI.Solvers.Chem.Production.Recipe ScaleTo(double batchSize) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Production.CostDriver> Sensitivity(double relativeChange = 0.1) { }
+    }
+    public sealed class RecipeComponent
+    {
+        public RecipeComponent() { }
+        public double Cost { get; }
+        public string Formula { get; init; }
+        public double GrossQuantity { get; }
+        public string Name { get; init; }
+        public double PricePerKg { get; set; }
+        public double Purity { get; set; }
+        public double Quantity { get; set; }
+        public double RecoveryFraction { get; set; }
+        public AI.Solvers.Chem.Production.ComponentRole Role { get; init; }
+    }
+}
+namespace AI.Solvers.Chem.Qsar
+{
+    public sealed class DescriptorSet
+    {
+        public DescriptorSet(System.Collections.Generic.IReadOnlyList<string> names, AI.DataStructs.Algebraic.Vector values, string smiles = null) { }
+        public double this[string name] { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Names { get; }
+        public string Smiles { get; }
+        public AI.DataStructs.Algebraic.Vector Values { get; }
+        public string Report() { }
+    }
+    public static class MolecularDescriptors
+    {
+        public static System.Collections.Generic.IReadOnlyList<string> Names { get; }
+        public static AI.Solvers.Chem.Qsar.DescriptorSet Compute(string smiles) { }
+        public static AI.Solvers.Chem.Qsar.DescriptorSet Compute(NCDK.IAtomContainer molecule, string smiles = null) { }
+    }
+    public sealed class QsarModel : AI.Insights.IInterpretable
+    {
+        public System.Collections.Generic.IReadOnlyList<string> DescriptorNames { get; }
+        public double LeverageThreshold { get; }
+        public string Property { get; init; }
+        public AI.Solvers.Chem.Qsar.QsarQuality Quality { get; }
+        public bool InDomain(string smiles) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public double Leverage(AI.Solvers.Chem.Qsar.DescriptorSet descriptors) { }
+        public double Predict(AI.Solvers.Chem.Qsar.DescriptorSet descriptors) { }
+        public double Predict(string smiles) { }
+        public string Report() { }
+        public static AI.Solvers.Chem.Qsar.QsarModel Train(System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Qsar.DescriptorSet> descriptors, System.Collections.Generic.IReadOnlyList<double> property, AI.Solvers.Chem.Qsar.QsarOptions options = null) { }
+        public static AI.Solvers.Chem.Qsar.QsarModel Train(System.Collections.Generic.IReadOnlyList<string> smiles, System.Collections.Generic.IReadOnlyList<double> property, AI.Solvers.Chem.Qsar.QsarOptions options = null) { }
+    }
+    public sealed class QsarOptions
+    {
+        public QsarOptions() { }
+        public int CrossValidationFolds { get; set; }
+        public System.Collections.Generic.IReadOnlyList<string> Features { get; set; }
+        public bool Standardize { get; set; }
+        public double VarianceThreshold { get; set; }
+    }
+    public readonly struct QsarQuality : System.IEquatable<AI.Solvers.Chem.Qsar.QsarQuality>
+    {
+        public QsarQuality(double R2, double Rmse, double Mae, double Q2, double RmseCv) { }
+        public double Mae { get; init; }
+        public double Q2 { get; init; }
+        public double R2 { get; init; }
+        public double Rmse { get; init; }
+        public double RmseCv { get; init; }
+    }
+}
+namespace AI.Solvers.Chem.Quantum
+{
+    public readonly struct HeteroatomParameters : System.IEquatable<AI.Solvers.Chem.Quantum.HeteroatomParameters>
+    {
+        public HeteroatomParameters(double AlphaShift, double Resonance, int Electrons) { }
+        public double AlphaShift { get; init; }
+        public int Electrons { get; init; }
+        public double Resonance { get; init; }
+    }
+    public static class Huckel
+    {
+        public static AI.Solvers.Chem.Quantum.HuckelSolution Solve(AI.Solvers.Chem.Quantum.PiSystem system) { }
+        public static AI.Solvers.Chem.Quantum.HuckelSolution Solve(string smiles, int charge = 0) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Energies",
+                "Coefficients"})]
+        public static System.ValueTuple<double[], AI.DataStructs.Algebraic.Matrix> SolveGeneralized(AI.DataStructs.Algebraic.Matrix hamiltonian, AI.DataStructs.Algebraic.Matrix overlap) { }
+    }
+    public sealed class HuckelSolution : AI.Insights.IInterpretable
+    {
+        public System.Collections.Generic.IReadOnlyList<double> ChargeDensities { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Charges { get; }
+        public AI.DataStructs.Algebraic.Matrix Coefficients { get; }
+        public int Count { get; }
+        public double DelocalizationEnergy { get; }
+        public int Electrons { get; }
+        public System.Collections.Generic.IReadOnlyList<double> FreeValences { get; }
+        public double Gap { get; }
+        public double Homo { get; }
+        public int HomoIndex { get; }
+        public double Lumo { get; }
+        public int LumoIndex { get; }
+        public bool ObeysHuckelRule { get; }
+        public System.Collections.Generic.IReadOnlyList<int> Occupations { get; }
+        public System.Collections.Generic.IReadOnlyList<double> OrbitalCoefficients { get; }
+        public double TotalEnergy { get; }
+        public double AbsorptionWavelength(double beta = -2.7) { }
+        public double BondOrder(int first, int second) { }
+        public double Electronegativity(double alpha = -11.4, double beta = -2.7) { }
+        public double ExcitationEnergy(double beta = -2.7) { }
+        public double Hardness(double beta = -2.7) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public double OrbitalEnergy(int index, double alpha = -11.4, double beta = -2.7) { }
+        public string Report() { }
+    }
+    public readonly struct PiCenter : System.IEquatable<AI.Solvers.Chem.Quantum.PiCenter>
+    {
+        public PiCenter(string Element, int Electrons, double AlphaShift, string Label) { }
+        public double AlphaShift { get; init; }
+        public int Electrons { get; init; }
+        public string Element { get; init; }
+        public string Label { get; init; }
+        public override string ToString() { }
+    }
+    public sealed class PiSystem
+    {
+        public PiSystem() { }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "First",
+                "Second",
+                "Resonance"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<int, int, double>> Bonds { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Quantum.PiCenter> Centers { get; }
+        public int Charge { get; set; }
+        public int Count { get; }
+        public int Electrons { get; }
+        public string Name { get; set; }
+        public static System.Collections.Generic.Dictionary<string, AI.Solvers.Chem.Quantum.HeteroatomParameters> Heteroatoms { get; }
+        public void AddBond(int first, int second, double resonance = 1) { }
+        public int AddCenter(string element = "C", int electrons = 1, double alphaShift = 0, string label = null) { }
+        public bool HasBond(int first, int second) { }
+        public AI.DataStructs.Algebraic.Matrix TopologicalMatrix() { }
+        public static AI.Solvers.Chem.Quantum.PiSystem Chain(int count) { }
+        public static AI.Solvers.Chem.Quantum.PiSystem FromSmiles(string smiles, int charge = 0) { }
+        public static AI.Solvers.Chem.Quantum.PiSystem Ring(int count, int charge = 0) { }
+    }
+}
+namespace AI.Solvers.Chem.Safety
+{
+    public readonly struct ClassificationReason : System.IEquatable<AI.Solvers.Chem.Safety.ClassificationReason>
+    {
+        public ClassificationReason(AI.Solvers.Chem.Safety.HazardCategory Category, string Rule, double Value, double Threshold) { }
+        public AI.Solvers.Chem.Safety.HazardCategory Category { get; init; }
+        public string Rule { get; init; }
+        public double Threshold { get; init; }
+        public double Value { get; init; }
+        public override string ToString() { }
+    }
+    public enum ExposureRoute
+    {
+        Oral = 0,
+        Dermal = 1,
+        Inhalation = 2,
+    }
+    public static class HazardCatalog
+    {
+        public static System.Collections.Generic.IReadOnlyCollection<AI.Solvers.Chem.Safety.HazardCategory> Known { get; }
+        public static string Code(AI.Solvers.Chem.Safety.Pictogram pictogram) { }
+        public static bool Contains(AI.Solvers.Chem.Safety.HazardCategory category) { }
+        public static AI.Solvers.Chem.Safety.HazardEntry Entry(AI.Solvers.Chem.Safety.HazardCategory category) { }
+        public static string HazardText(string code) { }
+        public static string PrecautionaryText(string code) { }
+        public static System.Collections.Generic.IReadOnlyList<string> Precautions(System.Collections.Generic.IEnumerable<AI.Solvers.Chem.Safety.Pictogram> pictograms) { }
+        public static string ShortName(AI.Solvers.Chem.Safety.HazardClass hazardClass) { }
+        public static string Text(AI.Solvers.Chem.Safety.SignalWord word) { }
+        public static string Title(AI.Solvers.Chem.Safety.Pictogram pictogram) { }
+        public static bool TryParse(string text, out AI.Solvers.Chem.Safety.HazardCategory category) { }
+    }
+    public readonly struct HazardCategory : System.IEquatable<AI.Solvers.Chem.Safety.HazardCategory>
+    {
+        public HazardCategory(AI.Solvers.Chem.Safety.HazardClass Class, string Category) { }
+        public string Category { get; init; }
+        public AI.Solvers.Chem.Safety.HazardClass Class { get; init; }
+        public override string ToString() { }
+    }
+    public enum HazardClass
+    {
+        FlammableLiquid = 0,
+        FlammableSolid = 1,
+        OxidisingLiquid = 2,
+        OxidisingSolid = 3,
+        GasUnderPressure = 4,
+        CorrosiveToMetals = 5,
+        AcuteToxicityOral = 6,
+        AcuteToxicityDermal = 7,
+        AcuteToxicityInhalation = 8,
+        SkinCorrosion = 9,
+        SkinIrritation = 10,
+        EyeDamage = 11,
+        EyeIrritation = 12,
+        RespiratorySensitisation = 13,
+        SkinSensitisation = 14,
+        Mutagenicity = 15,
+        Carcinogenicity = 16,
+        ReproductiveToxicity = 17,
+        StotSingle = 18,
+        StotRepeated = 19,
+        AspirationHazard = 20,
+        AquaticAcute = 21,
+        AquaticChronic = 22,
+    }
+    public readonly struct HazardEntry : System.IEquatable<AI.Solvers.Chem.Safety.HazardEntry>
+    {
+        public HazardEntry(string Statement, AI.Solvers.Chem.Safety.Pictogram Pictogram, AI.Solvers.Chem.Safety.SignalWord Signal) { }
+        public AI.Solvers.Chem.Safety.Pictogram Pictogram { get; init; }
+        public AI.Solvers.Chem.Safety.SignalWord Signal { get; init; }
+        public string Statement { get; init; }
+    }
+    public sealed class Mixture
+    {
+        public Mixture() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Safety.MixtureComponent> Components { get; }
+        public double? KinematicViscosity { get; init; }
+        public string Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Safety.HazardCategory> PhysicalHazards { get; init; }
+        public AI.Solvers.Chem.Safety.PhysicalState State { get; init; }
+        public double TotalContentPercent { get; }
+        public string Use { get; init; }
+        public AI.Solvers.Chem.Safety.Mixture Add(AI.Solvers.Chem.Safety.MixtureComponent component) { }
+        public AI.Solvers.Chem.Safety.MixtureClassification Classify() { }
+        public AI.Solvers.Chem.Safety.SafetyDataSheet CreateSafetyDataSheet() { }
+    }
+    public sealed class MixtureClassification
+    {
+        public MixtureClassification() { }
+        public System.Collections.Generic.IReadOnlyList<string> HazardStatements { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Safety.HazardCategory> Hazards { get; init; }
+        public bool IsHazardous { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Safety.Pictogram> Pictograms { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Precautions { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Safety.ClassificationReason> Reasons { get; init; }
+        public AI.Solvers.Chem.Safety.SignalWord Signal { get; init; }
+        public string Report() { }
+    }
+    public static class MixtureClassifier
+    {
+        public static double? AcuteToxicityEstimate(AI.Solvers.Chem.Safety.Mixture mixture, AI.Solvers.Chem.Safety.ExposureRoute route) { }
+        public static AI.Solvers.Chem.Safety.MixtureClassification Classify(AI.Solvers.Chem.Safety.Mixture mixture) { }
+    }
+    public sealed class MixtureComponent
+    {
+        public MixtureComponent() { }
+        public double AcuteMFactor { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<AI.Solvers.Chem.Safety.ExposureRoute, double> AcuteToxicityEstimates { get; init; }
+        public string CasNumber { get; init; }
+        public double ChronicMFactor { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Safety.HazardCategory> Classifications { get; init; }
+        public double ContentPercent { get; init; }
+        public string EcNumber { get; init; }
+        public string Formula { get; init; }
+        public double? KinematicViscosity { get; init; }
+        public string Name { get; init; }
+        public string PackingGroup { get; init; }
+        public string ShippingName { get; init; }
+        public string TransportClass { get; init; }
+        public string UnNumber { get; init; }
+        public string CategoryOf(AI.Solvers.Chem.Safety.HazardClass hazardClass) { }
+        public bool HasHazard(AI.Solvers.Chem.Safety.HazardClass hazardClass, params string[] categories) { }
+    }
+    public enum PhysicalState
+    {
+        Liquid = 0,
+        Solid = 1,
+        Gas = 2,
+    }
+    public enum Pictogram
+    {
+        None = 0,
+        Ghs01Explosive = 1,
+        Ghs02Flame = 2,
+        Ghs03Oxidising = 3,
+        Ghs04GasCylinder = 4,
+        Ghs05Corrosion = 5,
+        Ghs06Skull = 6,
+        Ghs07Exclamation = 7,
+        Ghs08HealthHazard = 8,
+        Ghs09Environment = 9,
+    }
+    public sealed class SafetyDataSheet
+    {
+        public SafetyDataSheet(AI.Solvers.Chem.Safety.Mixture mixture, AI.Solvers.Chem.Safety.MixtureClassification classification) { }
+        public AI.Solvers.Chem.Safety.MixtureClassification Classification { get; }
+        public string EmergencyPhone { get; set; }
+        public System.Collections.Generic.IReadOnlyList<int> MissingNarrativeSections { get; }
+        public AI.Solvers.Chem.Safety.Mixture Mixture { get; }
+        public string RevisionDate { get; set; }
+        public string Supplier { get; set; }
+        public string SupplierAddress { get; set; }
+        public string SupplierPhone { get; set; }
+        public AI.Solvers.Chem.Safety.TransportClassification Transport { get; }
+        public string Version { get; set; }
+        public string Render() { }
+        public AI.Solvers.Chem.Safety.SafetyDataSheet SetNarrative(int section, string text) { }
+    }
+    public enum SignalWord
+    {
+        None = 0,
+        Warning = 1,
+        Danger = 2,
+    }
+    public readonly struct TransportClassification : System.IEquatable<AI.Solvers.Chem.Safety.TransportClassification>
+    {
+        public TransportClassification(string UnNumber, string ShippingName, string TransportClass, string PackingGroup, bool MarinePollutant, string Source) { }
+        public bool IsDangerousGoods { get; }
+        public bool MarinePollutant { get; init; }
+        public string PackingGroup { get; init; }
+        public string ShippingName { get; init; }
+        public string Source { get; init; }
+        public string TransportClass { get; init; }
+        public string UnNumber { get; init; }
+    }
+}
+namespace AI.Solvers.Chem.Signals
+{
+    public static class BaselineCorrection
+    {
+        public static double[] AsymmetricLeastSquares(double[] signal, double smoothness = 1000000, double asymmetry = 0.01, int iterations = 10) { }
+        public static double EstimateNoise(double[] signal) { }
+        public static double[] ModifiedPolynomial(double[] signal, int order = 3, int iterations = 50, double tolerance = 0.0001) { }
+        public static double[] RollingMinimum(double[] signal, int window) { }
+        public static double SmoothnessForPeakWidth(double peakWidthPoints) { }
+        public static double[] Subtract(double[] signal, double[] baseline, bool clampToZero = false) { }
+    }
+    public enum BaselineMode
+    {
+        None = 0,
+        Asymmetric = 1,
+        Polynomial = 2,
+        Rolling = 3,
+    }
+    public sealed class Chromatogram
+    {
+        public Chromatogram(AI.DataStructs.Algebraic.Vector time, AI.DataStructs.Algebraic.Vector signal) { }
+        public Chromatogram(double[] time, double[] signal) { }
+        public int Count { get; }
+        public string Name { get; init; }
+        public double Noise { get; }
+        public double[] Signal { get; }
+        public double Step { get; }
+        public double[] Time { get; }
+        public double[] Derivative(int window = 9, int order = 2) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Signals.Peak> FindPeaks(AI.Solvers.Chem.Signals.PeakDetectionOptions options = null) { }
+        public string Report(System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Signals.Peak> peaks, double holdupTime = 0) { }
+        public AI.Solvers.Chem.Signals.Chromatogram Smooth(int window = 9, int order = 2) { }
+        public AI.Solvers.Chem.Signals.Chromatogram SubtractBaseline(AI.Solvers.Chem.Signals.BaselineMode mode = 1, int order = 3, int window = 51) { }
+        public static AI.Solvers.Chem.Signals.Chromatogram FromSignal(double[] signal, double step = 1, double start = 0) { }
+    }
+    public sealed class Peak
+    {
+        public Peak() { }
+        public int ApexIndex { get; init; }
+        public double Area { get; init; }
+        public double AreaPercent { get; }
+        public double AsymmetryFactor { get; }
+        public double BaseWidth { get; }
+        public double BaselineAtApex { get; init; }
+        public int EndIndex { get; init; }
+        public double EndTime { get; init; }
+        public double Height { get; init; }
+        public double LeftWidthAt10Percent { get; init; }
+        public double LeftWidthAt5Percent { get; init; }
+        public string Name { get; set; }
+        public double RetentionTime { get; init; }
+        public double RightWidthAt10Percent { get; init; }
+        public double RightWidthAt5Percent { get; init; }
+        public int StartIndex { get; init; }
+        public double StartTime { get; init; }
+        public double TheoreticalPlates { get; }
+        public double UspTailing { get; }
+        public double WidthAtHalfHeight { get; init; }
+        public double CapacityFactor(double holdupTime) { }
+        public double PlateHeight(double columnLength) { }
+        public override string ToString() { }
+        public static double Resolution(AI.Solvers.Chem.Signals.Peak first, AI.Solvers.Chem.Signals.Peak second) { }
+        public static double Selectivity(AI.Solvers.Chem.Signals.Peak first, AI.Solvers.Chem.Signals.Peak second, double holdupTime) { }
+    }
+    public sealed class PeakDetectionOptions
+    {
+        public PeakDetectionOptions() { }
+        public double? AbsoluteHeightThreshold { get; set; }
+        public AI.Solvers.Chem.Signals.BaselineMode Baseline { get; set; }
+        public double BaselineAsymmetry { get; set; }
+        public int BaselineOrder { get; set; }
+        public double BaselineSmoothness { get; set; }
+        public int BaselineWindow { get; set; }
+        public int MaxPeaks { get; set; }
+        public int MinPoints { get; set; }
+        public double RelativeHeightThreshold { get; set; }
+        public double SignalToNoise { get; set; }
+        public int SmoothingOrder { get; set; }
+        public int SmoothingWindow { get; set; }
+    }
+    public static class PeakDetector
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Signals.Peak> Detect(double[] time, double[] signal, AI.Solvers.Chem.Signals.PeakDetectionOptions options = null) { }
+        public static double Integrate(double[] time, double[] signal, int start, int end) { }
+    }
+    public static class Quantification
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Peak",
+                "Percent"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<AI.Solvers.Chem.Signals.Peak, double>> AreaNormalization(System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Signals.Peak> peaks, System.Collections.Generic.IReadOnlyDictionary<string, double> responseFactors = null) { }
+        public static AI.Solvers.Chem.Metrology.ConcentrationEstimate ExternalStandard(double area, AI.Solvers.Chem.Metrology.AnalyticalCalibration calibration, int replicates = 1, double confidence = 0.95) { }
+        public static double InternalStandard(double analyteArea, double standardArea, double standardConcentration, double responseFactor = 1) { }
+        public static double MassFractionPercent(double concentration, double volumeMl, double sampleMassMg, double dilutionFactor = 1) { }
+        public static double ResponseFactor(double analyteArea, double analyteConcentration, double standardArea, double standardConcentration) { }
+        public static AI.Solvers.Chem.Metrology.ConcentrationEstimate StandardAddition(double[] addedConcentrations, double[] signals, double confidence = 0.95) { }
+    }
+    public static class SavitzkyGolay
+    {
+        public static double[] Apply(double[] signal, int window = 9, int order = 2, int derivative = 0, double spacing = 1) { }
+        public static double[] Coefficients(int window, int order, int derivative = 0, double spacing = 1) { }
+        public static AI.DataStructs.Algebraic.Vector Smooth(AI.DataStructs.Algebraic.Vector signal, int window = 9, int order = 2) { }
+    }
+}
+namespace AI.Solvers.Chem.Structures
+{
+    public sealed class AtomSite
+    {
+        public AtomSite() { }
+        public char ChainId { get; init; }
+        public double Charge { get; init; }
+        public string Element { get; init; }
+        public char InsertionCode { get; init; }
+        public bool IsHetero { get; init; }
+        public string Label { get; init; }
+        public double Occupancy { get; init; }
+        public AI.Geometry.Primitives.Vector3 Position { get; init; }
+        public string ResidueName { get; init; }
+        public int ResidueNumber { get; init; }
+        public double ThermalParameter { get; init; }
+        public override string ToString() { }
+        public AI.Solvers.Chem.Structures.AtomSite WithPosition(AI.Geometry.Primitives.Vector3 position) { }
+    }
+    public readonly struct CifContent : System.IEquatable<AI.Solvers.Chem.Structures.CifContent>
+    {
+        public CifContent(AI.Solvers.Chem.Structures.MolecularStructure AsymmetricUnit, System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Structures.SymmetryOperation> Symmetry, string SpaceGroup, int SpaceGroupNumber) { }
+        public AI.Solvers.Chem.Structures.MolecularStructure AsymmetricUnit { get; init; }
+        public string SpaceGroup { get; init; }
+        public int SpaceGroupNumber { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Structures.SymmetryOperation> Symmetry { get; init; }
+    }
+    public enum CrystalSystem
+    {
+        Triclinic = 0,
+        Monoclinic = 1,
+        Orthorhombic = 2,
+        Tetragonal = 3,
+        Trigonal = 4,
+        Hexagonal = 5,
+        Cubic = 6,
+    }
+    public sealed class MolecularStructure
+    {
+        public MolecularStructure() { }
+        public MolecularStructure(System.Collections.Generic.IEnumerable<AI.Solvers.Chem.Structures.AtomSite> atoms, AI.Solvers.Chem.Structures.UnitCell cell = null) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Structures.AtomSite> Atoms { get; }
+        public AI.Solvers.Chem.Structures.UnitCell Cell { get; set; }
+        public AI.Geometry.Primitives.Vector3 Centroid { get; }
+        public int Count { get; }
+        public string Formula { get; }
+        public bool IsPeriodic { get; }
+        public string Name { get; set; }
+        public AI.Solvers.Chem.Structures.MolecularStructure Add(AI.Solvers.Chem.Structures.AtomSite atom) { }
+        public AI.Solvers.Chem.Structures.MolecularStructure Add(string element, double x, double y, double z) { }
+        public AI.Solvers.Chem.Structures.MolecularStructure AddFractional(string element, double x, double y, double z, string label = "", double occupancy = 1) { }
+        public double Angle(int first, int vertex, int second) { }
+        public AI.Geometry.Primitives.Vector3 CenterOfMass(AI.Solvers.Chem.Database.ChemDatabase database) { }
+        public AI.Solvers.Chem.Structures.MolecularStructure Centered() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "First",
+                "Second",
+                "Distance"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<int, int, double>> Contacts(double maxDistance) { }
+        public double Distance(int first, int second) { }
+        public AI.Geometry.Primitives.Vector3 FractionalPosition(int index) { }
+        public double MolarMass(AI.Solvers.Chem.Database.ChemDatabase database) { }
+        public System.Collections.Generic.IEnumerable<AI.Solvers.Chem.Structures.AtomSite> OfElement(string element) { }
+        public double RadiusOfGyration() { }
+        public override string ToString() { }
+        public double Torsion(int first, int second, int third, int fourth) { }
+        public AI.Solvers.Chem.Structures.MolecularStructure Translate(AI.Geometry.Primitives.Vector3 shift) { }
+    }
+    public static class StructureFormats
+    {
+        public static AI.Solvers.Chem.Structures.CifContent ReadCif(string text) { }
+        public static AI.Solvers.Chem.Structures.MolecularStructure ReadPdb(string text) { }
+        public static AI.Solvers.Chem.Structures.MolecularStructure ReadXyz(string text) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Solvers.Chem.Structures.MolecularStructure> ReadXyzTrajectory(string text) { }
+        public static string WriteXyz(AI.Solvers.Chem.Structures.MolecularStructure structure) { }
+    }
+    public sealed class SymmetryOperation
+    {
+        public string Notation { get; }
+        public static AI.Solvers.Chem.Structures.SymmetryOperation Identity { get; }
+        public AI.Geometry.Primitives.Vector3 Apply(AI.Geometry.Primitives.Vector3 fractional) { }
+        public AI.Geometry.Primitives.Vector3 ApplyWrapped(AI.Geometry.Primitives.Vector3 fractional) { }
+        public override string ToString() { }
+        public static AI.Solvers.Chem.Structures.SymmetryOperation Parse(string notation) { }
+        public static bool TryParse(string notation, out AI.Solvers.Chem.Structures.SymmetryOperation operation) { }
+        public static double Wrap(double value) { }
+    }
+    public sealed class UnitCell
+    {
+        public UnitCell(double a, double b, double c, double alpha = 90, double beta = 90, double gamma = 90) { }
+        public double A { get; }
+        public double Alpha { get; }
+        public double B { get; }
+        public double Beta { get; }
+        public double C { get; }
+        public AI.Units.Quantity CellVolume { get; }
+        public double Gamma { get; }
+        public AI.Units.Quantity LengthA { get; }
+        public AI.Units.Quantity LengthB { get; }
+        public AI.Units.Quantity LengthC { get; }
+        public AI.Solvers.Chem.Structures.CrystalSystem System { get; }
+        public AI.Geometry.Primitives.Vector3 VectorA { get; }
+        public AI.Geometry.Primitives.Vector3 VectorB { get; }
+        public AI.Geometry.Primitives.Vector3 VectorC { get; }
+        public double Volume { get; }
+        public double BraggAngle(int h, int k, int l, double wavelength) { }
+        public double Density(double formulaMass, int formulaUnits) { }
+        public double InterplanarSpacing(int h, int k, int l) { }
+        public AI.Geometry.Primitives.Vector3 MinimumImage(AI.Geometry.Primitives.Vector3 from, AI.Geometry.Primitives.Vector3 to) { }
+        public AI.Geometry.Primitives.Vector3 ReciprocalVector(int h, int k, int l) { }
+        public AI.Geometry.Primitives.Vector3 ToCartesian(AI.Geometry.Primitives.Vector3 fractional) { }
+        public AI.Geometry.Primitives.Vector3 ToFractional(AI.Geometry.Primitives.Vector3 cartesian) { }
+        public override string ToString() { }
+        public static AI.Solvers.Chem.Structures.UnitCell Cubic(double a) { }
+        public static AI.Solvers.Chem.Structures.UnitCell Hexagonal(double a, double c) { }
+        public static AI.Solvers.Chem.Structures.UnitCell Tetragonal(double a, double c) { }
+    }
+}

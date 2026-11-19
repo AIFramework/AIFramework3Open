@@ -1,0 +1,16 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Charts.Avalonia
+{
+    public class ChartViewControl : Avalonia.Controls.Control
+    {
+        public static readonly Avalonia.StyledProperty<AI.Charts.ChartView?> ChartProperty;
+        public ChartViewControl() { }
+        public AI.Charts.ChartView? Chart { get; set; }
+        protected override void OnPointerMoved(Avalonia.Input.PointerEventArgs e) { }
+        protected override void OnPointerPressed(Avalonia.Input.PointerPressedEventArgs e) { }
+        protected override void OnPointerReleased(Avalonia.Input.PointerReleasedEventArgs e) { }
+        protected override void OnPointerWheelChanged(Avalonia.Input.PointerWheelEventArgs e) { }
+        public override void Render(Avalonia.Media.DrawingContext context) { }
+    }
+}

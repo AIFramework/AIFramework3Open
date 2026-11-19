@@ -1,0 +1,271 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ImageEditor.Commands
+{
+    public sealed record EditCommand : System.IEquatable<AI.ImageEditor.Commands.EditCommand>
+    {
+        public EditCommand() { }
+        public uint Color { get; init; }
+        public bool Erase { get; init; }
+        public string? FilterId { get; init; }
+        public float Hardness { get; init; }
+        public int Height { get; init; }
+        public int Index { get; init; }
+        public string? LayerId { get; init; }
+        public double? LayerOpacity { get; init; }
+        public string? Name { get; init; }
+        public float Opacity { get; init; }
+        public System.Collections.Generic.Dictionary<string, double>? Params { get; init; }
+        public float[]? Points { get; init; }
+        public float Radius { get; init; }
+        public string Type { get; init; }
+        public bool? Visible { get; init; }
+        public int Width { get; init; }
+        public int X { get; init; }
+        public int Y { get; init; }
+    }
+    public static class EditCommandTypes
+    {
+        public const string Crop = "crop";
+        public const string Filter = "filter";
+        public const string LayerAdd = "layer.add";
+        public const string LayerMove = "layer.move";
+        public const string LayerProps = "layer.props";
+        public const string LayerRemove = "layer.remove";
+        public const string LayerSelect = "layer.select";
+        public const string Stroke = "stroke";
+    }
+}
+namespace AI.ImageEditor.Filters
+{
+    public sealed class BlurFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public BlurFilter(double radius = 2) { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public sealed class BrightnessContrastFilter : AI.ImageEditor.Filters.LutFilter
+    {
+        public BrightnessContrastFilter(double brightness = 0, double contrast = 0) { }
+        protected override byte Map(int value) { }
+    }
+    public static class Convolution
+    {
+        public static void Convolve3x3(AI.ImageEditor.Pixels.PixelBuffer buffer, double[] kernel, double bias = 0) { }
+        public static void GaussianBlur(AI.ImageEditor.Pixels.PixelBuffer buffer, double sigma) { }
+        public static byte ToByte(double v) { }
+    }
+    public sealed class DenoiseFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public DenoiseFilter(double strength = 1) { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public static class FilterCategories
+    {
+        public const string Convert = "Преобразования";
+        public const string Correction = "Коррекция";
+        public const string Effects = "Фильтры";
+    }
+    public sealed record FilterInfo : System.IEquatable<AI.ImageEditor.Filters.FilterInfo>
+    {
+        public FilterInfo(string Id, string Title, System.Collections.Generic.IReadOnlyList<AI.ImageEditor.Filters.FilterParameter> Parameters, string Category = "Фильтры") { }
+        public string Category { get; init; }
+        public string Id { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.ImageEditor.Filters.FilterParameter> Parameters { get; init; }
+        public string Title { get; init; }
+    }
+    public sealed record FilterParameter : System.IEquatable<AI.ImageEditor.Filters.FilterParameter>
+    {
+        public FilterParameter(string Name, string Title, double Min, double Max, double Default) { }
+        public double Default { get; init; }
+        public double Max { get; init; }
+        public double Min { get; init; }
+        public string Name { get; init; }
+        public string Title { get; init; }
+    }
+    public sealed class FilterParams
+    {
+        public static readonly AI.ImageEditor.Filters.FilterParams Empty;
+        public FilterParams(System.Collections.Generic.IReadOnlyDictionary<string, double> values) { }
+        public double Get(string name, double fallback) { }
+        public double Get(string name, double fallback, double min, double max) { }
+    }
+    public static class FilterRegistry
+    {
+        public static System.Collections.Generic.IReadOnlyList<AI.ImageEditor.Filters.FilterInfo> Available { get; }
+        public static AI.ImageEditor.Filters.IImageFilter? Create(string id, AI.ImageEditor.Filters.FilterParams? parameters = null) { }
+        public static void Register(AI.ImageEditor.Filters.FilterInfo info, System.Func<AI.ImageEditor.Filters.FilterParams, AI.ImageEditor.Filters.IImageFilter> factory) { }
+    }
+    public sealed class GammaFilter : AI.ImageEditor.Filters.LutFilter
+    {
+        public GammaFilter(double gamma = 1) { }
+        protected override byte Map(int value) { }
+    }
+    public sealed class GlowFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public GlowFilter(double threshold = 180, double radius = 8, double intensity = 0.8) { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public sealed class GrayscaleFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public GrayscaleFilter() { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public interface IImageFilter
+    {
+        void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer);
+    }
+    public sealed class InvertFilter : AI.ImageEditor.Filters.LutFilter
+    {
+        public InvertFilter() { }
+        protected override byte Map(int value) { }
+    }
+    public abstract class LutFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        protected LutFilter() { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+        protected abstract byte Map(int value);
+        protected static byte Clamp(double v) { }
+    }
+    public sealed class MedianFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public MedianFilter() { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public sealed class NonlinearContrastFilter : AI.ImageEditor.Filters.LutFilter
+    {
+        public NonlinearContrastFilter(double offset = -0.5, double betta = 10) { }
+        protected override byte Map(int value) { }
+    }
+    public sealed class RetinexFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public RetinexFilter(double sigma = 24, double strength = 0.8) { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public sealed class SaturationFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public SaturationFilter(double amount = 1) { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public sealed class SharpenFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public SharpenFilter(double sharp = 1) { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public sealed class SobelEdgeFilter : AI.ImageEditor.Filters.IImageFilter
+    {
+        public SobelEdgeFilter() { }
+        public void Apply(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+    public sealed class ThresholdFilter : AI.ImageEditor.Filters.LutFilter
+    {
+        public ThresholdFilter(double threshold = 128) { }
+        protected override byte Map(int value) { }
+    }
+}
+namespace AI.ImageEditor.Model
+{
+    public sealed class ImageDocument : System.IDisposable
+    {
+        public ImageDocument(int width, int height) { }
+        public AI.ImageEditor.Model.Layer? ActiveLayer { get; }
+        public string? ActiveLayerId { get; set; }
+        public int Height { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.ImageEditor.Model.Layer> Layers { get; }
+        public int Width { get; }
+        public AI.ImageEditor.Model.Layer AddLayer(string? name = null) { }
+        public bool Crop(SkiaSharp.SKRectI rect) { }
+        public void Dispose() { }
+        public byte[] Encode(SkiaSharp.SKEncodedImageFormat format = 4, int quality = 92) { }
+        public AI.ImageEditor.Model.Layer? Find(string layerId) { }
+        public SkiaSharp.SKBitmap Flatten() { }
+        public void InsertLayer(AI.ImageEditor.Model.Layer layer, int index) { }
+        public bool MoveLayer(string layerId, int newIndex) { }
+        public bool RemoveLayer(string layerId) { }
+        public void ResizeCanvasTo(int width, int height) { }
+        public static AI.ImageEditor.Model.ImageDocument FromBitmap(SkiaSharp.SKBitmap bitmap) { }
+    }
+    public sealed class Layer : System.IDisposable
+    {
+        public Layer(string id, string name, SkiaSharp.SKBitmap bitmap) { }
+        public Layer(string id, string name, int width, int height) { }
+        public SkiaSharp.SKBitmap Bitmap { get; }
+        public SkiaSharp.SKBlendMode BlendMode { get; set; }
+        public string Id { get; }
+        public string Name { get; set; }
+        public double Opacity { get; set; }
+        public bool Visible { get; set; }
+        public AI.ImageEditor.Model.Layer Clone(string newId) { }
+        public void Dispose() { }
+        public AI.ImageEditor.Pixels.PixelBuffer ReadPixels() { }
+        public void ReplaceBitmap(SkiaSharp.SKBitmap bitmap) { }
+        public void WritePixels(AI.ImageEditor.Pixels.PixelBuffer buffer) { }
+    }
+}
+namespace AI.ImageEditor.Ops
+{
+    public readonly struct BrushSettings : System.IEquatable<AI.ImageEditor.Ops.BrushSettings>
+    {
+        public BrushSettings(float Radius, SkiaSharp.SKColor Color, float Hardness = 1, float Opacity = 1, bool Erase = false) { }
+        public SkiaSharp.SKColor Color { get; init; }
+        public bool Erase { get; init; }
+        public float Hardness { get; init; }
+        public float Opacity { get; init; }
+        public float Radius { get; init; }
+    }
+    public static class Painter
+    {
+        public static void Stroke(AI.ImageEditor.Model.Layer layer, System.Collections.Generic.IReadOnlyList<AI.ImageEditor.Ops.StrokePoint> points, AI.ImageEditor.Ops.BrushSettings brush) { }
+    }
+    public readonly struct StrokePoint : System.IEquatable<AI.ImageEditor.Ops.StrokePoint>
+    {
+        public StrokePoint(float X, float Y) { }
+        public float X { get; init; }
+        public float Y { get; init; }
+    }
+}
+namespace AI.ImageEditor.Pixels
+{
+    public sealed class PixelBuffer
+    {
+        public const int Bpp = 4;
+        public PixelBuffer(int width, int height) { }
+        public PixelBuffer(int width, int height, byte[] data) { }
+        public byte[] Data { get; }
+        public int Height { get; }
+        public int Stride { get; }
+        public int Width { get; }
+        public AI.ImageEditor.Pixels.PixelBuffer Clone() { }
+        public int Index(int x, int y) { }
+        public SkiaSharp.SKBitmap ToBitmap() { }
+        public static AI.ImageEditor.Pixels.PixelBuffer FromBitmap(SkiaSharp.SKBitmap bitmap) { }
+        public static SkiaSharp.SKImageInfo InfoFor(int width, int height) { }
+    }
+}
+namespace AI.ImageEditor.Session
+{
+    public sealed class EditSession : System.IDisposable
+    {
+        public EditSession(AI.ImageEditor.Model.ImageDocument document, int undoLimit = 20) { }
+        public bool CanRedo { get; }
+        public bool CanUndo { get; }
+        public AI.ImageEditor.Model.ImageDocument Document { get; }
+        public int Version { get; }
+        public bool Apply(AI.ImageEditor.Commands.EditCommand command) { }
+        public void Dispose() { }
+        public byte[] Encode(SkiaSharp.SKEncodedImageFormat format = 4, int quality = 92) { }
+        public bool Redo() { }
+        public bool ReplaceActiveLayer(SkiaSharp.SKBitmap bitmap) { }
+        public bool Undo() { }
+        public static AI.ImageEditor.Session.EditSession FromBitmap(SkiaSharp.SKBitmap bitmap) { }
+    }
+    public sealed class UndoStep : System.IDisposable
+    {
+        public AI.ImageEditor.Commands.EditCommand? Command { get; }
+        public void Dispose() { }
+        public bool Restore(AI.ImageEditor.Model.ImageDocument document) { }
+        public static AI.ImageEditor.Session.UndoStep ForLayerPixels(AI.ImageEditor.Model.Layer layer, AI.ImageEditor.Commands.EditCommand command) { }
+        public static AI.ImageEditor.Session.UndoStep ForRestoredLayer(AI.ImageEditor.Model.Layer backup, int index, AI.ImageEditor.Commands.EditCommand command) { }
+        public static AI.ImageEditor.Session.UndoStep ForStructure(AI.ImageEditor.Model.ImageDocument document, AI.ImageEditor.Commands.EditCommand command, System.Func<AI.ImageEditor.Model.ImageDocument, bool> restore) { }
+        public static AI.ImageEditor.Session.UndoStep ForWholeDocument(AI.ImageEditor.Model.ImageDocument document, AI.ImageEditor.Commands.EditCommand command) { }
+    }
+}

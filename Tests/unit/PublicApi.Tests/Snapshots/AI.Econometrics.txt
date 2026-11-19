@@ -1,0 +1,631 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AI.Economics")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Econometrics
+{
+    public sealed record BalanceCheck : System.IEquatable<AI.Econometrics.BalanceCheck>
+    {
+        public BalanceCheck(string Variable, double BeforeTreated, double BeforeControl, double AfterControl, double StandardizedBefore, double StandardizedAfter) { }
+        public double AfterControl { get; init; }
+        public double BeforeControl { get; init; }
+        public double BeforeTreated { get; init; }
+        public double Improvement { get; }
+        public bool IsBalanced { get; }
+        public double StandardizedAfter { get; init; }
+        public double StandardizedBefore { get; init; }
+        public string Variable { get; init; }
+    }
+    public static class CausalForest
+    {
+        public static AI.Econometrics.CausalForestResult Fit(AI.DataStructs.Algebraic.Matrix features, AI.DataStructs.Algebraic.Vector treatment, AI.DataStructs.Algebraic.Vector outcome, System.Collections.Generic.IReadOnlyList<string>? names = null, int trees = 200, int minLeaf = 10, int maxDepth = 4, int seed = 42) { }
+    }
+    public sealed record CausalForestResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.CausalForestResult>
+    {
+        public CausalForestResult() { }
+        public double AverageEffect { get; init; }
+        public double CalibrationSlope { get; init; }
+        public double EffectSpread { get; init; }
+        public AI.DataStructs.Algebraic.Vector Effects { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.EffectGroup> Groups { get; init; }
+        public bool HasHeterogeneity { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Variable",
+                "Importance"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double>> Importance { get; init; }
+        public int Observations { get; init; }
+        public int Trees { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record Coefficient : System.IEquatable<AI.Econometrics.Coefficient>
+    {
+        public Coefficient(string Name, double Estimate, double StandardError, double TStatistic, double PValue, double ConfidenceLow, double ConfidenceHigh) { }
+        public double ConfidenceHigh { get; init; }
+        public double ConfidenceLow { get; init; }
+        public double Estimate { get; init; }
+        public bool IsSignificant { get; }
+        public string Name { get; init; }
+        public double PValue { get; init; }
+        public double StandardError { get; init; }
+        public string Stars { get; }
+        public double TStatistic { get; init; }
+    }
+    public static class Cointegration
+    {
+        public static AI.Econometrics.VecmResult ErrorCorrection(AI.DataStructs.Algebraic.Matrix data, int rank = 0, int lags = 1, System.Collections.Generic.IReadOnlyList<string>? names = null) { }
+        public static AI.Econometrics.JohansenResult Johansen(AI.DataStructs.Algebraic.Matrix data, int lags = 1, System.Collections.Generic.IReadOnlyList<string>? names = null) { }
+    }
+    public enum DeterministicTerms
+    {
+        None = 0,
+        Constant = 1,
+        ConstantAndTrend = 2,
+    }
+    public sealed record DiagnosticReport : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.DiagnosticReport>
+    {
+        public DiagnosticReport() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.VarianceInflation> Collinearity { get; init; }
+        public double DurbinWatson { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.DiagnosticTest> Failed { get; }
+        public string Model { get; init; }
+        public int Observations { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.DiagnosticTest> Tests { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record DiagnosticTest : System.IEquatable<AI.Econometrics.DiagnosticTest>
+    {
+        public DiagnosticTest(string Name, string NullHypothesis, double Statistic, double PValue, bool Rejected, string Consequence) { }
+        public string Consequence { get; init; }
+        public string Name { get; init; }
+        public string NullHypothesis { get; init; }
+        public double PValue { get; init; }
+        public bool Rejected { get; init; }
+        public double Statistic { get; init; }
+    }
+    public static class Diagnostics
+    {
+        public static AI.Econometrics.DiagnosticTest BreuschPagan(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector residuals) { }
+        public static AI.Econometrics.DiagnosticTest Chow(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y, int breakPoint) { }
+        public static double DurbinWatsonStatistic(AI.DataStructs.Algebraic.Vector residuals) { }
+        public static AI.Econometrics.DiagnosticTest JarqueBera(AI.DataStructs.Algebraic.Vector residuals) { }
+        public static AI.Econometrics.DiagnosticTest Reset(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y) { }
+        public static AI.Econometrics.DiagnosticReport Run(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y, System.Collections.Generic.IReadOnlyList<string>? names = null, int? breakPoint = default) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Econometrics.VarianceInflation> VarianceInflationFactors(AI.DataStructs.Algebraic.Matrix x, System.Collections.Generic.IReadOnlyList<string>? names = null) { }
+        public static AI.Econometrics.DiagnosticTest White(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector residuals) { }
+    }
+    public sealed record DidObservation : System.IEquatable<AI.Econometrics.DidObservation>
+    {
+        public DidObservation(int Unit, int Period, double Outcome, int FirstTreatedPeriod) { }
+        public int FirstTreatedPeriod { get; init; }
+        public bool IsTreated { get; }
+        public double Outcome { get; init; }
+        public int Period { get; init; }
+        public int RelativePeriod { get; }
+        public int Unit { get; init; }
+    }
+    public sealed record DidResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.DidResult>
+    {
+        public DidResult() { }
+        public int Cohorts { get; init; }
+        public double EstimatorGap { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.EventStudyPoint> EventStudy { get; init; }
+        public int NeverTreated { get; init; }
+        public int Observations { get; init; }
+        public double PValue { get; }
+        public double PreTrendPValue { get; init; }
+        public double RobustAtt { get; init; }
+        public double RobustStandardError { get; init; }
+        public int Treated { get; init; }
+        public double TwoWayFixedEffects { get; init; }
+        public double TwoWayStandardError { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class DifferenceInDifferences
+    {
+        public static AI.Econometrics.DidResult Estimate(System.Collections.Generic.IReadOnlyList<AI.Econometrics.DidObservation> observations, int bootstrapSamples = 200, int seed = 42) { }
+    }
+    public sealed record DonorWeight : System.IEquatable<AI.Econometrics.DonorWeight>
+    {
+        public DonorWeight(string Donor, double Weight) { }
+        public string Donor { get; init; }
+        public double Weight { get; init; }
+    }
+    public static class DynamicPanel
+    {
+        public static AI.Econometrics.DynamicPanelResult ArellanoBond(AI.Econometrics.PanelDataset dataset, int maxLags = 3) { }
+    }
+    public sealed record DynamicPanelResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.DynamicPanelResult>
+    {
+        public DynamicPanelResult() { }
+        public double Ar2PValue { get; init; }
+        public double ArellanoBondAr2 { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> Coefficients { get; init; }
+        public int Instruments { get; init; }
+        public bool IsInBounds { get; }
+        public double LongRunMultiplier { get; }
+        public int Observations { get; init; }
+        public double Persistence { get; init; }
+        public double PooledPersistence { get; init; }
+        public double SarganPValue { get; init; }
+        public double SarganStatistic { get; init; }
+        public int Units { get; init; }
+        public double WithinPersistence { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record EffectGroup : System.IEquatable<AI.Econometrics.EffectGroup>
+    {
+        public EffectGroup(int Group, double PredictedEffect, double ActualEffect, int Size) { }
+        public double ActualEffect { get; init; }
+        public int Group { get; init; }
+        public double PredictedEffect { get; init; }
+        public int Size { get; init; }
+    }
+    public sealed record EventStudyPoint : System.IEquatable<AI.Econometrics.EventStudyPoint>
+    {
+        public EventStudyPoint(int RelativePeriod, double Estimate, double StandardError, int Observations) { }
+        public double ConfidenceHigh { get; }
+        public double ConfidenceLow { get; }
+        public double Estimate { get; init; }
+        public bool IsSignificant { get; }
+        public int Observations { get; init; }
+        public int RelativePeriod { get; init; }
+        public double StandardError { get; init; }
+    }
+    public sealed record FirstStage : System.IEquatable<AI.Econometrics.FirstStage>
+    {
+        public FirstStage(string Variable, double FStatistic, double PValue, double PartialRSquared) { }
+        public double FStatistic { get; init; }
+        public bool IsWeak { get; }
+        public double PValue { get; init; }
+        public double PartialRSquared { get; init; }
+        public string Variable { get; init; }
+    }
+    public static class Garch
+    {
+        public static double ArchTest(AI.DataStructs.Algebraic.Vector series, int lags, out double pValue) { }
+        public static AI.Econometrics.GarchResult Fit(AI.DataStructs.Algebraic.Vector returns, AI.Econometrics.GarchModel model = 0, int horizon = 20) { }
+    }
+    public enum GarchModel
+    {
+        Garch = 0,
+        GjrGarch = 1,
+        Egarch = 2,
+    }
+    public sealed record GarchResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.GarchResult>
+    {
+        public GarchResult() { }
+        public double Aic { get; init; }
+        public double Alpha { get; init; }
+        public double ArchPValue { get; init; }
+        public double ArchStatistic { get; init; }
+        public double Beta { get; init; }
+        public double Bic { get; init; }
+        public AI.DataStructs.Algebraic.Vector ConditionalVolatility { get; init; }
+        public AI.DataStructs.Algebraic.Vector Forecast { get; init; }
+        public double Gamma { get; init; }
+        public double HalfLife { get; }
+        public bool IsStationary { get; }
+        public double LogLikelihood { get; init; }
+        public double LongRunVolatility { get; init; }
+        public double Mean { get; init; }
+        public AI.Econometrics.GarchModel Model { get; init; }
+        public int Observations { get; init; }
+        public double Omega { get; init; }
+        public double Persistence { get; init; }
+        public AI.DataStructs.Algebraic.Vector StandardizedResiduals { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record GrangerTest : System.IEquatable<AI.Econometrics.GrangerTest>
+    {
+        public GrangerTest(string From, string To, double FStatistic, double PValue) { }
+        public bool Causes { get; }
+        public double FStatistic { get; init; }
+        public string From { get; init; }
+        public double PValue { get; init; }
+        public string To { get; init; }
+    }
+    public sealed record HausmanResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.HausmanResult>
+    {
+        public HausmanResult() { }
+        public int DegreesOfFreedom { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Variable",
+                "Fixed",
+                "Random",
+                "Difference"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double, double, double>> Differences { get; init; }
+        public int Excluded { get; init; }
+        public bool IsDefined { get; }
+        public double PValue { get; init; }
+        public bool PrefersFixedEffects { get; }
+        public double Statistic { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class InstrumentalVariables
+    {
+        public static AI.Econometrics.IvResult GeneralizedMethodOfMoments(AI.DataStructs.Algebraic.Matrix endogenous, AI.DataStructs.Algebraic.Matrix? exogenous, AI.DataStructs.Algebraic.Matrix instruments, AI.DataStructs.Algebraic.Vector y, System.Collections.Generic.IReadOnlyList<string>? endogenousNames = null, System.Collections.Generic.IReadOnlyList<string>? exogenousNames = null) { }
+        public static AI.Econometrics.IvResult TwoStage(AI.DataStructs.Algebraic.Matrix endogenous, AI.DataStructs.Algebraic.Matrix? exogenous, AI.DataStructs.Algebraic.Matrix instruments, AI.DataStructs.Algebraic.Vector y, System.Collections.Generic.IReadOnlyList<string>? endogenousNames = null, System.Collections.Generic.IReadOnlyList<string>? exogenousNames = null, bool robust = true) { }
+    }
+    public sealed record IvResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.IvResult>
+    {
+        public IvResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> Coefficients { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.FirstStage> FirstStages { get; init; }
+        public bool HasWeakInstruments { get; }
+        public double HausmanPValue { get; init; }
+        public double HausmanStatistic { get; init; }
+        public string Model { get; init; }
+        public int Observations { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> OrdinaryLeastSquares { get; init; }
+        public double OveridentificationPValue { get; init; }
+        public double OveridentificationStatistic { get; init; }
+        public int OveridentifyingRestrictions { get; init; }
+        public AI.DataStructs.Algebraic.Vector Residuals { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record JohansenResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.JohansenResult>
+    {
+        public JohansenResult() { }
+        public AI.DataStructs.Algebraic.Matrix CointegratingVectors { get; init; }
+        public int Lags { get; init; }
+        public int Observations { get; init; }
+        public int Rank { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.JohansenRow> Rows { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Variables { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record JohansenRow : System.IEquatable<AI.Econometrics.JohansenRow>
+    {
+        public JohansenRow(int Rank, double Eigenvalue, double TraceStatistic, double TraceCritical, double MaxEigenStatistic, double MaxEigenCritical) { }
+        public double Eigenvalue { get; init; }
+        public double MaxEigenCritical { get; init; }
+        public bool MaxEigenRejected { get; }
+        public double MaxEigenStatistic { get; init; }
+        public int Rank { get; init; }
+        public double TraceCritical { get; init; }
+        public bool TraceRejected { get; }
+        public double TraceStatistic { get; init; }
+    }
+    public static class LimitedDependent
+    {
+        public static AI.Econometrics.LimitedDependentResult Fit(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y, AI.Econometrics.LimitedDependentModel model, System.Collections.Generic.IReadOnlyList<string>? names = null, double censorPoint = 0) { }
+    }
+    public enum LimitedDependentModel
+    {
+        Logit = 0,
+        Probit = 1,
+        Tobit = 2,
+        Poisson = 3,
+        NegativeBinomial = 4,
+    }
+    public sealed record LimitedDependentResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.LimitedDependentResult>
+    {
+        public LimitedDependentResult() { }
+        public double Accuracy { get; init; }
+        public double Aic { get; init; }
+        public double Bic { get; init; }
+        public double CensoredShare { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> Coefficients { get; init; }
+        public bool Converged { get; init; }
+        public AI.DataStructs.Algebraic.Vector Fitted { get; init; }
+        public double LogLikelihood { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Variable",
+                "Effect"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double>> MarginalEffects { get; init; }
+        public double McFaddenRSquared { get; }
+        public AI.Econometrics.LimitedDependentModel Model { get; init; }
+        public double NullLogLikelihood { get; init; }
+        public int Observations { get; init; }
+        public double ScaleParameter { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class LinearRegression
+    {
+        public static AI.Econometrics.RegressionResult Fit(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y, System.Collections.Generic.IReadOnlyList<string>? names = null, AI.Econometrics.RegressionOptions? options = null) { }
+    }
+    public sealed record MatchingResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.MatchingResult>
+    {
+        public MatchingResult() { }
+        public double AverageTreatmentEffectOnTreated { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.BalanceCheck> Balance { get; init; }
+        public double Caliper { get; init; }
+        public double CommonSupport { get; }
+        public int Controls { get; init; }
+        public int Matched { get; init; }
+        public double NaiveDifference { get; init; }
+        public double PValue { get; }
+        public AI.Econometrics.LimitedDependentResult? PropensityModel { get; init; }
+        public double StandardError { get; init; }
+        public int Treated { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class PanelData
+    {
+        public static AI.Econometrics.PanelResult Fit(AI.Econometrics.PanelDataset dataset, AI.Econometrics.PanelEstimator estimator = 1, bool clusterByUnit = true) { }
+        public static AI.Econometrics.HausmanResult Hausman(AI.Econometrics.PanelResult fixedEffects, AI.Econometrics.PanelResult randomEffects) { }
+    }
+    public sealed record PanelDataset : System.IEquatable<AI.Econometrics.PanelDataset>
+    {
+        public PanelDataset() { }
+        public bool IsBalanced { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Names { get; init; }
+        public int Observations { get; }
+        public int PeriodCount { get; }
+        public System.Collections.Generic.IReadOnlyList<int> Periods { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Regressors { get; init; }
+        public AI.DataStructs.Algebraic.Vector Response { get; init; }
+        public int UnitCount { get; }
+        public System.Collections.Generic.IReadOnlyList<int> Units { get; init; }
+        public void Validate() { }
+    }
+    public enum PanelEstimator
+    {
+        Pooled = 0,
+        FixedEffects = 1,
+        TwoWayFixedEffects = 2,
+        RandomEffects = 3,
+        FirstDifference = 4,
+        BetweenEffects = 5,
+    }
+    public sealed record PanelResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.PanelResult>
+    {
+        public PanelResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> Coefficients { get; init; }
+        public AI.Econometrics.PanelEstimator Estimator { get; init; }
+        public int Observations { get; init; }
+        public int Periods { get; init; }
+        public double RSquared { get; init; }
+        public double ResidualScale { get; init; }
+        public AI.DataStructs.Algebraic.Vector Residuals { get; init; }
+        public double Rho { get; }
+        public double SigmaError { get; init; }
+        public double SigmaUnit { get; init; }
+        public double Theta { get; init; }
+        public int Units { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class PropensityScoreMatching
+    {
+        public static AI.Econometrics.MatchingResult Estimate(AI.DataStructs.Algebraic.Matrix covariates, AI.DataStructs.Algebraic.Vector treatment, AI.DataStructs.Algebraic.Vector outcome, System.Collections.Generic.IReadOnlyList<string>? names = null, double caliperFactor = 0.2, int neighbours = 1) { }
+    }
+    public sealed record QuantileProcessResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.QuantileProcessResult>
+    {
+        public QuantileProcessResult() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> LeastSquares { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.QuantileRegressionResult> Quantiles { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Variables { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+        public AI.DataStructs.Algebraic.Vector Path(string variable) { }
+    }
+    public static class QuantileRegression
+    {
+        public static AI.Econometrics.QuantileRegressionResult Fit(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y, double quantile = 0.5, System.Collections.Generic.IReadOnlyList<string>? names = null, int bootstrapSamples = 300, int seed = 42) { }
+        public static AI.Econometrics.QuantileProcessResult FitProcess(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y, System.Collections.Generic.IReadOnlyList<double>? quantiles = null, System.Collections.Generic.IReadOnlyList<string>? names = null, int bootstrapSamples = 200, int seed = 42) { }
+    }
+    public sealed record QuantileRegressionResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.QuantileRegressionResult>
+    {
+        public QuantileRegressionResult() { }
+        public int BootstrapSamples { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> Coefficients { get; init; }
+        public double Objective { get; init; }
+        public int Observations { get; init; }
+        public double PseudoRSquared { get; init; }
+        public double Quantile { get; init; }
+        public AI.DataStructs.Algebraic.Vector Residuals { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record RddObservation : System.IEquatable<AI.Econometrics.RddObservation>
+    {
+        public RddObservation(double Running, double Outcome) { }
+        public double Outcome { get; init; }
+        public double Running { get; init; }
+    }
+    public sealed record RddResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.RddResult>
+    {
+        public RddResult() { }
+        public double Bandwidth { get; init; }
+        public double ConfidenceHigh { get; }
+        public double ConfidenceLow { get; }
+        public double Cutoff { get; init; }
+        public double DensityPValue { get; init; }
+        public double DensityStatistic { get; init; }
+        public double Effect { get; init; }
+        public double LeftLimit { get; init; }
+        public int LeftObservations { get; init; }
+        public double PValue { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Cutoff",
+                "Effect",
+                "StandardError"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double, double>> Placebo { get; init; }
+        public double RightLimit { get; init; }
+        public int RightObservations { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Bandwidth",
+                "Effect",
+                "StandardError"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double, double>> Sensitivity { get; init; }
+        public double StandardError { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class RegressionDiscontinuity
+    {
+        public static AI.Econometrics.RddResult Estimate(System.Collections.Generic.IReadOnlyList<AI.Econometrics.RddObservation> observations, double cutoff = 0, double bandwidth = 0) { }
+    }
+    public sealed record RegressionOptions : System.IEquatable<AI.Econometrics.RegressionOptions>
+    {
+        public RegressionOptions() { }
+        public bool AddIntercept { get; init; }
+        public System.Collections.Generic.IReadOnlyList<int>? Clusters { get; init; }
+        public int Lags { get; init; }
+        public double Ridge { get; init; }
+        public AI.Econometrics.RobustVariance Variance { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double>? Weights { get; init; }
+    }
+    public sealed record RegressionResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.RegressionResult>
+    {
+        public RegressionResult() { }
+        public double AdjustedRSquared { get; init; }
+        public double Aic { get; init; }
+        public double Bic { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> Coefficients { get; init; }
+        public AI.DataStructs.Algebraic.Matrix CovarianceMatrix { get; init; }
+        public double FPValue { get; init; }
+        public double FStatistic { get; init; }
+        public AI.DataStructs.Algebraic.Vector Fitted { get; init; }
+        public double LogLikelihood { get; init; }
+        public string Model { get; init; }
+        public int Observations { get; init; }
+        public int Parameters { get; init; }
+        public double RSquared { get; init; }
+        public int ResidualDegreesOfFreedom { get; }
+        public AI.DataStructs.Algebraic.Vector Residuals { get; init; }
+        public double Sigma { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> Significant { get; }
+        public AI.Econometrics.RobustVariance Variance { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public enum RobustVariance
+    {
+        Classical = 0,
+        Hc0 = 1,
+        Hc1 = 2,
+        Hc2 = 3,
+        Hc3 = 4,
+        NeweyWest = 5,
+        Clustered = 6,
+    }
+    public static class StateSpace
+    {
+        public static AI.Econometrics.StateSpaceResult Fit(AI.DataStructs.Algebraic.Vector series, AI.Econometrics.StateSpaceModel model = 0, int horizon = 12) { }
+    }
+    public enum StateSpaceModel
+    {
+        LocalLevel = 0,
+        LocalLinearTrend = 1,
+    }
+    public sealed record StateSpaceResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.StateSpaceResult>
+    {
+        public StateSpaceResult() { }
+        public double Aic { get; init; }
+        public AI.DataStructs.Algebraic.Vector FilteredLevel { get; init; }
+        public AI.DataStructs.Algebraic.Vector Forecast { get; init; }
+        public AI.DataStructs.Algebraic.Vector ForecastLower { get; init; }
+        public AI.DataStructs.Algebraic.Vector ForecastUpper { get; init; }
+        public AI.DataStructs.Algebraic.Vector Innovations { get; init; }
+        public AI.DataStructs.Algebraic.Vector Level { get; init; }
+        public double LevelVariance { get; init; }
+        public double LjungBox { get; init; }
+        public double LjungBoxPValue { get; init; }
+        public double LogLikelihood { get; init; }
+        public AI.Econometrics.StateSpaceModel Model { get; init; }
+        public double ObservationVariance { get; init; }
+        public int Observations { get; init; }
+        public double SignalToNoise { get; }
+        public AI.DataStructs.Algebraic.Vector Slope { get; init; }
+        public double SlopeVariance { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record StationarityReport : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.StationarityReport>
+    {
+        public StationarityReport() { }
+        public AI.Econometrics.UnitRootTest AugmentedDickeyFuller { get; init; }
+        public int IntegrationOrder { get; init; }
+        public AI.Econometrics.UnitRootTest Kpss { get; init; }
+        public int Observations { get; init; }
+        public string Series { get; init; }
+        public AI.Econometrics.DeterministicTerms Terms { get; init; }
+        public string Verdict { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class StationarityTests
+    {
+        public static AI.Econometrics.StationarityReport Analyze(AI.DataStructs.Algebraic.Vector series, AI.Econometrics.DeterministicTerms terms = 1, int lags = -1, string name = "ряд") { }
+        public static AI.Econometrics.UnitRootTest DickeyFuller(AI.DataStructs.Algebraic.Vector series, AI.Econometrics.DeterministicTerms terms = 1, int lags = -1) { }
+        public static AI.Econometrics.UnitRootTest Kpss(AI.DataStructs.Algebraic.Vector series, AI.Econometrics.DeterministicTerms terms = 1, int lags = -1) { }
+    }
+    public static class SyntheticControl
+    {
+        public static AI.Econometrics.SyntheticControlResult Build(AI.DataStructs.Algebraic.Vector treated, AI.DataStructs.Algebraic.Matrix donors, System.Collections.Generic.IReadOnlyList<string>? donorNames, int treatmentPeriod, string unitName = "объект") { }
+    }
+    public sealed record SyntheticControlResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.SyntheticControlResult>
+    {
+        public SyntheticControlResult() { }
+        public int ActiveDonors { get; }
+        public AI.DataStructs.Algebraic.Vector Actual { get; init; }
+        public double AverageEffect { get; init; }
+        public AI.DataStructs.Algebraic.Vector Gap { get; init; }
+        public double PValue { get; init; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Donor",
+                "Ratio"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, double>> Placebo { get; init; }
+        public double PostTreatmentRmspe { get; init; }
+        public int PreTreatmentPeriods { get; init; }
+        public double PreTreatmentRmspe { get; init; }
+        public double RmspeRatio { get; }
+        public AI.DataStructs.Algebraic.Vector Synthetic { get; init; }
+        public string Unit { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.DonorWeight> Weights { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record UnitRootTest : System.IEquatable<AI.Econometrics.UnitRootTest>
+    {
+        public UnitRootTest(string Name, string NullHypothesis, double Statistic, double CriticalOnePercent, double CriticalFivePercent, double CriticalTenPercent, bool Rejected, int Lags) { }
+        public double CriticalFivePercent { get; init; }
+        public double CriticalOnePercent { get; init; }
+        public double CriticalTenPercent { get; init; }
+        public int Lags { get; init; }
+        public string Name { get; init; }
+        public string NullHypothesis { get; init; }
+        public bool Rejected { get; init; }
+        public double Statistic { get; init; }
+    }
+    public sealed record VarResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.VarResult>
+    {
+        public VarResult() { }
+        public double Aic { get; init; }
+        public double Bic { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Coefficients { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.GrangerTest> Granger { get; init; }
+        public bool IsStable { get; }
+        public double LogLikelihood { get; init; }
+        public int Observations { get; init; }
+        public int Order { get; init; }
+        public AI.DataStructs.Algebraic.Matrix ResidualCovariance { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Residuals { get; init; }
+        public double SpectralRadius { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Variables { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record VarianceInflation : System.IEquatable<AI.Econometrics.VarianceInflation>
+    {
+        public VarianceInflation(string Variable, double Vif, double RSquared) { }
+        public double IntervalInflation { get; }
+        public bool IsSevere { get; }
+        public double RSquared { get; init; }
+        public string Variable { get; init; }
+        public double Vif { get; init; }
+    }
+    public sealed record VecmResult : AI.Insights.IInterpretable, System.IEquatable<AI.Econometrics.VecmResult>
+    {
+        public VecmResult() { }
+        public AI.DataStructs.Algebraic.Matrix Adjustment { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Econometrics.Coefficient> AdjustmentCoefficients { get; init; }
+        public AI.DataStructs.Algebraic.Matrix Cointegrating { get; init; }
+        public AI.DataStructs.Algebraic.Vector EquilibriumError { get; init; }
+        public double HalfLife { get; init; }
+        public int Lags { get; init; }
+        public int Observations { get; init; }
+        public int Rank { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Variables { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class VectorAutoregression
+    {
+        public static AI.Econometrics.VarResult Fit(AI.DataStructs.Algebraic.Matrix data, int order = 1, System.Collections.Generic.IReadOnlyList<string>? names = null) { }
+        public static double[][][] ImpulseResponse(AI.Econometrics.VarResult result, int horizon = 20) { }
+        public static AI.Econometrics.VarResult SelectOrder(AI.DataStructs.Algebraic.Matrix data, int maxOrder = 6, System.Collections.Generic.IReadOnlyList<string>? names = null, bool useBic = false) { }
+        public static AI.DataStructs.Algebraic.Matrix VarianceDecomposition(AI.Econometrics.VarResult result, int horizon = 20) { }
+    }
+}

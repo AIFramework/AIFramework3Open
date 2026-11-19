@@ -1,0 +1,2082 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.BackEnds.DSP.NWaves.Audio
+{
+    [System.Serializable]
+    public static class ByteConverter
+    {
+        public static void FromFloats16Bit(float[][] floats, byte[] bytes, bool normalized = true, bool bigEndian = false) { }
+        public static void FromFloats8Bit(float[][] floats, byte[] bytes, bool normalized = true) { }
+        public static void ToFloats16Bit(byte[] bytes, float[][] floats, bool normalize = true, bool bigEndian = false) { }
+        public static void ToFloats8Bit(byte[] bytes, float[][] floats, bool normalize = true) { }
+    }
+    [System.Serializable]
+    public enum Channels
+    {
+        Left = 0,
+        Right = 1,
+        Sum = 253,
+        Average = 254,
+        Interleave = 255,
+    }
+    [System.Serializable]
+    public class WaveFile : AI.BackEnds.DSP.NWaves.Audio.Interfaces.IAudioContainer
+    {
+        public short[] SupportedBitDepths;
+        public WaveFile(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, short bitsPerSample = 16) { }
+        public WaveFile(System.Collections.Generic.IList<AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal> signals, short bitsPerSample = 16) { }
+        public WaveFile(System.IO.Stream waveStream, bool normalized = true) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal this[AI.BackEnds.DSP.NWaves.Audio.Channels channel] { get; }
+        public System.Collections.Generic.List<AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal> Signals { get; }
+        public AI.BackEnds.DSP.NWaves.Audio.WaveFormat WaveFmt { get; }
+        public void SaveTo(System.IO.Stream waveStream, bool normalized = true) { }
+    }
+    [System.Serializable]
+    public struct WaveFormat
+    {
+        public short Align;
+        public short AudioFormat;
+        public short BitsPerSample;
+        public int ByteRate;
+        public short ChannelCount;
+        public int SamplingRate;
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Audio.Interfaces
+{
+    public interface IAudioContainer
+    {
+        AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal this[AI.BackEnds.DSP.NWaves.Audio.Channels channel] { get; }
+        System.Collections.Generic.List<AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal> Signals { get; }
+    }
+    public interface IAudioPlayer
+    {
+        float Volume { get; set; }
+        void Pause();
+        System.Threading.Tasks.Task PlayAsync(string source, int startPos = 0, int endPos = -1);
+        System.Threading.Tasks.Task PlayAsync(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int startPos = 0, int endPos = -1, short bitDepth = 16);
+        void Resume();
+        void Stop();
+    }
+    public interface IAudioRecorder
+    {
+        void StartRecording(int samplingRate, short channelCount, short bitsPerSample);
+        void StopRecording(string destination);
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Audio.Mci
+{
+    [System.Serializable]
+    public static class Mci
+    {
+        public static int Execute(string command) { }
+        public static uint GetErrorString(int dwError, System.Text.StringBuilder lpstrBuffer, uint wLength) { }
+        public static int SendString(string command, System.Text.StringBuilder returnValue, int returnLength, int winHandle) { }
+    }
+    [System.Serializable]
+    public class MciAudioPlayer : AI.BackEnds.DSP.NWaves.Audio.Interfaces.IAudioPlayer
+    {
+        public MciAudioPlayer() { }
+        public float Volume { get; set; }
+        public void Pause() { }
+        public System.Threading.Tasks.Task PlayAsync(string source, int startPos = 0, int endPos = -1) { }
+        public System.Threading.Tasks.Task PlayAsync(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int startPos = 0, int endPos = -1, short bitDepth = 16) { }
+        public void Resume() { }
+        public void Stop() { }
+    }
+    [System.Serializable]
+    public class MciAudioRecorder : AI.BackEnds.DSP.NWaves.Audio.Interfaces.IAudioRecorder
+    {
+        public MciAudioRecorder() { }
+        public void StartRecording(int samplingRate = 44100, short channelCount = 1, short bitsPerSample = 16) { }
+        public void StopRecording(string destination) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.Adaptive
+{
+    [System.Serializable]
+    public abstract class AdaptiveFilter : AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter
+    {
+        public AdaptiveFilter(int order) { }
+        public void Init(float[] weights) { }
+        public abstract float Process(float input, float desired);
+    }
+    [System.Serializable]
+    public class LmfFilter : AI.BackEnds.DSP.NWaves.Filters.Adaptive.AdaptiveFilter
+    {
+        public LmfFilter(int order, float mu = 0.75, float leakage = 0) { }
+        public override float Process(float input, float desired) { }
+    }
+    [System.Serializable]
+    public class LmsFilter : AI.BackEnds.DSP.NWaves.Filters.Adaptive.AdaptiveFilter
+    {
+        public LmsFilter(int order, float mu = 0.75, float leakage = 0) { }
+        public override float Process(float input, float desired) { }
+    }
+    [System.Serializable]
+    public class NlmfFilter : AI.BackEnds.DSP.NWaves.Filters.Adaptive.AdaptiveFilter
+    {
+        public NlmfFilter(int order, float mu = 0.75, float eps = 1, float leakage = 0) { }
+        public override float Process(float input, float desired) { }
+    }
+    [System.Serializable]
+    public class NlmsFilter : AI.BackEnds.DSP.NWaves.Filters.Adaptive.AdaptiveFilter
+    {
+        public NlmsFilter(int order, float mu = 0.75, float eps = 1, float leakage = 0) { }
+        public override float Process(float input, float desired) { }
+    }
+    [System.Serializable]
+    public class RlsFilter : AI.BackEnds.DSP.NWaves.Filters.Adaptive.AdaptiveFilter
+    {
+        public RlsFilter(int order, float lambda = 0.99, float initCoeff = 100) { }
+        public override float Process(float input, float desired) { }
+    }
+    [System.Serializable]
+    public class SignLmsFilter : AI.BackEnds.DSP.NWaves.Filters.Adaptive.AdaptiveFilter
+    {
+        public SignLmsFilter(int order, float mu = 0.75, float leakage = 0) { }
+        public override float Process(float input, float desired) { }
+    }
+    [System.Serializable]
+    public class VariableStepLmsFilter : AI.BackEnds.DSP.NWaves.Filters.Adaptive.AdaptiveFilter
+    {
+        public VariableStepLmsFilter(int order, float[] mu = null, float leakage = 0) { }
+        public override float Process(float input, float desired) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.Base
+{
+    [System.Serializable]
+    public class FilterChain : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        public FilterChain(System.Collections.Generic.IEnumerable<AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter> filters = null) { }
+        public FilterChain(System.Collections.Generic.IEnumerable<AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction> tfs) { }
+        public void Add(AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter filter) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public void Insert(int idx, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter filter) { }
+        public float Process(float input) { }
+        public void RemoveAt(int idx) { }
+        public void Reset() { }
+    }
+    [System.Serializable]
+    public static class FilterExtensions
+    {
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Process(this AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter filter, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal input) { }
+        public static void Process(this AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter filter, float[] input, float[] output, int count = 0, int inputPos = 0, int outputPos = 0) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ProcessChunks(this AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter filter, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int frameSize = 4096) { }
+    }
+    [System.Serializable]
+    public enum FilteringMethod
+    {
+        Auto = 0,
+        DifferenceEquation = 1,
+        OverlapAdd = 2,
+        OverlapSave = 3,
+        Custom = 4,
+    }
+    [System.Serializable]
+    public class FirFilter : AI.BackEnds.DSP.NWaves.Filters.Base.LtiFilter
+    {
+        protected readonly float[] _b;
+        protected float[] _delayLine;
+        protected int _delayLineOffset;
+        protected int _kernelSize;
+        protected AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction _tf;
+        public FirFilter(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf) { }
+        public FirFilter(System.Collections.Generic.IEnumerable<double> kernel) { }
+        public FirFilter(System.Collections.Generic.IEnumerable<float> kernel) { }
+        public float[] Kernel { get; }
+        public int KernelSizeForBlockConvolution { get; set; }
+        public override AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction Tf { get; protected set; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyFilterDirectly(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public override AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public void ChangeKernel(float[] kernel) { }
+        public override float Process(float sample) { }
+        public float[] ProcessAllSamples(float[] samples) { }
+        public override void Reset() { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter operator *(AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter1, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter2) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter operator *(AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter1, AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter filter2) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter operator +(AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter1, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter2) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter operator +(AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter1, AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter filter2) { }
+    }
+    public interface IFilter
+    {
+        AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0);
+    }
+    public interface IMixable
+    {
+        float Dry { get; set; }
+        float Wet { get; set; }
+    }
+    public interface IOnlineFilter
+    {
+        float Process(float input);
+        void Reset();
+    }
+    [System.Serializable]
+    public class IirFilter : AI.BackEnds.DSP.NWaves.Filters.Base.LtiFilter
+    {
+        public readonly float[] _a;
+        public readonly float[] _b;
+        protected float[] _delayLineA;
+        protected float[] _delayLineB;
+        protected int _delayLineOffsetA;
+        protected int _delayLineOffsetB;
+        protected readonly int _denominatorSize;
+        protected readonly int _numeratorSize;
+        protected AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction _tf;
+        public IirFilter(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf) { }
+        public IirFilter(System.Collections.Generic.IEnumerable<double> b, System.Collections.Generic.IEnumerable<double> a) { }
+        public IirFilter(System.Collections.Generic.IEnumerable<float> b, System.Collections.Generic.IEnumerable<float> a) { }
+        public int DefaultImpulseResponseLength { get; set; }
+        public override AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction Tf { get; protected set; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyFilterDirectly(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public override AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public void ChangeDenominatorCoeffs(float[] a) { }
+        public void ChangeNumeratorCoeffs(float[] b) { }
+        public void Normalize() { }
+        public override float Process(float sample) { }
+        public override void Reset() { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter operator *(AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter filter1, AI.BackEnds.DSP.NWaves.Filters.Base.LtiFilter filter2) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter operator +(AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter filter1, AI.BackEnds.DSP.NWaves.Filters.Base.LtiFilter filter2) { }
+    }
+    [System.Serializable]
+    public abstract class LtiFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        protected LtiFilter() { }
+        public abstract AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction Tf { get; protected set; }
+        public abstract AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0);
+        public abstract float Process(float input);
+        public abstract void Reset();
+    }
+    [System.Serializable]
+    public abstract class OverlapAddFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IMixable, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        protected readonly AI.BackEnds.DSP.NWaves.Transforms.RealFft _fft;
+        protected readonly int _fftSize;
+        protected float _gain;
+        protected readonly int _hopSize;
+        protected readonly int _overlapSize;
+        protected readonly float[] _window;
+        public OverlapAddFilter(int hopSize, int fftSize = 0) { }
+        public float Dry { get; set; }
+        public float Wet { get; set; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public virtual float Process(float sample) { }
+        public virtual void ProcessFrame() { }
+        public abstract void ProcessSpectrum(float[] re, float[] im, float[] filteredRe, float[] filteredIm);
+        public virtual void Reset() { }
+    }
+    [System.Serializable]
+    public class StateSpace
+    {
+        public StateSpace() { }
+        public double[][] A { get; set; }
+        public double[] B { get; set; }
+        public double[] C { get; set; }
+        public double[] D { get; set; }
+    }
+    [System.Serializable]
+    public class StereoFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        public StereoFilter(AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter filterLeft, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter filterRight) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public float Process(float input) { }
+        public void Reset() { }
+    }
+    [System.Serializable]
+    public class TransferFunction
+    {
+        protected AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal _poles;
+        protected AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal _zeros;
+        public TransferFunction(AI.BackEnds.DSP.NWaves.Filters.Base.StateSpace stateSpace) { }
+        public TransferFunction(double[] numerator, double[] denominator = null) { }
+        public TransferFunction(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal zeros, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal poles, double gain = 1) { }
+        public int CalculateZpIterations { get; set; }
+        public double[] Denominator { get; protected set; }
+        public double Gain { get; }
+        public double[] Numerator { get; protected set; }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Poles { get; }
+        public AI.BackEnds.DSP.NWaves.Filters.Base.StateSpace StateSpace { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Zeros { get; }
+        public double[] Zi { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal FrequencyResponse(int length = 512) { }
+        public double[] GroupDelay(int length = 512) { }
+        public double[] ImpulseResponse(int length = 512) { }
+        public void Normalize() { }
+        public void NormalizeAt(double freq) { }
+        public double[] PhaseDelay(int length = 512) { }
+        public void ToCsv(System.IO.Stream stream, char delimiter = ,) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction FromCsv(System.IO.Stream stream, char delimiter = ,) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal TfToZp(double[] tf, int maxIterations = 25000) { }
+        public static double[] ZpToTf(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal zp) { }
+        public static double[] ZpToTf(double[] re, double[] im = null) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction operator *(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf1, AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf2) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction operator +(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf1, AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf2) { }
+    }
+    [System.Serializable]
+    public class ZiFilter : AI.BackEnds.DSP.NWaves.Filters.Base.LtiFilter
+    {
+        protected readonly float[] _a;
+        protected readonly float[] _b;
+        protected AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction _tf;
+        protected readonly float[] _zi;
+        public ZiFilter(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf) { }
+        public ZiFilter(System.Collections.Generic.IEnumerable<double> b, System.Collections.Generic.IEnumerable<double> a) { }
+        public ZiFilter(System.Collections.Generic.IEnumerable<float> b, System.Collections.Generic.IEnumerable<float> a) { }
+        public override AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction Tf { get; protected set; }
+        public float[] Zi { get; }
+        public override AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal FilterIc(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public virtual void Init(double[] zi) { }
+        public virtual void Init(float[] zi) { }
+        public override float Process(float input) { }
+        public override void Reset() { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ZeroPhase(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int padLength = 0) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.Base64
+{
+    [System.Serializable]
+    public class FirFilter64 : AI.BackEnds.DSP.NWaves.Filters.Base64.IFilter64, AI.BackEnds.DSP.NWaves.Filters.Base64.IOnlineFilter64
+    {
+        protected readonly double[] _b;
+        protected double[] _delayLine;
+        protected int _delayLineOffset;
+        protected int _kernelSize;
+        protected AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction _tf;
+        public FirFilter64(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf) { }
+        public FirFilter64(System.Collections.Generic.IEnumerable<double> kernel) { }
+        public double[] Kernel { get; }
+        public int KernelSizeForBlockConvolution { get; set; }
+        public AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction Tf { get; protected set; }
+        public double[] ApplyTo(double[] signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public void ChangeKernel(double[] kernel) { }
+        public double Process(double sample) { }
+        public double[] ProcessAllSamples(double[] samples) { }
+        public void Reset() { }
+    }
+    public interface IFilter64
+    {
+        double[] ApplyTo(double[] signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0);
+    }
+    public interface IOnlineFilter64
+    {
+        double Process(double input);
+        void Reset();
+    }
+    [System.Serializable]
+    public class IirFilter64 : AI.BackEnds.DSP.NWaves.Filters.Base64.IFilter64, AI.BackEnds.DSP.NWaves.Filters.Base64.IOnlineFilter64
+    {
+        public readonly double[] _a;
+        public readonly double[] _b;
+        protected double[] _delayLineA;
+        protected double[] _delayLineB;
+        protected int _delayLineOffsetA;
+        protected int _delayLineOffsetB;
+        protected readonly int _denominatorSize;
+        protected readonly int _numeratorSize;
+        protected AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction _tf;
+        public IirFilter64(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf) { }
+        public IirFilter64(System.Collections.Generic.IEnumerable<double> b, System.Collections.Generic.IEnumerable<double> a) { }
+        public int DefaultImpulseResponseLength { get; set; }
+        public AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction Tf { get; protected set; }
+        public double[] ApplyTo(double[] signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public void ChangeDenominatorCoeffs(double[] a) { }
+        public void ChangeNumeratorCoeffs(double[] b) { }
+        public void Normalize() { }
+        public virtual double Process(double sample) { }
+        public virtual void Reset() { }
+    }
+    [System.Serializable]
+    public class ZiFilter64 : AI.BackEnds.DSP.NWaves.Filters.Base64.IFilter64, AI.BackEnds.DSP.NWaves.Filters.Base64.IOnlineFilter64
+    {
+        protected readonly double[] _a;
+        protected readonly double[] _b;
+        protected AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction _tf;
+        protected readonly double[] _zi;
+        public ZiFilter64(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf) { }
+        public ZiFilter64(System.Collections.Generic.IEnumerable<double> b, System.Collections.Generic.IEnumerable<double> a) { }
+        public AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction Tf { get; protected set; }
+        public double[] Zi { get; }
+        public double[] ApplyTo(double[] signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public virtual void Init(double[] zi) { }
+        public double Process(double input) { }
+        public void Reset() { }
+        public double[] ZeroPhase(double[] signal, int padLength = 0) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.Bessel
+{
+    [System.Serializable]
+    public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandPassFilter(double f1, double f2, int order) { }
+    }
+    [System.Serializable]
+    public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandStopFilter(double f1, double f2, int order) { }
+    }
+    [System.Serializable]
+    public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public HighPassFilter(double freq, int order) { }
+    }
+    [System.Serializable]
+    public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public LowPassFilter(double freq, int order) { }
+    }
+    [System.Serializable]
+    public static class PrototypeBessel
+    {
+        public static System.Numerics.Complex[] Poles(int order) { }
+        public static double Reverse(int k, int n) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
+{
+    [System.Serializable]
+    public class AllPassFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
+    {
+        public AllPassFilter(double freq, double q = 1) { }
+        public double Freq { get; protected set; }
+        public double Q { get; protected set; }
+        public void Change(double freq, double q = 1) { }
+    }
+    [System.Serializable]
+    public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
+    {
+        public BandPassFilter(double freq, double q = 1) { }
+        public double Freq { get; protected set; }
+        public double Q { get; protected set; }
+        public void Change(double freq, double q = 1) { }
+    }
+    [System.Serializable]
+    public class BiQuadFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        protected BiQuadFilter() { }
+        public BiQuadFilter(double b0, double b1, double b2, double a0, double a1, double a2) { }
+        public override double Process(double sample) { }
+        public override void Reset() { }
+    }
+    [System.Serializable]
+    public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
+    {
+        public HighPassFilter(double freq, double q = 1) { }
+        public double Freq { get; protected set; }
+        public double Q { get; protected set; }
+        public void Change(double freq, double q = 1) { }
+    }
+    [System.Serializable]
+    public class HighShelfFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
+    {
+        public HighShelfFilter(double freq, double q = 1, double gain = 1) { }
+        public double Freq { get; protected set; }
+        public double Gain { get; protected set; }
+        public double Q { get; protected set; }
+        public void Change(double freq, double q = 1, double gain = 1) { }
+    }
+    [System.Serializable]
+    public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
+    {
+        public LowPassFilter(double freq, double q = 1) { }
+        public double Freq { get; protected set; }
+        public double Q { get; protected set; }
+        public void Change(double freq, double q = 1) { }
+    }
+    [System.Serializable]
+    public class LowShelfFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
+    {
+        public LowShelfFilter(double freq, double q = 1, double gain = 1) { }
+        public double Freq { get; protected set; }
+        public double Gain { get; protected set; }
+        public double Q { get; protected set; }
+        public void Change(double freq, double q = 1, double gain = 1) { }
+    }
+    [System.Serializable]
+    public class NotchFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
+    {
+        public NotchFilter(double freq, double q = 1) { }
+        public double Freq { get; protected set; }
+        public double Q { get; protected set; }
+        public void Change(double freq, double q = 1) { }
+    }
+    [System.Serializable]
+    public class PeakFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
+    {
+        public PeakFilter(double freq, double q = 1, double gain = 1) { }
+        public double Freq { get; protected set; }
+        public double Gain { get; protected set; }
+        public double Q { get; protected set; }
+        public void Change(double freq, double q = 1, double gain = 1) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.Butterworth
+{
+    [System.Serializable]
+    public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandPassFilter(double f1, double f2, int order) { }
+    }
+    [System.Serializable]
+    public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandStopFilter(double f1, double f2, int order) { }
+    }
+    [System.Serializable]
+    public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public HighPassFilter(double freq, int order) { }
+    }
+    [System.Serializable]
+    public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public LowPassFilter(double freq, int order) { }
+    }
+    public static class PrototypeButterworth
+    {
+        public static System.Numerics.Complex[] Poles(int order) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevI
+{
+    [System.Serializable]
+    public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandPassFilter(double f1, double f2, int order, double ripple = 0.1) { }
+    }
+    [System.Serializable]
+    public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandStopFilter(double f1, double f2, int order, double ripple = 0.1) { }
+    }
+    [System.Serializable]
+    public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public HighPassFilter(double freq, int order, double ripple = 0.1) { }
+    }
+    [System.Serializable]
+    public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public LowPassFilter(double freq, int order, double ripple = 0.1) { }
+    }
+    public static class PrototypeChebyshevI
+    {
+        public static System.Numerics.Complex[] Poles(int order, double ripple = 0.1) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevII
+{
+    [System.Serializable]
+    public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandPassFilter(double f1, double f2, int order, double ripple = 0.1) { }
+    }
+    [System.Serializable]
+    public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandStopFilter(double f1, double f2, int order, double ripple = 0.1) { }
+    }
+    [System.Serializable]
+    public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public HighPassFilter(double freq, int order, double ripple = 0.1) { }
+    }
+    [System.Serializable]
+    public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public LowPassFilter(double freq, int order, double ripple = 0.1) { }
+    }
+    public static class PrototypeChebyshevII
+    {
+        public static System.Numerics.Complex[] Poles(int order, double ripple = 0.1) { }
+        public static System.Numerics.Complex[] Zeros(int order) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters
+{
+    [System.Serializable]
+    public class CombFeedbackFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter
+    {
+        public CombFeedbackFilter(int m, double b0 = 1, double am = 0.6) { }
+        public override AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public void Change(double b0, double am) { }
+        public override float Process(float sample) { }
+    }
+    [System.Serializable]
+    public class CombFeedforwardFilter : AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter
+    {
+        public CombFeedforwardFilter(int m, double b0 = 1, double bm = 0.5, bool normalize = true) { }
+        public override AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public void Change(double b0, double bm) { }
+        public override float Process(float sample) { }
+    }
+    [System.Serializable]
+    public class DcRemovalFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter
+    {
+        public DcRemovalFilter(double r = 0.995) { }
+        public override float Process(float sample) { }
+        public override void Reset() { }
+    }
+    [System.Serializable]
+    public class DeEmphasisFilter : AI.BackEnds.DSP.NWaves.Filters.OnePole.OnePoleFilter
+    {
+        public DeEmphasisFilter(double a = 0.97, bool normalize = false) { }
+    }
+    [System.Serializable]
+    public class HilbertFilter : AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter
+    {
+        public HilbertFilter(int size = 128) { }
+        public int Size { get; }
+        public static System.Collections.Generic.IEnumerable<double> MakeKernel(int size) { }
+    }
+    [System.Serializable]
+    public class MedianFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        public MedianFilter(int size = 9) { }
+        public int Size { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public float Process(float sample) { }
+        public void Reset() { }
+    }
+    [System.Serializable]
+    public class MovingAverageFilter : AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter
+    {
+        public MovingAverageFilter(int size = 9) { }
+        public int Size { get; }
+    }
+    [System.Serializable]
+    public class MovingAverageRecursiveFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter
+    {
+        public MovingAverageRecursiveFilter(int size = 9) { }
+        public int Size { get; }
+        public override AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public override float Process(float sample) { }
+        public override void Reset() { }
+    }
+    [System.Serializable]
+    public class PreEmphasisFilter : AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter
+    {
+        public PreEmphasisFilter(double a = 0.97, bool normalize = false) { }
+        public override AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public override float Process(float sample) { }
+        public override void Reset() { }
+    }
+    [System.Serializable]
+    public class RastaFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter
+    {
+        public RastaFilter(double pole = 0.98) { }
+    }
+    [System.Serializable]
+    public class SavitzkyGolayFilter : AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter
+    {
+        public SavitzkyGolayFilter(int size, int deriv = 0) { }
+        public int Size { get; }
+    }
+    [System.Serializable]
+    public class ThiranFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter
+    {
+        public ThiranFilter(int order, double delta) { }
+    }
+    [System.Serializable]
+    public class WienerFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        public WienerFilter(int size = 3, double noise = 0) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public float Process(float sample) { }
+        public void Reset() { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.Elliptic
+{
+    [System.Serializable]
+    public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter
+    {
+        public BandPassFilter(double freq1, double freq2, int order, double ripplePass = 1, double rippleStop = 20) { }
+    }
+    [System.Serializable]
+    public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public BandStopFilter(double freq1, double freq2, int order, double ripplePass = 10, double rippleStop = 20) { }
+    }
+    [System.Serializable]
+    public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public HighPassFilter(double freq, int order, double ripplePass = 1, double rippleStop = 20) { }
+    }
+    [System.Serializable]
+    public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
+    {
+        public LowPassFilter(double freq, int order, double ripplePass = 0.1, double rippleStop = 20) { }
+    }
+    [System.Serializable]
+    public static class PrototypeElliptic
+    {
+        public static System.Numerics.Complex Asne(System.Numerics.Complex x, double k, int iterCount = 5) { }
+        public static System.Numerics.Complex Cde(System.Numerics.Complex x, double[] landen) { }
+        public static double[] Landen(double k, int iterCount = 5) { }
+        public static System.Numerics.Complex[] Poles(int order, double ripplePass = 1, double rippleStop = 20) { }
+        public static System.Numerics.Complex Sne(System.Numerics.Complex x, double[] landen) { }
+        public static System.Numerics.Complex[] Zeros(int order, double ripplePass = 1, double rippleStop = 20) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.Fda
+{
+    [System.Serializable]
+    public static class DesignFilter
+    {
+        public static double[] Fir(int order, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal frequencyResponse, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window = 3) { }
+        public static double[] Fir(int order, double[] magnitudeResponse, double[] phaseResponse = null, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window = 3) { }
+        public static double[] Fir(int order, float[] magnitudeResponse, float[] phaseResponse = null, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window = 3) { }
+        public static double[] FirBpToBs(double[] kernel) { }
+        public static double[] FirBsToBp(double[] kernel) { }
+        public static double[] FirEquirippleBp(int order, double fa1, double fp1, double fp2, double fa2, double wa1, double wp, double wa2) { }
+        public static double[] FirEquirippleBs(int order, double fp1, double fa1, double fa2, double fp2, double wp1, double wa, double wp2) { }
+        public static double[] FirEquirippleHp(int order, double fa, double fp, double wa, double wp) { }
+        public static double[] FirEquirippleLp(int order, double fp, double fa, double wp, double wa) { }
+        public static double[] FirHpToLp(double[] kernel) { }
+        public static double[] FirLpToHp(double[] kernel) { }
+        public static double[] FirWinBp(int order, double freq1, double freq2, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window = 3) { }
+        public static double[] FirWinBs(int order, double freq1, double freq2, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window = 3) { }
+        public static double[] FirWinHp(int order, double freq, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window = 3) { }
+        public static double[] FirWinLp(int order, double freq, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window = 3) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction IirBpTf(double freq1, double freq2, System.Numerics.Complex[] poles, System.Numerics.Complex[] zeros = null) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction IirBsTf(double freq1, double freq2, System.Numerics.Complex[] poles, System.Numerics.Complex[] zeros = null) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction IirHpTf(double freq, System.Numerics.Complex[] poles, System.Numerics.Complex[] zeros = null) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction IirLpTf(double freq, System.Numerics.Complex[] poles, System.Numerics.Complex[] zeros = null) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction SosToTf(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction[] sos) { }
+        public static AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction[] TfToSos(AI.BackEnds.DSP.NWaves.Filters.Base.TransferFunction tf) { }
+    }
+    [System.Serializable]
+    public static class FilterBanks
+    {
+        public static float[][] Apply(float[][] filterbank, System.Collections.Generic.IList<float[]> spectrogram) { }
+        public static void Apply(float[][] filterbank, float[] spectrum, float[] filtered) { }
+        public static void ApplyAndLog(float[][] filterbank, float[] spectrum, float[] filtered, float floor = 1E-45) { }
+        public static void ApplyAndLog10(float[][] filterbank, float[] spectrum, float[] filtered, float floor = 1E-45) { }
+        public static void ApplyAndPow(float[][] filterbank, float[] spectrum, float[] filtered, double power = 0.3333333333333333) { }
+        public static void ApplyAndToDecibel(float[][] filterbank, float[] spectrum, float[] filtered, float minLevel = 1E-10) { }
+        public static System.Tuple<double, double, double>[] BarkBands(int barkFilterCount, int samplingRate, double lowFreq = 0, double highFreq = 0, bool overlap = true) { }
+        public static System.Tuple<double, double, double>[] BarkBandsSlaney(int barkFilterCount, int samplingRate, double lowFreq = 0, double highFreq = 0, bool overlap = true) { }
+        public static float[][] BarkBankSlaney(int filterCount, int fftSize, int samplingRate, double lowFreq = 0, double highFreq = 0, double width = 1) { }
+        public static float[][] BiQuad(int fftSize, int samplingRate, System.Tuple<double, double, double>[] frequencies) { }
+        public static System.Tuple<double, double, double>[] CriticalBands(int filterCount, int samplingRate, double lowFreq = 0, double highFreq = 0) { }
+        public static float[][] Erb(int erbFilterCount, int fftSize, int samplingRate, double lowFreq = 0, double highFreq = 0, bool normalizeGain = true) { }
+        public static System.Tuple<double, double, double>[] HerzBands(int combFilterCount, int samplingRate, double lowFreq = 0, double highFreq = 0, bool overlap = false) { }
+        public static System.Tuple<double, double, double>[] MelBands(int melFilterCount, int samplingRate, double lowFreq = 0, double highFreq = 0, bool overlap = true) { }
+        public static System.Tuple<double, double, double>[] MelBandsSlaney(int melFilterCount, int samplingRate, double lowFreq = 0, double highFreq = 0, bool overlap = true) { }
+        public static float[][] MelBankSlaney(int filterCount, int fftSize, int samplingRate, double lowFreq = 0, double highFreq = 0, bool normalizeGain = true, AI.BackEnds.DSP.NWaves.Filters.Fda.VtlnWarper vtln = null) { }
+        public static void Normalize(int filterCount, System.Tuple<double, double, double>[] frequencies, float[][] filterBank) { }
+        public static System.Tuple<double, double, double>[] OctaveBands(int octaveCount, int samplingRate, double lowFreq = 0, double highFreq = 0, bool overlap = false) { }
+        public static float[][] Rectangular(int fftSize, int samplingRate, System.Tuple<double, double, double>[] frequencies, AI.BackEnds.DSP.NWaves.Filters.Fda.VtlnWarper vtln = null, System.Func<double, double> mapper = null) { }
+        public static float[][] Trapezoidal(int fftSize, int samplingRate, System.Tuple<double, double, double>[] frequencies, AI.BackEnds.DSP.NWaves.Filters.Fda.VtlnWarper vtln = null, System.Func<double, double> mapper = null) { }
+        public static float[][] Triangular(int fftSize, int samplingRate, System.Tuple<double, double, double>[] frequencies, AI.BackEnds.DSP.NWaves.Filters.Fda.VtlnWarper vtln = null, System.Func<double, double> mapper = null) { }
+    }
+    [System.Serializable]
+    public class Remez
+    {
+        public Remez(int order, double[] freqs, double[] desired, double[] weights, int gridDensity = 16) { }
+        public double[] Error { get; }
+        public double[] ExtremalFrequencies { get; }
+        public double[] InterpolatedResponse { get; }
+        public int Iterations { get; }
+        public int K { get; }
+        public int Order { get; }
+        public double[] Design(int maxIterations = 100) { }
+        public static double DbToPassbandWeight(double db) { }
+        public static double DbToStopbandWeight(double db) { }
+        public static int EstimateOrder(double[] freqs, double[] deltas) { }
+        public static int EstimateOrder(double fp, double fa, double dp, double da) { }
+    }
+    [System.Serializable]
+    public class VtlnWarper
+    {
+        public VtlnWarper(double alpha, double lowFreq, double highFreq, double lowVtln, double highVtln) { }
+        public double Warp(double freq) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.OnePole
+{
+    [System.Serializable]
+    public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.OnePole.OnePoleFilter
+    {
+        public HighPassFilter(double freq) { }
+        public double Freq { get; protected set; }
+        public void Change(double freq) { }
+    }
+    [System.Serializable]
+    public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.OnePole.OnePoleFilter
+    {
+        public LowPassFilter(double freq) { }
+        public double Freq { get; protected set; }
+        public void Change(double freq) { }
+    }
+    [System.Serializable]
+    public class OnePoleFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter
+    {
+        protected OnePoleFilter() { }
+        public OnePoleFilter(double b, double a) { }
+        public override float Process(float sample) { }
+        public override void Reset() { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Filters.Polyphase
+{
+    [System.Serializable]
+    public class PolyphaseSystem : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        public PolyphaseSystem(double[] kernel, int filterCount, int type = 1) { }
+        public AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter[] Filters { get; }
+        public AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter[] MultirateFilters { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Decimate(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Interpolate(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public float Process(float sample) { }
+        public void Reset() { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Operations.Convolution
+{
+    [System.Serializable]
+    public class ComplexConvolver
+    {
+        public ComplexConvolver() { }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Convolve(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal kernel, int fftSize = 0) { }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal CrossCorrelate(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal kernel, int fftSize = 0) { }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Deconvolve(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal kernel, int fftSize = 0) { }
+    }
+    [System.Serializable]
+    public class Convolver
+    {
+        public Convolver(int fftSize = 0) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Convolve(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal kernel) { }
+        public void Convolve(float[] input, float[] kernel, float[] output) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal CrossCorrelate(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal2) { }
+        public void CrossCorrelate(float[] input1, float[] input2, float[] output) { }
+    }
+    [System.Serializable]
+    public class OlaBlockConvolver : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        public OlaBlockConvolver(System.Collections.Generic.IEnumerable<double> kernel, int fftSize) { }
+        public OlaBlockConvolver(System.Collections.Generic.IEnumerable<float> kernel, int fftSize) { }
+        public int HopSize { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public float Process(float sample) { }
+        public void ProcessFrame() { }
+        public void Reset() { }
+        public static AI.BackEnds.DSP.NWaves.Operations.Convolution.OlaBlockConvolver FromFilter(AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter, int fftSize) { }
+    }
+    [System.Serializable]
+    public class OlaBlockConvolver64 : AI.BackEnds.DSP.NWaves.Filters.Base64.IFilter64, AI.BackEnds.DSP.NWaves.Filters.Base64.IOnlineFilter64
+    {
+        public OlaBlockConvolver64(System.Collections.Generic.IEnumerable<double> kernel, int fftSize) { }
+        public int HopSize { get; }
+        public double[] ApplyTo(double[] signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public double Process(double sample) { }
+        public void ProcessFrame() { }
+        public void Reset() { }
+        public static AI.BackEnds.DSP.NWaves.Operations.Convolution.OlaBlockConvolver64 FromFilter(AI.BackEnds.DSP.NWaves.Filters.Base64.FirFilter64 filter, int fftSize) { }
+    }
+    [System.Serializable]
+    public class OlsBlockConvolver : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        public OlsBlockConvolver(System.Collections.Generic.IEnumerable<double> kernel, int fftSize) { }
+        public OlsBlockConvolver(System.Collections.Generic.IEnumerable<float> kernel, int fftSize) { }
+        public int HopSize { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public float Process(float sample) { }
+        public void ProcessFrame() { }
+        public void Reset() { }
+        public static AI.BackEnds.DSP.NWaves.Operations.Convolution.OlsBlockConvolver FromFilter(AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter, int fftSize) { }
+    }
+    [System.Serializable]
+    public class OlsBlockConvolver64 : AI.BackEnds.DSP.NWaves.Filters.Base64.IFilter64, AI.BackEnds.DSP.NWaves.Filters.Base64.IOnlineFilter64
+    {
+        public OlsBlockConvolver64(System.Collections.Generic.IEnumerable<double> kernel, int fftSize) { }
+        public int HopSize { get; }
+        public double[] ApplyTo(double[] signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public double Process(double sample) { }
+        public void ProcessFrame() { }
+        public void Reset() { }
+        public static AI.BackEnds.DSP.NWaves.Operations.Convolution.OlsBlockConvolver64 FromFilter(AI.BackEnds.DSP.NWaves.Filters.Base64.FirFilter64 filter, int fftSize) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Operations
+{
+    [System.Serializable]
+    public class EnvelopeFollower : AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
+    {
+        public EnvelopeFollower(int samplingRate, float attackTime = 0.01, float releaseTime = 0.05) { }
+        public float AttackTime { get; set; }
+        public float ReleaseTime { get; set; }
+        public float Process(float input) { }
+        public void Reset() { }
+    }
+    [System.Serializable]
+    public class GriffinLimReconstructor
+    {
+        public GriffinLimReconstructor(System.Collections.Generic.List<float[]> spectrogram, AI.BackEnds.DSP.NWaves.Transforms.Stft stft, int power = 2) { }
+        public float[] Iterate(float[] signal = null) { }
+        public float[] Reconstruct(int iterations = 20) { }
+    }
+    [System.Serializable]
+    public class HarmonicPercussiveSeparator
+    {
+        public HarmonicPercussiveSeparator(int fftSize = 2048, int hopSize = 512, int harmonicWinSize = 17, int percussiveWinSize = 17, AI.BackEnds.DSP.NWaves.Operations.HpsMasking masking = 2) { }
+        public System.Tuple<AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal> EvaluateSignals(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public System.Tuple<AI.BackEnds.DSP.NWaves.Transforms.MagnitudePhaseList, AI.BackEnds.DSP.NWaves.Transforms.MagnitudePhaseList> EvaluateSpectrograms(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+    }
+    public enum HpsMasking
+    {
+        Binary = 0,
+        WienerOrder1 = 1,
+        WienerOrder2 = 2,
+    }
+    [System.Serializable]
+    public class Modulator
+    {
+        public Modulator() { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Amplitude(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal carrier, float modulatorFrequency = 20, float modulationIndex = 0.5) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal DemodulateAmplitude(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal DemodulateFrequency(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Frequency(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal baseband, float carrierAmplitude, float carrierFrequency, float deviation = 0.1) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal FrequencyLinear(float carrierFrequency, float carrierAmplitude, float modulationIndex, int length, int samplingRate = 1) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal FrequencySinusoidal(float carrierFrequency, float carrierAmplitude, float modulatorFrequency, float modulationIndex, int length, int samplingRate = 1) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Phase(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal baseband, float carrierAmplitude, float carrierFrequency, float deviation = 0.8) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Ring(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal carrier, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal modulator) { }
+    }
+    public static class Operation
+    {
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal BlockConvolve(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal kernel, int fftSize, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 3) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Convolve(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal kernel) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Convolve(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal kernel) { }
+        public static double[] Convolve(double[] input, double[] kernel) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ConvolveDirect(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal CrossCorrelate(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal CrossCorrelate(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal CrossCorrelateDirect(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Decimate(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int factor, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter = null) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Deconvolve(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal kernel) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Envelope(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, float attackTime = 0.01, float releaseTime = 0.05) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal FullRectify(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal HalfRectify(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Interpolate(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int factor, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter = null) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Resample(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int newSamplingRate, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter = null) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ResampleUpDown(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int up, int down) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal SpectralSubtract(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal noise, int fftSize = 1024, int hopSize = 410) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal TimeStretch(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, double stretch, AI.BackEnds.DSP.NWaves.Operations.Tsm.TsmAlgorithm algorithm = 1) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal TimeStretch(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, double stretch, int windowSize, int hopSize, AI.BackEnds.DSP.NWaves.Operations.Tsm.TsmAlgorithm algorithm = 1) { }
+    }
+    [System.Serializable]
+    public class Resampler
+    {
+        public Resampler() { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Decimate(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int factor, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter = null) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Interpolate(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int factor, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter = null) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Resample(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int newSamplingRate, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter = null, int order = 15) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ResampleUpDown(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int up, int down, AI.BackEnds.DSP.NWaves.Filters.Base.FirFilter filter = null) { }
+    }
+    [System.Serializable]
+    public class SpectralSubtractor : AI.BackEnds.DSP.NWaves.Filters.Base.OverlapAddFilter
+    {
+        public SpectralSubtractor(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal noise, int fftSize = 1024, int hopSize = 128) { }
+        public SpectralSubtractor(float[] noise, int fftSize = 1024, int hopSize = 128) { }
+        public float AlphaMax { get; set; }
+        public float AlphaMin { get; set; }
+        public float Beta { get; set; }
+        public float SnrMax { get; set; }
+        public float SnrMin { get; set; }
+        public void EstimateNoise(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal noise, int startPos = 0, int endPos = -1) { }
+        public void EstimateNoise(float[] noise, int startPos = 0, int endPos = -1) { }
+        public override void ProcessSpectrum(float[] re, float[] im, float[] filteredRe, float[] filteredIm) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Operations.Tsm
+{
+    [System.Serializable]
+    public class PhaseLockingVocoder : AI.BackEnds.DSP.NWaves.Operations.Tsm.PhaseVocoder
+    {
+        public PhaseLockingVocoder(double stretch, int hopAnalysis, int fftSize = 0) { }
+        public override void ProcessSpectrum() { }
+    }
+    [System.Serializable]
+    public class PhaseVocoder : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter
+    {
+        protected readonly AI.BackEnds.DSP.NWaves.Transforms.RealFft _fft;
+        protected readonly int _fftSize;
+        protected readonly float _gain;
+        protected readonly int _hopAnalysis;
+        protected readonly int _hopSynthesis;
+        protected readonly float[] _im;
+        protected readonly double[] _omega;
+        protected readonly double[] _phaseTotal;
+        protected readonly double[] _prevPhase;
+        protected readonly float[] _re;
+        protected readonly double _stretch;
+        protected readonly float[] _window;
+        public PhaseVocoder(double stretch, int hopAnalysis, int fftSize = 0) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public virtual void ProcessSpectrum() { }
+        public virtual void Reset() { }
+    }
+    [System.Serializable]
+    public enum TsmAlgorithm
+    {
+        PhaseVocoder = 0,
+        PhaseVocoderPhaseLocking = 1,
+        Wsola = 2,
+        PaulStretch = 3,
+    }
+    [System.Serializable]
+    public class Wsola : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter
+    {
+        protected readonly double _stretch;
+        public Wsola(double stretch) { }
+        public Wsola(double stretch, int windowSize, int hopAnalysis, int maxDelta = 0) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal ApplyTo(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Filters.Base.FilteringMethod method = 0) { }
+        public int WaveformSimilarityPos(float[] current, float[] prev, int maxDelta) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Signals
+{
+    [System.Serializable]
+    public class ComplexDiscreteSignal
+    {
+        public ComplexDiscreteSignal(int samplingRate, System.Collections.Generic.IEnumerable<double> real, System.Collections.Generic.IEnumerable<double> imag = null) { }
+        public ComplexDiscreteSignal(int samplingRate, System.Collections.Generic.IEnumerable<int> samples, double normalizeFactor = 1) { }
+        public ComplexDiscreteSignal(int samplingRate, double[] real, double[] imag = null, bool allocateNew = false) { }
+        public ComplexDiscreteSignal(int samplingRate, int length, double real = 0, double imag = 0) { }
+        public double[] Imag { get; }
+        public double this[int index] { get; set; }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal this[int startPos, int endPos] { get; }
+        public int Length { get; }
+        public double[] Magnitude { get; }
+        public double[] Phase { get; }
+        public double[] PhaseUnwrapped { get; }
+        public double[] Power { get; }
+        public double[] Real { get; }
+        public int SamplingRate { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Copy() { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal operator *(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal s, float coeff) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal operator +(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal s, double constant) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal operator +(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal s1, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal s2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal operator -(AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal s, double constant) { }
+    }
+    [System.Serializable]
+    public static class ComplexDiscreteSignalExtensions
+    {
+        public static void Amplify(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, double coeff) { }
+        public static void Attenuate(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, double coeff) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Concatenate(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Delay(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, int delay) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Divide(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal First(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, int sampleCount) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Last(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, int sampleCount) { }
+        public static float[] Magnitude(this System.Tuple<float[], float[]> signal) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Multiply(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal2) { }
+        public static float[] Phase(this System.Tuple<float[], float[]> signal) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Repeat(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, int times) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal Superimpose(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal2) { }
+        public static System.Collections.Generic.IEnumerable<System.Numerics.Complex> ToComplexNumbers(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal) { }
+        public static double[] Unwrap(this double[] phase, double tolerance = 3.141592653589793) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal ZeroPadded(this AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal signal, int newLength) { }
+    }
+    [System.Serializable]
+    public class DiscreteSignal
+    {
+        public DiscreteSignal(int samplingRate, System.Collections.Generic.IEnumerable<float> samples) { }
+        public DiscreteSignal(int samplingRate, System.Collections.Generic.IEnumerable<int> samples, float normalizeFactor = 1) { }
+        public DiscreteSignal(int samplingRate, float[] samples, bool allocateNew = false) { }
+        public DiscreteSignal(int samplingRate, int length, float value = 0) { }
+        public double Duration { get; }
+        public float this[int index] { get; set; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal this[int startPos, int endPos] { get; }
+        public int Length { get; }
+        public float[] Samples { get; }
+        public int SamplingRate { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Copy() { }
+        public float Energy() { }
+        public float Energy(int startPos, int endPos) { }
+        public float Entropy() { }
+        public float Entropy(int startPos, int endPos, int binCount = 32) { }
+        public float Rms() { }
+        public float Rms(int startPos, int endPos) { }
+        public float ZeroCrossingRate() { }
+        public float ZeroCrossingRate(int startPos, int endPos) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal operator *(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal s, float coeff) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal operator +(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal s, float constant) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal operator +(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal s1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal s2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal operator -(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal s) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal operator -(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal s, float constant) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal operator -(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal s1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal s2) { }
+    }
+    [System.Serializable]
+    public static class DiscreteSignalExtensions
+    {
+        public static void Amplify(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, float coeff) { }
+        public static void Attenuate(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, float coeff) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Concatenate(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Delay(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int delay) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal First(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int sampleCount) { }
+        public static void FullRectify(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public static void HalfRectify(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Last(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int sampleCount) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Repeat(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, int times) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Subtract(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Superimpose(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal2) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal SuperimposeMany(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal1, AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal2, int[] positions) { }
+        public static AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal ToComplex(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Transforms
+{
+    [System.Serializable]
+    public class CepstralTransform
+    {
+        public CepstralTransform(int cepstrumSize, int fftSize = 0, double logBase = 2.718281828459045) { }
+        public int Size { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Direct(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public double Direct(float[] input, float[] cepstrum) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Inverse(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal cepstrum) { }
+        public void Inverse(float[] cepstrum, float[] output, double delay = 0) { }
+        public void PhaseCepstrum(float[] input, float[] cepstrum) { }
+        public void PowerCepstrum(float[] input, float[] cepstrum) { }
+        public void RealCepstrum(float[] input, float[] cepstrum) { }
+    }
+    [System.Serializable]
+    public class Dct1 : AI.BackEnds.DSP.NWaves.Transforms.IDct
+    {
+        public Dct1(int dctSize) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] output) { }
+        public void DirectNorm(float[] input, float[] output) { }
+        public void Inverse(float[] input, float[] output) { }
+        public void InverseNorm(float[] input, float[] output) { }
+    }
+    [System.Serializable]
+    public class Dct2 : AI.BackEnds.DSP.NWaves.Transforms.IDct
+    {
+        public Dct2(int dctSize) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] output) { }
+        public void DirectNorm(float[] input, float[] output) { }
+        public void Inverse(float[] input, float[] output) { }
+        public void InverseNorm(float[] input, float[] output) { }
+    }
+    [System.Serializable]
+    public class Dct3 : AI.BackEnds.DSP.NWaves.Transforms.IDct
+    {
+        public Dct3(int dctSize) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] output) { }
+        public void DirectNorm(float[] input, float[] output) { }
+        public void Inverse(float[] input, float[] output) { }
+        public void InverseNorm(float[] input, float[] output) { }
+    }
+    [System.Serializable]
+    public class Dct4 : AI.BackEnds.DSP.NWaves.Transforms.IDct
+    {
+        public Dct4(int dctSize) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] output) { }
+        public void DirectNorm(float[] input, float[] output) { }
+        public void Inverse(float[] input, float[] output) { }
+        public void InverseNorm(float[] input, float[] output) { }
+    }
+    [System.Serializable]
+    public class FastDct2 : AI.BackEnds.DSP.NWaves.Transforms.IDct
+    {
+        public FastDct2(int dctSize) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] output) { }
+        public void DirectNorm(float[] input, float[] output) { }
+        public void Inverse(float[] input, float[] output) { }
+        public void InverseNorm(float[] input, float[] output) { }
+    }
+    [System.Serializable]
+    public class FastDct3 : AI.BackEnds.DSP.NWaves.Transforms.IDct
+    {
+        public FastDct3(int dctSize) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] output) { }
+        public void DirectNorm(float[] input, float[] output) { }
+        public void Inverse(float[] input, float[] output) { }
+        public void InverseNorm(float[] input, float[] output) { }
+    }
+    [System.Serializable]
+    public class FastDct4 : AI.BackEnds.DSP.NWaves.Transforms.IDct
+    {
+        public FastDct4(int dctSize) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] output) { }
+        public void DirectNorm(float[] input, float[] output) { }
+        public void Inverse(float[] input, float[] output) { }
+        public void InverseNorm(float[] input, float[] output) { }
+    }
+    [System.Serializable]
+    public class FastMdct : AI.BackEnds.DSP.NWaves.Transforms.Mdct
+    {
+        public FastMdct(int dctSize) { }
+    }
+    [System.Serializable]
+    public class Fft
+    {
+        public Fft(int fftSize = 512) { }
+        public int Size { get; }
+        public void Direct(float[] re, float[] im) { }
+        public void Inverse(float[] re, float[] im) { }
+        public void InverseNorm(float[] re, float[] im) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal MagnitudeSpectrum(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, bool normalize = false) { }
+        public void MagnitudeSpectrum(float[] samples, float[] spectrum, bool normalize = false) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal PowerSpectrum(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, bool normalize = true) { }
+        public void PowerSpectrum(float[] samples, float[] spectrum, bool normalize = true) { }
+        public static void Shift(float[] samples) { }
+    }
+    [System.Serializable]
+    public class Fft64
+    {
+        public Fft64(int fftSize = 512) { }
+        public int Size { get; }
+        public void Direct(double[] re, double[] im) { }
+        public void Inverse(double[] re, double[] im) { }
+        public void InverseNorm(double[] re, double[] im) { }
+    }
+    [System.Serializable]
+    public class Goertzel
+    {
+        public Goertzel(int fftSize) { }
+        public System.Numerics.Complex Direct(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal input, int n) { }
+        public System.Numerics.Complex Direct(float[] input, int n) { }
+    }
+    [System.Serializable]
+    public class HartleyTransform
+    {
+        public HartleyTransform(int size) { }
+        public int Size { get; }
+        public void Direct(float[] re) { }
+        public void Inverse(float[] re) { }
+    }
+    [System.Serializable]
+    public class HilbertTransform
+    {
+        public HilbertTransform(int size = 1024, bool doublePrecision = true) { }
+        public int Size { get; }
+        public AI.BackEnds.DSP.NWaves.Signals.ComplexDiscreteSignal AnalyticSignal(double[] samples, bool norm = true) { }
+        public System.Tuple<float[], float[]> AnalyticSignal(float[] samples, bool norm = true) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal Direct(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public void Direct(double[] samples, double[] output) { }
+        public void Direct(float[] samples, float[] output) { }
+    }
+    public interface IDct
+    {
+        int Size { get; }
+        void Direct(float[] input, float[] output);
+        void DirectNorm(float[] input, float[] output);
+        void Inverse(float[] input, float[] output);
+        void InverseNorm(float[] input, float[] output);
+    }
+    public struct MagnitudePhaseList
+    {
+        public System.Collections.Generic.List<float[]> Magnitudes { get; set; }
+        public System.Collections.Generic.List<float[]> Phases { get; set; }
+    }
+    [System.Serializable]
+    public class Mdct : AI.BackEnds.DSP.NWaves.Transforms.IDct
+    {
+        public Mdct(int dctSize, AI.BackEnds.DSP.NWaves.Transforms.IDct dct = null) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] output) { }
+        public void DirectNorm(float[] input, float[] output) { }
+        public void Inverse(float[] input, float[] output) { }
+        public void InverseNorm(float[] input, float[] output) { }
+    }
+    [System.Serializable]
+    public class MellinTransform
+    {
+        public MellinTransform(int inputSize, int outputSize) { }
+        public int InputSize { get; }
+        public int OutputSize { get; }
+        public void Direct(float[] input, float[] outputRe, float[] outputIm, bool normalize = true) { }
+    }
+    [System.Serializable]
+    public class RealFft
+    {
+        public RealFft(int size) { }
+        public int Size { get; }
+        public void Direct(float[] input, float[] re, float[] im) { }
+        public void Inverse(float[] re, float[] im, float[] output) { }
+        public void InverseNorm(float[] re, float[] im, float[] output) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal MagnitudeSpectrum(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, bool normalize = false) { }
+        public void MagnitudeSpectrum(float[] samples, float[] spectrum, bool normalize = false) { }
+        public AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal PowerSpectrum(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, bool normalize = true) { }
+        public void PowerSpectrum(float[] samples, float[] spectrum, bool normalize = true) { }
+        public static void Shift(float[] samples) { }
+    }
+    [System.Serializable]
+    public class RealFft64
+    {
+        public RealFft64(int size) { }
+        public int Size { get; }
+        public void Direct(double[] input, double[] re, double[] im) { }
+        public void Inverse(double[] re, double[] im, double[] output) { }
+        public void InverseNorm(double[] re, double[] im, double[] output) { }
+    }
+    [System.Serializable]
+    public class Stft
+    {
+        public Stft(int windowSize = 1024, int hopSize = 256, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window = 4, int fftSize = 0) { }
+        public int Size { get; }
+        public System.Collections.Generic.List<System.Tuple<float[], float[]>> Direct(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public System.Collections.Generic.List<System.Tuple<float[], float[]>> Direct(float[] samples) { }
+        public float[] Inverse(System.Collections.Generic.List<System.Tuple<float[], float[]>> stft) { }
+        public AI.BackEnds.DSP.NWaves.Transforms.MagnitudePhaseList MagnitudePhaseSpectrogram(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public AI.BackEnds.DSP.NWaves.Transforms.MagnitudePhaseList MagnitudePhaseSpectrogram(float[] samples) { }
+        public float[] ReconstructMagnitudePhase(AI.BackEnds.DSP.NWaves.Transforms.MagnitudePhaseList spectrogram) { }
+        public System.Collections.Generic.List<float[]> Spectrogram(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal) { }
+        public System.Collections.Generic.List<float[]> Spectrogram(float[] samples) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Transforms.Wavelets
+{
+    [System.Serializable]
+    public class Fwt
+    {
+        protected float[] _hiD;
+        protected float[] _hiR;
+        protected float[] _loD;
+        protected float[] _loR;
+        protected float[] _temp;
+        protected int _waveletLength;
+        public Fwt(int size, AI.BackEnds.DSP.NWaves.Transforms.Wavelets.Wavelet wavelet) { }
+        public int Size { get; set; }
+        public void Direct(float[] input, float[] output, int level = 0) { }
+        public void Inverse(float[] input, float[] output, int level = 0) { }
+        public int MaxLevel(int length) { }
+    }
+    [System.Serializable]
+    public class Wavelet
+    {
+        public Wavelet(string name) { }
+        public Wavelet(AI.BackEnds.DSP.NWaves.Transforms.Wavelets.WaveletFamily waveletFamily, int taps = 1) { }
+        public float[] HiD { get; set; }
+        public float[] HiR { get; set; }
+        public int Length { get; set; }
+        public float[] LoD { get; set; }
+        public float[] LoR { get; set; }
+        public string Name { get; set; }
+        public void ComputeOrthonormalCoeffs() { }
+        public void MakeCoifletWavelet(int taps) { }
+        public void MakeDaubechiesWavelet(int taps) { }
+        public void MakeHaarWavelet() { }
+        public void MakeSymletWavelet(int taps) { }
+    }
+    [System.Serializable]
+    public enum WaveletFamily
+    {
+        Haar = 0,
+        Daubechies = 1,
+        Coiflet = 2,
+        Symlet = 3,
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Utils
+{
+    public static class Guard
+    {
+        public static void AgainstEvenNumber(int n, string argName = "Parameter") { }
+        public static void AgainstExceedance(double low, double high, string lowName = "low", string highName = "high") { }
+        public static void AgainstIncorrectFilterParams(double[] freqs, double[] desired, double[] weights) { }
+        public static void AgainstInequality(double arg1, double arg2, string arg1Name = "argument1", string arg2Name = "argument2") { }
+        public static void AgainstInvalidRange(double low, double high, string lowName = "low", string highName = "high") { }
+        public static void AgainstNonPositive(double arg, string argName = "argument") { }
+        public static void AgainstNotPowerOfTwo(int n, string argName = "Parameter") { }
+    }
+    public static class Lpc
+    {
+        public static int EstimateOrder(int samplingRate) { }
+        public static float FromCepstrum(float[] lpcc, float[] lpc) { }
+        public static void FromLsf(float[] lsf, float[] lpc) { }
+        public static float LevinsonDurbin(float[] input, float[] a, int order, int offset = 0) { }
+        public static void ToCepstrum(float[] lpc, float gain, float[] lpcc) { }
+        public static void ToLsf(float[] lpc, float[] lsf) { }
+    }
+    public static class MathUtilsDSP
+    {
+        public const int PolyRootsIterations = 25000;
+        public static double Asinh(double x) { }
+        public static void BilinearTransform(double[] re, double[] im) { }
+        public static double BinomialCoefficient(int k, int n) { }
+        public static void Diff(float[] samples, float[] diff) { }
+        public static System.Numerics.Complex[][] DividePolynomial(System.Numerics.Complex[] dividend, System.Numerics.Complex[] divisor) { }
+        public static System.Numerics.Complex EvaluatePolynomial(double[] a, System.Numerics.Complex x) { }
+        public static double Factorial(int n) { }
+        public static float FindNth(float[] a, int n, int start, int end) { }
+        public static int Gcd(int n, int m) { }
+        public static double I0(double x) { }
+        public static void InterpolateLinear(float[] x, float[] y, float[] arg, float[] interp) { }
+        public static double Mod(double a, double b) { }
+        public static System.Numerics.Complex[] MultiplyPolynomials(System.Numerics.Complex[] poly1, System.Numerics.Complex[] poly2) { }
+        public static int NextPowerOfTwo(int n) { }
+        public static System.Numerics.Complex[] PolynomialRoots(double[] a, int maxIterations = 25000) { }
+        public static double Sinc(double x) { }
+        public static double[] Unwrap(double[] phase, double tolerance = 3.141592653589793) { }
+        public static double[] Wrap(double[] phase, double tolerance = 3.141592653589793) { }
+    }
+    public class MatrixNWaves
+    {
+        public MatrixNWaves(int rows, int columns = 0) { }
+        public int Columns { get; set; }
+        public double[] this[int i] { get; }
+        public int Rows { get; set; }
+        public AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves T { get; }
+        public double[][] As2dArray() { }
+        public static AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves Companion(double[] a) { }
+        public static AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves Eye(int size) { }
+        public static AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves operator +(AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves m1, AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves m2) { }
+        public static AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves operator -(AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves m1, AI.BackEnds.DSP.NWaves.Utils.MatrixNWaves m2) { }
+    }
+    [System.Serializable]
+    public static class MemoryOperationExtensions
+    {
+        public static double[] FastCopy(this double[] source) { }
+        public static float[] FastCopy(this float[] source) { }
+        public static double[] FastCopyFragment(this double[] source, int size, int sourceOffset = 0, int destinationOffset = 0) { }
+        public static float[] FastCopyFragment(this float[] source, int size, int sourceOffset = 0, int destinationOffset = 0) { }
+        public static void FastCopyTo(this double[] source, double[] destination, int size, int sourceOffset = 0, int destinationOffset = 0) { }
+        public static void FastCopyTo(this float[] source, float[] destination, int size, int sourceOffset = 0, int destinationOffset = 0) { }
+        public static double[] MergeWithArray(this double[] source1, double[] source2) { }
+        public static float[] MergeWithArray(this float[] source1, float[] source2) { }
+        public static double[] PadZeros(this double[] source, int size = 0) { }
+        public static float[] PadZeros(this float[] source, int size = 0) { }
+        public static double[] RepeatArray(this double[] source, int times) { }
+        public static float[] RepeatArray(this float[] source, int times) { }
+        public static double[] ToDoubles(this System.Collections.Generic.IEnumerable<float> values) { }
+        public static float[] ToFloats(this System.Collections.Generic.IEnumerable<double> values) { }
+    }
+    public static class Scale
+    {
+        public static string[] Notes;
+        public static double BarkToHerz(double bark) { }
+        public static double BarkToHerzSlaney(double bark) { }
+        public static double ErbToHerz(double erb) { }
+        public static System.Tuple<string, int> FreqToNote(double freq) { }
+        public static int FreqToPitch(double freq) { }
+        public static double FromDecibel(double level, double valueReference = 1) { }
+        public static double FromDecibelPower(double level, double valueReference = 1) { }
+        public static double HerzToBark(double herz) { }
+        public static double HerzToBarkSlaney(double herz) { }
+        public static double HerzToErb(double herz) { }
+        public static double HerzToMel(double herz) { }
+        public static double HerzToMelSlaney(double herz) { }
+        public static double LoudnessWeighting(double freq, string weightingType = "A") { }
+        public static double MelToHerz(double mel) { }
+        public static double MelToHerzSlaney(double mel) { }
+        public static double NoteToFreq(string note, int octave) { }
+        public static double PitchToFreq(int pitch) { }
+        public static double ToDecibel(double value, double valueReference = 1) { }
+        public static double ToDecibelPower(double value, double valueReference = 1) { }
+    }
+}
+namespace AI.BackEnds.DSP.NWaves.Windows
+{
+    public static class Window
+    {
+        public static float[] BartlettHann(int length) { }
+        public static float[] Blackman(int length) { }
+        public static float[] Flattop(int length) { }
+        public static float[] Gaussian(int length) { }
+        public static float[] Hamming(int length) { }
+        public static float[] Hann(int length) { }
+        public static float[] Kaiser(int length, double alpha = 12) { }
+        public static float[] Kbd(int length, double alpha = 4) { }
+        public static float[] Lanczos(int length) { }
+        public static float[] Liftering(int length, int l = 22) { }
+        public static float[] OfType(AI.BackEnds.DSP.NWaves.Windows.WindowTypes type, int length, params object[] parameters) { }
+        public static float[] PowerOfSine(int length, double alpha = 1.5) { }
+        public static float[] Rectangular(int length) { }
+        public static float[] Triangular(int length) { }
+    }
+    public static class WindowExtensions
+    {
+        public static void ApplyWindow(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, float[] windowSamples) { }
+        public static void ApplyWindow(this double[] samples, double[] windowSamples) { }
+        public static void ApplyWindow(this float[] samples, float[] windowSamples) { }
+        public static void ApplyWindow(this AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window, params object[] parameters) { }
+        public static void ApplyWindow(this double[] samples, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window, params object[] parameters) { }
+        public static void ApplyWindow(this float[] samples, AI.BackEnds.DSP.NWaves.Windows.WindowTypes window, params object[] parameters) { }
+    }
+    [System.Serializable]
+    public enum WindowTypes
+    {
+        Rectangular = 0,
+        Triangular = 1,
+        Hamming = 2,
+        Blackman = 3,
+        Hann = 4,
+        Gaussian = 5,
+        Kaiser = 6,
+        Kbd = 7,
+        BartlettHann = 8,
+        Lanczos = 9,
+        PowerOfSine = 10,
+        Flattop = 11,
+        Liftering = 12,
+    }
+}
+namespace AI.DSP.Analyse
+{
+    [System.Serializable]
+    public class FrequencyResponse
+    {
+        public FrequencyResponse(int fd) { }
+        public int FEnd { get; set; }
+        public int FStart { get; set; }
+        public AI.DataStructs.Algebraic.Vector Freq { get; }
+        public double Step { get; set; }
+        public double Time { get; set; }
+        public AI.DataStructs.Algebraic.Vector Test(System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> alg) { }
+    }
+    [System.Serializable]
+    public class Trend
+    {
+        public Trend(AI.DataStructs.Algebraic.Vector X, AI.DataStructs.Algebraic.Vector Y) { }
+        public double B { get; set; }
+        public double K { get; set; }
+        public AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Vector X) { }
+        public double Predict(double x) { }
+        public override string ToString() { }
+    }
+    [System.Serializable]
+    public class Welch
+    {
+        public Welch() { }
+        public static AI.DataStructs.Algebraic.Vector BartlettRun(AI.DataStructs.Algebraic.Vector signal, int window, AI.DataStructs.Algebraic.Vector windowForFFT) { }
+        public static AI.DataStructs.Algebraic.Vector WelchRun(AI.DataStructs.Algebraic.Vector signal, int window, double overlap, AI.DataStructs.Algebraic.Vector windowForFFT) { }
+    }
+    [System.Serializable]
+    public class WelchData
+    {
+        public AI.DataStructs.Algebraic.Vector Freq;
+        public AI.DataStructs.Algebraic.Vector PSD;
+        public WelchData(AI.DataStructs.Algebraic.Vector spectrum, AI.DataStructs.Algebraic.Vector freq, AI.DSP.Analyse.WelchPSDType welchPSDType = 1) { }
+        public WelchData(AI.DataStructs.Algebraic.Vector spectrum, double sr, AI.DSP.Analyse.WelchPSDType welchPSDType = 1) { }
+        public AI.DataStructs.Algebraic.Vector HalfFreq { get; }
+        public AI.DataStructs.Algebraic.Vector HalfPSD { get; }
+    }
+    public static class WelchFormantFinder
+    {
+        public static AI.DataStructs.Algebraic.Vector MaxIntervals;
+        public static AI.DataStructs.Algebraic.Vector MinIntervals;
+        public static AI.DataStructs.Algebraic.Vector FindFormants(AI.DataStructs.Algebraic.Vector welchData, AI.DataStructs.Algebraic.Vector freqs, double thresholdFactor = 1, double smoothParam = 0.03) { }
+        public static AI.DataStructs.Algebraic.Vector SignalSmooth(AI.DataStructs.Algebraic.Vector signal, int k = 10) { }
+    }
+    [System.Serializable]
+    public enum WelchPSDType : byte
+    {
+        Db = 0,
+        Abs = 1,
+    }
+}
+namespace AI.DSP.DSPCore
+{
+    public enum AFHType
+    {
+        Low = 0,
+        High = 1,
+        Rezector = 2,
+        Band = 3,
+    }
+    [System.Serializable]
+    public static class AIDSPSettings
+    {
+        public static System.Func<AI.DataStructs.WithComplexElements.ComplexVector, bool, AI.DataStructs.WithComplexElements.ComplexVector> FFTCore { get; set; }
+    }
+    public class AmplitudeSpectr : AI.DSP.DSPCore.ISpectr
+    {
+        public AmplitudeSpectr(AI.DSP.DSPCore.Channel channel, bool isDbScale = false) { }
+        public AmplitudeSpectr(AI.DSP.DSPCore.Channel channel, System.Func<int, AI.DataStructs.Algebraic.Vector> windowWFunc, bool isDbScale = false) { }
+        public AI.DataStructs.Algebraic.Vector Data { get; set; }
+        public AI.DataStructs.Algebraic.Vector Freq { get; set; }
+        public bool IsDbScale { get; set; }
+        public bool LogScaleX { get; set; }
+        public string Name { get; set; }
+        public string XLabel { get; set; }
+        public string YLabel { get; set; }
+    }
+    [System.Serializable]
+    public static class Cepstrum
+    {
+        public static AI.DataStructs.Algebraic.Vector FKT(AI.DataStructs.Algebraic.Vector signal) { }
+        public static AI.DataStructs.Algebraic.Vector FKT(AI.DataStructs.WithComplexElements.ComplexVector signal) { }
+        public static AI.DataStructs.Algebraic.Vector WelchFKT(AI.DataStructs.Algebraic.Vector signal, int window_size_1) { }
+    }
+    [System.Serializable]
+    public class Channel
+    {
+        public Channel() { }
+        public Channel(AI.DataStructs.Algebraic.Vector vectorData, int fd) { }
+        public Channel(AI.DataStructs.Algebraic.Vector vectorData, int fd, string name) { }
+        public Channel(AI.DataStructs.Algebraic.Vector vectorData, int fd, string name, string description) { }
+        public AI.DataStructs.Algebraic.Vector ChData { get; set; }
+        public string Description { get; set; }
+        public double Dt { get; }
+        public int Fd { get; set; }
+        public double this[int i] { get; set; }
+        public string Name { get; set; }
+        public AI.DSP.DSPCore.TypeScaleVolt ScaleVolt { get; set; }
+        public AI.DSP.DSPCore.Channel ConvertVolt(AI.DSP.DSPCore.TypeScaleVolt newScale) { }
+        public AI.DSP.DSPCore.Channel Filtration(AI.DSP.DSPCore.IFilter filter) { }
+        public AI.DataStructs.Algebraic.Vector Freq() { }
+        public AI.DataStructs.Algebraic.Vector GetSpectr() { }
+        public AI.DataStructs.Algebraic.Vector GetSpectr(System.Func<int, AI.DataStructs.Algebraic.Vector> windowWFunc) { }
+        public double KoefScaleToVolt(AI.DSP.DSPCore.TypeScaleVolt scaleVolt) { }
+        public AI.DSP.DSPCore.Channel SignalTrend() { }
+        public AI.DSP.DSPCore.Channel SignalWithM0Std1() { }
+        public AI.DSP.DSPCore.Channel SignalWithM0Std1Trend() { }
+        public AI.DSP.DSPCore.Channel SignalWithoutTrend() { }
+        public AI.DataStructs.Algebraic.Vector Time() { }
+        public string YName() { }
+        public static AI.DataStructs.Algebraic.Vector[] ChansToVects(AI.DSP.DSPCore.Channel[] channels) { }
+        public static AI.DSP.DSPCore.Channel[] GetChannels(AI.DataStructs.Algebraic.Vector[] vects, int fd) { }
+    }
+    [System.Serializable]
+    public class DCT
+    {
+        public DCT() { }
+        public DCT(int countInp, int countOutp) { }
+        public AI.DataStructs.Algebraic.Matrix InvMatrix { get; set; }
+        public AI.DataStructs.Algebraic.Matrix MainMatrix { get; set; }
+        public AI.DataStructs.Algebraic.Vector DirectDCTNorm(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector InversDCTNorm(AI.DataStructs.Algebraic.Vector inp) { }
+        public static AI.DataStructs.Algebraic.Matrix GetMatrW(int Count, int M) { }
+    }
+    [System.Serializable]
+    public class DCT2NWaveWrapper
+    {
+        public DCT2NWaveWrapper(int countElements) { }
+        public int Count { get; }
+        public bool IsFast { get; }
+        public AI.DataStructs.Algebraic.Vector DirectDCT(AI.DataStructs.Algebraic.Vector st) { }
+        public AI.DataStructs.Algebraic.Vector DirectDCTNorm(AI.DataStructs.Algebraic.Vector st) { }
+        public AI.DataStructs.Algebraic.Vector InversDCT(AI.DataStructs.Algebraic.Vector dct) { }
+    }
+    [System.Serializable]
+    public class FFT
+    {
+        public readonly int SamplesCount;
+        public FFT(int len) { }
+        public AI.DataStructs.WithComplexElements.ComplexVector CalcFFT(AI.DataStructs.Algebraic.Vector inp, bool canonic = true) { }
+        public AI.DataStructs.Algebraic.Vector GetSpectrum(AI.DataStructs.Algebraic.Vector input, System.Func<int, AI.DataStructs.Algebraic.Vector> window) { }
+        public AI.DataStructs.WithComplexElements.ComplexVector IFFT(AI.DataStructs.WithComplexElements.ComplexVector inp) { }
+        public AI.DataStructs.Algebraic.Vector RealIFFT(AI.DataStructs.WithComplexElements.ComplexVector cInp) { }
+        public AI.DataStructs.Algebraic.Vector RealIFFT2(AI.DataStructs.WithComplexElements.ComplexVector inp) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector BaseStaticFFT(AI.DataStructs.WithComplexElements.ComplexVector input, bool canonic) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector CalcFFT(AI.DataStructs.Algebraic.Vector inp) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector CalcFFT(AI.DataStructs.WithComplexElements.ComplexVector inp) { }
+        public static System.Numerics.Complex[] CalcFFT(AI.DataStructs.Algebraic.Vector inp, int minCount = -1, bool canonic = true) { }
+        public static System.Numerics.Complex[] CalcFFT(double[] inp, int minCount = -1, bool canonic = true) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector CalcIFFT(AI.DataStructs.Algebraic.Vector inp) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector CalcIFFT(AI.DataStructs.WithComplexElements.ComplexVector inp) { }
+        public static System.Numerics.Complex[] CalcIFFT(System.Numerics.Complex[] inp) { }
+        public static double[] CalcIFFTReal(System.Numerics.Complex[] inp, int size = -1) { }
+        public static AI.DataStructs.Algebraic.Vector CalcIFFTRealVector(System.Numerics.Complex[] inp, int size = -1) { }
+        public static AI.DataStructs.Algebraic.Matrix TimeFrTransform(AI.DataStructs.Algebraic.Vector vect, int lenFr = 1000) { }
+        public static AI.DataStructs.Algebraic.Matrix TimeFrTransformHalf(AI.DataStructs.Algebraic.Vector vect, int lenFr = 1024) { }
+    }
+    [System.Serializable]
+    public static class FastConv
+    {
+        public static AI.DataStructs.Algebraic.Vector FastConvolution(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector ht) { }
+        public static AI.DataStructs.Algebraic.Vector FastConvolution(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector ht, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector FastConvolutionNorm(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector ht) { }
+        public static AI.DataStructs.Algebraic.Vector FastCorrelation(AI.DataStructs.Algebraic.Vector signal) { }
+        public static double[] FastCorrelation(double[] signal) { }
+        public static AI.DataStructs.Algebraic.Vector FastCorrelation(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector ht) { }
+        public static AI.DataStructs.Algebraic.Vector FastNormCrossCorrelation(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector ht) { }
+        public static AI.DataStructs.Algebraic.Vector SectionalConvolution(AI.DataStructs.Algebraic.Vector pattern, AI.DataStructs.Algebraic.Vector signal, int num = 2) { }
+        public static AI.DataStructs.Algebraic.Vector SectionalConvolutionNorm(AI.DataStructs.Algebraic.Vector pattern, AI.DataStructs.Algebraic.Vector signal, int num = 2) { }
+    }
+    public static class FastHilbert
+    {
+        public static AI.DataStructs.Algebraic.Vector ConjugateToTheHilbert(AI.DataStructs.Algebraic.Vector st) { }
+        public static AI.DataStructs.Algebraic.Vector Envelope(AI.DataStructs.Algebraic.Vector st) { }
+        public static AI.DataStructs.Algebraic.Vector EnvelopeIQ(AI.DataStructs.Algebraic.Vector st, double fd, double f0) { }
+        public static AI.DataStructs.Algebraic.Vector Frequency(AI.DataStructs.Algebraic.Vector st) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector GetAnalSig(AI.DataStructs.Algebraic.Vector st) { }
+        public static System.Tuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> IQ(AI.DataStructs.Algebraic.Vector st, double fd, double f0) { }
+        public static AI.DataStructs.Algebraic.Vector Phase(AI.DataStructs.Algebraic.Vector st) { }
+        public static AI.DataStructs.Algebraic.Vector PhaseIQ(AI.DataStructs.Algebraic.Vector st, double fd, double f0) { }
+    }
+    public static class Filters
+    {
+        public static AI.DataStructs.Algebraic.Vector ButterworthLowAFH(int Count, double sr, int fd, int order) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector ButterworthLowCFH(int Count, double sr, int fd, int order) { }
+        public static AI.DataStructs.Algebraic.Vector CreatAFH(AI.DataStructs.Algebraic.Vector f, string[] param) { }
+        public static AI.DataStructs.Algebraic.Vector ExpAv(AI.DataStructs.Algebraic.Vector inp, double oldPart = 0.99) { }
+        public static AI.DataStructs.Algebraic.Vector Filter(AI.DataStructs.Algebraic.Vector st, AI.DataStructs.Algebraic.Vector kw, bool mean = false) { }
+        public static AI.DataStructs.Algebraic.Vector Filter(AI.DataStructs.Algebraic.Vector st, AI.DataStructs.WithComplexElements.ComplexVector kw, bool mean = false) { }
+        public static AI.DataStructs.Algebraic.Vector FilterBand(AI.DataStructs.Algebraic.Vector signal, double sr1, double sr2, int fd) { }
+        public static AI.DataStructs.Algebraic.Vector FilterHigh(AI.DataStructs.Algebraic.Vector signal, double sr, int fd) { }
+        public static AI.DataStructs.Algebraic.Vector FilterKontur(AI.DataStructs.Algebraic.Vector st, double Q, double f0, int fd) { }
+        public static AI.DataStructs.Algebraic.Vector FilterLow(AI.DataStructs.Algebraic.Vector signal, double sr, int fd) { }
+        public static AI.DataStructs.Algebraic.Vector FilterLowButterworthAFH(AI.DataStructs.Algebraic.Vector signal, double sr, int fd, int order = 3) { }
+        public static AI.DataStructs.Algebraic.Vector FilterLowButterworthCFH(AI.DataStructs.Algebraic.Vector signal, double sr, int fd, int order = 3) { }
+        public static AI.DataStructs.Algebraic.Vector FilterRezector(AI.DataStructs.Algebraic.Vector signal, double sr1, double sr2, int fd) { }
+        public static AI.DataStructs.Algebraic.Vector GetAFH(AI.DataStructs.Algebraic.Vector f, double[] param, AI.DSP.DSPCore.AFHType afh) { }
+        public static AI.DataStructs.Algebraic.Vector GetEnvelope(AI.DataStructs.Algebraic.Vector inp, int dec = 1) { }
+        public static AI.DataStructs.Algebraic.Vector MAv(AI.DataStructs.Algebraic.Vector inp, int l = 10) { }
+    }
+    [System.Serializable]
+    public class GetSpectrEnerge
+    {
+        public GetSpectrEnerge(double fd) { }
+        public void Add(double b, double e) { }
+        public AI.DataStructs.Algebraic.Vector GetAmplFreq(AI.DataStructs.Algebraic.Vector inp) { }
+    }
+    public interface IFilter
+    {
+        string Name { get; set; }
+        AI.DataStructs.Algebraic.Vector FilterOutp(AI.DataStructs.Algebraic.Vector signal);
+        double FilterOutp(double signal);
+    }
+    public interface ISpectr
+    {
+        AI.DataStructs.Algebraic.Vector Data { get; set; }
+        AI.DataStructs.Algebraic.Vector Freq { get; set; }
+        bool IsDbScale { get; set; }
+        bool LogScaleX { get; set; }
+        string Name { get; set; }
+        string XLabel { get; set; }
+        string YLabel { get; set; }
+    }
+    [System.Serializable]
+    public class OptimalFilter
+    {
+        public OptimalFilter(AI.DataStructs.Algebraic.Vector signal, int n) { }
+        public AI.DataStructs.Algebraic.Vector Result(AI.DataStructs.Algebraic.Vector signal) { }
+        public AI.DataStructs.Algebraic.Vector SpectrCompressLFM(AI.DataStructs.Algebraic.Vector signal, int fd) { }
+    }
+    public class PerentWavelet
+    {
+        public AI.DSP.DSPCore.FFT fur;
+        public AI.DataStructs.Algebraic.Vector scals;
+        public AI.DataStructs.Algebraic.Vector std;
+        public AI.DataStructs.WithComplexElements.ComplexVector[] waveletSpectrs;
+        public PerentWavelet(System.Func<double, AI.DataStructs.Algebraic.Vector> wavelet, AI.DataStructs.Algebraic.Vector scales, int n) { }
+    }
+    public static class PhaseCorrectingWindow
+    {
+        public static AI.DataStructs.Algebraic.Vector Trapezoid(int len, double slope = 0.03) { }
+    }
+    public static class Signal
+    {
+        public static AI.DataStructs.Algebraic.Vector AmkRect(AI.DataStructs.Algebraic.Vector t, double f1, double f2) { }
+        public static AI.DataStructs.Algebraic.Vector AmkRect(AI.DataStructs.Algebraic.Vector t, double A, double f1, double f2, double k) { }
+        public static AI.DataStructs.Algebraic.Vector AmkRect(AI.DataStructs.Algebraic.Vector t, double A, double f1, double f2, double fi2, double k) { }
+        public static AI.DataStructs.Algebraic.Vector AmkRect(AI.DataStructs.Algebraic.Vector t, double A, double f1, double fi1, double f2, double fi2, double k) { }
+        public static AI.DataStructs.Algebraic.Vector AmkRectA(AI.DataStructs.Algebraic.Vector t, double A, double f1, double f2) { }
+        public static AI.DataStructs.Algebraic.Vector AmkRectK(AI.DataStructs.Algebraic.Vector t, double f1, double f2, double k) { }
+        public static AI.DataStructs.Algebraic.Vector DampedOscillations(AI.DataStructs.Algebraic.Vector t, double f = 1, double kDamp = -0.01, double A = 1, double fi = 0) { }
+        public static double Energy(AI.DataStructs.Algebraic.Vector signal, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector Frequency(int Count, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector FrequencyCentr(int Count, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector LFM(double df, double f0, double fd, double time) { }
+        public static AI.DataStructs.Algebraic.Vector LFMRectNP(double f, int f0, int fd, double time) { }
+        public static double Norm(AI.DataStructs.Algebraic.Vector signal, double fd) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, AI.DataStructs.Algebraic.Vector f) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, double f) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, AI.DataStructs.Algebraic.Vector A, double f) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, double A, AI.DataStructs.Algebraic.Vector f) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, double A, double f) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, AI.DataStructs.Algebraic.Vector A, double f, double fi) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, double A, AI.DataStructs.Algebraic.Vector f, double fi) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, double A, double f, AI.DataStructs.Algebraic.Vector fi) { }
+        public static AI.DataStructs.Algebraic.Vector Rect(AI.DataStructs.Algebraic.Vector t, double A, double f, double fi) { }
+        public static AI.DataStructs.Algebraic.Vector Resample(AI.DataStructs.Algebraic.Vector inp, int fd, int newfd) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, AI.DataStructs.Algebraic.Vector f) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, double f) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, AI.DataStructs.Algebraic.Vector A, double f) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, double A, AI.DataStructs.Algebraic.Vector f) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, double A, double f) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, AI.DataStructs.Algebraic.Vector A, double f, double fi) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, double A, AI.DataStructs.Algebraic.Vector f, double fi) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, double A, double f, AI.DataStructs.Algebraic.Vector fi) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(AI.DataStructs.Algebraic.Vector t, double A, double f, double fi) { }
+    }
+    [System.Serializable]
+    public class Signal1D : System.Collections.Generic.List<AI.DSP.DSPCore.Channel>
+    {
+        public Signal1D() { }
+        public Signal1D(AI.DSP.DSPCore.Channel signal) { }
+        public Signal1D(AI.DataStructs.Algebraic.Vector[] channels, int fd) { }
+        public Signal1D(AI.DataStructs.Algebraic.Vector signal, int fd) { }
+        public string Description { get; set; }
+        public double Dt { get; }
+        public int Fd { get; set; }
+        public string Name { get; set; }
+        public AI.DSP.DSPCore.TypeScaleVolt ScaleVolt { get; set; }
+        public void Add(AI.DSP.DSPCore.Channel signal) { }
+        public string[] ChannelNames() { }
+        public AI.DSP.DSPCore.Signal1D ConvertVolt(AI.DSP.DSPCore.TypeScaleVolt typeScaleVolt) { }
+        public AI.DataStructs.Algebraic.Matrix CorrelationMatrix() { }
+        public AI.DataStructs.Algebraic.Matrix CorrelationMatrixSpectr() { }
+        public double CouplingCoefficient() { }
+        public double CouplingCoefficientSp() { }
+        public AI.DSP.DSPCore.Signal1D Filtration(AI.DSP.DSPCore.IFilter filter) { }
+        public AI.DataStructs.Algebraic.Vector Freq() { }
+        public AI.DataStructs.Algebraic.Vector GetSpectr(int numCh = 0) { }
+        public AI.DataStructs.Algebraic.Vector[] GetSpectrAll() { }
+        public AI.DSP.DSPCore.Signal1D SignalWithM0Std1() { }
+        public AI.DSP.DSPCore.Signal1D SignalWithM0Std1Trend() { }
+        public AI.DSP.DSPCore.Signal1D SignalWithoutTrend() { }
+        public AI.DataStructs.Algebraic.Vector Time() { }
+        public AI.DSP.DSPCore.Signal1D Trends() { }
+        public string YName() { }
+    }
+    [System.Serializable]
+    public class SpectrumStretching
+    {
+        public SpectrumStretching() { }
+        public static AI.DataStructs.Algebraic.Vector SpectrumStretch(AI.DataStructs.Algebraic.Vector signal, double k, int lFilt = 15) { }
+    }
+    [System.Serializable]
+    public enum TypeScaleVolt
+    {
+        kV = 0,
+        V = 1,
+        mV = 2,
+        uV = 3,
+        nV = 4,
+    }
+    [System.Serializable]
+    public class Wavelet
+    {
+        public Wavelet(AI.DSP.DSPCore.PerentWavelet pw) { }
+        public AI.DataStructs.Algebraic.Vector SerchPatern(AI.DataStructs.Algebraic.Vector sig) { }
+    }
+    [System.Serializable]
+    public static class WindowForFFT
+    {
+        public static AI.DataStructs.Algebraic.Vector BlackmanWindow(int windowSize) { }
+        public static AI.DataStructs.Algebraic.Vector HammingWindow(int windowSize) { }
+        public static AI.DataStructs.Algebraic.Vector HannWindow(int windowSize) { }
+        public static AI.DataStructs.Algebraic.Vector RectWindow(int windowSize) { }
+    }
+}
+namespace AI.DSP.Decomposition
+{
+    [System.Serializable]
+    public class FiltersDecomp
+    {
+        public FiltersDecomp(double[] fStart, double[] fEnd, int fd, int order = 157) { }
+        public AI.DataStructs.Algebraic.Vector[] Decomosition(AI.DataStructs.Algebraic.Vector signal) { }
+        public System.Tuple<AI.DataStructs.Algebraic.Vector[], AI.DataStructs.Algebraic.Vector> DecomositionBalanceSTD(AI.DataStructs.Algebraic.Vector signal) { }
+        public AI.DataStructs.Algebraic.Vector SumDecomosition(AI.DataStructs.Algebraic.Vector signal) { }
+        public System.Tuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> SumDecomositionBalanceSTD(AI.DataStructs.Algebraic.Vector signal) { }
+        public static AI.DataStructs.Algebraic.Vector FIRRemezImpulseResponse(int fd, double f1_stop = 2, double f1_pass = 2.1, double f2_stop = 4.2, double f2_pass = 4, double w_stop = 0.05, double w_pass = 0.95, int order = 37, AI.BackEnds.DSP.NWaves.Windows.WindowTypes windowType = 6) { }
+        public static AI.DataStructs.Algebraic.Vector FIRSincImpulseResponse(int fd, double f1 = 2, double f2 = 4, int order = 37, AI.BackEnds.DSP.NWaves.Windows.WindowTypes windowType = 3) { }
+        public static AI.DataStructs.Algebraic.Vector RunFirFilter(AI.DataStructs.Algebraic.Vector signal, AI.DataStructs.Algebraic.Vector impulseResponse) { }
+    }
+}
+namespace AI.DSP
+{
+    public static class ExDSP
+    {
+        public static AI.DataStructs.Algebraic.Vector Decimation(this AI.DataStructs.Algebraic.Vector vector, int n) { }
+    }
+}
+namespace AI.DSP.FIR
+{
+    public enum FIRCalcConvType
+    {
+        Simple = 0,
+        WithFFT = 1,
+        Sectional = 2,
+        Sectional4 = 3,
+    }
+    [System.Serializable]
+    public class FIRFilter : AI.DSP.DSPCore.IFilter
+    {
+        public FIRFilter(AI.DataStructs.Algebraic.Vector ht, int fd, AI.DSP.FIR.FIRCalcConvType calcConvType = 1) { }
+        public string Name { get; set; }
+        public AI.DataStructs.Algebraic.Vector FilterOutp(AI.DataStructs.Algebraic.Vector input) { }
+        public double FilterOutp(double signal) { }
+    }
+}
+namespace AI.DSP.IIR
+{
+    [System.Serializable]
+    public class IIRFilter : AI.DSP.DSPCore.IFilter
+    {
+        public IIRFilter(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b) { }
+        public AI.DataStructs.Algebraic.Vector A { get; set; }
+        public AI.DataStructs.Algebraic.Vector B { get; set; }
+        public string Name { get; set; }
+        public double Threshold { get; set; }
+        public System.Tuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, int, int> ExportState() { }
+        public AI.DataStructs.Algebraic.Vector FilterOutp(AI.DataStructs.Algebraic.Vector signal) { }
+        public double FilterOutp(double inp) { }
+        public AI.DataStructs.Algebraic.Vector FilterOutp(AI.DataStructs.Algebraic.Vector signal, int iteration) { }
+        public void ImportState(AI.DataStructs.Algebraic.Vector inputs, AI.DataStructs.Algebraic.Vector outputs, int offsetA, int offsetB) { }
+        public void Reset() { }
+        public void Save(string path) { }
+        public static AI.DSP.IIR.IIRFilter Load(byte[] data) { }
+        public static AI.DSP.IIR.IIRFilter Load(string path) { }
+    }
+}
+namespace AI.DSP.Modulation
+{
+    [System.Serializable]
+    public class AM : AI.DSP.Modulation.IModulator
+    {
+        public AM(int fd, double f0, double m = 1) { }
+        public AI.DSP.DSPCore.Channel Demodulate(AI.DSP.DSPCore.Channel channel) { }
+        public AI.DSP.DSPCore.Channel Modulate(AI.DSP.DSPCore.Channel signalIn) { }
+    }
+    public interface IModulator
+    {
+        AI.DSP.DSPCore.Channel Demodulate(AI.DSP.DSPCore.Channel channel);
+        AI.DSP.DSPCore.Channel Modulate(AI.DSP.DSPCore.Channel channel);
+    }
+}
+namespace AI.DSP.Multiray
+{
+    public class Detector : AI.DSP.Multiray.GeometrySignalObject
+    {
+        public Detector() { }
+        public Detector(params double[] data) { }
+        public AI.DataStructs.Algebraic.Vector GetSignal(System.Collections.Generic.IEnumerable<AI.DSP.Multiray.Sources.Source> signals, double waveSpeed) { }
+    }
+    public class GeometrySignalObject
+    {
+        public GeometrySignalObject() { }
+        public GeometrySignalObject(params double[] coord) { }
+        public AI.DataStructs.Algebraic.Vector Coordinates { get; set; }
+    }
+    public class MultiRayTools
+    {
+        public MultiRayTools() { }
+        public static AI.DataStructs.Algebraic.Vector CollectSignals(System.Collections.Generic.IEnumerable<AI.DSP.Multiray.Sources.Source> signals, AI.DSP.Multiray.GeometrySignalObject collectorCoords, double speed) { }
+        public static double GetDeltaT(AI.DSP.Multiray.GeometrySignalObject go1, AI.DSP.Multiray.GeometrySignalObject go2, AI.DSP.Multiray.GeometrySignalObject anchor, double v) { }
+        public static double GetDist(AI.DSP.Multiray.GeometrySignalObject go1, AI.DSP.Multiray.GeometrySignalObject go2) { }
+    }
+    public class SignalEnvironment
+    {
+        public SignalEnvironment() { }
+        public System.Collections.Generic.List<AI.DSP.Multiray.Detector> Detectors { get; set; }
+        public double SR { get; set; }
+        public System.Collections.Generic.List<AI.DSP.Multiray.Sources.Source> Sources { get; set; }
+        public double WaveSpeed { get; set; }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> GetSignals() { }
+    }
+}
+namespace AI.DSP.Multiray.Reflectors
+{
+    public class Reflector : AI.DSP.Multiray.Sources.Source
+    {
+        public Reflector(params double[] coords) { }
+        public override AI.DataStructs.Algebraic.Vector GetSignal(double dist, double speed, System.Collections.Generic.IEnumerable<AI.DSP.Multiray.Sources.Source> sources) { }
+    }
+}
+namespace AI.DSP.Multiray.Sources
+{
+    public class ModulatedSinSource : AI.DSP.Multiray.Sources.Source
+    {
+        public double F0;
+        public ModulatedSinSource() { }
+        public ModulatedSinSource(double sr, params double[] coords) { }
+        public override AI.DataStructs.Algebraic.Vector GetSignal(double dist, double speed, System.Collections.Generic.IEnumerable<AI.DSP.Multiray.Sources.Source> sources = null) { }
+    }
+    public class NoiseSource : AI.DSP.Multiray.Sources.Source
+    {
+        public NoiseSource() { }
+        public NoiseSource(double sr, params double[] coords) { }
+        public override AI.DataStructs.Algebraic.Vector GetSignal(double dist, double speed, System.Collections.Generic.IEnumerable<AI.DSP.Multiray.Sources.Source> sources = null) { }
+    }
+    public class NoisySinSource : AI.DSP.Multiray.Sources.Source
+    {
+        public double F0;
+        public double SNR;
+        public NoisySinSource() { }
+        public NoisySinSource(double sr, params double[] coords) { }
+        public NoisySinSource(double sr, double snr, params double[] coords) { }
+        public override AI.DataStructs.Algebraic.Vector GetSignal(double dist, double speed, System.Collections.Generic.IEnumerable<AI.DSP.Multiray.Sources.Source> sources = null) { }
+    }
+    public class SinSource : AI.DSP.Multiray.Sources.Source
+    {
+        public double F0;
+        public SinSource() { }
+        public SinSource(double sr, params double[] coords) { }
+        public override AI.DataStructs.Algebraic.Vector GetSignal(double dist, double speed, System.Collections.Generic.IEnumerable<AI.DSP.Multiray.Sources.Source> sources = null) { }
+    }
+    public abstract class Source : AI.DSP.Multiray.GeometrySignalObject
+    {
+        public Source(params double[] coords) { }
+        public Source(double sr = 1000) { }
+        public Source(double sr, params double[] coords) { }
+        public double SR { get; set; }
+        public double T { get; set; }
+        protected void BuildCarrier(double f0, double dist, double speed, out AI.DataStructs.Algebraic.Vector t, out double attenuation, out double phaseShift) { }
+        public abstract AI.DataStructs.Algebraic.Vector GetSignal(double dist, double speed, System.Collections.Generic.IEnumerable<AI.DSP.Multiray.Sources.Source> signals = null);
+    }
+}
+namespace AI.DSP.MusicUtils
+{
+    [System.Serializable]
+    public class EchoReverb
+    {
+        public EchoReverb(int sr) { }
+        public int SampleRate { get; set; }
+        public void Echo(AI.DataStructs.Algebraic.Vector data, double timeDelay = 0.05, double volume = 0.3) { }
+        public void EchoReverse(AI.DataStructs.Algebraic.Vector data, double timeDelay = 0.05, double volume = 0.3) { }
+    }
+}
+namespace AI.DSP.Oversampling
+{
+    public static class UpSampling
+    {
+        public static AI.DataStructs.Algebraic.Vector UpSamplingButterworthFilter(AI.DataStructs.Algebraic.Vector signal, int fd, int factor, int order = 7) { }
+        public static AI.DataStructs.Algebraic.Vector UpSamplingButterworthFilterW(AI.DataStructs.Algebraic.Vector signal, int fd, int factor, int order = 7) { }
+        public static AI.DataStructs.Algebraic.Vector UpSamplingQuadratic(AI.DataStructs.Algebraic.Vector signal, int factor) { }
+        public static AI.DataStructs.Algebraic.Vector UpSamplingRectFilter(AI.DataStructs.Algebraic.Vector signal, int fd, int factor) { }
+    }
+}
+namespace AI.DataStructs.WithComplexElements
+{
+    [System.Serializable]
+    public class ComplexMatrix : AI.DataStructs.IByteConvertable, AI.DataStructs.ISavable, AI.DataStructs.WithComplexElements.IComplexStructure
+    {
+        public ComplexMatrix() { }
+        public ComplexMatrix(AI.DataStructs.Algebraic.Matrix real) { }
+        public ComplexMatrix(AI.DataStructs.Algebraic.Matrix real, AI.DataStructs.Algebraic.Matrix imaginary) { }
+        public ComplexMatrix(int height, int width) { }
+        public System.Numerics.Complex[] Data { get; }
+        public int Height { get; }
+        public AI.DataStructs.Algebraic.Matrix ImaginaryMatrix { get; }
+        public System.Numerics.Complex this[int i, int j] { get; set; }
+        public AI.DataStructs.Algebraic.Matrix MagnitudeMatrix { get; }
+        public AI.DataStructs.Algebraic.Matrix PhaseMatrix { get; }
+        public AI.DataStructs.Algebraic.Matrix RealMatrix { get; }
+        public AI.DataStructs.Shapes.Shape Shape { get; }
+        public int Width { get; }
+        public AI.DataStructs.WithComplexElements.ComplexMatrix AdamarProduct(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public AI.DataStructs.WithComplexElements.ComplexMatrix AdamarProduct(AI.DataStructs.WithComplexElements.ComplexMatrix complexMatrix) { }
+        public AI.DataStructs.WithComplexElements.ComplexMatrix ConjugateMatr() { }
+        public byte[] GetBytes() { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public AI.DataStructs.WithComplexElements.ComplexMatrix Transform(System.Func<System.Numerics.Complex, System.Numerics.Complex> func) { }
+        public void TransformSelf(System.Func<System.Numerics.Complex, System.Numerics.Complex> func) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix FromBytes(byte[] data) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix FromDataStream(AI.DataStructs.InMemoryDataStream dataStream) { }
+        public static AI.DataStructs.WithComplexElements.ComplexVector[] GetColumns(AI.DataStructs.WithComplexElements.ComplexMatrix matr) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix Load(System.IO.Stream stream) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix Load(string path) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix MatrixFFT(AI.DataStructs.Algebraic.Matrix input) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix MatrixFFT(AI.DataStructs.WithComplexElements.ComplexMatrix input) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix MatrixIFFT(AI.DataStructs.WithComplexElements.ComplexMatrix input) { }
+        public static AI.DataStructs.WithComplexElements.ComplexMatrix operator *(AI.DataStructs.WithComplexElements.ComplexMatrix left, AI.DataStructs.WithComplexElements.ComplexMatrix right) { }
+    }
+}

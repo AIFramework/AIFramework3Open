@@ -1,0 +1,578 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Biology.Ecology
+{
+    public static class Diversity
+    {
+        public static double BrayCurtis(System.Collections.Generic.IReadOnlyList<int> first, System.Collections.Generic.IReadOnlyList<int> second) { }
+        public static double Chao1(System.Collections.Generic.IReadOnlyList<int> abundances) { }
+        public static double Evenness(System.Collections.Generic.IReadOnlyList<int> abundances) { }
+        public static double Jaccard(System.Collections.Generic.IReadOnlySet<string> first, System.Collections.Generic.IReadOnlySet<string> second) { }
+        public static int Richness(System.Collections.Generic.IReadOnlyList<int> abundances) { }
+        public static double Shannon(System.Collections.Generic.IReadOnlyList<int> abundances) { }
+        public static double Simpson(System.Collections.Generic.IReadOnlyList<int> abundances) { }
+    }
+}
+namespace AI.Biology.Genetics
+{
+    public static class HardyWeinberg
+    {
+        public static double CarrierFrequency(double affectedFrequency) { }
+        public static AI.Biology.Genetics.HardyWeinbergResult Test(int homozygousDominant, int heterozygous, int homozygousRecessive, double alpha = 0.05) { }
+    }
+    public readonly struct HardyWeinbergResult : AI.Insights.IInterpretable, System.IEquatable<AI.Biology.Genetics.HardyWeinbergResult>
+    {
+        public HardyWeinbergResult(double AlleleFrequency, double ExpectedHomozygousDominant, double ExpectedHeterozygous, double ExpectedHomozygousRecessive, double ChiSquare, double PValue, bool InEquilibrium) { }
+        public double AlleleFrequency { get; init; }
+        public double ChiSquare { get; init; }
+        public double ExpectedHeterozygous { get; init; }
+        public double ExpectedHomozygousDominant { get; init; }
+        public double ExpectedHomozygousRecessive { get; init; }
+        public bool InEquilibrium { get; init; }
+        public double PValue { get; init; }
+        public double RecessiveFrequency { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class Mendel
+    {
+        public static System.Collections.Generic.IReadOnlyList<double> DihybridRatio { get; }
+        public static System.Collections.Generic.IReadOnlyList<double> MonohybridRatio { get; }
+        public static double MapDistance(double recombinationFrequency) { }
+        public static double RecombinationFrequency(int recombinants, int total) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "ChiSquare",
+                "PValue",
+                "Fits"})]
+        public static System.ValueTuple<double, double, bool> TestRatio(System.Collections.Generic.IReadOnlyList<int> observed, System.Collections.Generic.IReadOnlyList<double> expectedRatio, double alpha = 0.05) { }
+    }
+}
+namespace AI.Biology.Networks
+{
+    public sealed record BooleanAttractor : System.IEquatable<AI.Biology.Networks.BooleanAttractor>
+    {
+        public BooleanAttractor(System.Collections.Generic.IReadOnlyList<bool[]> States, int BasinSize) { }
+        public int BasinSize { get; init; }
+        public bool IsFixedPoint { get; }
+        public int Length { get; }
+        public System.Collections.Generic.IReadOnlyList<bool[]> States { get; init; }
+    }
+    public sealed class BooleanNetwork
+    {
+        public const int MaxEnumerableGenes = 20;
+        public BooleanNetwork(System.Collections.Generic.IEnumerable<string> genes) { }
+        public System.Collections.Generic.IReadOnlyList<string> Genes { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Biology.Networks.BooleanAttractor> Attractors() { }
+        public System.Collections.Generic.IReadOnlyList<bool[]> FixedPoints() { }
+        public int IndexOf(string gene) { }
+        public void SetRule(string gene, System.Func<System.Func<string, bool>, bool> rule) { }
+        public void SetRule(string gene, string formula) { }
+        public bool[] Step(System.Collections.Generic.IReadOnlyList<bool> state) { }
+        public static string Format(System.Collections.Generic.IReadOnlyList<bool> state) { }
+    }
+    public sealed class FluxBalanceResult : AI.Insights.IInterpretable
+    {
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Fluxes { get; }
+        public bool IsOptimal { get; }
+        public double this[string reaction] { get; }
+        public System.Collections.Generic.IReadOnlyCollection<string> Knockouts { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Limiting { get; }
+        public string Objective { get; }
+        public double ObjectiveValue { get; }
+        public AI.Solvers.Optimization.ObjectiveSense Sense { get; }
+        public AI.Solvers.Optimization.SolverStatus Status { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class GeneExpression
+    {
+        public const string Mrna = "mRNA";
+        public const string Protein = "protein";
+        public static AI.Solvers.Chem.Kinetics.StochasticTrajectory Simulate(double transcription, double mrnaDecay, double translation, double proteinDecay, double finalTime, System.Random random, int initialMrna = 0, int initialProtein = 0) { }
+        public static AI.Biology.Networks.GeneExpressionMoments StationaryMoments(double transcription, double mrnaDecay, double translation, double proteinDecay) { }
+        public static AI.Solvers.Chem.Kinetics.KineticScheme TwoStage() { }
+    }
+    public readonly struct GeneExpressionMoments : System.IEquatable<AI.Biology.Networks.GeneExpressionMoments>
+    {
+        public GeneExpressionMoments(double MeanMrna, double MeanProtein, double MrnaFano, double ProteinFano) { }
+        public double MeanMrna { get; init; }
+        public double MeanProtein { get; init; }
+        public double MrnaFano { get; init; }
+        public double ProteinFano { get; init; }
+    }
+    public sealed class MetabolicNetwork
+    {
+        public MetabolicNetwork() { }
+        public System.Collections.Generic.IReadOnlyList<string> Metabolites { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Biology.Networks.MetabolicReaction> Reactions { get; }
+        public AI.Biology.Networks.MetabolicReaction AddReaction(string id, System.Collections.Generic.IReadOnlyDictionary<string, double> stoichiometry, double lowerBound = 0, double upperBound = 1000) { }
+        public AI.Biology.Networks.MetabolicReaction AddReaction(string id, string equation, double lowerBound = 0, double upperBound = 1000) { }
+        public System.Collections.Generic.IReadOnlyList<string> EssentialReactions(string objective, double viabilityFraction = 0.01) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Minimum",
+                "Maximum"})]
+        public System.Collections.Generic.IReadOnlyDictionary<string, System.ValueTuple<double, double>> FluxVariability(string objective, double optimumFraction = 1) { }
+        public AI.Biology.Networks.FluxBalanceResult Optimize(string objective, AI.Solvers.Optimization.ObjectiveSense sense = 1, System.Collections.Generic.IEnumerable<string>? knockouts = null) { }
+        public double[] StoichiometricMatrix() { }
+    }
+    public sealed record MetabolicReaction : System.IEquatable<AI.Biology.Networks.MetabolicReaction>
+    {
+        public MetabolicReaction(string Id, System.Collections.Generic.IReadOnlyDictionary<string, double> Stoichiometry, double LowerBound, double UpperBound) { }
+        public string Id { get; init; }
+        public bool IsReversible { get; }
+        public double LowerBound { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Stoichiometry { get; init; }
+        public double UpperBound { get; init; }
+        public override string ToString() { }
+    }
+}
+namespace AI.Biology.Phylogeny
+{
+    public static class Bootstrap
+    {
+        public static AI.Biology.Phylogeny.BootstrapResult DistanceTree(System.Collections.Generic.IReadOnlyList<string> labels, System.Collections.Generic.IReadOnlyList<string> alignedSequences, System.Func<AI.Biology.Phylogeny.DistanceMatrix, AI.Biology.Phylogeny.PhylogeneticTree> builder, AI.Biology.Phylogeny.DistanceModel model, int replicates, System.Random random) { }
+    }
+    public sealed class BootstrapResult : AI.Insights.IInterpretable
+    {
+        public int Replicates { get; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> SplitSupport { get; }
+        public AI.Biology.Phylogeny.PhylogeneticTree Tree { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public double SupportOf(AI.Biology.Phylogeny.TreeNode node) { }
+    }
+    public sealed record BranchLengthFit : System.IEquatable<AI.Biology.Phylogeny.BranchLengthFit>
+    {
+        public BranchLengthFit(AI.Biology.Phylogeny.PhylogeneticTree Tree, double LogLikelihood, int Passes) { }
+        public double LogLikelihood { get; init; }
+        public int Passes { get; init; }
+        public AI.Biology.Phylogeny.PhylogeneticTree Tree { get; init; }
+    }
+    public sealed class DistanceMatrix
+    {
+        public DistanceMatrix(System.Collections.Generic.IReadOnlyList<string> labels, double[] values) { }
+        public int Count { get; }
+        public bool IsFinite { get; }
+        public double this[int i, int j] { get; }
+        public double this[string first, string second] { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Labels { get; }
+        public int IndexOf(string label) { }
+        public bool IsAdditive(double tolerance = 1E-09) { }
+        public bool IsUltrametric(double tolerance = 1E-09) { }
+        public override string ToString() { }
+        public static AI.Biology.Phylogeny.DistanceMatrix FromSequences(System.Collections.Generic.IReadOnlyList<string> labels, System.Collections.Generic.IReadOnlyList<string> alignedSequences, AI.Biology.Phylogeny.DistanceModel model = 1) { }
+    }
+    public enum DistanceModel
+    {
+        PDistance = 0,
+        JukesCantor = 1,
+        Kimura = 2,
+        Poisson = 3,
+    }
+    public static class EvolutionaryDistance
+    {
+        public static AI.Biology.Phylogeny.SiteComparison CompareNucleotides(string first, string second) { }
+        public static double Distance(string first, string second, AI.Biology.Phylogeny.DistanceModel model) { }
+        public static double JukesCantor(double p) { }
+        public static double JukesCantor(string first, string second) { }
+        public static double JukesCantorVariance(double p, int sites) { }
+        public static double Kimura(double transitions, double transversions) { }
+        public static double Kimura(string first, string second) { }
+        public static double PDistance(string first, string second) { }
+        public static double Poisson(string first, string second) { }
+    }
+    public sealed class NucleotideModel
+    {
+        public double Kappa { get; }
+        public static AI.Biology.Phylogeny.NucleotideModel JukesCantor { get; }
+        public override string ToString() { }
+        public void Transition(double time, double[] probabilities) { }
+        public static AI.Biology.Phylogeny.NucleotideModel Kimura(double kappa) { }
+    }
+    public static class Parsimony
+    {
+        public const string DefaultMissing = "-?.";
+        public static int Score(AI.Biology.Phylogeny.PhylogeneticTree tree, System.Collections.Generic.IReadOnlyDictionary<string, string> alignment, string missing = "-?.") { }
+        public static int[] SiteScores(AI.Biology.Phylogeny.PhylogeneticTree tree, System.Collections.Generic.IReadOnlyDictionary<string, string> alignment, string missing = "-?.") { }
+    }
+    public sealed class PhylogeneticTree
+    {
+        public PhylogeneticTree(AI.Biology.Phylogeny.TreeNode root) { }
+        public System.Collections.Generic.IReadOnlyList<string> LeafNames { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Biology.Phylogeny.TreeNode> Leaves { get; }
+        public AI.Biology.Phylogeny.TreeNode Root { get; }
+        public double TotalLength { get; }
+        public AI.Biology.Phylogeny.PhylogeneticTree Clone() { }
+        public AI.Biology.Phylogeny.TreeNode? Find(string name) { }
+        public AI.Biology.Phylogeny.DistanceMatrix PatristicDistances() { }
+        public System.Collections.Generic.IEnumerable<AI.Biology.Phylogeny.TreeNode> PostOrder() { }
+        public System.Collections.Generic.IEnumerable<AI.Biology.Phylogeny.TreeNode> PreOrder() { }
+        public void RootAt(AI.Biology.Phylogeny.TreeNode node) { }
+        public System.Collections.Generic.IReadOnlySet<string> Splits() { }
+        public string ToNewick(int digits = 10) { }
+        public override string ToString() { }
+        public static AI.Biology.Phylogeny.PhylogeneticTree ParseNewick(string text) { }
+        public static int RobinsonFoulds(AI.Biology.Phylogeny.PhylogeneticTree first, AI.Biology.Phylogeny.PhylogeneticTree second) { }
+    }
+    public static class SequenceEvolution
+    {
+        public static System.Collections.Generic.IReadOnlyDictionary<string, string> Simulate(AI.Biology.Phylogeny.PhylogeneticTree tree, int length, System.Random random, AI.Biology.Phylogeny.NucleotideModel? model = null) { }
+        public static AI.Biology.Sequences.MultipleAlignment SimulateAlignment(AI.Biology.Phylogeny.PhylogeneticTree tree, int rootLength, System.Random random, double indelRate = 0.05, double meanIndelLength = 2, AI.Biology.Phylogeny.NucleotideModel? model = null) { }
+    }
+    public readonly struct SiteComparison : System.IEquatable<AI.Biology.Phylogeny.SiteComparison>
+    {
+        public SiteComparison(int Sites, int Differences, int Transitions, int Transversions) { }
+        public int Differences { get; init; }
+        public double P { get; }
+        public int Sites { get; init; }
+        public double TransitionFraction { get; }
+        public int Transitions { get; init; }
+        public double TransversionFraction { get; }
+        public int Transversions { get; init; }
+    }
+    public static class TreeBuilder
+    {
+        public static AI.Biology.Phylogeny.PhylogeneticTree NeighborJoining(AI.Biology.Phylogeny.DistanceMatrix distances) { }
+        public static AI.Biology.Phylogeny.PhylogeneticTree Upgma(AI.Biology.Phylogeny.DistanceMatrix distances) { }
+    }
+    public static class TreeLikelihood
+    {
+        public static double LogLikelihood(AI.Biology.Phylogeny.PhylogeneticTree tree, System.Collections.Generic.IReadOnlyDictionary<string, string> alignment, AI.Biology.Phylogeny.NucleotideModel? model = null) { }
+        public static AI.Biology.Phylogeny.BranchLengthFit OptimizeBranchLengths(AI.Biology.Phylogeny.PhylogeneticTree tree, System.Collections.Generic.IReadOnlyDictionary<string, string> alignment, AI.Biology.Phylogeny.NucleotideModel? model = null, int maxPasses = 30, double tolerance = 1E-07) { }
+        public static double[] SiteLogLikelihoods(AI.Biology.Phylogeny.PhylogeneticTree tree, System.Collections.Generic.IReadOnlyDictionary<string, string> alignment, AI.Biology.Phylogeny.NucleotideModel? model = null) { }
+    }
+    public sealed class TreeNode
+    {
+        public TreeNode(string? name = null) { }
+        public double BranchLength { get; set; }
+        public System.Collections.Generic.IReadOnlyList<AI.Biology.Phylogeny.TreeNode> Children { get; }
+        public bool IsLeaf { get; }
+        public string? Name { get; set; }
+        public AI.Biology.Phylogeny.TreeNode? Parent { get; }
+        public AI.Biology.Phylogeny.TreeNode AddChild(AI.Biology.Phylogeny.TreeNode child, double branchLength = 0) { }
+        public override string ToString() { }
+    }
+}
+namespace AI.Biology.Populations
+{
+    public static class EpidemicModels
+    {
+        public static double FinalEpidemicSize(double basicReproductionNumber) { }
+        public static double HerdImmunityThreshold(double basicReproductionNumber) { }
+        public static AI.Biology.Populations.EpidemicResult Sir(double transmissionRate, double recoveryRate, double initialInfectedFraction = 0.0001, double finalTime = 180, int points = 361) { }
+    }
+    public sealed record EpidemicResult : AI.Insights.IInterpretable, System.IEquatable<AI.Biology.Populations.EpidemicResult>
+    {
+        public EpidemicResult(double BasicReproductionNumber, double PeakInfected, double PeakTime, double FinalSize, System.Collections.Generic.IReadOnlyList<AI.Biology.Populations.EpidemicState> States) { }
+        public double BasicReproductionNumber { get; init; }
+        public double FinalSize { get; init; }
+        public double HerdImmunityThreshold { get; }
+        public double PeakInfected { get; init; }
+        public double PeakTime { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Biology.Populations.EpidemicState> States { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public readonly struct EpidemicState : System.IEquatable<AI.Biology.Populations.EpidemicState>
+    {
+        public EpidemicState(double Time, double Susceptible, double Infected, double Recovered) { }
+        public double Infected { get; init; }
+        public double Recovered { get; init; }
+        public double Susceptible { get; init; }
+        public double Time { get; init; }
+    }
+    public static class LotkaVolterra
+    {
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Prey",
+                "Predator"})]
+        public static System.ValueTuple<double, double> Equilibrium(double preyGrowth, double predationRate, double predatorMortality, double conversionRate) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Biology.Populations.PredatorPreyState> Simulate(double preyGrowth, double predationRate, double predatorMortality, double conversionRate, double initialPrey, double initialPredator, double finalTime, int points = 200) { }
+    }
+    public static class PopulationGrowth
+    {
+        public static double DoublingTime(double rate) { }
+        public static double Exponential(double initial, double rate, double time) { }
+        public static double InflectionTime(double initial, double rate, double capacity) { }
+        public static double Logistic(double initial, double rate, double capacity, double time) { }
+    }
+    public readonly struct PredatorPreyState : System.IEquatable<AI.Biology.Populations.PredatorPreyState>
+    {
+        public PredatorPreyState(double Time, double Prey, double Predator) { }
+        public double Predator { get; init; }
+        public double Prey { get; init; }
+        public double Time { get; init; }
+    }
+}
+namespace AI.Biology.Sequences
+{
+    public static class Alignment
+    {
+        public static AI.Biology.Sequences.AlignmentResult Global(string first, string second, AI.Biology.Sequences.ScoringScheme scoring = default) { }
+        public static AI.Biology.Sequences.AlignmentResult Global(string first, string second, AI.Biology.Sequences.SubstitutionMatrix matrix, double gapOpen = -10, double gapExtend = -0.5) { }
+        public static int HammingDistance(string first, string second) { }
+        public static AI.Biology.Sequences.AlignmentResult Local(string first, string second, AI.Biology.Sequences.ScoringScheme scoring = default) { }
+        public static AI.Biology.Sequences.AlignmentResult Local(string first, string second, AI.Biology.Sequences.SubstitutionMatrix matrix, double gapOpen = -10, double gapExtend = -0.5) { }
+    }
+    public readonly struct AlignmentAccuracy : System.IEquatable<AI.Biology.Sequences.AlignmentAccuracy>
+    {
+        public AlignmentAccuracy(double PairScore, double ColumnScore, int ReferencePairs, int ReferenceColumns) { }
+        public double ColumnScore { get; init; }
+        public double PairScore { get; init; }
+        public int ReferenceColumns { get; init; }
+        public int ReferencePairs { get; init; }
+    }
+    public readonly struct AlignmentResult : AI.Insights.IInterpretable, System.IEquatable<AI.Biology.Sequences.AlignmentResult>
+    {
+        public AlignmentResult(double Score, string First, string Second, double Identity) { }
+        public string First { get; init; }
+        public int GapRuns { get; }
+        public int Gaps { get; }
+        public double Identity { get; init; }
+        public int Matches { get; }
+        public double Score { get; init; }
+        public string Second { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+    public static class AminoAcids
+    {
+        public const string Standard = "ACDEFGHIKLMNPQRSTVWY";
+        public static double Gravy(string protein) { }
+        public static double Hydropathy(char code) { }
+        public static double[] HydropathyProfile(string protein, int window = 9) { }
+        public static bool IsAminoAcid(string? residueName) { }
+        public static char OneLetter(string residueName) { }
+        public static string ThreeLetter(char code) { }
+    }
+    public static class GeneticCode
+    {
+        public const string StartCodon = "AUG";
+        public static int Degeneracy(char aminoAcid) { }
+        public static System.Collections.Generic.IReadOnlyList<AI.Biology.Sequences.OpenReadingFrame> FindOpenReadingFrames(AI.Biology.Sequences.NucleotideSequence sequence, int minimumLength = 30) { }
+        public static char Translate(string codon) { }
+        public static string Translate(AI.Biology.Sequences.NucleotideSequence sequence, int frame = 0, bool stopAtTerminator = true) { }
+    }
+    public enum GuideTreeMethod
+    {
+        Upgma = 0,
+        NeighborJoining = 1,
+    }
+    public sealed class MultipleAlignment : AI.Insights.IInterpretable
+    {
+        public MultipleAlignment(System.Collections.Generic.IReadOnlyList<string> labels, System.Collections.Generic.IReadOnlyList<string> rows) { }
+        public int ConservedColumns { get; }
+        public int Count { get; }
+        public double GapFraction { get; }
+        public AI.Biology.Phylogeny.PhylogeneticTree? GuideTree { get; }
+        public string this[string label] { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Labels { get; }
+        public int Length { get; }
+        public double MeanPairwiseIdentity { get; }
+        public AI.Biology.Phylogeny.DistanceMatrix? PairwiseDistances { get; }
+        public double? ProgressiveScore { get; }
+        public int RefinementPasses { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Rows { get; }
+        public double? SumOfPairsScore { get; }
+        public AI.Biology.Sequences.AlignmentAccuracy CompareWith(AI.Biology.Sequences.MultipleAlignment reference) { }
+        public AI.Biology.Phylogeny.DistanceMatrix Distances(AI.Biology.Phylogeny.DistanceModel model = 1) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public string Sequence(int index) { }
+        public double SumOfPairs(AI.Biology.Sequences.ScoringScheme scoring = default) { }
+        public double SumOfPairs(AI.Biology.Sequences.SubstitutionMatrix matrix, double gapOpen = -10, double gapExtend = -0.5) { }
+        public string ToFasta(int lineWidth = 60) { }
+        public override string ToString() { }
+        public static AI.Biology.Sequences.MultipleAlignment ParseFasta(string text) { }
+    }
+    public enum NucleicAcid
+    {
+        Dna = 0,
+        Rna = 1,
+    }
+    public sealed class NucleotideSequence
+    {
+        public NucleotideSequence(string letters, AI.Biology.Sequences.NucleicAcid kind = 0) { }
+        public double GcContent { get; }
+        public char this[int index] { get; }
+        public AI.Biology.Sequences.NucleicAcid Kind { get; }
+        public int Length { get; }
+        public string Letters { get; }
+        public int Count(char nucleotide) { }
+        public System.Collections.Generic.IReadOnlyDictionary<string, int> KmerCounts(int size) { }
+        public double MeltingTemperatureCelsius() { }
+        public AI.Biology.Sequences.NucleotideSequence ReverseComplement() { }
+        public AI.Biology.Sequences.NucleotideSequence ReverseTranscribe() { }
+        public AI.Biology.Sequences.NucleotideSequence Slice(int start, int length) { }
+        public override string ToString() { }
+        public AI.Biology.Sequences.NucleotideSequence Transcribe() { }
+        public static char Complement(char nucleotide, AI.Biology.Sequences.NucleicAcid kind = 0) { }
+    }
+    public readonly struct OpenReadingFrame : System.IEquatable<AI.Biology.Sequences.OpenReadingFrame>
+    {
+        public OpenReadingFrame(int Start, int Length, string Protein) { }
+        public int Length { get; init; }
+        public string Protein { get; init; }
+        public int Start { get; init; }
+    }
+    public static class ProgressiveAlignment
+    {
+        public static AI.Biology.Sequences.MultipleAlignment Align(System.Collections.Generic.IReadOnlyList<string> labels, System.Collections.Generic.IReadOnlyList<string> sequences, AI.Biology.Sequences.ScoringScheme scoring = default, AI.Biology.Sequences.ProgressiveAlignmentOptions? options = null) { }
+        public static AI.Biology.Sequences.MultipleAlignment Align(System.Collections.Generic.IReadOnlyList<string> labels, System.Collections.Generic.IReadOnlyList<string> sequences, AI.Biology.Sequences.SubstitutionMatrix matrix, double gapOpen = -10, double gapExtend = -0.5, AI.Biology.Sequences.ProgressiveAlignmentOptions? options = null) { }
+    }
+    public sealed class ProgressiveAlignmentOptions
+    {
+        public ProgressiveAlignmentOptions() { }
+        public AI.Biology.Sequences.GuideTreeMethod GuideTree { get; init; }
+        public int RefinementPasses { get; init; }
+    }
+    public readonly struct ScoringScheme : System.IEquatable<AI.Biology.Sequences.ScoringScheme>
+    {
+        public ScoringScheme(double Match, double Mismatch, double GapOpen, double GapExtend) { }
+        public double GapExtend { get; init; }
+        public double GapOpen { get; init; }
+        public double Match { get; init; }
+        public double Mismatch { get; init; }
+        public static AI.Biology.Sequences.ScoringScheme Nucleotide { get; }
+        public static AI.Biology.Sequences.ScoringScheme Linear(double match, double mismatch, double gap) { }
+    }
+    public sealed class SubstitutionMatrix
+    {
+        public SubstitutionMatrix(string name, string alphabet, double[] scores) { }
+        public string Alphabet { get; }
+        public double this[char first, char second] { get; }
+        public string Name { get; }
+        public static AI.Biology.Sequences.SubstitutionMatrix Blosum62 { get; }
+        public override string ToString() { }
+    }
+}
+namespace AI.Biology.Structures
+{
+    public static class BackboneBuilder
+    {
+        public const double AlphaCarbon = 1.525D;
+        public const double AngleAlphaCarbonNitrogen = 116.2D;
+        public const double AngleAlphaCarbonOxygen = 120.1D;
+        public const double AngleCarbonNitrogenAlpha = 121.7D;
+        public const double AngleNitrogenAlphaCarbon = 111.2D;
+        public const double CarbonOxygen = 1.231D;
+        public const double NitrogenAlpha = 1.458D;
+        public const double Peptide = 1.329D;
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Phi",
+                "Psi"})]
+        public static System.ValueTuple<double, double> AlphaHelix { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Phi",
+                "Psi"})]
+        public static System.ValueTuple<double, double> BetaStrand { get; }
+        public static AI.Biology.Structures.ProteinStructure Build(System.Collections.Generic.IReadOnlyList<double> phi, System.Collections.Generic.IReadOnlyList<double> psi, System.Collections.Generic.IReadOnlyList<double>? omega = null, string? sequence = null) { }
+        public static AI.Biology.Structures.ProteinStructure Build(int residues, double phi, double psi, double omega = 180) { }
+    }
+    public readonly struct HydrogenBond : System.IEquatable<AI.Biology.Structures.HydrogenBond>
+    {
+        public HydrogenBond(int Acceptor, int Donor, double Energy) { }
+        public int Acceptor { get; init; }
+        public int Donor { get; init; }
+        public double Energy { get; init; }
+    }
+    public sealed record ProteinResidue : System.IEquatable<AI.Biology.Structures.ProteinResidue>
+    {
+        public ProteinResidue(char Chain, int Number, char InsertionCode, string Name, int N, int CAlpha, int C, int O) { }
+        public int C { get; init; }
+        public int CAlpha { get; init; }
+        public char Chain { get; init; }
+        public char Code { get; }
+        public bool HasBackbone { get; }
+        public char InsertionCode { get; init; }
+        public int N { get; init; }
+        public string Name { get; init; }
+        public int Number { get; init; }
+        public int O { get; init; }
+        public override string ToString() { }
+    }
+    public sealed class ProteinStructure
+    {
+        public const double PeptideBondLimit = 2D;
+        public AI.Solvers.Chem.Structures.MolecularStructure Atoms { get; }
+        public System.Collections.Generic.IReadOnlyList<char> Chains { get; }
+        public int Count { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Biology.Structures.ProteinResidue> Residues { get; }
+        public AI.Solvers.Chem.Structures.MolecularStructure CAlphaTrace() { }
+        public bool[] ContactMap(double cutoff = 8) { }
+        public bool IsLinked(int index) { }
+        public double Omega(int index) { }
+        public double Phi(int index) { }
+        public AI.Geometry.Primitives.Vector3 Position(int atom) { }
+        public double Psi(int index) { }
+        public double RadiusOfGyration() { }
+        public double RelativeContactOrder(double cutoff = 8, int minimumSeparation = 3) { }
+        public string Sequence() { }
+        public string Sequence(char chain) { }
+        public override string ToString() { }
+        public static AI.Biology.Structures.ProteinStructure FromAtoms(AI.Solvers.Chem.Structures.MolecularStructure atoms) { }
+        public static AI.Biology.Structures.ProteinStructure ReadPdb(string text) { }
+    }
+    public static class RnaFolding
+    {
+        public static int BasePairDistance(string first, string second) { }
+        public static bool CanPair(char first, char second, bool allowWobble = true) { }
+        public static bool IsValid(string sequence, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Open",
+                "Close"})] System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> pairs, int minimumLoop = 3, bool allowWobble = true) { }
+        public static AI.Biology.Structures.RnaSecondaryStructure Nussinov(string sequence, int minimumLoop = 3, bool allowWobble = true) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Open",
+                "Close"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int>> ParseDotBracket(string dotBracket) { }
+        public static string ToDotBracket(int length, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Open",
+                "Close"})] System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> pairs) { }
+    }
+    public sealed class RnaSecondaryStructure
+    {
+        public RnaSecondaryStructure(string sequence, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Open",
+                "Close"})] System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> pairs) { }
+        public string DotBracket { get; }
+        public int PairCount { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Open",
+                "Close"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int>> Pairs { get; }
+        public string Sequence { get; }
+        public override string ToString() { }
+    }
+    public static class SecondaryStructure
+    {
+        public const double HydrogenBondCutoff = -0.5D;
+        public static AI.Biology.Structures.SecondaryStructureAssignment Assign(AI.Biology.Structures.ProteinStructure protein) { }
+        public static AI.Biology.Structures.SecondaryStructureAssignment Assign(int residueCount, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Acceptor",
+                "Donor"})] System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> hydrogenBonds, System.Collections.Generic.IReadOnlyList<bool>? linked = null) { }
+    }
+    public sealed class SecondaryStructureAssignment : AI.Insights.IInterpretable
+    {
+        public string Codes { get; }
+        public int Count { get; }
+        public double HelixFraction { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Biology.Structures.HydrogenBond> HydrogenBonds { get; }
+        public double StrandFraction { get; }
+        public double Fraction(char code) { }
+        public AI.Insights.Interpretation Interpret() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Code",
+                "Start",
+                "End"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<char, int, int>> Segments() { }
+        public override string ToString() { }
+    }
+    public static class StructureComparison
+    {
+        public static double Rmsd(AI.Biology.Structures.ProteinStructure model, AI.Biology.Structures.ProteinStructure reference) { }
+        public static AI.Biology.Structures.TmScoreResult TmScore(AI.Biology.Structures.ProteinStructure model, AI.Biology.Structures.ProteinStructure reference) { }
+    }
+    public readonly struct TmScoreResult : System.IEquatable<AI.Biology.Structures.TmScoreResult>
+    {
+        public TmScoreResult(double Score, double D0, int ResiduesWithinD0, double Rmsd) { }
+        public double D0 { get; init; }
+        public int ResiduesWithinD0 { get; init; }
+        public double Rmsd { get; init; }
+        public double Score { get; init; }
+    }
+}

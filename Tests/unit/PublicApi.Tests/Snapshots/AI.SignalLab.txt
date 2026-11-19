@@ -1,0 +1,176 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.SignalLab.AGC.CustomAGC
+{
+    public class LogAGC : AI.SignalLab.AGC.DirectAGC
+    {
+        public LogAGC() { }
+        public override double Calculate(double value) { }
+    }
+    public class MinCombineAGC : AI.SignalLab.AGC.IAGC
+    {
+        public MinCombineAGC() { }
+        public MinCombineAGC(AI.SignalLab.AGC.IAGC agc1, AI.SignalLab.AGC.IAGC agc2, double tresholdAGC = 4) { }
+        public AI.SignalLab.AGC.IAGC AGC1 { get; set; }
+        public AI.SignalLab.AGC.IAGC AGC2 { get; set; }
+        public double TresholdAGC { get; set; }
+        public double TresholdFilter { get; set; }
+        public double Calculate(double value) { }
+    }
+}
+namespace AI.SignalLab.AGC
+{
+    [System.Serializable]
+    public class DirectAGC : AI.SignalLab.AGC.IAGC
+    {
+        public DirectAGC() { }
+        public DirectAGC(string path) { }
+        public DirectAGC(AI.DataStructs.Algebraic.Vector kefA, AI.DataStructs.Algebraic.Vector kefB) { }
+        public AI.DSP.IIR.IIRFilter IIRFilterMean { get; }
+        public AI.DSP.IIR.IIRFilter IIRFilterSTD { get; }
+        public double TresholdAGC { get; set; }
+        public double TresholdFilter { get; set; }
+        public virtual double Calculate(double value) { }
+        public virtual double OutpClip(double outp) { }
+    }
+    public interface IAGC
+    {
+        double TresholdAGC { get; set; }
+        double TresholdFilter { get; set; }
+        double Calculate(double value);
+    }
+}
+namespace AI.SignalLab.Filters
+{
+    public class RootRaisedCosineFilter : AI.DSP.DSPCore.IFilter
+    {
+        public RootRaisedCosineFilter(double symbolPeriod, double sampleRate, double rollOff = 0.35, int spanSymbols = 8) { }
+        public int Length { get; }
+        public string Name { get; set; }
+        public double RollOff { get; }
+        public double SymbolPeriod { get; }
+        public AI.DataStructs.Algebraic.Vector FilterOutp(AI.DataStructs.Algebraic.Vector signal) { }
+        public double FilterOutp(double sample) { }
+        public static AI.DataStructs.Algebraic.Vector ComputeKernel(double T, double sr, double beta, int span) { }
+    }
+}
+namespace AI.SignalLab.Generators
+{
+    public class BaseGenerator : System.IDisposable
+    {
+        public System.Func<int, double> Signal;
+        public BaseGenerator() { }
+        public double AdditivNoiseKoef { get; set; }
+        public double AdditivTrend { get; set; }
+        public double MultiplNoiseKoef { get; set; }
+        public double MultiplTrend { get; set; }
+        public System.Func<System.Random, double> NoiseAdditivGenerator { get; set; }
+        public System.Func<System.Random, double> NoiseMultiplGenerator { get; set; }
+        public int PeriodMS { get; set; }
+        public event System.Action<double> SignalSemple;
+        public void CalcSignal() { }
+        public void Dispose() { }
+        public void Reset() { }
+        public void SetPosition(int start) { }
+        public void Start() { }
+    }
+    public class RectGenerator : AI.SignalLab.Generators.BaseGenerator
+    {
+        public double A;
+        public double freq;
+        public double phi;
+        public RectGenerator() { }
+    }
+    public class SineGenerator : AI.SignalLab.Generators.BaseGenerator
+    {
+        public double A;
+        public double freq;
+        public double phi;
+        public SineGenerator() { }
+    }
+}
+namespace AI.SignalLab.Modulation.Demodulation
+{
+    public class QudratureDemodulation
+    {
+        public QudratureDemodulation(double f0, double sr, double cutoffFrequency = 0) { }
+        public QudratureDemodulation(double f0, double sr, double symbolPeriod, double rollOff = 0.35, int spanSymbols = 4) { }
+        public int FilterDelay { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Full",
+                "Symbols"})]
+        public System.ValueTuple<AI.DataStructs.WithComplexElements.ComplexVector, AI.DataStructs.WithComplexElements.ComplexVector> GetIQBoth(AI.DataStructs.Algebraic.Vector signal, int externalDelay = 0) { }
+        public AI.DataStructs.WithComplexElements.ComplexVector GetIQComponents(AI.DataStructs.Algebraic.Vector signal) { }
+        public AI.DataStructs.WithComplexElements.ComplexVector GetIQSymbols(AI.DataStructs.Algebraic.Vector signal) { }
+    }
+}
+namespace AI.SignalLab.Modulation.Modulation.DigitalModulations
+{
+    public class ASK
+    {
+        public ASK(double carrierFrequency, double sampleRate, double bitDuration = 0.001, double highAmplitude = 1, double lowAmplitude = 0) { }
+        public double BitDuration { get; }
+        public double CarrierFrequency { get; }
+        public double HighAmplitude { get; }
+        public double LowAmplitude { get; }
+        public double SampleRate { get; }
+        public bool[] Demodulate(AI.DataStructs.Algebraic.Vector signal) { }
+        public AI.DataStructs.Algebraic.Vector Modulate(bool[] bits) { }
+    }
+    public class BPSK : AI.SignalLab.Modulation.Modulation.DigitalModulations.BaseIQModulation
+    {
+        public BPSK() { }
+        public override int BitsPerSymbol { get; }
+        public override System.Numerics.Complex[] Constellation { get; }
+    }
+    public abstract class BaseIQModulation
+    {
+        protected BaseIQModulation() { }
+        public abstract int BitsPerSymbol { get; }
+        public abstract System.Numerics.Complex[] Constellation { get; }
+        public bool[] DemapSymbolsToBits(AI.DataStructs.WithComplexElements.ComplexVector iqSymbols, int expectedBits) { }
+        public System.Numerics.Complex[] MapBitsToSymbols(bool[] bits) { }
+    }
+    public class QAM16 : AI.SignalLab.Modulation.Modulation.DigitalModulations.BaseIQModulation
+    {
+        public QAM16() { }
+        public override int BitsPerSymbol { get; }
+        public override System.Numerics.Complex[] Constellation { get; }
+    }
+    public class QAM8 : AI.SignalLab.Modulation.Modulation.DigitalModulations.BaseIQModulation
+    {
+        public QAM8() { }
+        public override int BitsPerSymbol { get; }
+        public override System.Numerics.Complex[] Constellation { get; }
+    }
+    public class QPSK : AI.SignalLab.Modulation.Modulation.DigitalModulations.BaseIQModulation
+    {
+        public QPSK() { }
+        public override int BitsPerSymbol { get; }
+        public override System.Numerics.Complex[] Constellation { get; }
+    }
+}
+namespace AI.SignalLab.Modulation.Modulation
+{
+    public class ModulationBitsTools
+    {
+        public ModulationBitsTools() { }
+        public static AI.DataStructs.Algebraic.Vector Bits2Signal(bool[] bools, double bitDuration = 0.003, double lowSignal = 0, double hSignal = 1, double sr = 8000) { }
+        public static string BytesToString(byte[] data) { }
+        public static byte[] Obj2Bytes(object obj) { }
+        public static AI.DataStructs.Algebraic.Vector Object2Signal(object obj, double bitDuration = 0.003, double lowSignal = 0, double hSignal = 1, double sr = 8000) { }
+    }
+}
+namespace AI.SignalLab.Modulation.ModulationTypeDetector
+{
+    [System.Serializable]
+    public class DigitalModulationDetector
+    {
+        public DigitalModulationDetector(int maxBits) { }
+    }
+    [System.Serializable]
+    public class ModulationNonDigital
+    {
+        public ModulationNonDigital() { }
+    }
+}

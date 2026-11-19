@@ -1,0 +1,281 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Solvers.Pde.FiniteDifference
+{
+    public sealed class CavityFlowSolution : AI.Insights.IInterpretable
+    {
+        public double CellReynolds { get; }
+        public bool Converged { get; }
+        public AI.Solvers.Pde.Grid2D Grid { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y",
+                "StreamFunction"})]
+        public System.ValueTuple<double, double, double> PrimaryVortex { get; }
+        public double Residual { get; }
+        public double Reynolds { get; }
+        public int Steps { get; }
+        public AI.DataStructs.Algebraic.Matrix StreamFunction { get; }
+        public double Time { get; }
+        public AI.DataStructs.Algebraic.Matrix VelocityX { get; }
+        public AI.DataStructs.Algebraic.Matrix VelocityY { get; }
+        public AI.DataStructs.Algebraic.Matrix Vorticity { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public double VelocityXAt(double x, double y) { }
+        public double VelocityYAt(double x, double y) { }
+    }
+    public static class HeatEquation1D
+    {
+        public static AI.Solvers.Pde.FiniteDifference.HeatSolution Solve(AI.Solvers.Pde.Grid1D grid, double diffusivity, System.Func<double, double> initial, System.Func<double, double> leftBoundary, System.Func<double, double> rightBoundary, double finalTime, int steps, AI.Solvers.Pde.FiniteDifference.TimeScheme scheme = 1, System.Func<double, double, double>? source = null) { }
+    }
+    public sealed class HeatSolution : AI.Insights.IInterpretable
+    {
+        public double Courant { get; }
+        public AI.Solvers.Pde.Grid1D Grid { get; }
+        public bool IsStable { get; }
+        public AI.Solvers.Pde.FiniteDifference.TimeScheme Scheme { get; }
+        public int Steps { get; }
+        public AI.DataStructs.Algebraic.Vector Values { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+    public static class LidDrivenCavity
+    {
+        public static AI.Solvers.Pde.FiniteDifference.CavityFlowSolution Solve(double reynolds, int nodes = 65, double tolerance = 1E-06, double maxTime = 200) { }
+    }
+    public static class Poisson2D
+    {
+        public static AI.Solvers.Pde.FiniteDifference.PoissonSolution Solve(AI.Solvers.Pde.Grid2D grid, System.Func<double, double, double> source, System.Func<double, double, double> boundary, double tolerance = 1E-10, int maxIterations = 0) { }
+        public static AI.Solvers.Pde.FiniteDifference.PoissonSolution SolveLaplace(AI.Solvers.Pde.Grid2D grid, System.Func<double, double, double> boundary, double tolerance = 1E-10) { }
+    }
+    public sealed class PoissonSolution : AI.Insights.IInterpretable
+    {
+        public bool Converged { get; }
+        public AI.Solvers.Pde.Grid2D Grid { get; }
+        public double this[int i, int j] { get; }
+        public int Iterations { get; }
+        public double Residual { get; }
+        public AI.DataStructs.Algebraic.Matrix Values { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+    public enum TimeScheme
+    {
+        Explicit = 0,
+        CrankNicolson = 1,
+    }
+    public static class WaveEquation1D
+    {
+        public static AI.Solvers.Pde.FiniteDifference.WaveSolution Solve(AI.Solvers.Pde.Grid1D grid, double speed, System.Func<double, double> initialDisplacement, System.Func<double, double>? initialVelocity, double finalTime, int steps) { }
+    }
+    public sealed class WaveSolution : AI.Insights.IInterpretable
+    {
+        public double Courant { get; }
+        public AI.Solvers.Pde.Grid1D Grid { get; }
+        public bool IsStable { get; }
+        public AI.DataStructs.Algebraic.Vector Previous { get; }
+        public int Steps { get; }
+        public AI.DataStructs.Algebraic.Vector Values { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+}
+namespace AI.Solvers.Pde.FiniteElement
+{
+    public readonly struct BoundaryCondition : System.IEquatable<AI.Solvers.Pde.FiniteElement.BoundaryCondition>
+    {
+        public BoundaryCondition(AI.Solvers.Pde.FiniteElement.BoundaryKind Kind, double Value) { }
+        public AI.Solvers.Pde.FiniteElement.BoundaryKind Kind { get; init; }
+        public double Value { get; init; }
+        public static AI.Solvers.Pde.FiniteElement.BoundaryCondition Fixed(double value) { }
+        public static AI.Solvers.Pde.FiniteElement.BoundaryCondition Flux(double flux) { }
+    }
+    public enum BoundaryKind
+    {
+        Dirichlet = 0,
+        Neumann = 1,
+    }
+    public sealed class ElasticityProblem
+    {
+        public ElasticityProblem(AI.Solvers.Pde.FiniteElement.TriangularMesh mesh, double youngModulus, double poissonRatio, AI.Solvers.Pde.FiniteElement.PlaneCondition condition = 0, double thickness = 1) { }
+        public AI.Solvers.Pde.FiniteElement.PlaneCondition Condition { get; }
+        public AI.Solvers.Pde.FiniteElement.TriangularMesh Mesh { get; }
+        public double PoissonRatio { get; }
+        public double Thickness { get; }
+        public double YoungModulus { get; }
+        public AI.Solvers.Pde.FiniteElement.ElasticityProblem AddBodyForce([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Fx",
+                "Fy"})] System.Func<double, double, System.ValueTuple<double, double>> force) { }
+        public AI.Solvers.Pde.FiniteElement.ElasticityProblem AddForce(int node, double fx, double fy) { }
+        public AI.Solvers.Pde.FiniteElement.ElasticityProblem AddPressure(System.Func<double, double, bool> onBoundary, double pressure) { }
+        public AI.Solvers.Pde.FiniteElement.ElasticityProblem AddTraction(System.Func<double, double, bool> onBoundary, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Tx",
+                "Ty"})] System.Func<double, double, System.ValueTuple<double, double>> traction) { }
+        public AI.Solvers.Pde.FiniteElement.ElasticityProblem FixWhere(System.Func<double, double, bool> @where, bool x, bool y) { }
+        public AI.Solvers.Pde.FiniteElement.ElasticityProblem FixX(int node, double displacement = 0) { }
+        public AI.Solvers.Pde.FiniteElement.ElasticityProblem FixY(int node, double displacement = 0) { }
+        public AI.Solvers.Pde.FiniteElement.ElasticitySolution Solve(double tolerance = 1E-10) { }
+    }
+    public sealed class ElasticitySolution : AI.Insights.IInterpretable
+    {
+        public bool Converged { get; }
+        public int Iterations { get; }
+        public double MaxDisplacement { get; }
+        public double MaxVonMises { get; }
+        public AI.Solvers.Pde.FiniteElement.TriangularMesh Mesh { get; }
+        public AI.Solvers.Pde.FiniteElement.ElasticityProblem Problem { get; }
+        public double StrainEnergy { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})]
+        public System.ValueTuple<double, double> TotalLoad { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "X",
+                "Y"})]
+        public System.ValueTuple<double, double> TotalReaction { get; }
+        public double DisplacementX(int node) { }
+        public double DisplacementY(int node) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Xx",
+                "Yy",
+                "Xy"})]
+        public System.ValueTuple<double, double, double> ElementStress(int element) { }
+        public double ElementStressZz(int element) { }
+        public double ElementVonMises(int element) { }
+        public AI.Insights.Interpretation Interpret() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Xx",
+                "Yy",
+                "Xy"})]
+        public System.ValueTuple<double, double, double> NodalStress(int node) { }
+        public double ReactionX(int node) { }
+        public double ReactionY(int node) { }
+    }
+    public static class Fem1D
+    {
+        public static AI.Solvers.Pde.FiniteElement.Fem1DSolution Solve(AI.Solvers.Pde.Grid1D mesh, System.Func<double, double> conductivity, System.Func<double, double> reaction, System.Func<double, double> source, AI.Solvers.Pde.FiniteElement.BoundaryCondition left, AI.Solvers.Pde.FiniteElement.BoundaryCondition right) { }
+    }
+    public sealed class Fem1DSolution : AI.Insights.IInterpretable
+    {
+        public bool Converged { get; }
+        public int Iterations { get; }
+        public AI.Solvers.Pde.Grid1D Mesh { get; }
+        public AI.DataStructs.Algebraic.Vector Values { get; }
+        public double Evaluate(double x) { }
+        public AI.Insights.Interpretation Interpret() { }
+        public override string ToString() { }
+    }
+    public static class Fem2D
+    {
+        public static AI.Solvers.Pde.FiniteElement.Fem2DSolution SolvePoisson(AI.Solvers.Pde.FiniteElement.TriangularMesh mesh, System.Func<double, double, double> source, System.Func<double, double, double> boundary, double tolerance = 1E-12) { }
+    }
+    public sealed class Fem2DSolution : AI.Insights.IInterpretable
+    {
+        public bool Converged { get; }
+        public int Iterations { get; }
+        public AI.Solvers.Pde.FiniteElement.TriangularMesh Mesh { get; }
+        public AI.DataStructs.Algebraic.Vector Values { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public AI.DataStructs.Algebraic.Matrix ToMatrix(AI.Solvers.Pde.Grid2D grid) { }
+        public override string ToString() { }
+    }
+    public enum PlaneCondition
+    {
+        PlaneStress = 0,
+        PlaneStrain = 1,
+    }
+    public sealed class TriangularMesh
+    {
+        public int NodeCount { get; }
+        public int TriangleCount { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "From",
+                "To"})]
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int>> BoundaryEdges() { }
+        public bool IsBoundary(int node) { }
+        public override string ToString() { }
+        public System.Collections.Generic.IReadOnlyList<int> Triangle(int triangle) { }
+        public double X(int node) { }
+        public double Y(int node) { }
+        public static AI.Solvers.Pde.FiniteElement.TriangularMesh Create(System.Collections.Generic.IReadOnlyList<double> x, System.Collections.Generic.IReadOnlyList<double> y, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<int>> triangles) { }
+        public static AI.Solvers.Pde.FiniteElement.TriangularMesh QuarterAnnulus(double innerRadius, double outerRadius, int radialDivisions, int angularDivisions) { }
+        public static AI.Solvers.Pde.FiniteElement.TriangularMesh QuarterPlateWithHole(double holeRadius, double halfWidth, int radialDivisions, int angularDivisions, double grading = 1) { }
+        public static AI.Solvers.Pde.FiniteElement.TriangularMesh Rectangle(AI.Solvers.Pde.Grid2D grid) { }
+    }
+}
+namespace AI.Solvers.Pde
+{
+    public readonly struct Grid1D : System.IEquatable<AI.Solvers.Pde.Grid1D>
+    {
+        public Grid1D(double Left, double Right, int Count) { }
+        public int Count { get; init; }
+        public double Left { get; init; }
+        public double Right { get; init; }
+        public double Step { get; }
+        public double Node(int index) { }
+        public AI.DataStructs.Algebraic.Vector Nodes() { }
+        public AI.DataStructs.Algebraic.Vector Sample(System.Func<double, double> function) { }
+        public void Validate() { }
+    }
+    public readonly struct Grid2D : System.IEquatable<AI.Solvers.Pde.Grid2D>
+    {
+        public Grid2D(double Left, double Right, double Bottom, double Top, int CountX, int CountY) { }
+        public double Bottom { get; init; }
+        public int CountX { get; init; }
+        public int CountY { get; init; }
+        public double Left { get; init; }
+        public int NodeCount { get; }
+        public double Right { get; init; }
+        public double StepX { get; }
+        public double StepY { get; }
+        public double Top { get; init; }
+        public int Index(int i, int j) { }
+        public bool IsBoundary(int i, int j) { }
+        public AI.DataStructs.Algebraic.Matrix Sample(System.Func<double, double, double> function) { }
+        public void Validate() { }
+        public double X(int i) { }
+        public double Y(int j) { }
+    }
+}
+namespace AI.Solvers.Pde.Numerics
+{
+    public sealed class BandedCholesky
+    {
+        public int HalfBandwidth { get; }
+        public int Size { get; }
+        public AI.DataStructs.Algebraic.Vector Solve(AI.DataStructs.Algebraic.Vector rightHandSide) { }
+        public void Solve(System.ReadOnlySpan<double> rightHandSide, System.Span<double> solution) { }
+        public override string ToString() { }
+        public static AI.Solvers.Pde.Numerics.BandedCholesky Factor(AI.Solvers.Pde.Numerics.SparseMatrix matrix) { }
+    }
+    public readonly struct IterativeResult : AI.Insights.IInterpretable, System.IEquatable<AI.Solvers.Pde.Numerics.IterativeResult>
+    {
+        public IterativeResult(AI.DataStructs.Algebraic.Vector Solution, int Iterations, double Residual, bool Converged) { }
+        public bool Converged { get; init; }
+        public int Iterations { get; init; }
+        public double Residual { get; init; }
+        public AI.DataStructs.Algebraic.Vector Solution { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class IterativeSolvers
+    {
+        public static AI.Solvers.Pde.Numerics.IterativeResult ConjugateGradient(AI.Solvers.Pde.Numerics.SparseMatrix matrix, AI.DataStructs.Algebraic.Vector rightHandSide, double tolerance = 1E-10, int maxIterations = 0, AI.DataStructs.Algebraic.Vector? initialGuess = null) { }
+        public static AI.DataStructs.Algebraic.Vector SolveTridiagonal(AI.DataStructs.Algebraic.Vector lower, AI.DataStructs.Algebraic.Vector diagonal, AI.DataStructs.Algebraic.Vector upper, AI.DataStructs.Algebraic.Vector rightHandSide) { }
+    }
+    public sealed class SparseMatrix
+    {
+        public SparseMatrix(int rows, int columns) { }
+        public int Columns { get; }
+        public double this[int row, int column] { get; }
+        public int NonZeroCount { get; }
+        public int Rows { get; }
+        public void Add(int row, int column, double value) { }
+        public void Compress() { }
+        public AI.DataStructs.Algebraic.Vector Diagonal() { }
+        public void EliminateKnown(int index, double value, AI.DataStructs.Algebraic.Vector rightHandSide) { }
+        public AI.DataStructs.Algebraic.Vector Multiply(AI.DataStructs.Algebraic.Vector vector) { }
+        public void SetIdentityRow(int row) { }
+        public AI.DataStructs.Algebraic.Matrix ToDense() { }
+        public override string ToString() { }
+    }
+}

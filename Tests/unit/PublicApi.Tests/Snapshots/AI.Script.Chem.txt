@@ -1,0 +1,91 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Chem
+{
+    public sealed class ChemAgentTools
+    {
+        public ChemAgentTools() { }
+        [AI.LLM.Agents.Tools.AgentTool("chem_balance", "Расставить коэффициенты в уравнении реакции. Результат проверен на сохранение ато" +
+            "мов каждого элемента и суммарного заряда; если уравнение свести нельзя, инструме" +
+            "нт об этом сообщает")]
+        public string Balance([AI.LLM.Agents.Tools.ToolParameter("Уравнение реакции без коэффициентов, например \'Cu + HNO3 = Cu(NO3)2 + NO + H2O\'")] string equation) { }
+        [AI.LLM.Agents.Tools.AgentTool("chem_calculate", "Выполнить химический расчёт: pH, растворимость, газовые законы, кинетика, спектро" +
+            "фотометрия, фармакокинетика. Команда пишется по-английски, например \'pH of 0.01M" +
+            " HCl\' или \'Beer\\\'s law A=0.45 eps=1500 l=1\'. Список команд выдаёт команда \'help\'")]
+        public string Calculate([AI.LLM.Agents.Tools.ToolParameter("Команда химического движка")] string command) { }
+        [AI.LLM.Agents.Tools.AgentTool("chem_check_equation", "Проверить, сбалансировано ли уравнение так, как оно записано. Используй перед тем" +
+            ", как выдать пользователю уравнение реакции")]
+        public string CheckEquation([AI.LLM.Agents.Tools.ToolParameter("Уравнение с коэффициентами, например \'2H2 + O2 = 2H2O\'")] string equation) { }
+        [AI.LLM.Agents.Tools.AgentTool("chem_classify_mixture", "Классифицировать смесь по СГС (CLP/ТР ТС) на основании состава: вернуть сигнально" +
+            "е слово, пиктограммы, H-фразы и обоснование каждого отнесения. Классификацию счи" +
+            "тают правила, а не языковая модель")]
+        public string ClassifyMixture([AI.LLM.Agents.Tools.ToolParameter("Состав, по компоненту в строке: наименование | содержание в % | классификации чер" +
+            "ез \';\'. Пример: \'метанол | 60 | Flam. Liq. 2; Acute Tox. 3 (oral); STOT SE 1\'")] string composition) { }
+        [AI.LLM.Agents.Tools.AgentTool("chem_molar_mass", "Точно вычислить молярную массу и элементный состав по химической формуле. Понимае" +
+            "т скобки, кристаллогидраты и заряд: Ca(OH)2, CuSO4·5H2O, SO4^2-")]
+        public string MolarMass([AI.LLM.Agents.Tools.ToolParameter("Химическая формула, например H2SO4 или K4[Fe(CN)6]")] string formula) { }
+    }
+    public static class ChemLibrary
+    {
+        public static AI.Script.Binding.IScriptModule Module { get; }
+        public static AI.Script.Hosting.ScriptHost UseChem(this AI.Script.Hosting.ScriptHost host) { }
+    }
+    [AI.Script.Binding.ScriptModule("chem", "Химия: формулы, уравнения, метрология, хроматография, рецептуры", Group="отрасли", Version="0.1")]
+    public static class ChemModule
+    {
+        [AI.Script.Binding.ScriptFn("arrhenius", "Энергия активации по зависимости константы от температуры", Example="chem.arrhenius(<300, 310, 320>, <0.01, 0.02, 0.05>).ea")]
+        public static AI.Script.Runtime.ScriptRecord Arrhenius([AI.Script.Binding.ScriptParam("температуры, K")] AI.DataStructs.Algebraic.Vector temperatures, [AI.Script.Binding.ScriptParam("константы скорости")] AI.DataStructs.Algebraic.Vector rateConstants, [AI.Script.Binding.ScriptParam("доверительная вероятность")] double confidence = 0.95) { }
+        [AI.Script.Binding.ScriptFn("balance", "Сбалансированное уравнение реакции", Example="chem.balance(\"Fe + O2 = Fe2O3\")")]
+        public static string Balance([AI.Script.Binding.ScriptParam("уравнение реакции")] string equation) { }
+        [AI.Script.Binding.ScriptFn("balance_report", "Материальный баланс партии текстом", Example="chem.balance_report(\"CaCO3 = CaO + CO2\", product: \"CaO\", mass: 100, yield: 0.9)")]
+        public static string BalanceReport([AI.Script.Binding.ScriptParam("уравнение реакции")] string equation, [AI.Script.Binding.ScriptParam("формула целевого продукта")] string product, [AI.Script.Binding.ScriptParam("плановый выпуск, кг")] double mass, [AI.Script.Binding.ScriptParam("выход по реакции")] double yield = 1) { }
+        [AI.Script.Binding.ScriptFn("baseline", "Базовая линия сигнала (асимметричный МНК)", Example="chem.baseline(signal, smoothness: 1e5)")]
+        public static AI.DataStructs.Algebraic.Vector Baseline([AI.Script.Binding.ScriptParam("сигнал")] AI.DataStructs.Algebraic.Vector signal, [AI.Script.Binding.ScriptParam("штраф за кривизну линии")] double smoothness = 1000000, [AI.Script.Binding.ScriptParam("вес точек выше линии")] double asymmetry = 0.01) { }
+        [AI.Script.Binding.ScriptFn("batch", "Потребность в сырье на партию по уравнению реакции", Example="show chem.batch(\"CaCO3 = CaO + CO2\", product: \"CaO\", mass: 100, yield: 0.9)")]
+        public static AI.Script.Runtime.ScriptTable Batch([AI.Script.Binding.ScriptParam("уравнение реакции")] string equation, [AI.Script.Binding.ScriptParam("формула целевого продукта")] string product, [AI.Script.Binding.ScriptParam("плановый выпуск, кг")] double mass, [AI.Script.Binding.ScriptParam("выход по реакции, доля от 0 до 1")] double yield = 1) { }
+        [AI.Script.Binding.ScriptFn("calibrate", "Градуировка: наклон, R², Sy/x, пределы обнаружения и определения", Example="chem.calibrate(conc, signal).lod")]
+        public static AI.Script.Runtime.ScriptRecord Calibrate([AI.Script.Binding.ScriptParam("концентрации стандартов")] AI.DataStructs.Algebraic.Vector concentrations, [AI.Script.Binding.ScriptParam("отклики прибора")] AI.DataStructs.Algebraic.Vector signals, [AI.Script.Binding.ScriptParam("взвешивание: none, 1/x, 1/x2, 1/y, 1/y2")] string weighting = "none", [AI.Script.Binding.ScriptParam("доверительная вероятность")] double confidence = 0.95) { }
+        [AI.Script.Binding.ScriptFn("check", "Проверка: сбалансировано ли уравнение как записано", Example="chem.check(\"2H2 + O2 = 2H2O\").balanced")]
+        public static AI.Script.Runtime.ScriptRecord Check([AI.Script.Binding.ScriptParam("уравнение реакции")] string equation) { }
+        [AI.Script.Binding.ScriptFn("classify", "Классификация смеси по СГС: пиктограммы, сигнальное слово, H-фразы", Example="chem.classify([\"ацетон\"], <60>, [\"Flam. Liq. 2; Eye Irrit. 2\"]).signal")]
+        public static AI.Script.Runtime.ScriptRecord Classify([AI.Script.Binding.ScriptParam("названия компонентов")] AI.Script.Runtime.ScriptList names, [AI.Script.Binding.ScriptParam("содержание компонентов, %")] AI.DataStructs.Algebraic.Vector contents, [AI.Script.Binding.ScriptParam("классификации компонентов через точку с запятой")] AI.Script.Runtime.ScriptList hazards) { }
+        [AI.Script.Binding.ScriptFn("concentration", "Концентрация пробы по градуировке с доверительным интервалом", Example="chem.concentration(conc, signal, response: 0.42)")]
+        public static AI.Script.Runtime.ScriptRecord Concentration([AI.Script.Binding.ScriptParam("концентрации стандартов")] AI.DataStructs.Algebraic.Vector concentrations, [AI.Script.Binding.ScriptParam("отклики стандартов")] AI.DataStructs.Algebraic.Vector signals, [AI.Script.Binding.ScriptParam("отклик пробы")] double response, [AI.Script.Binding.ScriptParam("число повторных измерений пробы")] int replicates = 1, [AI.Script.Binding.ScriptParam("взвешивание: none, 1/x, 1/x2, 1/y, 1/y2")] string weighting = "none", [AI.Script.Binding.ScriptParam("доверительная вероятность")] double confidence = 0.95) { }
+        [AI.Script.Binding.ScriptFn("control_chart", "Контрольная карта Шухарта: границы и нарушения", Example="chem.control_chart(qc).in_control")]
+        public static AI.Script.Runtime.ScriptRecord ControlChartFn([AI.Script.Binding.ScriptParam("результаты контрольных измерений")] AI.DataStructs.Algebraic.Vector values, [AI.Script.Binding.ScriptParam("аттестованное значение; 0 - среднее по серии")] double center = 0) { }
+        [AI.Script.Binding.ScriptFn("cost", "Себестоимость партии по рецептуре", Example="chem.cost([\"сырьё A\", \"сырьё B\"], <120, 80>, <35, 12>, batch: 100)")]
+        public static AI.Script.Runtime.ScriptRecord Cost([AI.Script.Binding.ScriptParam("названия компонентов")] AI.Script.Runtime.ScriptList names, [AI.Script.Binding.ScriptParam("потребность на партию, кг")] AI.DataStructs.Algebraic.Vector quantities, [AI.Script.Binding.ScriptParam("цены, ден.ед./кг")] AI.DataStructs.Algebraic.Vector prices, [AI.Script.Binding.ScriptParam("выпуск за партию, кг")] double batch, [AI.Script.Binding.ScriptParam("чистота сырья, доля основного вещества")] double purity = 1, [AI.Script.Binding.ScriptParam("трудозатраты, ч")] double labor_hours = 0, [AI.Script.Binding.ScriptParam("ставка, ден.ед./ч")] double labor_rate = 0, [AI.Script.Binding.ScriptParam("энергия на партию, ден.ед.")] double energy = 0, [AI.Script.Binding.ScriptParam("накладные, % от прямых затрат")] double overhead_percent = 0, [AI.Script.Binding.ScriptParam("цена продажи, ден.ед./кг")] double price = 0) { }
+        [AI.Script.Binding.ScriptFn("fit_order", "Порядок реакции и константа скорости по кривой расходования", Example="chem.fit_order(t, c).order")]
+        public static AI.Script.Runtime.ScriptRecord FitOrder([AI.Script.Binding.ScriptParam("моменты времени")] AI.DataStructs.Algebraic.Vector times, [AI.Script.Binding.ScriptParam("концентрации реагента")] AI.DataStructs.Algebraic.Vector concentrations) { }
+        [AI.Script.Binding.ScriptFn("formula", "Разбор формулы: состав, масса, заряд", Example="chem.formula(\"Ca(OH)2\").mass")]
+        public static AI.Script.Runtime.ScriptRecord Formula([AI.Script.Binding.ScriptParam("химическая формула")] string formula) { }
+        [AI.Script.Binding.ScriptFn("mass", "Молярная масса по формуле, г/моль", Example="chem.mass(\"CuSO4·5H2O\")")]
+        public static double Mass([AI.Script.Binding.ScriptParam("химическая формула")] string formula) { }
+        [AI.Script.Binding.ScriptFn("noise", "Оценка шума базовой линии", Example="chem.noise(signal)")]
+        public static double Noise([AI.Script.Binding.ScriptParam("сигнал")] AI.DataStructs.Algebraic.Vector signal) { }
+        [AI.Script.Binding.ScriptFn("outlier", "Проверка серии на грубый промах (критерий Граббса)", Example="chem.outlier(<10.1, 10.2, 10.0, 12.4>).is_outlier")]
+        public static AI.Script.Runtime.ScriptRecord Outlier([AI.Script.Binding.ScriptParam("серия результатов")] AI.DataStructs.Algebraic.Vector values, [AI.Script.Binding.ScriptParam("уровень значимости")] double alpha = 0.05) { }
+        [AI.Script.Binding.ScriptFn("oxidation", "Степени окисления элементов в соединении", Example="chem.oxidation(\"KMnO4\")")]
+        public static AI.Script.Runtime.ScriptTable Oxidation([AI.Script.Binding.ScriptParam("химическая формула")] string formula) { }
+        [AI.Script.Binding.ScriptFn("peaks", "Поиск и интегрирование пиков хроматограммы", Example="show chem.peaks(time, signal)")]
+        public static AI.Script.Runtime.ScriptTable Peaks([AI.Script.Binding.ScriptParam("ось времени")] AI.DataStructs.Algebraic.Vector time, [AI.Script.Binding.ScriptParam("сигнал детектора")] AI.DataStructs.Algebraic.Vector signal, [AI.Script.Binding.ScriptParam("окно сглаживания")] int window = 9, [AI.Script.Binding.ScriptParam("минимальное отношение сигнал/шум")] double snr = 3, [AI.Script.Binding.ScriptParam("вычитать базовую линию")] bool baseline = false) { }
+        [AI.Script.Binding.ScriptFn("precision", "Прецизионность по сериям: повторяемость и промежуточная", Example="chem.precision([day1, day2, day3]).rsd_r")]
+        public static AI.Script.Runtime.ScriptRecord Precision([AI.Script.Binding.ScriptParam("список серий измерений")] AI.Script.Runtime.ScriptList series) { }
+        [AI.Script.Binding.ScriptFn("recovery", "Правильность по методу добавок: степень извлечения", Example="chem.recovery(found, added).mean")]
+        public static AI.Script.Runtime.ScriptRecord Recovery([AI.Script.Binding.ScriptParam("найденные количества")] AI.DataStructs.Algebraic.Vector found, [AI.Script.Binding.ScriptParam("введённые количества")] AI.DataStructs.Algebraic.Vector added, [AI.Script.Binding.ScriptParam("доверительная вероятность")] double confidence = 0.95) { }
+        [AI.Script.Binding.ScriptFn("resolution", "Разрешение соседних пиков по хроматограмме", Example="chem.resolution(time, signal)")]
+        public static AI.DataStructs.Algebraic.Vector Resolution([AI.Script.Binding.ScriptParam("ось времени")] AI.DataStructs.Algebraic.Vector time, [AI.Script.Binding.ScriptParam("сигнал детектора")] AI.DataStructs.Algebraic.Vector signal, [AI.Script.Binding.ScriptParam("окно сглаживания")] int window = 9) { }
+        [AI.Script.Binding.ScriptFn("runaway", "Оценка адиабатического теплового разгона", Example="chem.runaway(heat: 800000, cp: 1800, ea: 120, a: 1e13, t0: 350).tmr_hours")]
+        public static AI.Script.Runtime.ScriptRecord Runaway([AI.Script.Binding.ScriptParam("удельная теплота реакции, Дж/кг")] double heat, [AI.Script.Binding.ScriptParam("теплоёмкость, Дж/(кг·K)")] double cp, [AI.Script.Binding.ScriptParam("энергия активации, кДж/моль")] double ea, [AI.Script.Binding.ScriptParam("предэкспоненциальный множитель, 1/с")] double a, [AI.Script.Binding.ScriptParam("начальная температура, K")] double t0, [AI.Script.Binding.ScriptParam("окно наблюдения, с")] double duration = 86400) { }
+        [AI.Script.Binding.ScriptFn("sds", "Паспорт безопасности из 16 разделов по составу смеси", Example="chem.sds(\"Растворитель 646\", names, contents, hazards)")]
+        public static string SafetyDataSheetText([AI.Script.Binding.ScriptParam("наименование продукции")] string product, [AI.Script.Binding.ScriptParam("названия компонентов")] AI.Script.Runtime.ScriptList names, [AI.Script.Binding.ScriptParam("содержание компонентов, %")] AI.DataStructs.Algebraic.Vector contents, [AI.Script.Binding.ScriptParam("классификации компонентов через точку с запятой")] AI.Script.Runtime.ScriptList hazards) { }
+        [AI.Script.Binding.ScriptFn("smooth", "Сглаживание Савицкого-Голея", Example="chem.smooth(signal, window: 11)")]
+        public static AI.DataStructs.Algebraic.Vector Smooth([AI.Script.Binding.ScriptParam("сигнал")] AI.DataStructs.Algebraic.Vector signal, [AI.Script.Binding.ScriptParam("окно, нечётное число точек")] int window = 9, [AI.Script.Binding.ScriptParam("порядок полинома")] int order = 2) { }
+        [AI.Script.Binding.ScriptFn("solve", "Выполнить произвольную команду химического движка", Example="chem.solve(\"pH of 0.01M HCl\").result")]
+        public static AI.Script.Runtime.ScriptRecord Solve([AI.Script.Binding.ScriptParam("команда движка")] string command) { }
+        [AI.Script.Binding.ScriptFn("addition", "Метод добавок: концентрация в исходной пробе", Example="chem.addition(added, signal).value")]
+        public static AI.Script.Runtime.ScriptRecord StandardAddition([AI.Script.Binding.ScriptParam("концентрации добавок")] AI.DataStructs.Algebraic.Vector added, [AI.Script.Binding.ScriptParam("отклики после добавок")] AI.DataStructs.Algebraic.Vector signals, [AI.Script.Binding.ScriptParam("доверительная вероятность")] double confidence = 0.95) { }
+        [AI.Script.Binding.ScriptFn("uncertainty", "Суммарная и расширенная неопределённость по составляющим", Example="chem.uncertainty(<0.01, 0.005, 0.02>)")]
+        public static AI.Script.Runtime.ScriptRecord Uncertainty([AI.Script.Binding.ScriptParam("стандартные неопределённости составляющих")] AI.DataStructs.Algebraic.Vector components, [AI.Script.Binding.ScriptParam("значение измеряемой величины")] double value = 0, [AI.Script.Binding.ScriptParam("доверительная вероятность")] double confidence = 0.95) { }
+    }
+}

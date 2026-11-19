@@ -1,0 +1,51 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Nn
+{
+    public enum NetworkTask
+    {
+        Classification = 0,
+        Regression = 1,
+    }
+    public sealed class NeuralNetwork
+    {
+        public string Activation { get; }
+        public int Classes { get; }
+        public System.Collections.Generic.IReadOnlyList<int> Hidden { get; }
+        public AI.DataStructs.Algebraic.Vector History { get; }
+        public int Inputs { get; }
+        public long ParameterCount { get; }
+        public AI.Script.Nn.NetworkTask Task { get; }
+        public AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Matrix x) { }
+        public AI.DataStructs.Algebraic.Matrix Probabilities(AI.DataStructs.Algebraic.Matrix x) { }
+        public double Score(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y) { }
+        public static AI.Script.Nn.NeuralNetwork Fit(AI.DataStructs.Algebraic.Matrix x, AI.DataStructs.Algebraic.Vector y, System.Collections.Generic.IReadOnlyList<int> hidden, AI.Script.Nn.NetworkTask task, string activation, int epochs, double learningRate, int batch, double dropout, System.Random random) { }
+    }
+    public static class NnLibrary
+    {
+        public static AI.Script.Binding.IScriptModule Module { get; }
+        public static AI.Script.Hosting.ScriptHost UseNeuralNetworks(this AI.Script.Hosting.ScriptHost host) { }
+    }
+    [AI.Script.Binding.ScriptModule("nn", "Нейросеть над матрицей признаков; вход нормируйте через prep", Group="анализ", Version="0.1")]
+    public static class NnModule
+    {
+        public const string ModelHandle = "nn.model";
+        [AI.Script.Binding.ScriptFn("describe", "Устройство сети: слои, классы, число параметров", Example="emit model = net.describe()")]
+        [AI.Script.Binding.ScriptMethod("nn.model")]
+        public static AI.Script.Runtime.ScriptRecord Describe([AI.Script.Binding.ScriptParam("обученная сеть")] AI.Script.Runtime.ScriptHandle model) { }
+        [AI.Script.Binding.ScriptFn("fit", "Обучает сеть прямого распространения", Example="let net = nn.fit(x_train, y_train, hidden: [64, 32], epochs: 100)", Returns="nn.model")]
+        public static AI.Script.Runtime.ScriptHandle Fit(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("матрица объект × признак")] AI.DataStructs.Algebraic.Matrix x, [AI.Script.Binding.ScriptParam("метки классов либо отклик")] AI.DataStructs.Algebraic.Vector y, [AI.Script.Binding.ScriptParam("размеры скрытых слоёв")] AI.Script.Runtime.ScriptList? hidden = null, [AI.Script.Binding.ScriptParam("задача: \"classification\" либо \"regression\"")] string task = "classification", [AI.Script.Binding.ScriptParam("активация: relu, tanh, sigmoid, gelu, silu")] string activation = "relu", [AI.Script.Binding.ScriptParam("сколько раз пройти выборку")] int epochs = 50, [AI.Script.Binding.ScriptParam("скорость обучения")] double lr = 0.01, [AI.Script.Binding.ScriptParam("размер пачки; 0 — вся выборка")] int batch = 32, [AI.Script.Binding.ScriptParam("доля отключаемых нейронов")] double dropout = 0) { }
+        [AI.Script.Binding.ScriptFn("history", "Функция потерь по эпохам", Example="show plot.line(net.history())")]
+        [AI.Script.Binding.ScriptMethod("nn.model")]
+        public static AI.DataStructs.Algebraic.Vector History([AI.Script.Binding.ScriptParam("обученная сеть")] AI.Script.Runtime.ScriptHandle model) { }
+        [AI.Script.Binding.ScriptFn("predict", "Предсказание сети: метка класса либо значение отклика", Example="net.predict(x_test)")]
+        [AI.Script.Binding.ScriptMethod("nn.model")]
+        public static AI.DataStructs.Algebraic.Vector Predict(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("обученная сеть")] AI.Script.Runtime.ScriptHandle model, [AI.Script.Binding.ScriptParam("матрица объект × признак")] AI.DataStructs.Algebraic.Matrix x) { }
+        [AI.Script.Binding.ScriptFn("proba", "Вероятности классов: строка на объект, столбец на класс", Example="net.proba(x_test)")]
+        [AI.Script.Binding.ScriptMethod("nn.model")]
+        public static AI.DataStructs.Algebraic.Matrix Probabilities(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("обученная сеть")] AI.Script.Runtime.ScriptHandle model, [AI.Script.Binding.ScriptParam("матрица объект × признак")] AI.DataStructs.Algebraic.Matrix x) { }
+        [AI.Script.Binding.ScriptFn("score", "Качество: доля верных либо коэффициент детерминации", Example="net.score(x_test, y_test)")]
+        [AI.Script.Binding.ScriptMethod("nn.model")]
+        public static double Score([AI.Script.Binding.ScriptParam("обученная сеть")] AI.Script.Runtime.ScriptHandle model, [AI.Script.Binding.ScriptParam("матрица объект × признак")] AI.DataStructs.Algebraic.Matrix x, [AI.Script.Binding.ScriptParam("истинные метки либо отклик")] AI.DataStructs.Algebraic.Vector y) { }
+    }
+}

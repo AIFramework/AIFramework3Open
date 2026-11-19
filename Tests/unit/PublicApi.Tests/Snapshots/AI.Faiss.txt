@@ -1,0 +1,62 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Faiss.Enums
+{
+    public enum MetricType
+    {
+        METRIC_INNER_PRODUCT = 0,
+        METRIC_L2 = 1,
+        METRIC_L1 = 2,
+        METRIC_Linf = 3,
+        METRIC_Lp = 4,
+        METRIC_Canberra = 20,
+        METRIC_BrayCurtis = 21,
+        METRIC_JensenShannon = 22,
+        METRIC_Jaccard = 23,
+    }
+}
+namespace AI.Faiss
+{
+    public sealed class FaissIndex : System.IDisposable
+    {
+        public long Count { get; }
+        public int Dimension { get; }
+        public AI.Faiss.Enums.MetricType MetricType { get; }
+        public void Add(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public void Add(float[][] vectors) { }
+        public void AddFlat(int n, float[] vectors) { }
+        public void AddWithIds(AI.DataStructs.Algebraic.Vector[] vectors, long[] ids) { }
+        public void AddWithIds(float[][] vectors, long[] ids) { }
+        public void AddWithIdsFlat(int n, float[] vectors, long[] ids) { }
+        public long[] Assign(int n, float[] vectors) { }
+        public void Dispose() { }
+        public void MergeFrom(AI.Faiss.FaissIndex otherIndex, long addId = 0) { }
+        public AI.DataStructs.Algebraic.Vector[] Reconstruct(long[] ids) { }
+        public float[] ReconstructFlat(long[] ids) { }
+        public void RemoveIds(long[] ids) { }
+        public void Save(string path) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Distances",
+                "Labels"})]
+        public System.ValueTuple<float[][], long[][]> Search(AI.DataStructs.Algebraic.Vector[] vectors, int k) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Distances",
+                "Labels"})]
+        public System.ValueTuple<float[][], long[][]> Search(float[][] vectors, int k) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Distances",
+                "Labels",
+                "Reconstructed"})]
+        public System.ValueTuple<float[], long[], float[]> SearchAndReconstruct(int n, float[] vectors, int k) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Distances",
+                "Labels"})]
+        public System.ValueTuple<float[], long[]> SearchFlat(int n, float[] vectors, int k) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public void Train(int n, float[] vectors) { }
+        public static AI.Faiss.FaissIndex Create(int dimension, string constructor, AI.Faiss.Enums.MetricType metric) { }
+        public static AI.Faiss.FaissIndex CreateDefault(int dimension, AI.Faiss.Enums.MetricType metric) { }
+        public static string LastError() { }
+        public static AI.Faiss.FaissIndex Load(string path) { }
+    }
+}

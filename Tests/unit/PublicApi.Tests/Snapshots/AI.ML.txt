@@ -1,0 +1,896 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.HighLevelFunctions
+{
+    public static class ActivationFunctions
+    {
+        public static AI.DataStructs.Algebraic.Vector InverseSigmoid(AI.DataStructs.Algebraic.Vector x, double betta = 1) { }
+        public static double InverseSigmoid(double x, double betta = 1) { }
+        public static AI.DataStructs.Algebraic.Tensor Log10(AI.DataStructs.Algebraic.Tensor tensor) { }
+        public static AI.DataStructs.Algebraic.Matrix Relu(AI.DataStructs.Algebraic.Matrix Inp, double threshold = 0) { }
+        public static AI.DataStructs.Algebraic.Vector Relu(AI.DataStructs.Algebraic.Vector Inp, double threshold = 0) { }
+        public static AI.DataStructs.Algebraic.Vector[] Relu(AI.DataStructs.Algebraic.Vector[] Inp, double threshold = 0) { }
+        public static AI.DataStructs.Algebraic.Matrix Relu(AI.DataStructs.Algebraic.Matrix inp, double thresholdUp, double thresholdDoun = 0) { }
+        public static AI.DataStructs.Algebraic.Vector Relu(AI.DataStructs.Algebraic.Vector Inp, double thresholdUp, double thresholdDoun = 0) { }
+        public static AI.DataStructs.Algebraic.Matrix Sigmoid(AI.DataStructs.Algebraic.Matrix Inp, double betta = 1) { }
+        public static AI.DataStructs.Algebraic.Tensor Sigmoid(AI.DataStructs.Algebraic.Tensor tensor, double betta = 1) { }
+        public static AI.DataStructs.Algebraic.Vector Sigmoid(AI.DataStructs.Algebraic.Vector Inp, double betta = 1) { }
+        public static double Sigmoid(double x, double betta = 1) { }
+        public static AI.DataStructs.Algebraic.Matrix SigmoidBiplyar(AI.DataStructs.Algebraic.Matrix Inp, double betta = 1) { }
+        public static AI.DataStructs.Algebraic.Vector SigmoidBiplyar(AI.DataStructs.Algebraic.Vector Inp, double betta = 1) { }
+        public static AI.DataStructs.Algebraic.Vector Softmax(AI.DataStructs.Algebraic.Vector inp) { }
+        public static AI.DataStructs.Algebraic.Matrix Threshold(AI.DataStructs.Algebraic.Matrix inp, double threshold = 0) { }
+        public static AI.DataStructs.Algebraic.Vector Threshold(AI.DataStructs.Algebraic.Vector Inp, double threshold = 0) { }
+        public static AI.DataStructs.Algebraic.Vector Threshold(AI.DataStructs.Algebraic.Vector Inp, double thresholdUp = 1, double thresholdDoun = 0) { }
+    }
+    public static class DistributionFunctions
+    {
+        public static AI.DataStructs.Algebraic.Matrix Gauss(AI.DataStructs.Algebraic.Matrix inp, double m, double std) { }
+        public static AI.DataStructs.Algebraic.Vector Gauss(AI.DataStructs.Algebraic.Vector inp, double m, double std) { }
+        public static double Gauss(double Inp, double m, double sko) { }
+        public static AI.DataStructs.Algebraic.Matrix Gauss1(AI.DataStructs.Algebraic.Matrix inp, double m, double sko) { }
+        public static AI.DataStructs.Algebraic.Vector GaussNorm1(AI.DataStructs.Algebraic.Vector Inp, double m, double std) { }
+        public static double GaussNorm1(double Inp, double m, double std) { }
+        public static AI.DataStructs.Algebraic.Matrix GaussRect(int h, int w, double std = 160) { }
+        public static AI.DataStructs.Algebraic.Vector Puasson(AI.DataStructs.Algebraic.Vector inp, double m) { }
+    }
+}
+namespace AI.ML.Classification
+{
+    [System.Serializable]
+    public class BaseClassifier<T> : AI.DataStructs.IAlgorithm, AI.DataStructs.IEstimator<AI.DataStructs.Algebraic.Vector, int>, AI.DataStructs.ISavable, AI.ML.Classification.IClassifier
+    {
+        public BaseClassifier() { }
+        public virtual int Classify(AI.DataStructs.Algebraic.Vector inp) { }
+        public virtual AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp) { }
+        public virtual void Save(System.IO.Stream stream) { }
+        public virtual void Save(string path) { }
+        public virtual void Train(AI.ML.DataHandling.DataSets.VectorDataset dataset) { }
+        public virtual void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes) { }
+        public static T Load(System.IO.Stream stream) { }
+        public static T Load(string path) { }
+    }
+    [System.Serializable]
+    public class BayesianClassifier : AI.DataStructs.IAlgorithm, AI.DataStructs.IEstimator<AI.DataStructs.Algebraic.Vector, int>, AI.DataStructs.ISavable, AI.ML.Classification.IClassifier
+    {
+        public BayesianClassifier() { }
+        public BayesianClassifier(int nInp, int nOutp) { }
+        public int Classify(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public void Train(AI.ML.DataHandling.DataSets.VectorDataset dataset) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes) { }
+    }
+    [System.Serializable]
+    public class CorrelationClassifier : AI.DataStructs.IAlgorithm, AI.DataStructs.IEstimator<AI.DataStructs.Algebraic.Vector, int>, AI.DataStructs.ISavable, AI.ML.Classification.IClassifier
+    {
+        public CorrelationClassifier() { }
+        public CorrelationClassifier(AI.ML.Classification.StructClasses classifikator) { }
+        public CorrelationClassifier(string path) { }
+        public AI.ML.Classification.StructClasses Classes { get; set; }
+        public void AddClass(AI.DataStructs.Algebraic.Vector features, int num) { }
+        public int Classify(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public void Train(AI.ML.DataHandling.DataSets.VectorDataset dataset) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes) { }
+        public static AI.ML.Classification.CorrelationClassifier Load(System.IO.Stream stream) { }
+        public static AI.ML.Classification.CorrelationClassifier Load(string path) { }
+    }
+    public interface IClassifier : AI.DataStructs.IAlgorithm, AI.DataStructs.IEstimator<AI.DataStructs.Algebraic.Vector, int>, AI.DataStructs.ISavable
+    {
+        int Classify(AI.DataStructs.Algebraic.Vector inp);
+        AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp);
+        void Train(AI.ML.DataHandling.DataSets.VectorDataset dataset);
+        void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes);
+    }
+    [System.Serializable]
+    public class LinearClassifierBinarry : AI.ML.Classification.BaseClassifier<AI.ML.Classification.LinearClassifierBinarry>
+    {
+        public LinearClassifierBinarry(int dim) { }
+        public double C { get; set; }
+        public int EpochesToPass { get; set; }
+        public double L1 { get; set; }
+        public double L2 { get; set; }
+        public double LearningRate { get; set; }
+        public double MinimalMargin { get; set; }
+        public override int Classify(AI.DataStructs.Algebraic.Vector inp) { }
+        public override AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp) { }
+        public override void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes) { }
+    }
+    [System.Serializable]
+    public class NN : AI.DataStructs.IAlgorithm, AI.DataStructs.IEstimator<AI.DataStructs.Algebraic.Vector, int>, AI.DataStructs.ISavable, AI.ML.Classification.IClassifier
+    {
+        public NN() { }
+        public NN(AI.ML.Classification.StructClasses classifikator) { }
+        public NN(string path) { }
+        public AI.ML.Classification.StructClasses Classes { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> Dist { get; set; }
+        public void AddClass(AI.DataStructs.Algebraic.Vector features, int num) { }
+        public void AddClass(AI.DataStructs.Algebraic.Vector[] tDataset, int numClass) { }
+        public int Classify(AI.DataStructs.Algebraic.Vector inp) { }
+        public AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public void Train(AI.ML.DataHandling.DataSets.VectorDataset dataset) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes) { }
+        public void TrainGroup(AI.ML.DataHandling.DataSets.VectorDataset dataset) { }
+        public static AI.ML.Classification.NN Load(System.IO.Stream stream) { }
+        public static AI.ML.Classification.NN Load(string path) { }
+    }
+    [System.Serializable]
+    public class SVMBinary : AI.ML.Classification.BaseClassifier<AI.ML.Classification.SVMBinary>
+    {
+        public SVMBinary(int dim) { }
+        public double C { get; set; }
+        public int EpochesToPass { get; set; }
+        public double L1 { get; set; }
+        public double L2 { get; set; }
+        public double LearningRate { get; set; }
+        public double MinimalMargin { get; set; }
+        public int NumSupportVectors { get; set; }
+        public override int Classify(AI.DataStructs.Algebraic.Vector inp) { }
+        public override AI.DataStructs.Algebraic.Vector ClassifyProbVector(AI.DataStructs.Algebraic.Vector inp) { }
+        public override void Train(AI.DataStructs.Algebraic.Vector[] features, int[] classes) { }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.ML.Json.StructClassesJsonConverter))]
+    [System.Serializable]
+    public class StructClasses : System.Collections.Generic.List<AI.ML.DataHandling.DataSets.VectorDatasetItem>
+    {
+        public StructClasses() { }
+        public new AI.ML.DataHandling.DataSets.VectorDatasetItem this[int index] { get; set; }
+        public void Add(AI.ML.DataHandling.DataSets.VectorDatasetItem item) { }
+        public void Remove(AI.ML.DataHandling.DataSets.VectorDatasetItem item) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public static AI.ML.Classification.StructClasses Load(System.IO.Stream stream) { }
+        public static AI.ML.Classification.StructClasses Load(string path) { }
+    }
+}
+namespace AI.ML.Classification.LinearModelTools
+{
+    public class GradientMargin<T1, T2>
+    {
+        public GradientMargin() { }
+        public T2 GradientBias { get; set; }
+        public T1 GradientW { get; set; }
+        public T2 Margin { get; set; }
+    }
+    [System.Serializable]
+    public class Margin
+    {
+        public Margin() { }
+        public static AI.ML.Classification.LinearModelTools.GradientMargin<AI.DataStructs.Algebraic.Vector, double> GetAverageMarginWithGradient(AI.DataStructs.Algebraic.Vector ideal, AI.DataStructs.Algebraic.Vector[] inp, AI.DataStructs.Algebraic.Vector param, double bias, double C = 1, double l1 = 0, double l2 = 0, double minMargin = 0) { }
+        public static double GetMargin(double ideal, double outp) { }
+        public static double GetMargin(float ideal, float outp) { }
+        public static double GetMargin(double ideal, AI.DataStructs.Algebraic.Vector inp, AI.DataStructs.Algebraic.Vector w, double b) { }
+        public static AI.ML.Classification.LinearModelTools.GradientMargin<AI.DataStructs.Algebraic.Vector, double> GetMarginWithGradient(double ideal, AI.DataStructs.Algebraic.Vector inp, AI.DataStructs.Algebraic.Vector param, double bias, double C = 1, double minMargin = 0) { }
+        public static AI.ML.DataHandling.DataSets.VectorDatasetItem[] GetSupportVector(AI.DataStructs.Algebraic.Vector ideal, AI.DataStructs.Algebraic.Vector[] inp, AI.DataStructs.Algebraic.Vector w, double b, int supportVectorsCount = 1) { }
+        public static double OutputLinModel(AI.DataStructs.Algebraic.Vector inp, AI.DataStructs.Algebraic.Vector w, double b) { }
+    }
+    public class MarginVector
+    {
+        public MarginVector() { }
+        public AI.DataStructs.Algebraic.Vector Features { get; set; }
+        public double Margin { get; set; }
+    }
+    [System.Serializable]
+    public class NonIterativeTwoClass
+    {
+        public NonIterativeTwoClass() { }
+        public double B { get; set; }
+        public AI.DataStructs.Algebraic.Vector W { get; set; }
+        public bool Forward(AI.DataStructs.Algebraic.Vector vect) { }
+        public void Train(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectorsCL1, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectorsCL2) { }
+    }
+}
+namespace AI.ML.Clustering
+{
+    public class BallTree
+    {
+        public BallTree(AI.DataStructs.Algebraic.Vector[] dataset) { }
+        public double NearestDistanceToCentroids(AI.DataStructs.Algebraic.Vector point, AI.DataStructs.Algebraic.Vector[] centroids) { }
+        public AI.DataStructs.Algebraic.Vector NearestNeighbor(AI.DataStructs.Algebraic.Vector point) { }
+    }
+    [System.Serializable]
+    public class BallTreeNode
+    {
+        public BallTreeNode() { }
+        public BallTreeNode(AI.DataStructs.Algebraic.Vector point) { }
+        public int Depth { get; set; }
+        public AI.ML.Clustering.BallTreeNode Left { get; set; }
+        public AI.DataStructs.Algebraic.Vector Point { get; set; }
+        public AI.ML.Clustering.BallTreeNode Right { get; set; }
+    }
+    [System.Serializable]
+    public class Cluster
+    {
+        public Cluster() { }
+        public AI.DataStructs.Algebraic.Vector Centr { get; set; }
+        public AI.DataStructs.Algebraic.Vector[] Dataset { get; set; }
+    }
+    [System.Serializable]
+    public class FastKMeans : AI.DataStructs.IAlgorithm, AI.ML.Clustering.IClustering
+    {
+        public FastKMeans(int groupCount) { }
+        public AI.DataStructs.Algebraic.Vector[] Centroids { get; protected set; }
+        public AI.ML.Clustering.Cluster[] Clusters { get; }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> DistanceFunction { get; set; }
+        public int GroupCount { get; }
+        public int MaxCount { get; set; }
+        public int Classify(AI.DataStructs.Algebraic.Vector vector) { }
+        public int[] Classify(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors) { }
+        public void Initialize() { }
+        protected int NearestVector(AI.DataStructs.Algebraic.Vector vector) { }
+        public int NearestVector(AI.DataStructs.Algebraic.Vector vector, AI.ML.Clustering.BallTree ballTree) { }
+        public void OnlineTuning(AI.DataStructs.Algebraic.Vector vect, double lr = 0.01) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] dataset, int seed = 10) { }
+    }
+    [System.Serializable]
+    public class Forel : AI.DataStructs.IAlgorithm, AI.ML.Clustering.IClustering
+    {
+        public Forel() { }
+        public AI.DataStructs.Algebraic.Vector[] Centroids { get; }
+        public AI.ML.Clustering.Cluster[] Clusters { get; }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> DistanceFunction { get; set; }
+        public int Classify(AI.DataStructs.Algebraic.Vector vector) { }
+        public int[] Classify(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] dataset, int minR = 0) { }
+    }
+    public interface IClustering : AI.DataStructs.IAlgorithm
+    {
+        AI.DataStructs.Algebraic.Vector[] Centroids { get; }
+        AI.ML.Clustering.Cluster[] Clusters { get; }
+        System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> DistanceFunction { get; set; }
+        int Classify(AI.DataStructs.Algebraic.Vector vector);
+        int[] Classify(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors);
+        void Train(AI.DataStructs.Algebraic.Vector[] dataset, int param);
+    }
+    [System.Serializable]
+    public class KMeans : AI.DataStructs.IAlgorithm, AI.ML.Clustering.IClustering
+    {
+        public KMeans(int clusterCount) { }
+        public AI.DataStructs.Algebraic.Vector[] Centroids { get; protected set; }
+        public AI.ML.Clustering.Cluster[] Clusters { get; }
+        public int DimensionOfData { get; }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> DistanceFunction { get; set; }
+        public int GroupCount { get; }
+        public int MaxCount { get; set; }
+        [System.Obsolete("Используйте Centroids")]
+        public AI.DataStructs.Algebraic.Vector[] Сentroids { get; }
+        public int Classify(AI.DataStructs.Algebraic.Vector vector) { }
+        public int[] Classify(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors) { }
+        public void Initialize() { }
+        protected int NearestVector(AI.DataStructs.Algebraic.Vector vector) { }
+        public void OnlineTuning(AI.DataStructs.Algebraic.Vector vect, double lr = 0.01) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] dataset, int seed = 10) { }
+    }
+    [System.Serializable]
+    public class KohonenNet : AI.DataStructs.IAlgorithm, AI.ML.Clustering.IClustering
+    {
+        public AI.DataStructs.Algebraic.Vector bias;
+        public KohonenNet(int clusters, int inpDim, int seed = 1) { }
+        public AI.DataStructs.Algebraic.Vector[] Centroids { get; set; }
+        public AI.ML.Clustering.Cluster[] Clusters { get; }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> DistanceFunction { get; set; }
+        public double Eta0 { get; set; }
+        public double EtaFinal { get; }
+        public AI.DataStructs.Algebraic.Vector Mean { get; }
+        public AI.DataStructs.Algebraic.Vector Std { get; }
+        public int Steps { get; set; }
+        public int Classify(AI.DataStructs.Algebraic.Vector vector) { }
+        public int[] Classify(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors) { }
+        public int ClassifyAndTrain(AI.DataStructs.Algebraic.Vector vect) { }
+        public AI.DataStructs.Algebraic.Vector[] GetOriginalCentroids() { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] datasetInp, int param) { }
+    }
+}
+namespace AI.ML.DataHandling.DataEncoding.PositionalEncoding
+{
+    public interface IPositionEncoding
+    {
+        int Dim { get; set; }
+        AI.DataStructs.Algebraic.Vector GetCode(double position);
+        AI.DataStructs.Algebraic.Vector GetCode(int position);
+    }
+    [System.Serializable]
+    public class MultiscaleEncoder : AI.ML.DataHandling.DataEncoding.PositionalEncoding.IPositionEncoding
+    {
+        public MultiscaleEncoder(int dim) { }
+        public int Dim { get; set; }
+        public AI.DataStructs.Algebraic.Vector GetCode(double position) { }
+        public AI.DataStructs.Algebraic.Vector GetCode(int position) { }
+    }
+    [System.Serializable]
+    public class OneHotPositionEncoder : AI.ML.DataHandling.DataEncoding.PositionalEncoding.IPositionEncoding
+    {
+        public OneHotPositionEncoder(int dim) { }
+        public int Dim { get; set; }
+        public AI.DataStructs.Algebraic.Vector GetCode(double position) { }
+        public AI.DataStructs.Algebraic.Vector GetCode(int position) { }
+    }
+    [System.Serializable]
+    public class PositionEncoderOnDeductionRings : AI.ML.DataHandling.DataEncoding.PositionalEncoding.IPositionEncoding
+    {
+        public PositionEncoderOnDeductionRings(int dim) { }
+        public int Dim { get; set; }
+        public AI.DataStructs.Algebraic.Vector GetCode(double position) { }
+        public AI.DataStructs.Algebraic.Vector GetCode(int position) { }
+    }
+    [System.Serializable]
+    public class TrigonometricPositionalEncoder : AI.ML.DataHandling.DataEncoding.PositionalEncoding.IPositionEncoding
+    {
+        public TrigonometricPositionalEncoder(int dim = 512) { }
+        public int Dim { get; set; }
+        public AI.DataStructs.Algebraic.Vector GetCode(double position) { }
+        public AI.DataStructs.Algebraic.Vector GetCode(int position) { }
+    }
+}
+namespace AI.ML.DataHandling.DataSets.Base
+{
+    [System.Serializable]
+    public class Many2ManyVectorClassifier
+    {
+        public Many2ManyVectorClassifier() { }
+        public Many2ManyVectorClassifier(System.Collections.Generic.IEnumerable<int> labels, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> features) { }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> Features { get; set; }
+        public System.Collections.Generic.List<int> Labels { get; set; }
+        public AI.ML.DataHandling.DataSets.Base.Many2ManyVectorClassifierDataset GetDataset(System.Collections.Generic.IEnumerable<AI.ML.DataHandling.DataSets.Base.Many2ManyVectorClassifier> data, bool doShuffling = true) { }
+    }
+    [System.Serializable]
+    public class Many2ManyVectorClassifierDataset : System.Collections.Generic.List<AI.ML.DataHandling.DataSets.Base.Many2ManyVectorClassifier>
+    {
+        public Many2ManyVectorClassifierDataset() { }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector>[] GetFeatures() { }
+        public System.Collections.Generic.List<int>[] GetLabels() { }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector>[] GetVectorLabels(int countClasses) { }
+        public void ShufflingDataset() { }
+    }
+}
+namespace AI.ML.DataHandling.DataSets
+{
+    [System.Serializable]
+    public static class ExtensionOfFeatureSpace
+    {
+        public static AI.DataStructs.Algebraic.Vector Cos(AI.DataStructs.Algebraic.Vector inp, int n = 2) { }
+        public static AI.DataStructs.Algebraic.Vector Cos(double x, int n = 2) { }
+        public static AI.DataStructs.Algebraic.Vector GaussRBF(double x, AI.DataStructs.Algebraic.Vector centers, double std = 1) { }
+        public static AI.DataStructs.Algebraic.Vector PoliCos(AI.DataStructs.Algebraic.Vector x, int nPolinom = 3, int nCos = 3) { }
+        public static AI.DataStructs.Algebraic.Vector PoliCos(double x, int nPolinom = 3, int nCos = 3) { }
+        public static AI.DataStructs.Algebraic.Vector Polinomial(AI.DataStructs.Algebraic.Vector inp, int n = 2) { }
+        public static AI.DataStructs.Algebraic.Vector Polinomial(double x, int n = 2) { }
+        public static AI.DataStructs.Algebraic.Vector Sin(double x, int n = 2) { }
+        public static AI.DataStructs.Algebraic.Vector SinCos(double x, int n = 2) { }
+        public static AI.DataStructs.Algebraic.Vector Sinc(double x, AI.DataStructs.Algebraic.Vector centers) { }
+    }
+    public class GroupeVidData
+    {
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> GroupeFeatures;
+        public int GroupeMark;
+        public GroupeVidData() { }
+        public GroupeVidData(int gMark, AI.DataStructs.Algebraic.Vector features) { }
+        public AI.DataStructs.Algebraic.Vector Mean { get; }
+        public AI.DataStructs.Algebraic.Vector Std { get; }
+        public static int IndexLbl(System.Collections.Generic.IEnumerable<AI.ML.DataHandling.DataSets.GroupeVidData> data, int lbl) { }
+    }
+    [System.Serializable]
+    public class MatrixInt : System.Collections.Generic.List<AI.ML.DataHandling.DataSets.MatrixIntSample>
+    {
+        public MatrixInt() { }
+        public AI.ML.DataHandling.DataSets.MatrixIntSample GetRandMatrixIntSemple() { }
+    }
+    [System.Serializable]
+    public class MatrixIntSample
+    {
+        public MatrixIntSample() { }
+        public MatrixIntSample(AI.DataStructs.Algebraic.Matrix matr, int numClass) { }
+        public int ClassNum { get; set; }
+        public AI.DataStructs.Algebraic.Matrix Matrix { get; set; }
+    }
+    [System.Serializable]
+    public class MatrixVector : System.Collections.Generic.List<AI.ML.DataHandling.DataSets.MatrixVectorSample>
+    {
+        public MatrixVector() { }
+        public AI.ML.DataHandling.DataSets.MatrixVectorSample MatrixVectorSempleRand() { }
+    }
+    [System.Serializable]
+    public class MatrixVectorSample
+    {
+        public AI.DataStructs.Algebraic.Matrix matrix;
+        public AI.DataStructs.Algebraic.Vector vector;
+        public MatrixVectorSample(AI.DataStructs.Algebraic.Matrix matr, AI.DataStructs.Algebraic.Vector vect) { }
+    }
+    [System.Serializable]
+    public class VectorDataset : System.Collections.Generic.List<AI.ML.DataHandling.DataSets.VectorDatasetItem>
+    {
+        public AI.DataStructs.Algebraic.Vector disp;
+        public AI.DataStructs.Algebraic.Vector mean;
+        public VectorDataset() { }
+        public VectorDataset(int capas) { }
+        public VectorDataset(string path) { }
+        public AI.DataStructs.Algebraic.Matrix CorrMatrFeatures() { }
+        public void DispMeanResult() { }
+        public AI.ML.DataHandling.DataSets.VectorDataset GetDatasetDelSim(double simCoef = 0.9) { }
+        public AI.DataStructs.Algebraic.Vector[] GetFeatures() { }
+        public AI.ML.DataHandling.DataSets.GroupeVidData[] GetGroupes() { }
+        public AI.ML.DataHandling.DataSets.VectorDatasetItem GetRandomData() { }
+        public AI.ML.DataHandling.DataSets.VectorDataset GroupMean() { }
+        public int IndexLbl(int lbl) { }
+        public void Save(string path, char separator = ;) { }
+        public AI.ML.DataHandling.DataSets.VectorDataset ZNormalise(string pathZData = "z_norm", bool isSave = true) { }
+        public static AI.ML.DataHandling.DataSets.VectorDataset CsvToVid(string path, char separator = ,) { }
+        public static AI.ML.DataHandling.DataSets.VectorDataset CsvToVid(string path, int len, char separator = ,) { }
+    }
+    [System.Serializable]
+    public class VectorDatasetItem
+    {
+        public VectorDatasetItem() { }
+        public VectorDatasetItem(AI.DataStructs.Algebraic.Vector vector, int mark) { }
+        public int ClassMark { get; set; }
+        public AI.DataStructs.Algebraic.Vector Features { get; set; }
+        public double R { get; set; }
+    }
+}
+namespace AI.ML.DataHandling.DataSets.Synthetic
+{
+    [System.Serializable]
+    public class PointClouds
+    {
+        public PointClouds(int dim = 2) { }
+        public int Dimention { get; set; }
+        public void AddCloud(int count, AI.DataStructs.Algebraic.Vector centr, AI.ML.DataHandling.DataSets.Synthetic.PointClouds.CloudType type = 0, AI.DataStructs.Algebraic.Vector std = null) { }
+        public AI.DataStructs.Algebraic.Vector[] GetArray() { }
+        public enum CloudType
+        {
+            Hypersphere = 0,
+            Hypercube = 1,
+        }
+    }
+}
+namespace AI.ML.DataHandling.FeaturesTransforms
+{
+    [System.Serializable]
+    public class PCA
+    {
+        public PCA(int? k = default) { }
+        public AI.DataStructs.Algebraic.Matrix Components { get; }
+        public AI.DataStructs.Algebraic.Vector Eigenvalues { get; protected set; }
+        public double Eps { get; set; }
+        public AI.ML.DataHandling.FeaturesTransforms.PCAInfo Info { get; protected set; }
+        public int Iterations { get; set; }
+        public AI.ML.DataHandling.FeaturesTransforms.PCAInfo Train(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public AI.ML.DataHandling.FeaturesTransforms.PCAInfo Train(AI.DataStructs.Algebraic.Vector[] vectors) { }
+        public AI.DataStructs.Algebraic.Matrix Transform(AI.DataStructs.Algebraic.Matrix data, bool isNormal = false) { }
+        public AI.DataStructs.Algebraic.Vector Transform(AI.DataStructs.Algebraic.Vector vector, bool isNormal = false) { }
+        public AI.DataStructs.Algebraic.Vector[] Transform(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> data, bool isNormal = false) { }
+    }
+    [System.Serializable]
+    public class PCAInfo
+    {
+        public PCAInfo() { }
+        public double EpsEigenvalues { get; set; }
+        public double InfoSaveEnergy { get; }
+        public bool IsConvergence { get; set; }
+        public double LastVar { get; set; }
+        public double SaveVar { get; set; }
+    }
+}
+namespace AI.ML.DataHandling
+{
+    public class GradientDescent
+    {
+        public GradientDescent(AI.DataStructs.Algebraic.Vector param, System.Func<AI.DataStructs.Algebraic.Vector, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector>, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector>, double> function, AI.ML.DataHandling.GradientDescentDataset gdd) { }
+        public System.Func<AI.DataStructs.Algebraic.Vector, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector>, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector>, double> Function { get; set; }
+        public AI.ML.DataHandling.GradientDescentDataset GdDataset { get; set; }
+        public int Itterations { get; set; }
+        public double Norm { get; set; }
+        public AI.DataStructs.Algebraic.Vector Parammetrs { get; set; }
+        public double Step { get; set; }
+        public void AsyncDecent() { }
+        public void Decent() { }
+        public AI.DataStructs.Algebraic.Vector PartialDerivatives(AI.DataStructs.Algebraic.Vector param, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> inp, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> ideal, System.Func<AI.DataStructs.Algebraic.Vector, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector>, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector>, double> function) { }
+    }
+    [System.Serializable]
+    public class GradientDescentDataset
+    {
+        public GradientDescentDataset() { }
+        public GradientDescentDataset(System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> xVector, System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> yVector) { }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> X { get; set; }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> Y { get; set; }
+        public void Add(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
+        public void Add(AI.DataStructs.Algebraic.Vector x, double y) { }
+        public void Add(double x, double y) { }
+        public void Clear() { }
+    }
+}
+namespace AI.ML.Embeddings
+{
+    [System.Serializable]
+    public class CrossCorrMatrix
+    {
+        public CrossCorrMatrix() { }
+        public static AI.DataStructs.Algebraic.Matrix CalcMatrix(AI.DataStructs.Algebraic.Vector[] x, AI.DataStructs.Algebraic.Vector[] y) { }
+    }
+    [System.Serializable]
+    public class EmbeddingMatrix
+    {
+        public EmbeddingMatrix(AI.DataStructs.Algebraic.Vector[] data) { }
+        public EmbeddingMatrix(int countVectors = 5, int embedingDimention = 5) { }
+        public AI.DataStructs.Algebraic.Vector[] Rows { get; }
+    }
+}
+namespace AI.ML.Genetic.GeneticCore
+{
+    [System.Serializable]
+    public class Cell
+    {
+        public Cell(int parametrsCount, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, System.Random rnd, double valDown, double valUp) { }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> Function { get; set; }
+        public AI.DataStructs.Algebraic.Vector Parametrs { get; set; }
+        public double Score { get; set; }
+        public AI.DataStructs.Algebraic.Vector Output(AI.DataStructs.Algebraic.Vector inpVector) { }
+    }
+    [System.Serializable]
+    public class Population : System.Collections.Generic.List<AI.ML.Genetic.GeneticCore.Cell>
+    {
+        public double k;
+        public double mutProb;
+        public Population(int countCell, int countParam, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, AI.DataStructs.Algebraic.Vector[] inp, AI.DataStructs.Algebraic.Vector[] outp, double valDown = -10, double valUp = 10) { }
+        public Population(int countCell, int countParam, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, AI.DataStructs.Algebraic.Vector inp, AI.DataStructs.Algebraic.Vector outp, double valDown = -10, double valUp = 10) { }
+        public double DValueDown { get; }
+        public double DValueUp { get; }
+        public int LiderCount { get; set; }
+        public double MutationValue { get; set; }
+        public AI.DataStructs.Algebraic.Vector CellOut(AI.DataStructs.Algebraic.Vector inp, int indCell = 0) { }
+        public AI.ML.Genetic.GeneticCore.Cell Cross(AI.ML.Genetic.GeneticCore.Cell par1, AI.ML.Genetic.GeneticCore.Cell par2) { }
+        public void Epoch(int count = 100) { }
+        public AI.ML.Genetic.GeneticCore.Cell Mutation(AI.ML.Genetic.GeneticCore.Cell input) { }
+        public void SortCells() { }
+    }
+}
+namespace AI.ML.Json
+{
+    public static class AiMlJsonOptions
+    {
+        public static readonly System.Text.Json.JsonSerializerOptions Default;
+        public static readonly System.Text.Json.JsonSerializerOptions MCFastOptions;
+    }
+    public sealed class StructClassesJsonConverter : System.Text.Json.Serialization.JsonConverter<AI.ML.Classification.StructClasses>
+    {
+        public StructClassesJsonConverter() { }
+        public override AI.ML.Classification.StructClasses Read(ref System.Text.Json.Utf8JsonReader reader, System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options) { }
+        public override void Write(System.Text.Json.Utf8JsonWriter writer, AI.ML.Classification.StructClasses value, System.Text.Json.JsonSerializerOptions options) { }
+    }
+}
+namespace AI.ML.Regression
+{
+    public interface IMultyRegression<T>
+    {
+        AI.DataStructs.Algebraic.Vector Predict(T data);
+        void Train(T[] data, AI.DataStructs.Algebraic.Vector[] targets);
+    }
+    public interface IRegression : AI.DataStructs.IAlgorithm
+    {
+        double Predict(AI.DataStructs.Algebraic.Vector data);
+        void Train(AI.DataStructs.Algebraic.Vector[] data, AI.DataStructs.Algebraic.Vector targets);
+    }
+    public interface IRegressor : AI.DataStructs.IAlgorithm, AI.DataStructs.IEstimator<AI.DataStructs.Algebraic.Vector, double>, AI.ML.Regression.IRegression { }
+    public class LinearRegression : AI.DataStructs.IAlgorithm, AI.DataStructs.IEstimator<AI.DataStructs.Algebraic.Vector, double>, AI.ML.Regression.IRegression, AI.ML.Regression.IRegressor
+    {
+        public LinearRegression() { }
+        public LinearRegression(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
+        public AI.ML.Regression.LinearRegressionModel Lrm { get; set; }
+        public void Fit(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
+        public AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Vector x) { }
+        public double Predict(double x) { }
+        public override string ToString() { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] data, AI.DataStructs.Algebraic.Vector targets) { }
+    }
+    [System.Serializable]
+    public class LinearRegressionModel
+    {
+        public LinearRegressionModel() { }
+        public double Intercept { get; set; }
+        public double Slope { get; set; }
+        [System.Obsolete("Используйте Intercept")]
+        public double b { get; set; }
+        [System.Obsolete("Используйте Slope")]
+        public double k { get; set; }
+    }
+    [System.Serializable]
+    public class MultipleRegression : AI.DataStructs.IAlgorithm, AI.ML.Regression.IRegression
+    {
+        public MultipleRegression(bool isScale = false) { }
+        public MultipleRegression(string path) { }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public AI.DataStructs.Algebraic.Vector Parammetrs { get; }
+        [System.Text.Json.Serialization.JsonPropertyName("_mean")]
+        public AI.DataStructs.Algebraic.Vector SerMean { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("_param")]
+        public AI.DataStructs.Algebraic.Vector SerParam { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("_std")]
+        public AI.DataStructs.Algebraic.Vector SerStd { get; set; }
+        public void LoadModel(string path) { }
+        public AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Vector[] inp) { }
+        public double Predict(AI.DataStructs.Algebraic.Vector vect) { }
+        public void SaveModel(string path) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] data, AI.DataStructs.Algebraic.Vector targets) { }
+        public void TrainGrad(AI.DataStructs.Algebraic.Vector[] data, AI.DataStructs.Algebraic.Vector targets, double epoch, double lr, double l1, double l2) { }
+    }
+    [System.Serializable]
+    public class PolynomialRegression
+    {
+        public PolynomialRegression(AI.DataStructs.Algebraic.Vector inp, AI.DataStructs.Algebraic.Vector outp, int nPoly = 3) { }
+        public AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Vector vect) { }
+        public double Predict(double inp) { }
+    }
+    [System.Serializable]
+    public class StructRegr
+    {
+        public StructRegr() { }
+        public StructRegr(AI.DataStructs.Algebraic.Vector f, double target) { }
+        public AI.DataStructs.Algebraic.Vector Features { get; set; }
+        public double[] Params { get; set; }
+        public double R { get; set; }
+        public double Target { get; set; }
+    }
+    [System.Serializable]
+    public class StructRegrMulty
+    {
+        public StructRegrMulty() { }
+        public AI.DataStructs.Algebraic.Vector CentGiperSfer { get; set; }
+        public double[] Params { get; set; }
+        public double R { get; set; }
+        public AI.DataStructs.Algebraic.Vector Targets { get; set; }
+    }
+    [System.Serializable]
+    public class StructRegres
+    {
+        public StructRegres() { }
+        public System.Collections.Generic.List<AI.ML.Regression.StructRegr> Classes { get; set; }
+    }
+    [System.Serializable]
+    public class StructRegresMulty
+    {
+        public StructRegresMulty() { }
+        public System.Collections.Generic.List<AI.ML.Regression.StructRegrMulty> Classes { get; set; }
+    }
+}
+namespace AI.ML.SequenceAnalysis.HMM
+{
+    [System.Serializable]
+    public class HMM
+    {
+        public AI.DataStructs.Algebraic.Matrix stateAlter;
+        public AI.DataStructs.Algebraic.Matrix stateMatrix;
+        public int[] states;
+        public HMM() { }
+        public int[] Generate(int num, int begin) { }
+        public void Train(int[] trainSeq) { }
+    }
+    [System.Serializable]
+    public class KMeanHMM
+    {
+        public KMeanHMM(int numClasters = 3) { }
+        public AI.ML.Clustering.KMeans KMean { get; set; }
+        public int[] Generate(AI.DataStructs.Algebraic.Vector start, int len) { }
+        public AI.DataStructs.Algebraic.Matrix GetTransitionMatrix(AI.DataStructs.Algebraic.Vector[] seq) { }
+        public AI.DataStructs.Algebraic.Vector GetTransitionVector(AI.DataStructs.Algebraic.Vector[] seq) { }
+        public void Train(AI.DataStructs.Algebraic.Vector[] seqInp) { }
+        public void TrainHMM(AI.DataStructs.Algebraic.Vector[] seqInp) { }
+    }
+    [System.Serializable]
+    public class MCFast
+    {
+        public MCFast() { }
+        public int EndToken { get; set; }
+        public int NGram { get; set; }
+        public AI.DataStructs.Algebraic.Vector ProbabilityVector { get; set; }
+        public int StartToken { get; set; }
+        public AI.ML.SequenceAnalysis.HMM.MCNextToken[] CalculateProbabilityNGramm(System.Collections.Generic.List<int> start) { }
+        public int[] Generate(int num) { }
+        public int[] Generate(int num, int[] tokens) { }
+        public int[] Generate(int num, int[] tokens, System.Random rnd) { }
+        public void Save(System.IO.Stream stream) { }
+        public void Save(string path) { }
+        public AI.DataStructs.Algebraic.Vector SeqToVector(int[] seq) { }
+        public void SetLimitationsWList(int[] wList) { }
+        public void Train(int[] trainSeq, bool addStart = false) { }
+        public static AI.ML.SequenceAnalysis.HMM.MCFast Load(System.IO.Stream stream) { }
+        public static AI.ML.SequenceAnalysis.HMM.MCFast Load(string path) { }
+        [System.Serializable]
+        public class McMapElement
+        {
+            public int KeyEnd;
+            public int[] KeyStart;
+            public McMapElement(int[] keyStart, int keyEnd) { }
+        }
+    }
+    [System.Serializable]
+    public class MCFastModel
+    {
+        public MCFastModel(int[] model, double probability) { }
+        public int[] Model { get; }
+        public double Probability { get; set; }
+    }
+    [System.Serializable]
+    public class MCNextToken
+    {
+        public MCNextToken(int val, double pr) { }
+        public double Probability { get; }
+        public int Value { get; }
+    }
+    [System.Serializable]
+    public class MChWords
+    {
+        public AI.DataStructs.Algebraic.Matrix stateAlter;
+        public AI.DataStructs.Algebraic.Matrix stateMatrix;
+        public MChWords() { }
+        public string Generate(int num, string begin) { }
+        public void Train(string TrainText) { }
+    }
+}
+namespace AI.ML.SequenceAnalysis.SeqAnalyze
+{
+    [System.Serializable]
+    public class ClassifierS2V
+    {
+        public int NumCl;
+        public ClassifierS2V(int nCl, int max_n_gramm, double top_p = 0.75, AI.ML.SequenceAnalysis.SeqAnalyze.S2VClType s2VClType = 0) { }
+        public int CountRules { get; }
+        public AI.DataStructs.Algebraic.Vector this[int[] ints] { get; set; }
+        public AI.ML.SequenceAnalysis.SeqAnalyze.States2Vector States2Vector { get; }
+        public double Treshold { get; set; }
+        public void AddRuleCl(int[] states, int cl_mark, double gain = 100) { }
+        public int[] Classify(System.Collections.Generic.IEnumerable<int> input) { }
+        public AI.DataStructs.Algebraic.Vector ClassifyProbVector(System.Collections.Generic.IEnumerable<int> input) { }
+        public AI.ML.SequenceAnalysis.SeqAnalyze.ClassifierS2V CreateClassifierS2V(System.Collections.Generic.List<int[]>[] cls, int max_n_gramm, double membership_cl_coef = 300, double top_p = 0.75, AI.ML.SequenceAnalysis.SeqAnalyze.S2VClType s2VClType = 0) { }
+        public void Train(System.Collections.Generic.IEnumerable<int[]> states, System.Collections.Generic.IEnumerable<int> classes) { }
+    }
+    public enum S2VClType
+    {
+        OneClassPredict = 0,
+        MultyClassPredict = 1,
+    }
+    [System.Serializable]
+    public class States2Vector : AI.ML.Regression.IMultyRegression<int[]>
+    {
+        public int MaxNGramm;
+        public double TopP;
+        public States2Vector(int max_n_gram, double top_p) { }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> Activation { get; set; }
+        public int CountRules { get; }
+        public AI.DataStructs.Algebraic.Vector this[int[] state] { get; set; }
+        public int VectorDimention { get; }
+        public int[] Encode(int[] inp) { }
+        public AI.DataStructs.Algebraic.Vector Predict(int[] data) { }
+        public System.Tuple<AI.DataStructs.Algebraic.Vector, System.Collections.Generic.List<AI.ML.SequenceAnalysis.SeqAnalyze.ValueDictRegressor>, int> PredictWithListCount(int[] inp) { }
+        public void Train(int[][] data, AI.DataStructs.Algebraic.Vector[] y) { }
+        public void Tuning(int[][] seqs, AI.DataStructs.Algebraic.Vector[] targets, int epoch = 10, double lr = 0.01, double l2 = 0.0001, double l1 = 0.004) { }
+        public static AI.ML.SequenceAnalysis.SeqAnalyze.States2Vector CreateS2V(System.Collections.Generic.List<System.Tuple<int[], AI.DataStructs.Algebraic.Vector>> data, int max_n_gramm, double top_p) { }
+    }
+    [System.Serializable]
+    public class ValueDictRegressor
+    {
+        public int CountActiv;
+        public int Index;
+        public short NGram;
+        public AI.DataStructs.Algebraic.Vector TargetValue;
+        public AI.DataStructs.Algebraic.Vector TargetValueGrad;
+        public ValueDictRegressor() { }
+        public double Importance { get; }
+        public void AddGrad(AI.DataStructs.Algebraic.Vector grad) { }
+        public double GetImportance(double mean = 0) { }
+        public double GetKImportance() { }
+        public AI.DataStructs.Algebraic.Vector GetVector() { }
+        public void Upd(double lr, double l1, double l2, double momentum = 0.8) { }
+    }
+}
+namespace AI.ML.SequenceAnalysis.SeqPredict
+{
+    [System.Serializable]
+    public class AR : AI.ML.SequenceAnalysis.SeqPredict.ISeqPredict
+    {
+        public AR(int windowLenght) { }
+        public AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Vector data, int n) { }
+        public double PredictTrain(AI.DataStructs.Algebraic.Vector data) { }
+        public void Train(AI.DataStructs.Algebraic.Vector data) { }
+    }
+    public interface ISeqPredict
+    {
+        AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Vector data, int n);
+        double PredictTrain(AI.DataStructs.Algebraic.Vector data);
+        void Train(AI.DataStructs.Algebraic.Vector data);
+    }
+    [System.Serializable]
+    public class SeqPrediction : AI.ML.SequenceAnalysis.SeqPredict.ISeqPredict
+    {
+        protected AI.ML.Regression.IRegression regressor;
+        protected int window;
+        public SeqPrediction() { }
+        public SeqPrediction(AI.ML.Regression.IRegression reg, int w) { }
+        public AI.DataStructs.Algebraic.Vector Predict(AI.DataStructs.Algebraic.Vector data, int n) { }
+        public double PredictTrain(AI.DataStructs.Algebraic.Vector data) { }
+        public void Train(AI.DataStructs.Algebraic.Vector data) { }
+    }
+}
+namespace AI.ML.Utils.MetricsTools
+{
+    [System.Serializable]
+    public class BallTreeNode
+    {
+        public BallTreeNode(System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> points, System.Collections.Generic.List<int> labels, System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> dist) { }
+        public AI.DataStructs.Algebraic.Vector Center { get; }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> Dist { get; set; }
+        public System.Collections.Generic.List<int> Labels { get; }
+        public AI.ML.Utils.MetricsTools.BallTreeNode Left { get; }
+        public System.Collections.Generic.List<AI.DataStructs.Algebraic.Vector> Points { get; }
+        public double Radius { get; }
+        public AI.ML.Utils.MetricsTools.BallTreeNode Right { get; }
+        public void BuildTree() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Label",
+                "Distance"})]
+        public System.Collections.Generic.List<System.ValueTuple<int, double>> KNearestNeighbors(AI.DataStructs.Algebraic.Vector point, int k) { }
+    }
+    public class DuplicateKeyComparer<TKey> : System.Collections.Generic.IComparer<TKey>
+        where TKey : System.IComparable
+    {
+        public DuplicateKeyComparer() { }
+        public int Compare(TKey x, TKey y) { }
+    }
+    [System.Serializable]
+    public class KDNode
+    {
+        public KDNode(System.Collections.Generic.IEnumerable<double> features, int label) { }
+        public AI.DataStructs.Algebraic.Vector DataVector { get; }
+        public int Label { get; }
+        public AI.ML.Utils.MetricsTools.KDNode Left { get; set; }
+        public AI.ML.Utils.MetricsTools.KDNode Right { get; set; }
+    }
+    [System.Serializable]
+    public class KDTree
+    {
+        public KDTree(System.Collections.Generic.List<System.Collections.Generic.IEnumerable<double>> points, System.Collections.Generic.List<int> labels) { }
+        public System.Func<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector, double> Dist { get; set; }
+        public AI.ML.Utils.MetricsTools.KDNode Root { get; }
+        public AI.ML.Utils.MetricsTools.KDNode NearestNeighbor(double[] point, int depth = 0, AI.ML.Utils.MetricsTools.KDNode best = null) { }
+    }
+}
+namespace AI.ML.Utils.NeuralSymbolic
+{
+    public static class ArrayUtils<T>
+        where T : System.IComparable<T>
+    {
+        public static T[] DeleteSubArray(T[] array, T[] subArrayForRemove) { }
+        public static System.Tuple<int, int> SearchSubArray(T[] array, T[] subArray) { }
+    }
+    [System.Serializable]
+    public static class NumConverter
+    {
+        public static int BinaryToDecimal(this bool[] binary) { }
+        public static int BinaryToDecimal(this string binary) { }
+        public static bool[] DecimalToBinaryBits(this int decim) { }
+        public static string DecimalToBinaryStr(this int decim) { }
+        public static bool[] DecimalToGrayBits(this int decim) { }
+        public static bool[] DecimalToGrayBits(this int decim, int count) { }
+        public static string DecimalToGrayStr(this int decim) { }
+        public static string DecimalToGrayStr(this int decim, int count) { }
+        public static int GrayDecoder(this bool[] binary) { }
+        public static int GrayDecoder(this string binary) { }
+        public static bool[] StringToBitArray(this string binary) { }
+    }
+    [System.Serializable]
+    public static class Similarity
+    {
+        public static AI.DataStructs.Algebraic.Vector Bools2Vect(bool[] bools, double min = -1, double max = 1) { }
+        public static double CorrelationIntInt(int index1, int index2, double min = -1, double max = 1) { }
+        public static double CorrelationVectorInt(AI.DataStructs.Algebraic.Vector semantic, int index, double min = -1, double max = 1) { }
+        public static double CosIntInt(int index1, int index2, double min = -1, double max = 1) { }
+        public static double FuzzyMembership(AI.DataStructs.Algebraic.Vector semantic, int index, double min = -1, double max = 1) { }
+        public static double FuzzyMembershipIntInt(int index1, int index2, double min = -1, double max = 1) { }
+    }
+}

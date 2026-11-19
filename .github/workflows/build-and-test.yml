@@ -1,0 +1,115 @@
+name: Build and test
+
+# Сборка полного решения и все xUnit-проекты на каждый push и pull request.
+#
+# Цель — повторить локальный результат (build.ps1 -Test), а не «зелёный любой ценой»:
+# упавший тест роняет проверку, допуски и фильтры здесь не ослабляются.
+#
+# ОС — Windows, потому что локальный результат получен там и на Linux он был бы другим:
+#   - AI.Charts.WinForms и консольные примеры решения нацелены на net9.0-windows
+#     (WinForms), на Linux они не собираются без EnableWindowsTargeting и не запускаются;
+#   - libopenblas.dll кладётся рядом со сборкой только на Windows
+#     (Directory.Build.targets, цель AI_CopyLibOpenBlasWindows). Без неё CpuBlas
+#     переходит на управляемое умножение, и нейросети считались бы другим путём;
+#   - нативные библиотеки AI.Faiss есть только под win-x64.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Новый push в ту же ветку (или в тот же pull request) отменяет недоделанный прогон
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-test:
+    # Только стандартный бесплатный раннер GitHub: ни larger runners, ни self-hosted
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # global.json в репозитории нет, поэтому локально сборку ведёт старший SDK (10.0).
+      # Проекты нацелены на net9.0: тестам нужна среда выполнения .NET 9, её ставит SDK 9.0.
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+
+      - name: Build AIFramework.Full.sln
+        run: dotnet build AIFramework.Full.sln -c Release --nologo
+
+      # Tests/AI.ML.Integration не входит ни в одно решение — собираем отдельно
+      - name: Build AI.ML.Integration
+        run: dotnet build Tests/AI.ML.Integration/AI.ML.Integration.csproj -c Release --nologo
+
+      - name: Test
+        shell: pwsh
+        run: |
+          # Все xUnit-проекты репозитория.
+          $projects = @(
+            'Tests/AI.ML.Integration/AI.ML.Integration.csproj'
+            'Tests/NNW.V2.Tests/NNW.V2.Tests.csproj'
+            'Tests/NNW.V2.Onnx.Tests/NNW.V2.Onnx.Tests.csproj'
+            'Tests/unit/AI.Economics.UnitTests/AI.Economics.UnitTests.csproj'
+            'Tests/unit/AI.LLM.UnitTests/AI.LLM.UnitTests.csproj'
+            'Tests/unit/AI.Script.UnitTests/AI.Script.UnitTests.csproj'
+            'Tests/unit/AI.Solvers.Chem.UnitTests/AI.Solvers.Chem.UnitTests.csproj'
+            'Tests/unit/AIFramework.UnitTests/AIFramework.UnitTests.csproj'
+            'Tests/unit/Atlas.UnitTests/Atlas.UnitTests.csproj'
+            'Tests/unit/PublicApi.Tests/PublicApi.Tests.csproj'
+          )
+
+          # Исключены явно, с причиной.
+          # Tests/NNW.V2.Gpu.Tests — сверка CPU и CUDA. На раннере GitHub нет GPU: каждый тест
+          # пропустился бы через Skip.IfNot(HasCuda) и создал видимость проверки. Проект собирается
+          # в шаге выше (входит в решение), а запускается вручную на машине с CUDA —
+          # команда в CONTRIBUTING.md, раздел «CI».
+          $excluded = @(
+            'Tests/NNW.V2.Gpu.Tests/NNW.V2.Gpu.Tests.csproj'
+          )
+
+          # Храповик: новый тестовый проект должен попасть в один из списков выше,
+          # иначе он молча не запускался бы в CI
+          $unlisted = git ls-files 'Tests/*.csproj' |
+            Where-Object { Select-String -LiteralPath $_ -Pattern 'Microsoft.NET.Test.Sdk' -SimpleMatch -Quiet } |
+            Where-Object { $_ -notin $projects -and $_ -notin $excluded }
+
+          if ($unlisted) {
+            Write-Host "::error::Тестовые проекты не внесены в .github/workflows/build-and-test.yml: $($unlisted -join ', ')"
+            exit 1
+          }
+
+          # Прогоняются все проекты, даже если один упал: в отчёте видны все падения сразу
+          $failed = @()
+
+          foreach ($project in $projects) {
+            $name = [IO.Path]::GetFileNameWithoutExtension($project)
+            dotnet test $project -c Release --no-build --nologo --logger "trx;LogFileName=$name.trx" --results-directory TestResults
+            if ($LASTEXITCODE -ne 0) { $failed += $name }
+          }
+
+          if ($failed) {
+            Write-Host "::error::Упали тесты: $($failed -join ', ')"
+            exit 1
+          }
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/*.trx
+          if-no-files-found: ignore

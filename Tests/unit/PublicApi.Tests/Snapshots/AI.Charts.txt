@@ -1,0 +1,230 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AI.Charts.Avalonia")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AI.Charts.WinForms")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Charts
+{
+    [System.Serializable]
+    public class ChartData : System.Collections.Generic.List<AI.Charts.ChartDataSample>
+    {
+        public ChartData() { }
+        public string ChartName { get; set; }
+        public void SempleADD(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, AI.Charts.Description description, SkiaSharp.SKColor color, AI.Charts.ChartType chartType = 0) { }
+    }
+    [System.Serializable]
+    public class ChartDataSample
+    {
+        public AI.DataStructs.Algebraic.Vector DataX;
+        public AI.DataStructs.Algebraic.Vector DataY;
+        public ChartDataSample(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, AI.Charts.Description description, SkiaSharp.SKColor color, AI.Charts.ChartType chartType = 0) { }
+        public AI.Charts.ChartType ChartType { get; set; }
+        public SkiaSharp.SKColor ColorChart { get; set; }
+        public AI.Charts.Description DescriptionData { get; set; }
+    }
+    public sealed class ChartExport
+    {
+        public ChartExport(string title, string axisX, string axisY, bool isLogScale, bool hasBackground, string layoutKind, System.Collections.Generic.IReadOnlyList<AI.Charts.ChartSeriesExport> series, AI.Charts.Data.GraphData graph = null) { }
+        public string AxisX { get; }
+        public string AxisY { get; }
+        public AI.Charts.Data.GraphData Graph { get; }
+        public bool HasBackground { get; }
+        public bool IsLogScale { get; }
+        public string LayoutKind { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Charts.ChartSeriesExport> Series { get; }
+        public string Title { get; }
+    }
+    public sealed class ChartSeriesExport
+    {
+        public ChartSeriesExport(string name, string type, double[] x, double[] y, byte colorR, byte colorG, byte colorB, byte colorA, int width) { }
+        public byte ColorA { get; }
+        public byte ColorB { get; }
+        public byte ColorG { get; }
+        public byte ColorR { get; }
+        public string Name { get; }
+        public string Type { get; }
+        public int Width { get; }
+        public double[] X { get; }
+        public double[] Y { get; }
+    }
+    public enum ChartType
+    {
+        Plot = 0,
+        Bar = 1,
+        Scatter = 2,
+        Spline = 3,
+    }
+    [System.Serializable]
+    public sealed class ChartView
+    {
+        public ChartView() { }
+        public double AxisXMax { get; }
+        public double AxisXMin { get; }
+        public double AxisYMax { get; }
+        public double AxisYMin { get; }
+        public SkiaSharp.SKColor BackgroundColor { get; set; }
+        public AI.Charts.Rendering.Camera3D Camera3D { get; }
+        public string ChartName { get; set; }
+        public AI.Charts.Rendering.ChartLayoutKind CurrentLayout { get; }
+        public SkiaSharp.SKColor ForegroundColor { get; set; }
+        public bool HasBackgroundImage { get; }
+        public bool IsLogScale { get; set; }
+        public string LabelX { get; set; }
+        public string LabelY { get; set; }
+        public string LabelZ { get; set; }
+        public int SeriesCount { get; }
+        public void AddArea(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color) { }
+        public void AddArea(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color, int width, bool isSpline = false) { }
+        public void AddBar(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color) { }
+        public void AddBarBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddBarBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddCircul(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name) { }
+        public void AddDiff(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, SkiaSharp.SKColor color, string name, int w) { }
+        public void AddGraph(AI.Charts.Data.GraphData graph, string name = "Graph") { }
+        public void AddHistoramm(AI.DataStructs.Algebraic.Vector y, SkiaSharp.SKColor color, string name) { }
+        public void AddIntegr(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, SkiaSharp.SKColor color, string name, int w) { }
+        public void AddPlot(AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color, int width = 2, bool isSpline = false) { }
+        public void AddPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor? color = default, int width = 2, bool isSpline = false) { }
+        public void AddPlotBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void AddRadialDegPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color, int width = 2) { }
+        public void AddRadialPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color, int width = 2) { }
+        public void AddScatter(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color) { }
+        public void AddScatter3D(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, AI.DataStructs.Algebraic.Vector z, string name, SkiaSharp.SKColor? color = default, AI.Charts.Rendering.ColormapKind colormap = 0, float markSize = 4) { }
+        public void AddScatterBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddScatterBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void AddScatterMark3(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color) { }
+        public void AddScatterMark6(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name, SkiaSharp.SKColor color) { }
+        public void AddSpectrum(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, SkiaSharp.SKColor color, string name) { }
+        public void AddSurface(AI.DataStructs.Algebraic.Vector xGrid, AI.DataStructs.Algebraic.Vector yGrid, double[] z, string name, AI.Charts.Rendering.ColormapKind colormap = 0, bool showEdges = true) { }
+        public void AddWireframe(AI.DataStructs.Algebraic.Vector xGrid, AI.DataStructs.Algebraic.Vector yGrid, double[] z, string name, SkiaSharp.SKColor? color = default, AI.Charts.Rendering.ColormapKind colormap = 0) { }
+        public void AutoScale() { }
+        public void BarBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void BarBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void Clear() { }
+        public void Draw(SkiaSharp.SKCanvas canvas, float width, float height) { }
+        public AI.Charts.ChartExport Export() { }
+        public bool HasRenderableData() { }
+        public void MapPixelToValue(float mx, float my, float width, float height, out double xv, out double yv) { }
+        public double PixelToValueX(int xPixel, float width, float height) { }
+        public double PixelToValueY(int yPixel, float width, float height) { }
+        public void PlotBlack(AI.DataStructs.Algebraic.Vector y, string name = "", int width = 1, bool isSpline = false) { }
+        public void PlotBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void PlotComplex(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void PlotComplex(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", int width = 2, bool isSpline = false) { }
+        public void RadPlotBlueDeg(AI.DataStructs.Algebraic.Vector y, string name = "", int width = 1) { }
+        public void RecalcForAxisWindow() { }
+        public void ScatterBlack(AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void ScatterBlack(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y, string name = "") { }
+        public void ScatterComplex(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "") { }
+        public void ScatterComplexPlane(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", string xScale = "", string yScale = "") { }
+        public void ScatterComplexPlaneWithRing1(AI.DataStructs.WithComplexElements.ComplexVector y, string name = "", string xScale = "", string yScale = "") { }
+        public void SetAxisRange(double xMin, double xMax, double yMin, double yMax) { }
+        public void SetAxisRangeX(double xMin, double xMax) { }
+        public void SetAxisRangeY(double yMin, double yMax) { }
+        public void SetBackgroundImage(SkiaSharp.SKImage image) { }
+        public SkiaSharp.SKBitmap ToBitmap(int width, int height) { }
+        public bool TryGetFirstXStep(out double step) { }
+        public void VisualData(AI.Charts.ChartData chartDatas) { }
+    }
+    [System.Serializable]
+    public class Description
+    {
+        public string Name;
+        public string X;
+        public string Y;
+        public Description(string xL = "x", string yL = "f(x)", string name = "Chart") { }
+        public string Descript { get; set; }
+    }
+}
+namespace AI.Charts.Data
+{
+    [System.Serializable]
+    public class ChartSample
+    {
+        public AI.DataStructs.TableOfContentsOfTheSortedVector tableOfContentsOfX;
+        public ChartSample(AI.DataStructs.Algebraic.Vector data, AI.DataStructs.Algebraic.Vector steps) { }
+        public AI.DataStructs.Algebraic.Vector Data { get; set; }
+        public AI.DataStructs.Algebraic.Vector Steps { get; set; }
+        public double GetMaxData() { }
+        public double GetMaxSteps() { }
+        public double GetMinData() { }
+        public double GetMinSteps() { }
+    }
+    public class ChartSempls : System.Collections.Generic.List<AI.Charts.Data.ChartSample>
+    {
+        public ChartSempls() { }
+        public void Add(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
+        public double GetMaxData() { }
+        public double GetMaxSteps() { }
+        public double GetMinData() { }
+        public double GetMinSteps() { }
+    }
+    public static class DataMethods
+    {
+        public static SkiaSharp.SKColor GetColorForStyle(string path) { }
+        public static System.Tuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> ReducData40000(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
+        public static System.Tuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> ReducDataPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
+        public static System.Tuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> ReducDataRadialPlot(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
+    }
+    [System.Serializable]
+    public sealed class GraphData
+    {
+        public GraphData(System.Collections.Generic.IReadOnlyList<AI.Charts.Data.GraphNode> nodes, System.Collections.Generic.IReadOnlyList<AI.Charts.Data.GraphEdge> edges) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Charts.Data.GraphEdge> Edges { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Charts.Data.GraphNode> Nodes { get; }
+        public static AI.Charts.Data.GraphData CreateTieredLayout([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "id",
+                "label",
+                "subtitle",
+                "tier"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, string, string, int>> steps, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "from",
+                "to"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, string>> dependencies, double nodeWidth = 1.1, double nodeGap = 0.2, double tierGap = 0.5) { }
+    }
+    [System.Serializable]
+    public sealed class GraphEdge
+    {
+        public GraphEdge(int sourceIndex, int targetIndex) { }
+        public int SourceIndex { get; set; }
+        public int TargetIndex { get; set; }
+    }
+    [System.Serializable]
+    public sealed class GraphNode
+    {
+        public GraphNode(double x, double y, string label, string subtitle = null, int group = 0) { }
+        public int Group { get; set; }
+        public string Label { get; set; }
+        public string Subtitle { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+    }
+}
+namespace AI.Charts.Rendering
+{
+    [System.Serializable]
+    public sealed class Camera3D
+    {
+        public Camera3D() { }
+        public double Azimuth { get; set; }
+        public double CenterX { get; set; }
+        public double CenterY { get; set; }
+        public double CenterZ { get; set; }
+        public double Distance { get; set; }
+        public double Elevation { get; set; }
+        public void FitToBounds(double xMin, double xMax, double yMin, double yMax, double zMin, double zMax) { }
+        public SkiaSharp.SKPoint ProjectToScreen(double wx, double wy, double wz, SkiaSharp.SKRect plotRect) { }
+        public SkiaSharp.SKPoint ProjectToScreen(double wx, double wy, double wz, SkiaSharp.SKRect plotRect, out double depth) { }
+    }
+    public enum ChartLayoutKind
+    {
+        Cartesian = 0,
+        Polar = 1,
+        Pie = 2,
+        ThreeD = 3,
+    }
+    public enum ColormapKind
+    {
+        Jet = 0,
+        Viridis = 1,
+        Thermal = 2,
+        Grayscale = 3,
+    }
+}

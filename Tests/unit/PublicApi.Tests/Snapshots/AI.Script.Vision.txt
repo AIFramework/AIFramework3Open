@@ -1,0 +1,77 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Script.Vision
+{
+    public sealed class ColorImage : AI.Script.Hosting.IScriptArtifactSource, AI.Script.Hosting.IScriptImageSource
+    {
+        public const string TypeName = "cv.image";
+        public ColorImage(AI.DataStructs.Algebraic.Matrix red, AI.DataStructs.Algebraic.Matrix green, AI.DataStructs.Algebraic.Matrix blue) { }
+        public string ArtifactKind { get; }
+        public object? ArtifactPayload { get; }
+        public string ArtifactTitle { get; }
+        public AI.DataStructs.Algebraic.Matrix Blue { get; }
+        public AI.DataStructs.Algebraic.Matrix Green { get; }
+        public int Height { get; }
+        public string ImageTitle { get; }
+        public AI.DataStructs.Algebraic.Matrix Red { get; }
+        public int Width { get; }
+        public AI.DataStructs.Algebraic.Matrix Gray() { }
+        public AI.Script.Vision.ColorImage Map(System.Func<AI.DataStructs.Algebraic.Matrix, AI.DataStructs.Algebraic.Matrix> change) { }
+        public byte[] Png() { }
+        public byte[] RenderPng(int width, int height) { }
+        public SkiaSharp.SKBitmap ToBitmap() { }
+        public override string ToString() { }
+        public static AI.Script.Vision.ColorImage From(SkiaSharp.SKBitmap bitmap) { }
+    }
+    [AI.Script.Binding.ScriptModule("cv", "Изображения: цвет по каналам, фильтры, контуры, признаки", Group="сигналы", Version="0.2")]
+    public static class CvModule
+    {
+        [AI.Script.Binding.ScriptFn("binary", "Порогование: матрица нулей и единиц", Example="cv.binary(img, threshold: 128)")]
+        public static AI.DataStructs.Algebraic.Matrix Binary(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue picture, [AI.Script.Binding.ScriptParam("порог яркости")] double threshold = 128) { }
+        [AI.Script.Binding.ScriptFn("blur", "Гауссово размытие", Example="cv.blur(img)")]
+        public static AI.Script.Runtime.ScriptValue Blur(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image) { }
+        [AI.Script.Binding.ScriptFn("channel", "Канал цветного изображения матрицей: red, green, blue, gray, hue", Example="img |> cv.channel(\"red\") |> cv.sobel()")]
+        public static AI.DataStructs.Algebraic.Matrix Channel([AI.Script.Binding.ScriptParam("цветное изображение")] AI.Script.Runtime.ScriptHandle image, [AI.Script.Binding.ScriptParam("канал: \"red\", \"green\", \"blue\", \"gray\" либо \"hue\"")] string name) { }
+        [AI.Script.Binding.ScriptFn("equalize", "Выравнивание гистограммы: повышает контраст", Example="cv.equalize(img)")]
+        public static AI.Script.Runtime.ScriptValue Equalize(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image) { }
+        [AI.Script.Binding.ScriptFn("filter", "Свёртка изображения с заданным ядром", Example="cv.filter(img, kernel: k)")]
+        public static AI.Script.Runtime.ScriptValue Filter(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image, [AI.Script.Binding.ScriptParam("ядро свёртки")] AI.DataStructs.Algebraic.Matrix kernel) { }
+        [AI.Script.Binding.ScriptFn("highpass", "Частотная фильтрация: оставить высокие частоты", Example="cv.highpass(img, radius: 10)")]
+        public static AI.Script.Runtime.ScriptValue HighPass(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image, [AI.Script.Binding.ScriptParam("радиус среза в отсчётах частоты")] double radius) { }
+        [AI.Script.Binding.ScriptFn("histogram", "Гистограмма яркостей изображения", Example="show plot.bar(cv.histogram(img))")]
+        public static AI.DataStructs.Algebraic.Vector Histogram(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image) { }
+        [AI.Script.Binding.ScriptFn("hog", "Гистограмма направленных градиентов: вектор признаков", Example="let features = cv.hog(img, bins: 9)")]
+        public static AI.DataStructs.Algebraic.Vector Hog(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image, [AI.Script.Binding.ScriptParam("число направлений")] int bins = 8, [AI.Script.Binding.ScriptParam("нормировать результат")] bool normalize = true) { }
+        [AI.Script.Binding.ScriptFn("image", "Загружает цветное изображение: каналы red, green, blue", Example="let img = io.load(\"фото.jpg\")", Reads="png,jpg,jpeg,bmp,gif,webp", Returns="cv.image")]
+        public static System.Threading.Tasks.Task<AI.Script.Runtime.ScriptHandle> Image(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь относительно рабочей папки")] string path, [AI.Script.Binding.ScriptParam("ширина при загрузке; 0 — как есть")] int width = 0, [AI.Script.Binding.ScriptParam("высота при загрузке; 0 — как есть")] int height = 0) { }
+        [AI.Script.Binding.ScriptFn("load", "Загружает изображение матрицей яркостей 0..255", Example="let img = cv.load(\"photo.png\", width: 256, height: 256)")]
+        public static System.Threading.Tasks.Task<AI.DataStructs.Algebraic.Matrix> Load(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("путь относительно рабочей папки")] string path, [AI.Script.Binding.ScriptParam("канал: \"gray\", \"red\", \"green\", \"blue\" либо \"hue\"")] string channel = "gray", [AI.Script.Binding.ScriptParam("ширина при загрузке; 0 — как есть")] int width = 0, [AI.Script.Binding.ScriptParam("высота при загрузке; 0 — как есть")] int height = 0) { }
+        [AI.Script.Binding.ScriptFn("lowpass", "Частотная фильтрация: оставить низкие частоты", Example="cv.lowpass(img, radius: 40)")]
+        public static AI.Script.Runtime.ScriptValue LowPass(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image, [AI.Script.Binding.ScriptParam("радиус среза в отсчётах частоты")] double radius) { }
+        [AI.Script.Binding.ScriptFn("median", "Медианный фильтр: убирает точечный шум, сохраняя границы", Example="cv.median(img, size: 5)")]
+        public static AI.Script.Runtime.ScriptValue Median(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image, [AI.Script.Binding.ScriptParam("размер окна, нечётный")] int size = 3) { }
+        [AI.Script.Binding.ScriptFn("merge", "Собирает цветное изображение из трёх каналов", Example="cv.merge(r, g, cv.blur(b))", Returns="cv.image")]
+        public static AI.Script.Runtime.ScriptHandle Merge([AI.Script.Binding.ScriptParam("красный канал")] AI.DataStructs.Algebraic.Matrix red, [AI.Script.Binding.ScriptParam("зелёный канал")] AI.DataStructs.Algebraic.Matrix green, [AI.Script.Binding.ScriptParam("синий канал")] AI.DataStructs.Algebraic.Matrix blue) { }
+        [AI.Script.Binding.ScriptFn("normalize", "Растягивает яркости на отрезок 0..255", Example="cv.normalize(spectrum)")]
+        public static AI.Script.Runtime.ScriptValue Normalize(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image) { }
+        [AI.Script.Binding.ScriptFn("resize", "Меняет размер изображения", Example="cv.resize(img, width: 128, height: 128)")]
+        public static AI.Script.Runtime.ScriptValue Resize(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image, [AI.Script.Binding.ScriptParam("ширина")] int width, [AI.Script.Binding.ScriptParam("высота")] int height) { }
+        [AI.Script.Binding.ScriptFn("save", "Сохраняет изображение либо матрицу яркостей в png; возвращает путь", Example="cv.save(img, \"result.png\")", Writes="png")]
+        public static System.Threading.Tasks.Task<string> Save(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image, [AI.Script.Binding.ScriptParam("путь относительно рабочей папки")] string path) { }
+        [AI.Script.Binding.ScriptFn("sharpen", "Повышение резкости", Example="cv.sharpen(img, amount: 1.5)")]
+        public static AI.Script.Runtime.ScriptValue Sharpen(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image, [AI.Script.Binding.ScriptParam("сила повышения")] double amount = 1) { }
+        [AI.Script.Binding.ScriptFn("smooth", "Сглаживание изображения", Example="cv.smooth(img)")]
+        public static AI.Script.Runtime.ScriptValue Smooth(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue image) { }
+        [AI.Script.Binding.ScriptFn("sobel", "Контуры: модуль и направление градиента", Example="let edges = cv.sobel(img)")]
+        public static AI.Script.Runtime.ScriptRecord Sobel(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue picture) { }
+        [AI.Script.Binding.ScriptFn("spectrum", "Амплитудный спектр изображения, нулевая частота в центре", Example="show plot.heatmap(cv.spectrum(img))")]
+        public static AI.DataStructs.Algebraic.Matrix Spectrum(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue picture, [AI.Script.Binding.ScriptParam("логарифмический масштаб")] bool log = true) { }
+        [AI.Script.Binding.ScriptFn("texture", "Локальное среднеквадратичное отклонение: мера зернистости", Example="cv.texture(img, size: 5)")]
+        public static AI.DataStructs.Algebraic.Matrix Texture(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("изображение либо матрица яркостей")] AI.Script.Runtime.ScriptValue picture, [AI.Script.Binding.ScriptParam("размер окна, нечётный")] int size = 3) { }
+    }
+    public static class VisionLibrary
+    {
+        public static AI.Script.Binding.IScriptModule Module { get; }
+        public static AI.Script.Hosting.ScriptHost UseVision(this AI.Script.Hosting.ScriptHost host) { }
+    }
+}

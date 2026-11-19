@@ -1,0 +1,491 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Psychology.Decision
+{
+    public static class ChoiceRules
+    {
+        public static double[] Luce(System.Collections.Generic.IReadOnlyList<double> strengths) { }
+        public static double[] Softmax(System.Collections.Generic.IReadOnlyList<double> values, double inverseTemperature) { }
+    }
+    public readonly struct DiffusionTrial : System.IEquatable<AI.Psychology.Decision.DiffusionTrial>
+    {
+        public DiffusionTrial(bool Upper, double ResponseTime) { }
+        public double ResponseTime { get; init; }
+        public bool Upper { get; init; }
+    }
+    public static class Discounting
+    {
+        public static double AreaUnderCurve(System.Collections.Generic.IReadOnlyList<double> delays, System.Collections.Generic.IReadOnlyList<double> indifferenceFractions) { }
+        public static double Exponential(double amount, double delay, double rate) { }
+        public static double FitHyperbolicRate(System.Collections.Generic.IReadOnlyList<double> delays, System.Collections.Generic.IReadOnlyList<double> indifferenceFractions) { }
+        public static double Hyperbolic(double amount, double delay, double rate) { }
+    }
+    public sealed class DriftDiffusionModel
+    {
+        public DriftDiffusionModel(double drift, double boundarySeparation, double startingPoint = 0.5, double nonDecisionTime = 0.3, double noise = 1) { }
+        public double BoundarySeparation { get; }
+        public double DecisionTimeVariance { get; }
+        public double Drift { get; }
+        public double MeanDecisionTime { get; }
+        public double MeanResponseTime { get; }
+        public double Noise { get; }
+        public double NonDecisionTime { get; }
+        public double StartingPoint { get; }
+        public double UpperProbability { get; }
+        public double LowerDensity(double decisionTime) { }
+        public AI.Psychology.Decision.DiffusionTrial Simulate(System.Random random, double timeStep = 0.0001) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Psychology.Decision.DiffusionTrial> Simulate(int trials, System.Random random, double timeStep = 0.0001) { }
+        public double UpperDensity(double decisionTime) { }
+    }
+    public static class EzDiffusion
+    {
+        public static AI.Psychology.Decision.DriftDiffusionModel Estimate(double accuracy, double correctTimeVariance, double correctTimeMean, double noise = 1) { }
+    }
+    public readonly struct Outcome : System.IEquatable<AI.Psychology.Decision.Outcome>
+    {
+        public Outcome(double Value, double Probability) { }
+        public double Probability { get; init; }
+        public double Value { get; init; }
+    }
+    public static class ProspectTheory
+    {
+        public static double CertaintyEquivalent(System.Collections.Generic.IEnumerable<AI.Psychology.Decision.Outcome> prospect, AI.Psychology.Decision.ProspectTheoryParameters? parameters = null) { }
+        public static double Evaluate(System.Collections.Generic.IEnumerable<AI.Psychology.Decision.Outcome> prospect, AI.Psychology.Decision.ProspectTheoryParameters? parameters = null) { }
+        public static double ExpectedValue(System.Collections.Generic.IEnumerable<AI.Psychology.Decision.Outcome> prospect) { }
+        public static double Value(double outcome, AI.Psychology.Decision.ProspectTheoryParameters parameters) { }
+        public static double Weight(double probability, double curvature) { }
+    }
+    public sealed record ProspectTheoryParameters : System.IEquatable<AI.Psychology.Decision.ProspectTheoryParameters>
+    {
+        public ProspectTheoryParameters(double GainCurvature, double LossCurvature, double LossAversion, double GainWeighting, double LossWeighting) { }
+        public double GainCurvature { get; init; }
+        public double GainWeighting { get; init; }
+        public double LossAversion { get; init; }
+        public double LossCurvature { get; init; }
+        public double LossWeighting { get; init; }
+        public static AI.Psychology.Decision.ProspectTheoryParameters RiskNeutral { get; }
+        public static AI.Psychology.Decision.ProspectTheoryParameters TverskyKahneman1992 { get; }
+    }
+}
+namespace AI.Psychology.Emotion
+{
+    public readonly struct Affect : System.IEquatable<AI.Psychology.Emotion.Affect>
+    {
+        public Affect(double Pleasure, double Arousal, double Dominance) { }
+        public double Arousal { get; init; }
+        public double Dominance { get; init; }
+        public double Intensity { get; }
+        public bool IsWithinBounds { get; }
+        public AI.Psychology.Emotion.MoodOctant Octant { get; }
+        public double Pleasure { get; init; }
+        public static AI.Psychology.Emotion.Affect Neutral { get; }
+        public AI.Psychology.Emotion.Affect Clamp() { }
+        public double DistanceTo(AI.Psychology.Emotion.Affect other) { }
+        public override string ToString() { }
+        public static string Label(AI.Psychology.Emotion.MoodOctant octant) { }
+        public static AI.Psychology.Emotion.Affect operator *(double factor, AI.Psychology.Emotion.Affect affect) { }
+        public static AI.Psychology.Emotion.Affect operator +(AI.Psychology.Emotion.Affect left, AI.Psychology.Emotion.Affect right) { }
+        public static AI.Psychology.Emotion.Affect operator -(AI.Psychology.Emotion.Affect left, AI.Psychology.Emotion.Affect right) { }
+    }
+    public sealed class AffectDynamics
+    {
+        public AffectDynamics(AI.Psychology.Emotion.Affect baseline, double relaxationTime, double spread) { }
+        public AI.Psychology.Emotion.Affect Baseline { get; }
+        public double HalfLife { get; }
+        public double RelaxationTime { get; }
+        public double Spread { get; }
+        public AI.Psychology.Emotion.Affect Expected(AI.Psychology.Emotion.Affect current, double time) { }
+        public AI.Psychology.Emotion.Affect Next(AI.Psychology.Emotion.Affect current, double step, System.Random random) { }
+        public double TimeToFraction(double fraction) { }
+        public static AI.Psychology.Emotion.Affect Stimulate(AI.Psychology.Emotion.Affect current, AI.Psychology.Emotion.Affect impulse) { }
+    }
+    public enum Agency
+    {
+        None = 0,
+        Self = 1,
+        Other = 2,
+    }
+    public sealed record Appraisal : System.IEquatable<AI.Psychology.Emotion.Appraisal>
+    {
+        public Appraisal() { }
+        public AI.Psychology.Emotion.Agency Agent { get; init; }
+        public double? Appeal { get; init; }
+        public double Desirability { get; init; }
+        public double? DesirabilityForOther { get; init; }
+        public double Likelihood { get; init; }
+        public double LikingOfOther { get; init; }
+        public double Praiseworthiness { get; init; }
+        public AI.Psychology.Emotion.EventStatus Status { get; init; }
+    }
+    public readonly struct ElicitedEmotion : System.IEquatable<AI.Psychology.Emotion.ElicitedEmotion>
+    {
+        public ElicitedEmotion(AI.Psychology.Emotion.OccEmotion Emotion, double Intensity) { }
+        public AI.Psychology.Emotion.OccEmotion Emotion { get; init; }
+        public double Intensity { get; init; }
+    }
+    public enum EventStatus
+    {
+        Present = 0,
+        Prospective = 1,
+        Confirmed = 2,
+        Disconfirmed = 3,
+    }
+    public enum MoodOctant
+    {
+        Exuberant = 0,
+        Bored = 1,
+        Dependent = 2,
+        Disdainful = 3,
+        Relaxed = 4,
+        Anxious = 5,
+        Docile = 6,
+        Hostile = 7,
+    }
+    public enum OccEmotion
+    {
+        Joy = 0,
+        Distress = 1,
+        Hope = 2,
+        Fear = 3,
+        Satisfaction = 4,
+        FearsConfirmed = 5,
+        Relief = 6,
+        Disappointment = 7,
+        HappyFor = 8,
+        Pity = 9,
+        Resentment = 10,
+        Gloating = 11,
+        Pride = 12,
+        Shame = 13,
+        Admiration = 14,
+        Reproach = 15,
+        Gratification = 16,
+        Remorse = 17,
+        Gratitude = 18,
+        Anger = 19,
+        Love = 20,
+        Hate = 21,
+    }
+    public static class OccModel
+    {
+        public static System.Collections.Generic.IReadOnlyDictionary<AI.Psychology.Emotion.OccEmotion, string> Labels { get; }
+        public static System.Collections.Generic.IReadOnlyList<AI.Psychology.Emotion.ElicitedEmotion> Appraise(AI.Psychology.Emotion.Appraisal appraisal, double threshold = 0) { }
+        public static bool IsPositive(AI.Psychology.Emotion.OccEmotion emotion) { }
+    }
+}
+namespace AI.Psychology.Learning
+{
+    public sealed record ConditioningTrial : System.IEquatable<AI.Psychology.Learning.ConditioningTrial>
+    {
+        public ConditioningTrial(System.Collections.Generic.IReadOnlyList<string> Cues, double Outcome) { }
+        public System.Collections.Generic.IReadOnlyList<string> Cues { get; init; }
+        public double Outcome { get; init; }
+    }
+    public sealed class RescorlaWagnerModel
+    {
+        public RescorlaWagnerModel(double salience = 0.3, double learningRate = 1) { }
+        public double DefaultSalience { get; }
+        public double LearningRate { get; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, double> Strengths { get; }
+        public double Predict(System.Collections.Generic.IEnumerable<string> cues) { }
+        public double Strength(string cue) { }
+        public System.Collections.Generic.IReadOnlyList<double> Train(System.Collections.Generic.IEnumerable<AI.Psychology.Learning.ConditioningTrial> trials) { }
+        public double Trial(System.Collections.Generic.IEnumerable<string> cues, double outcome) { }
+        public AI.Psychology.Learning.RescorlaWagnerModel WithSalience(string cue, double salience) { }
+        public static double AcquisitionCurve(double salience, double learningRate, double outcome, int trials) { }
+    }
+}
+namespace AI.Psychology.Memory
+{
+    public static class ActrMemory
+    {
+        public const double StandardDecay = 0.5D;
+        public static double BaseLevelActivation(System.Collections.Generic.IEnumerable<double> ages, double decay = 0.5) { }
+        public static double RetrievalLatency(double activation, double latencyFactor) { }
+        public static double RetrievalProbability(double activation, double threshold, double noise) { }
+        public static double SpacedActivation(System.Collections.Generic.IReadOnlyList<double> presentationTimes, double now, double decayScale, double decayIntercept) { }
+    }
+    public static class Forgetting
+    {
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Minutes",
+                "Savings"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> EbbinghausData { get; }
+        public static double EbbinghausSavings(double minutes) { }
+        public static double Exponential(double time, double stability) { }
+        public static double Power(double time, double scale, double decay) { }
+    }
+}
+namespace AI.Psychology.Psychometrics
+{
+    public readonly struct AbilityEstimate : System.IEquatable<AI.Psychology.Psychometrics.AbilityEstimate>
+    {
+        public AbilityEstimate(double Ability, double StandardError, AI.Psychology.Psychometrics.AbilityMethod Method, bool IsFinite) { }
+        public double Ability { get; init; }
+        public bool IsFinite { get; init; }
+        public AI.Psychology.Psychometrics.AbilityMethod Method { get; init; }
+        public double StandardError { get; init; }
+    }
+    public enum AbilityMethod
+    {
+        MaximumLikelihood = 0,
+        ExpectedAPosteriori = 1,
+    }
+    public static class FactorAnalysis
+    {
+        public static double Congruence(System.Collections.Generic.IReadOnlyList<double> first, System.Collections.Generic.IReadOnlyList<double> second) { }
+        public static double[] CorrelationMatrix(double[] data) { }
+        public static AI.Psychology.Psychometrics.FactorAnalysisResult Fit(double[] data, int factors, AI.Psychology.Psychometrics.FactorRotation rotation = 1) { }
+        public static int KaiserCount(double[] correlation) { }
+        public static int ParallelAnalysis(double[] data, System.Random random, int replicates = 100, double quantile = 0.95) { }
+        public static AI.Psychology.Psychometrics.FactorAnalysisResult PrincipalAxis(double[] correlation, int factors, AI.Psychology.Psychometrics.FactorRotation rotation = 1, int maxIterations = 500, double tolerance = 1E-07) { }
+    }
+    public sealed class FactorAnalysisResult : AI.Insights.IInterpretable
+    {
+        public System.Collections.Generic.IReadOnlyList<double> Communalities { get; }
+        public bool Converged { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Eigenvalues { get; }
+        public double[]? FactorCorrelations { get; }
+        public int Factors { get; }
+        public bool HeywoodCase { get; }
+        public int Items { get; }
+        public int Iterations { get; }
+        public double[] Loadings { get; }
+        public AI.Psychology.Psychometrics.FactorRotation Rotation { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Uniquenesses { get; }
+        public System.Collections.Generic.IReadOnlyList<double> VarianceExplained { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public double Loading(int item, int factor) { }
+    }
+    public enum FactorRotation
+    {
+        None = 0,
+        Varimax = 1,
+        Promax = 2,
+    }
+    public sealed class IrtCalibration : AI.Insights.IInterpretable
+    {
+        public bool Converged { get; }
+        public System.Collections.Generic.IReadOnlyList<int> ExtremeItems { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Psychology.Psychometrics.IrtItem> Items { get; }
+        public int Iterations { get; }
+        public double MarginalLogLikelihood { get; }
+        public AI.Psychology.Psychometrics.IrtModel Model { get; }
+        public int Respondents { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed record IrtItem : System.IEquatable<AI.Psychology.Psychometrics.IrtItem>
+    {
+        public IrtItem(double Discrimination = 1, double Difficulty = 0, double Guessing = 0) { }
+        public double Difficulty { get; init; }
+        public double Discrimination { get; init; }
+        public double Guessing { get; init; }
+        public double Information(double ability) { }
+        public double Probability(double ability) { }
+    }
+    public enum IrtModel
+    {
+        Rasch = 0,
+        TwoParameter = 1,
+    }
+    public static class ItemResponse
+    {
+        public static AI.Psychology.Psychometrics.IrtCalibration Calibrate(int[] responses, AI.Psychology.Psychometrics.IrtModel model = 1, int maxIterations = 1000, double tolerance = 1E-05, int quadratureNodes = 41) { }
+        public static AI.Psychology.Psychometrics.AbilityEstimate ExpectedAPosteriori(System.Collections.Generic.IReadOnlyList<AI.Psychology.Psychometrics.IrtItem> items, System.Collections.Generic.IReadOnlyList<int> responses, double priorMean = 0, double priorStandardDeviation = 1, int nodes = 121) { }
+        public static AI.Psychology.Psychometrics.AbilityEstimate MaximumLikelihood(System.Collections.Generic.IReadOnlyList<AI.Psychology.Psychometrics.IrtItem> items, System.Collections.Generic.IReadOnlyList<int> responses) { }
+        public static int SelectNextItem(System.Collections.Generic.IReadOnlyList<AI.Psychology.Psychometrics.IrtItem> bank, System.Collections.Generic.IReadOnlySet<int> administered, double ability) { }
+        public static int[] Simulate(System.Collections.Generic.IReadOnlyList<AI.Psychology.Psychometrics.IrtItem> items, System.Collections.Generic.IReadOnlyList<double> abilities, System.Random random) { }
+        public static double TestInformation(System.Collections.Generic.IReadOnlyList<AI.Psychology.Psychometrics.IrtItem> items, double ability) { }
+    }
+    public static class Reliability
+    {
+        public static AI.Psychology.Psychometrics.ReliabilityResult Analyze(double[] scores) { }
+        public static double CronbachAlpha(double[] scores) { }
+        public static double RequiredLengthFactor(double reliability, double target) { }
+        public static double SpearmanBrown(double reliability, double lengthFactor) { }
+    }
+    public sealed class ReliabilityResult : AI.Insights.IInterpretable
+    {
+        public System.Collections.Generic.IReadOnlyList<double> AlphaIfItemDeleted { get; }
+        public System.Collections.Generic.IReadOnlyList<double> CorrectedItemTotalCorrelations { get; }
+        public double CronbachAlpha { get; }
+        public int Items { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Loadings { get; }
+        public double McDonaldOmega { get; }
+        public double MeanInterItemCorrelation { get; }
+        public int Respondents { get; }
+        public double SplitHalf { get; }
+        public double StandardErrorOfMeasurement { get; }
+        public double StandardizedAlpha { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class StandardScores
+    {
+        public static double DeviationIq(double z) { }
+        public static double PercentileFromZ(double z) { }
+        public static double PercentileRank(System.Collections.Generic.IReadOnlyList<double> norms, double raw) { }
+        public static int Stanine(double z) { }
+        public static int Sten(double z) { }
+        public static double TScore(double z) { }
+        public static double ZScore(double raw, double mean, double standardDeviation) { }
+    }
+}
+namespace AI.Psychology.Psychophysics
+{
+    public sealed record CombinedEstimate : System.IEquatable<AI.Psychology.Psychophysics.CombinedEstimate>
+    {
+        public CombinedEstimate(double Mean, double StandardDeviation, System.Collections.Generic.IReadOnlyList<double> Weights) { }
+        public double Mean { get; init; }
+        public double StandardDeviation { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Weights { get; init; }
+    }
+    public static class CueCombination
+    {
+        public static AI.Psychology.Psychophysics.CombinedEstimate Optimal([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Estimate",
+                "StandardDeviation"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> cues) { }
+        public static AI.Psychology.Psychophysics.CombinedEstimate WithPrior(double priorMean, double priorStandardDeviation, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Estimate",
+                "StandardDeviation"})] System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> cues) { }
+    }
+    public readonly struct LinearLawFit : System.IEquatable<AI.Psychology.Psychophysics.LinearLawFit>
+    {
+        public LinearLawFit(double Intercept, double Slope, double RSquared, int Count) { }
+        public int Count { get; init; }
+        public double Intercept { get; init; }
+        public double RSquared { get; init; }
+        public double Slope { get; init; }
+    }
+    public static class PsychophysicalLaws
+    {
+        public static System.Collections.Generic.IReadOnlyDictionary<string, double> StevensExponents { get; }
+        public static double FechnerSensation(double intensity, double threshold, double scale = 1) { }
+        public static AI.Psychology.Psychophysics.StevensFit FitStevens(System.Collections.Generic.IReadOnlyList<double> intensities, System.Collections.Generic.IReadOnlyList<double> magnitudes) { }
+        public static double JustNoticeableDifference(double intensity, double weberFraction) { }
+        public static double StevensMagnitude(double intensity, double exponent, double scale = 1) { }
+    }
+    public enum RateCorrection
+    {
+        LogLinear = 0,
+        HalfCount = 1,
+        None = 2,
+    }
+    public static class ResponseTimeLaws
+    {
+        public static readonly double EffectiveWidthFactor;
+        public static double ChoiceTime(double intercept, double slope, double bits) { }
+        public static double EffectiveWidth(double endpointStandardDeviation) { }
+        public static AI.Psychology.Psychophysics.LinearLawFit Fit(System.Collections.Generic.IReadOnlyList<double> predictor, System.Collections.Generic.IReadOnlyList<double> time) { }
+        public static double IndexOfDifficulty(double distance, double width) { }
+        public static double InformationBits(System.Collections.Generic.IReadOnlyList<double> probabilities) { }
+        public static double MovementTime(double intercept, double slope, double distance, double width) { }
+        public static double Throughput(double distance, double width, double movementTime) { }
+    }
+    public static class SignalDetection
+    {
+        public static AI.Psychology.Psychophysics.SignalDetectionResult FromCounts(int hits, int misses, int falseAlarms, int correctRejections, AI.Psychology.Psychophysics.RateCorrection correction = 0) { }
+        public static AI.Psychology.Psychophysics.SignalDetectionResult FromRates(double hitRate, double falseAlarmRate) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "FalseAlarmRate",
+                "HitRate"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<double, double>> RocCurve(double sensitivity, int points = 101) { }
+    }
+    public sealed class SignalDetectionResult : AI.Insights.IInterpretable
+    {
+        public double APrime { get; }
+        public double AreaUnderCurve { get; }
+        public bool Corrected { get; }
+        public AI.Psychology.Psychophysics.RateCorrection Correction { get; }
+        public double Criterion { get; }
+        public double FalseAlarmRate { get; }
+        public double HitRate { get; }
+        public double LogBeta { get; }
+        public double Sensitivity { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public static double PredictedFalseAlarmRate(double sensitivity, double criterion) { }
+        public static double PredictedHitRate(double sensitivity, double criterion) { }
+    }
+    public readonly struct StevensFit : System.IEquatable<AI.Psychology.Psychophysics.StevensFit>
+    {
+        public StevensFit(double Exponent, double Scale, double RSquared) { }
+        public double Exponent { get; init; }
+        public double RSquared { get; init; }
+        public double Scale { get; init; }
+    }
+}
+namespace AI.Psychology.Social
+{
+    public sealed record AgentParameters : System.IEquatable<AI.Psychology.Social.AgentParameters>
+    {
+        public AgentParameters(AI.Psychology.Emotion.Affect Baseline, double RelaxationTime, double Spread, double Expressiveness, double Openness) { }
+        public AI.Psychology.Emotion.Affect Baseline { get; init; }
+        public double Expressiveness { get; init; }
+        public double Openness { get; init; }
+        public double RelaxationTime { get; init; }
+        public double Spread { get; init; }
+    }
+    public sealed class EmotionalContagion
+    {
+        public EmotionalContagion(AI.Simulation.Space.ContactNetwork network, System.Collections.Generic.IReadOnlyList<double> expressiveness, System.Collections.Generic.IReadOnlyList<double> openness, double channel = 1) { }
+        public double Channel { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Expressiveness { get; }
+        public double MaxStableStep { get; }
+        public AI.Simulation.Space.ContactNetwork Network { get; }
+        public System.Collections.Generic.IReadOnlyList<double> Openness { get; }
+        public int Size { get; }
+        public double Consensus(System.Collections.Generic.IReadOnlyList<double> initial) { }
+        public AI.Simulation.Social.DeGrootModel Discretize(double step) { }
+        public double[] Rates(System.Collections.Generic.IReadOnlyList<double> emotions) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Simulation.SystemDynamics.SystemState> Simulate(System.Collections.Generic.IReadOnlyList<double> initial, double time, int points = 100, int stepsPerInterval = 20) { }
+        public System.Collections.Generic.IReadOnlyList<double> SocialPower() { }
+        public double Weight(int receiver, int sender) { }
+    }
+    public sealed class SocialAgent : AI.Simulation.Agents.IAgent<AI.Psychology.Social.SocialWorld>
+    {
+        public SocialAgent(int node, AI.Psychology.Social.AgentParameters parameters, AI.Psychology.Emotion.Affect affect, double opinion, AI.Psychology.Traits.Personality? traits = null) { }
+        public AI.Psychology.Emotion.Affect Affect { get; }
+        public AI.Psychology.Emotion.AffectDynamics Dynamics { get; }
+        public int Node { get; }
+        public double Opinion { get; }
+        public AI.Psychology.Social.AgentParameters Parameters { get; }
+        public AI.Psychology.Traits.Personality? Traits { get; }
+        public void Step(AI.Psychology.Social.SocialWorld world, System.Random random) { }
+        public void Stimulate(AI.Psychology.Emotion.Affect impulse) { }
+        public static AI.Psychology.Social.SocialAgent FromPersonality(int node, AI.Psychology.Traits.Personality traits, System.Func<AI.Psychology.Traits.Personality, AI.Psychology.Social.AgentParameters> mapping, double opinion = 0, AI.Psychology.Emotion.Affect? affect = default) { }
+    }
+    public static class SocialSimulation
+    {
+        public static AI.Simulation.Agents.AgentBasedModel<AI.Psychology.Social.SocialWorld> Create(AI.Psychology.Social.SocialWorld world, System.Collections.Generic.IEnumerable<AI.Psychology.Social.SocialAgent> agents, int? seed = default) { }
+    }
+    public sealed class SocialWorld
+    {
+        public SocialWorld(AI.Simulation.Space.ContactNetwork network, double timeStep, double confidence = Infinity, double channel = 1, bool noise = true) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Psychology.Social.SocialAgent> Agents { get; }
+        public double Channel { get; }
+        public double Confidence { get; }
+        public AI.Psychology.Emotion.Affect MeanAffect { get; }
+        public AI.Simulation.Space.ContactNetwork Network { get; }
+        public bool Noise { get; }
+        public double TimeStep { get; }
+        public AI.Psychology.Social.SocialAgent AgentAt(int node) { }
+        public void Commit() { }
+        public AI.Psychology.Social.EmotionalContagion Contagion() { }
+        public void Register(AI.Psychology.Social.SocialAgent agent) { }
+    }
+}
+namespace AI.Psychology.Traits
+{
+    public sealed record Personality : System.IEquatable<AI.Psychology.Traits.Personality>
+    {
+        public Personality(double Openness, double Conscientiousness, double Extraversion, double Agreeableness, double Neuroticism) { }
+        public double Agreeableness { get; init; }
+        public double Conscientiousness { get; init; }
+        public double Extraversion { get; init; }
+        public bool IsValid { get; }
+        public double Neuroticism { get; init; }
+        public double Openness { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Traits { get; }
+        public static AI.Psychology.Traits.Personality Average { get; }
+        public static AI.Psychology.Traits.Personality FromScale(System.Collections.Generic.IReadOnlyList<double> scores, double min = 1, double max = 5) { }
+    }
+}

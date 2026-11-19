@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Снимок публичного API всех сборок src. Сравнивает фактический API каждой сборки
+    с текстом в Snapshots/<сборка>.txt; правила обновления — CONTRIBUTING.md,
+    раздел «Изменение публичного API».
+  -->
+
+  <PropertyGroup>
+    <!-- net9.0-windows: среди сборок src есть AI.Charts.WinForms (net9.0-windows),
+         а сослаться на неё можно только из проекта под Windows -->
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>AIFramework.PublicApi.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Лёгкая сборка не собирает GPU-библиотеку (build/Light.props): ссылку на неё убираем,
+       а тест знает об этом по константе и не ждёт её снимка -->
+  <PropertyGroup Condition="'$(AILightBuild)' == 'true'">
+    <DefineConstants>$(DefineConstants);AI_LIGHT_BUILD</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <!-- MIT. Текст API строится по метаданным сборки (Mono.Cecil, MIT) -->
+    <PackageReference Include="PublicApiGenerator" Version="11.5.4" />
+  </ItemGroup>
+
+  <!-- Все проекты src шаблоном: новая библиотека сразу попадает в проверку,
+       и тест требует для неё снимок -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\*\*.csproj" />
+    <ProjectReference Remove="..\..\..\src\AI.NeuralNetworks.Gpu\AI.NeuralNetworks.Gpu.csproj" Condition="'$(AILightBuild)' == 'true'" />
+  </ItemGroup>
+
+  <!-- Тесту нужны только управляемые сборки: нативные библиотеки пакетов (ONNX Runtime всех
+       платформ, CUDA и т. п.) в его выход не копируются -->
+  <Target Name="PublicApi_SkipNativeAssets" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

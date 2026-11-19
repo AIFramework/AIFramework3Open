@@ -1,0 +1,931 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.ML.NeuralNetworks.Onnx.V2
+{
+    public static class OnnxV2
+    {
+        public static void CopyInitializerInto(Onnx.TensorProto init, AI.ML.NeuralNetworks.V2.Tensor dst) { }
+        public static AI.ML.NeuralNetworks.Onnx.V2.OnnxV2.LoadResult LoadStateDict(AI.ML.NeuralNetworks.V2.Nn.Module model, System.IO.Stream stream, bool strict = true) { }
+        public static AI.ML.NeuralNetworks.Onnx.V2.OnnxV2.LoadResult LoadStateDict(AI.ML.NeuralNetworks.V2.Nn.Module model, string path, bool strict = true) { }
+        public static void SaveStateDict(AI.ML.NeuralNetworks.V2.Nn.Module model, System.IO.Stream stream) { }
+        public static void SaveStateDict(AI.ML.NeuralNetworks.V2.Nn.Module model, string path) { }
+        public static Onnx.TensorProto TensorToInitializer(string name, AI.ML.NeuralNetworks.V2.Tensor t) { }
+        public sealed class LoadResult
+        {
+            public LoadResult() { }
+            public int Loaded { get; set; }
+            public string[] Missing { get; set; }
+            public string[] Unexpected { get; set; }
+        }
+    }
+}
+namespace Onnx
+{
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class AttributeProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.AttributeProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.AttributeProto>, System.IEquatable<Onnx.AttributeProto>
+    {
+        public const int DocStringFieldNumber = 13;
+        public const int FFieldNumber = 2;
+        public const int FloatsFieldNumber = 7;
+        public const int GFieldNumber = 6;
+        public const int GraphsFieldNumber = 11;
+        public const int IFieldNumber = 3;
+        public const int IntsFieldNumber = 8;
+        public const int NameFieldNumber = 1;
+        public const int RefAttrNameFieldNumber = 21;
+        public const int SFieldNumber = 4;
+        public const int SparseTensorFieldNumber = 22;
+        public const int SparseTensorsFieldNumber = 23;
+        public const int StringsFieldNumber = 9;
+        public const int TFieldNumber = 5;
+        public const int TensorsFieldNumber = 10;
+        public const int TpFieldNumber = 14;
+        public const int TypeFieldNumber = 20;
+        public const int TypeProtosFieldNumber = 15;
+        public AttributeProto() { }
+        public AttributeProto(Onnx.AttributeProto other) { }
+        public string DocString { get; set; }
+        public float F { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<float> Floats { get; }
+        public Onnx.GraphProto G { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.GraphProto> Graphs { get; }
+        public long I { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<long> Ints { get; }
+        public string Name { get; set; }
+        public string RefAttrName { get; set; }
+        public Google.Protobuf.ByteString S { get; set; }
+        public Onnx.SparseTensorProto SparseTensor { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.SparseTensorProto> SparseTensors { get; }
+        public Google.Protobuf.Collections.RepeatedField<Google.Protobuf.ByteString> Strings { get; }
+        public Onnx.TensorProto T { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.TensorProto> Tensors { get; }
+        public Onnx.TypeProto Tp { get; set; }
+        public Onnx.AttributeProto.Types.AttributeType Type { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.TypeProto> TypeProtos { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.AttributeProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.AttributeProto Clone() { }
+        public bool Equals(Onnx.AttributeProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.AttributeProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+        public static class Types
+        {
+            public enum AttributeType
+            {
+                [Google.Protobuf.Reflection.OriginalName("UNDEFINED")]
+                Undefined = 0,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT")]
+                Float = 1,
+                [Google.Protobuf.Reflection.OriginalName("INT")]
+                Int = 2,
+                [Google.Protobuf.Reflection.OriginalName("STRING")]
+                String = 3,
+                [Google.Protobuf.Reflection.OriginalName("TENSOR")]
+                Tensor = 4,
+                [Google.Protobuf.Reflection.OriginalName("GRAPH")]
+                Graph = 5,
+                [Google.Protobuf.Reflection.OriginalName("SPARSE_TENSOR")]
+                SparseTensor = 11,
+                [Google.Protobuf.Reflection.OriginalName("TYPE_PROTO")]
+                TypeProto = 13,
+                [Google.Protobuf.Reflection.OriginalName("FLOATS")]
+                Floats = 6,
+                [Google.Protobuf.Reflection.OriginalName("INTS")]
+                Ints = 7,
+                [Google.Protobuf.Reflection.OriginalName("STRINGS")]
+                Strings = 8,
+                [Google.Protobuf.Reflection.OriginalName("TENSORS")]
+                Tensors = 9,
+                [Google.Protobuf.Reflection.OriginalName("GRAPHS")]
+                Graphs = 10,
+                [Google.Protobuf.Reflection.OriginalName("SPARSE_TENSORS")]
+                SparseTensors = 12,
+                [Google.Protobuf.Reflection.OriginalName("TYPE_PROTOS")]
+                TypeProtos = 14,
+            }
+        }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class DeviceConfigurationProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.DeviceConfigurationProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.DeviceConfigurationProto>, System.IEquatable<Onnx.DeviceConfigurationProto>
+    {
+        public const int DeviceFieldNumber = 3;
+        public const int NameFieldNumber = 1;
+        public const int NumDevicesFieldNumber = 2;
+        public DeviceConfigurationProto() { }
+        public DeviceConfigurationProto(Onnx.DeviceConfigurationProto other) { }
+        public Google.Protobuf.Collections.RepeatedField<string> Device { get; }
+        public string Name { get; set; }
+        public int NumDevices { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.DeviceConfigurationProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.DeviceConfigurationProto Clone() { }
+        public bool Equals(Onnx.DeviceConfigurationProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.DeviceConfigurationProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class FunctionProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.FunctionProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.FunctionProto>, System.IEquatable<Onnx.FunctionProto>
+    {
+        public const int AttributeFieldNumber = 6;
+        public const int AttributeProtoFieldNumber = 11;
+        public const int DocStringFieldNumber = 8;
+        public const int DomainFieldNumber = 10;
+        public const int InputFieldNumber = 4;
+        public const int MetadataPropsFieldNumber = 14;
+        public const int NameFieldNumber = 1;
+        public const int NodeFieldNumber = 7;
+        public const int OpsetImportFieldNumber = 9;
+        public const int OutputFieldNumber = 5;
+        public const int OverloadFieldNumber = 13;
+        public const int ValueInfoFieldNumber = 12;
+        public FunctionProto() { }
+        public FunctionProto(Onnx.FunctionProto other) { }
+        public Google.Protobuf.Collections.RepeatedField<string> Attribute { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.AttributeProto> AttributeProto { get; }
+        public string DocString { get; set; }
+        public string Domain { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<string> Input { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> MetadataProps { get; }
+        public string Name { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.NodeProto> Node { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.OperatorSetIdProto> OpsetImport { get; }
+        public Google.Protobuf.Collections.RepeatedField<string> Output { get; }
+        public string Overload { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.ValueInfoProto> ValueInfo { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.FunctionProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.FunctionProto Clone() { }
+        public bool Equals(Onnx.FunctionProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.FunctionProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class GraphProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.GraphProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.GraphProto>, System.IEquatable<Onnx.GraphProto>
+    {
+        public const int DocStringFieldNumber = 10;
+        public const int InitializerFieldNumber = 5;
+        public const int InputFieldNumber = 11;
+        public const int MetadataPropsFieldNumber = 16;
+        public const int NameFieldNumber = 2;
+        public const int NodeFieldNumber = 1;
+        public const int OutputFieldNumber = 12;
+        public const int QuantizationAnnotationFieldNumber = 14;
+        public const int SparseInitializerFieldNumber = 15;
+        public const int ValueInfoFieldNumber = 13;
+        public GraphProto() { }
+        public GraphProto(Onnx.GraphProto other) { }
+        public string DocString { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.TensorProto> Initializer { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.ValueInfoProto> Input { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> MetadataProps { get; }
+        public string Name { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.NodeProto> Node { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.ValueInfoProto> Output { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.TensorAnnotation> QuantizationAnnotation { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.SparseTensorProto> SparseInitializer { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.ValueInfoProto> ValueInfo { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.GraphProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.GraphProto Clone() { }
+        public bool Equals(Onnx.GraphProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.GraphProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class IntIntListEntryProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.IntIntListEntryProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.IntIntListEntryProto>, System.IEquatable<Onnx.IntIntListEntryProto>
+    {
+        public const int KeyFieldNumber = 1;
+        public const int ValueFieldNumber = 2;
+        public IntIntListEntryProto() { }
+        public IntIntListEntryProto(Onnx.IntIntListEntryProto other) { }
+        public long Key { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<long> Value { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.IntIntListEntryProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.IntIntListEntryProto Clone() { }
+        public bool Equals(Onnx.IntIntListEntryProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.IntIntListEntryProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class ModelProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.ModelProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.ModelProto>, System.IEquatable<Onnx.ModelProto>
+    {
+        public const int ConfigurationFieldNumber = 26;
+        public const int DocStringFieldNumber = 6;
+        public const int DomainFieldNumber = 4;
+        public const int FunctionsFieldNumber = 25;
+        public const int GraphFieldNumber = 7;
+        public const int IrVersionFieldNumber = 1;
+        public const int MetadataPropsFieldNumber = 14;
+        public const int ModelVersionFieldNumber = 5;
+        public const int OpsetImportFieldNumber = 8;
+        public const int ProducerNameFieldNumber = 2;
+        public const int ProducerVersionFieldNumber = 3;
+        public const int TrainingInfoFieldNumber = 20;
+        public ModelProto() { }
+        public ModelProto(Onnx.ModelProto other) { }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.DeviceConfigurationProto> Configuration { get; }
+        public string DocString { get; set; }
+        public string Domain { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.FunctionProto> Functions { get; }
+        public Onnx.GraphProto Graph { get; set; }
+        public long IrVersion { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> MetadataProps { get; }
+        public long ModelVersion { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.OperatorSetIdProto> OpsetImport { get; }
+        public string ProducerName { get; set; }
+        public string ProducerVersion { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.TrainingInfoProto> TrainingInfo { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.ModelProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.ModelProto Clone() { }
+        public bool Equals(Onnx.ModelProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.ModelProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class NodeDeviceConfigurationProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.NodeDeviceConfigurationProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.NodeDeviceConfigurationProto>, System.IEquatable<Onnx.NodeDeviceConfigurationProto>
+    {
+        public const int ConfigurationIdFieldNumber = 1;
+        public const int PipelineStageFieldNumber = 3;
+        public const int ShardingSpecFieldNumber = 2;
+        public NodeDeviceConfigurationProto() { }
+        public NodeDeviceConfigurationProto(Onnx.NodeDeviceConfigurationProto other) { }
+        public string ConfigurationId { get; set; }
+        public int PipelineStage { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.ShardingSpecProto> ShardingSpec { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.NodeDeviceConfigurationProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.NodeDeviceConfigurationProto Clone() { }
+        public bool Equals(Onnx.NodeDeviceConfigurationProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.NodeDeviceConfigurationProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class NodeProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.NodeProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.NodeProto>, System.IEquatable<Onnx.NodeProto>
+    {
+        public const int AttributeFieldNumber = 5;
+        public const int DeviceConfigurationsFieldNumber = 10;
+        public const int DocStringFieldNumber = 6;
+        public const int DomainFieldNumber = 7;
+        public const int InputFieldNumber = 1;
+        public const int MetadataPropsFieldNumber = 9;
+        public const int NameFieldNumber = 3;
+        public const int OpTypeFieldNumber = 4;
+        public const int OutputFieldNumber = 2;
+        public const int OverloadFieldNumber = 8;
+        public NodeProto() { }
+        public NodeProto(Onnx.NodeProto other) { }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.AttributeProto> Attribute { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.NodeDeviceConfigurationProto> DeviceConfigurations { get; }
+        public string DocString { get; set; }
+        public string Domain { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<string> Input { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> MetadataProps { get; }
+        public string Name { get; set; }
+        public string OpType { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<string> Output { get; }
+        public string Overload { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.NodeProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.NodeProto Clone() { }
+        public bool Equals(Onnx.NodeProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.NodeProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    public static class OnnxReflection
+    {
+        public static Google.Protobuf.Reflection.FileDescriptor Descriptor { get; }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class OperatorSetIdProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.OperatorSetIdProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.OperatorSetIdProto>, System.IEquatable<Onnx.OperatorSetIdProto>
+    {
+        public const int DomainFieldNumber = 1;
+        public const int VersionFieldNumber = 2;
+        public OperatorSetIdProto() { }
+        public OperatorSetIdProto(Onnx.OperatorSetIdProto other) { }
+        public string Domain { get; set; }
+        public long Version { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.OperatorSetIdProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.OperatorSetIdProto Clone() { }
+        public bool Equals(Onnx.OperatorSetIdProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.OperatorSetIdProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    public enum OperatorStatus
+    {
+        [Google.Protobuf.Reflection.OriginalName("EXPERIMENTAL")]
+        Experimental = 0,
+        [Google.Protobuf.Reflection.OriginalName("STABLE")]
+        Stable = 1,
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class ShardedDimProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.ShardedDimProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.ShardedDimProto>, System.IEquatable<Onnx.ShardedDimProto>
+    {
+        public const int AxisFieldNumber = 1;
+        public const int SimpleShardingFieldNumber = 2;
+        public ShardedDimProto() { }
+        public ShardedDimProto(Onnx.ShardedDimProto other) { }
+        public long Axis { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.SimpleShardedDimProto> SimpleSharding { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.ShardedDimProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.ShardedDimProto Clone() { }
+        public bool Equals(Onnx.ShardedDimProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.ShardedDimProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class ShardingSpecProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.ShardingSpecProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.ShardingSpecProto>, System.IEquatable<Onnx.ShardingSpecProto>
+    {
+        public const int DeviceFieldNumber = 2;
+        public const int IndexToDeviceGroupMapFieldNumber = 3;
+        public const int ShardedDimFieldNumber = 4;
+        public const int TensorNameFieldNumber = 1;
+        public ShardingSpecProto() { }
+        public ShardingSpecProto(Onnx.ShardingSpecProto other) { }
+        public Google.Protobuf.Collections.RepeatedField<long> Device { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.IntIntListEntryProto> IndexToDeviceGroupMap { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.ShardedDimProto> ShardedDim { get; }
+        public string TensorName { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.ShardingSpecProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.ShardingSpecProto Clone() { }
+        public bool Equals(Onnx.ShardingSpecProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.ShardingSpecProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class SimpleShardedDimProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.SimpleShardedDimProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.SimpleShardedDimProto>, System.IEquatable<Onnx.SimpleShardedDimProto>
+    {
+        public const int DimParamFieldNumber = 2;
+        public const int DimValueFieldNumber = 1;
+        public const int NumShardsFieldNumber = 3;
+        public SimpleShardedDimProto() { }
+        public SimpleShardedDimProto(Onnx.SimpleShardedDimProto other) { }
+        public Onnx.SimpleShardedDimProto.DimOneofCase DimCase { get; }
+        public string DimParam { get; set; }
+        public long DimValue { get; set; }
+        public bool HasDimParam { get; }
+        public bool HasDimValue { get; }
+        public long NumShards { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.SimpleShardedDimProto> Parser { get; }
+        public int CalculateSize() { }
+        public void ClearDim() { }
+        public void ClearDimParam() { }
+        public void ClearDimValue() { }
+        public Onnx.SimpleShardedDimProto Clone() { }
+        public bool Equals(Onnx.SimpleShardedDimProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.SimpleShardedDimProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+        public enum DimOneofCase
+        {
+            None = 0,
+            DimValue = 1,
+            DimParam = 2,
+        }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class SparseTensorProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.SparseTensorProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.SparseTensorProto>, System.IEquatable<Onnx.SparseTensorProto>
+    {
+        public const int DimsFieldNumber = 3;
+        public const int IndicesFieldNumber = 2;
+        public const int ValuesFieldNumber = 1;
+        public SparseTensorProto() { }
+        public SparseTensorProto(Onnx.SparseTensorProto other) { }
+        public Google.Protobuf.Collections.RepeatedField<long> Dims { get; }
+        public Onnx.TensorProto Indices { get; set; }
+        public Onnx.TensorProto Values { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.SparseTensorProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.SparseTensorProto Clone() { }
+        public bool Equals(Onnx.SparseTensorProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.SparseTensorProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class StringStringEntryProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.StringStringEntryProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.StringStringEntryProto>, System.IEquatable<Onnx.StringStringEntryProto>
+    {
+        public const int KeyFieldNumber = 1;
+        public const int ValueFieldNumber = 2;
+        public StringStringEntryProto() { }
+        public StringStringEntryProto(Onnx.StringStringEntryProto other) { }
+        public string Key { get; set; }
+        public string Value { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.StringStringEntryProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.StringStringEntryProto Clone() { }
+        public bool Equals(Onnx.StringStringEntryProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.StringStringEntryProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class TensorAnnotation : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TensorAnnotation>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TensorAnnotation>, System.IEquatable<Onnx.TensorAnnotation>
+    {
+        public const int QuantParameterTensorNamesFieldNumber = 2;
+        public const int TensorNameFieldNumber = 1;
+        public TensorAnnotation() { }
+        public TensorAnnotation(Onnx.TensorAnnotation other) { }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> QuantParameterTensorNames { get; }
+        public string TensorName { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.TensorAnnotation> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.TensorAnnotation Clone() { }
+        public bool Equals(Onnx.TensorAnnotation other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.TensorAnnotation other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class TensorProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TensorProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TensorProto>, System.IEquatable<Onnx.TensorProto>
+    {
+        public const int DataLocationFieldNumber = 14;
+        public const int DataTypeFieldNumber = 2;
+        public const int DimsFieldNumber = 1;
+        public const int DocStringFieldNumber = 12;
+        public const int DoubleDataFieldNumber = 10;
+        public const int ExternalDataFieldNumber = 13;
+        public const int FloatDataFieldNumber = 4;
+        public const int Int32DataFieldNumber = 5;
+        public const int Int64DataFieldNumber = 7;
+        public const int MetadataPropsFieldNumber = 16;
+        public const int NameFieldNumber = 8;
+        public const int RawDataFieldNumber = 9;
+        public const int SegmentFieldNumber = 3;
+        public const int StringDataFieldNumber = 6;
+        public const int Uint64DataFieldNumber = 11;
+        public TensorProto() { }
+        public TensorProto(Onnx.TensorProto other) { }
+        public Onnx.TensorProto.Types.DataLocation DataLocation { get; set; }
+        public int DataType { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<long> Dims { get; }
+        public string DocString { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<double> DoubleData { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> ExternalData { get; }
+        public Google.Protobuf.Collections.RepeatedField<float> FloatData { get; }
+        public Google.Protobuf.Collections.RepeatedField<int> Int32Data { get; }
+        public Google.Protobuf.Collections.RepeatedField<long> Int64Data { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> MetadataProps { get; }
+        public string Name { get; set; }
+        public Google.Protobuf.ByteString RawData { get; set; }
+        public Onnx.TensorProto.Types.Segment Segment { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Google.Protobuf.ByteString> StringData { get; }
+        public Google.Protobuf.Collections.RepeatedField<ulong> Uint64Data { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.TensorProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.TensorProto Clone() { }
+        public bool Equals(Onnx.TensorProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.TensorProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+        public static class Types
+        {
+            public enum DataLocation
+            {
+                [Google.Protobuf.Reflection.OriginalName("DEFAULT")]
+                Default = 0,
+                [Google.Protobuf.Reflection.OriginalName("EXTERNAL")]
+                External = 1,
+            }
+            public enum DataType
+            {
+                [Google.Protobuf.Reflection.OriginalName("UNDEFINED")]
+                Undefined = 0,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT")]
+                Float = 1,
+                [Google.Protobuf.Reflection.OriginalName("UINT8")]
+                Uint8 = 2,
+                [Google.Protobuf.Reflection.OriginalName("INT8")]
+                Int8 = 3,
+                [Google.Protobuf.Reflection.OriginalName("UINT16")]
+                Uint16 = 4,
+                [Google.Protobuf.Reflection.OriginalName("INT16")]
+                Int16 = 5,
+                [Google.Protobuf.Reflection.OriginalName("INT32")]
+                Int32 = 6,
+                [Google.Protobuf.Reflection.OriginalName("INT64")]
+                Int64 = 7,
+                [Google.Protobuf.Reflection.OriginalName("STRING")]
+                String = 8,
+                [Google.Protobuf.Reflection.OriginalName("BOOL")]
+                Bool = 9,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT16")]
+                Float16 = 10,
+                [Google.Protobuf.Reflection.OriginalName("DOUBLE")]
+                Double = 11,
+                [Google.Protobuf.Reflection.OriginalName("UINT32")]
+                Uint32 = 12,
+                [Google.Protobuf.Reflection.OriginalName("UINT64")]
+                Uint64 = 13,
+                [Google.Protobuf.Reflection.OriginalName("COMPLEX64")]
+                Complex64 = 14,
+                [Google.Protobuf.Reflection.OriginalName("COMPLEX128")]
+                Complex128 = 15,
+                [Google.Protobuf.Reflection.OriginalName("BFLOAT16")]
+                Bfloat16 = 16,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT8E4M3FN")]
+                Float8E4M3Fn = 17,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT8E4M3FNUZ")]
+                Float8E4M3Fnuz = 18,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT8E5M2")]
+                Float8E5M2 = 19,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT8E5M2FNUZ")]
+                Float8E5M2Fnuz = 20,
+                [Google.Protobuf.Reflection.OriginalName("UINT4")]
+                Uint4 = 21,
+                [Google.Protobuf.Reflection.OriginalName("INT4")]
+                Int4 = 22,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT4E2M1")]
+                Float4E2M1 = 23,
+                [Google.Protobuf.Reflection.OriginalName("FLOAT8E8M0")]
+                Float8E8M0 = 24,
+                [Google.Protobuf.Reflection.OriginalName("UINT2")]
+                Uint2 = 25,
+                [Google.Protobuf.Reflection.OriginalName("INT2")]
+                Int2 = 26,
+            }
+            [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+            public sealed class Segment : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TensorProto.Types.Segment>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TensorProto.Types.Segment>, System.IEquatable<Onnx.TensorProto.Types.Segment>
+            {
+                public const int BeginFieldNumber = 1;
+                public const int EndFieldNumber = 2;
+                public Segment() { }
+                public Segment(Onnx.TensorProto.Types.Segment other) { }
+                public long Begin { get; set; }
+                public long End { get; set; }
+                public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+                public static Google.Protobuf.MessageParser<Onnx.TensorProto.Types.Segment> Parser { get; }
+                public int CalculateSize() { }
+                public Onnx.TensorProto.Types.Segment Clone() { }
+                public bool Equals(Onnx.TensorProto.Types.Segment other) { }
+                public override bool Equals(object other) { }
+                public override int GetHashCode() { }
+                public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+                public void MergeFrom(Onnx.TensorProto.Types.Segment other) { }
+                public override string ToString() { }
+                public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+            }
+        }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class TensorShapeProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TensorShapeProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TensorShapeProto>, System.IEquatable<Onnx.TensorShapeProto>
+    {
+        public const int DimFieldNumber = 1;
+        public TensorShapeProto() { }
+        public TensorShapeProto(Onnx.TensorShapeProto other) { }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.TensorShapeProto.Types.Dimension> Dim { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.TensorShapeProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.TensorShapeProto Clone() { }
+        public bool Equals(Onnx.TensorShapeProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.TensorShapeProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+        public static class Types
+        {
+            [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+            public sealed class Dimension : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TensorShapeProto.Types.Dimension>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TensorShapeProto.Types.Dimension>, System.IEquatable<Onnx.TensorShapeProto.Types.Dimension>
+            {
+                public const int DenotationFieldNumber = 3;
+                public const int DimParamFieldNumber = 2;
+                public const int DimValueFieldNumber = 1;
+                public Dimension() { }
+                public Dimension(Onnx.TensorShapeProto.Types.Dimension other) { }
+                public string Denotation { get; set; }
+                public string DimParam { get; set; }
+                public long DimValue { get; set; }
+                public bool HasDimParam { get; }
+                public bool HasDimValue { get; }
+                public Onnx.TensorShapeProto.Types.Dimension.ValueOneofCase ValueCase { get; }
+                public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+                public static Google.Protobuf.MessageParser<Onnx.TensorShapeProto.Types.Dimension> Parser { get; }
+                public int CalculateSize() { }
+                public void ClearDimParam() { }
+                public void ClearDimValue() { }
+                public void ClearValue() { }
+                public Onnx.TensorShapeProto.Types.Dimension Clone() { }
+                public bool Equals(Onnx.TensorShapeProto.Types.Dimension other) { }
+                public override bool Equals(object other) { }
+                public override int GetHashCode() { }
+                public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+                public void MergeFrom(Onnx.TensorShapeProto.Types.Dimension other) { }
+                public override string ToString() { }
+                public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+                public enum ValueOneofCase
+                {
+                    None = 0,
+                    DimValue = 1,
+                    DimParam = 2,
+                }
+            }
+        }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class TrainingInfoProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TrainingInfoProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TrainingInfoProto>, System.IEquatable<Onnx.TrainingInfoProto>
+    {
+        public const int AlgorithmFieldNumber = 2;
+        public const int InitializationBindingFieldNumber = 3;
+        public const int InitializationFieldNumber = 1;
+        public const int UpdateBindingFieldNumber = 4;
+        public TrainingInfoProto() { }
+        public TrainingInfoProto(Onnx.TrainingInfoProto other) { }
+        public Onnx.GraphProto Algorithm { get; set; }
+        public Onnx.GraphProto Initialization { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> InitializationBinding { get; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> UpdateBinding { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.TrainingInfoProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.TrainingInfoProto Clone() { }
+        public bool Equals(Onnx.TrainingInfoProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.TrainingInfoProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class TypeProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TypeProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TypeProto>, System.IEquatable<Onnx.TypeProto>
+    {
+        public const int DenotationFieldNumber = 6;
+        public const int MapTypeFieldNumber = 5;
+        public const int OptionalTypeFieldNumber = 9;
+        public const int SequenceTypeFieldNumber = 4;
+        public const int SparseTensorTypeFieldNumber = 8;
+        public const int TensorTypeFieldNumber = 1;
+        public TypeProto() { }
+        public TypeProto(Onnx.TypeProto other) { }
+        public string Denotation { get; set; }
+        public Onnx.TypeProto.Types.Map MapType { get; set; }
+        public Onnx.TypeProto.Types.Optional OptionalType { get; set; }
+        public Onnx.TypeProto.Types.Sequence SequenceType { get; set; }
+        public Onnx.TypeProto.Types.SparseTensor SparseTensorType { get; set; }
+        public Onnx.TypeProto.Types.Tensor TensorType { get; set; }
+        public Onnx.TypeProto.ValueOneofCase ValueCase { get; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.TypeProto> Parser { get; }
+        public int CalculateSize() { }
+        public void ClearValue() { }
+        public Onnx.TypeProto Clone() { }
+        public bool Equals(Onnx.TypeProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.TypeProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+        public static class Types
+        {
+            [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+            public sealed class Map : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TypeProto.Types.Map>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TypeProto.Types.Map>, System.IEquatable<Onnx.TypeProto.Types.Map>
+            {
+                public const int KeyTypeFieldNumber = 1;
+                public const int ValueTypeFieldNumber = 2;
+                public Map() { }
+                public Map(Onnx.TypeProto.Types.Map other) { }
+                public int KeyType { get; set; }
+                public Onnx.TypeProto ValueType { get; set; }
+                public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+                public static Google.Protobuf.MessageParser<Onnx.TypeProto.Types.Map> Parser { get; }
+                public int CalculateSize() { }
+                public Onnx.TypeProto.Types.Map Clone() { }
+                public bool Equals(Onnx.TypeProto.Types.Map other) { }
+                public override bool Equals(object other) { }
+                public override int GetHashCode() { }
+                public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+                public void MergeFrom(Onnx.TypeProto.Types.Map other) { }
+                public override string ToString() { }
+                public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+            }
+            [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+            public sealed class Optional : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TypeProto.Types.Optional>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TypeProto.Types.Optional>, System.IEquatable<Onnx.TypeProto.Types.Optional>
+            {
+                public const int ElemTypeFieldNumber = 1;
+                public Optional() { }
+                public Optional(Onnx.TypeProto.Types.Optional other) { }
+                public Onnx.TypeProto ElemType { get; set; }
+                public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+                public static Google.Protobuf.MessageParser<Onnx.TypeProto.Types.Optional> Parser { get; }
+                public int CalculateSize() { }
+                public Onnx.TypeProto.Types.Optional Clone() { }
+                public bool Equals(Onnx.TypeProto.Types.Optional other) { }
+                public override bool Equals(object other) { }
+                public override int GetHashCode() { }
+                public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+                public void MergeFrom(Onnx.TypeProto.Types.Optional other) { }
+                public override string ToString() { }
+                public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+            }
+            [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+            public sealed class Sequence : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TypeProto.Types.Sequence>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TypeProto.Types.Sequence>, System.IEquatable<Onnx.TypeProto.Types.Sequence>
+            {
+                public const int ElemTypeFieldNumber = 1;
+                public Sequence() { }
+                public Sequence(Onnx.TypeProto.Types.Sequence other) { }
+                public Onnx.TypeProto ElemType { get; set; }
+                public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+                public static Google.Protobuf.MessageParser<Onnx.TypeProto.Types.Sequence> Parser { get; }
+                public int CalculateSize() { }
+                public Onnx.TypeProto.Types.Sequence Clone() { }
+                public bool Equals(Onnx.TypeProto.Types.Sequence other) { }
+                public override bool Equals(object other) { }
+                public override int GetHashCode() { }
+                public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+                public void MergeFrom(Onnx.TypeProto.Types.Sequence other) { }
+                public override string ToString() { }
+                public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+            }
+            [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+            public sealed class SparseTensor : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TypeProto.Types.SparseTensor>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TypeProto.Types.SparseTensor>, System.IEquatable<Onnx.TypeProto.Types.SparseTensor>
+            {
+                public const int ElemTypeFieldNumber = 1;
+                public const int ShapeFieldNumber = 2;
+                public SparseTensor() { }
+                public SparseTensor(Onnx.TypeProto.Types.SparseTensor other) { }
+                public int ElemType { get; set; }
+                public Onnx.TensorShapeProto Shape { get; set; }
+                public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+                public static Google.Protobuf.MessageParser<Onnx.TypeProto.Types.SparseTensor> Parser { get; }
+                public int CalculateSize() { }
+                public Onnx.TypeProto.Types.SparseTensor Clone() { }
+                public bool Equals(Onnx.TypeProto.Types.SparseTensor other) { }
+                public override bool Equals(object other) { }
+                public override int GetHashCode() { }
+                public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+                public void MergeFrom(Onnx.TypeProto.Types.SparseTensor other) { }
+                public override string ToString() { }
+                public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+            }
+            [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+            public sealed class Tensor : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.TypeProto.Types.Tensor>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.TypeProto.Types.Tensor>, System.IEquatable<Onnx.TypeProto.Types.Tensor>
+            {
+                public const int ElemTypeFieldNumber = 1;
+                public const int ShapeFieldNumber = 2;
+                public Tensor() { }
+                public Tensor(Onnx.TypeProto.Types.Tensor other) { }
+                public int ElemType { get; set; }
+                public Onnx.TensorShapeProto Shape { get; set; }
+                public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+                public static Google.Protobuf.MessageParser<Onnx.TypeProto.Types.Tensor> Parser { get; }
+                public int CalculateSize() { }
+                public Onnx.TypeProto.Types.Tensor Clone() { }
+                public bool Equals(Onnx.TypeProto.Types.Tensor other) { }
+                public override bool Equals(object other) { }
+                public override int GetHashCode() { }
+                public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+                public void MergeFrom(Onnx.TypeProto.Types.Tensor other) { }
+                public override string ToString() { }
+                public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+            }
+        }
+        public enum ValueOneofCase
+        {
+            None = 0,
+            TensorType = 1,
+            SequenceType = 4,
+            MapType = 5,
+            OptionalType = 9,
+            SparseTensorType = 8,
+        }
+    }
+    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    public sealed class ValueInfoProto : Google.Protobuf.IBufferMessage, Google.Protobuf.IDeepCloneable<Onnx.ValueInfoProto>, Google.Protobuf.IMessage, Google.Protobuf.IMessage<Onnx.ValueInfoProto>, System.IEquatable<Onnx.ValueInfoProto>
+    {
+        public const int DocStringFieldNumber = 3;
+        public const int MetadataPropsFieldNumber = 4;
+        public const int NameFieldNumber = 1;
+        public const int TypeFieldNumber = 2;
+        public ValueInfoProto() { }
+        public ValueInfoProto(Onnx.ValueInfoProto other) { }
+        public string DocString { get; set; }
+        public Google.Protobuf.Collections.RepeatedField<Onnx.StringStringEntryProto> MetadataProps { get; }
+        public string Name { get; set; }
+        public Onnx.TypeProto Type { get; set; }
+        public static Google.Protobuf.Reflection.MessageDescriptor Descriptor { get; }
+        public static Google.Protobuf.MessageParser<Onnx.ValueInfoProto> Parser { get; }
+        public int CalculateSize() { }
+        public Onnx.ValueInfoProto Clone() { }
+        public bool Equals(Onnx.ValueInfoProto other) { }
+        public override bool Equals(object other) { }
+        public override int GetHashCode() { }
+        public void MergeFrom(Google.Protobuf.CodedInputStream input) { }
+        public void MergeFrom(Onnx.ValueInfoProto other) { }
+        public override string ToString() { }
+        public void WriteTo(Google.Protobuf.CodedOutputStream output) { }
+    }
+    public enum Version
+    {
+        [Google.Protobuf.Reflection.OriginalName("_START_VERSION")]
+        StartVersion = 0,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2017_10_10")]
+        IrVersion20171010 = 1,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2017_10_30")]
+        IrVersion20171030 = 2,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2017_11_3")]
+        IrVersion2017113 = 3,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2019_1_22")]
+        IrVersion2019122 = 4,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2019_3_18")]
+        IrVersion2019318 = 5,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2019_9_19")]
+        IrVersion2019919 = 6,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2020_5_8")]
+        IrVersion202058 = 7,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2021_7_30")]
+        IrVersion2021730 = 8,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2023_5_5")]
+        IrVersion202355 = 9,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2024_3_25")]
+        IrVersion2024325 = 10,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2025_05_12")]
+        IrVersion20250512 = 11,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION_2025_08_26")]
+        IrVersion20250826 = 12,
+        [Google.Protobuf.Reflection.OriginalName("IR_VERSION")]
+        IrVersion = 13,
+    }
+}

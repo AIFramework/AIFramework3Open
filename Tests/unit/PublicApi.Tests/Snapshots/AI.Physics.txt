@@ -1,0 +1,767 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Physics.Acoustics
+{
+    public static class OctaveBands
+    {
+        public const int Count = 8;
+        public static AI.DataStructs.Algebraic.Vector AWeighting { get; }
+        public static AI.DataStructs.Algebraic.Vector HearingThreshold { get; }
+        public static AI.DataStructs.Algebraic.Vector MidbandFrequencies { get; }
+        public static double AWeightedLevel(AI.DataStructs.Algebraic.Vector bandLevels) { }
+        public static double AudibilityMarginDb(AI.DataStructs.Algebraic.Vector signalLevels, AI.DataStructs.Algebraic.Vector backgroundLevels) { }
+        public static double Sum(AI.DataStructs.Algebraic.Vector levels) { }
+    }
+    public static class SoundPropagation
+    {
+        public static double AirAbsorptionDbPerMetre(AI.Units.Quantity frequency, AI.Units.Quantity temperature, double relativeHumidityPercent, AI.Units.Quantity pressure = default) { }
+        public static double DivergenceDb(AI.Units.Quantity distance, AI.Physics.Acoustics.SourceGeometry geometry) { }
+        public static AI.DataStructs.Algebraic.Vector FoliageAttenuationDb(AI.Units.Quantity depth) { }
+        public static double PorousGroundAttenuationDb(AI.Units.Quantity distance, AI.Units.Quantity meanHeight) { }
+        public static AI.DataStructs.Algebraic.Vector ReceivedLevels(AI.DataStructs.Algebraic.Vector sourcePowerLevels, AI.Units.Quantity distance, AI.Physics.Acoustics.SourceGeometry geometry, AI.Units.Quantity foliageDepth, AI.Units.Quantity temperature, double relativeHumidityPercent) { }
+    }
+    public enum SourceGeometry
+    {
+        Point = 0,
+        Line = 1,
+    }
+}
+namespace AI.Physics.Continuum
+{
+    public enum AxialCondition
+    {
+        OpenEnds = 0,
+        ClosedEnds = 1,
+        PlaneStrain = 2,
+    }
+    public static class Beams
+    {
+        public static AI.Units.Dimension SecondMomentDimension { get; }
+        public static AI.Units.Quantity BendingStress(AI.Units.Quantity bendingMoment, AI.Units.Quantity distanceFromNeutralAxis, AI.Units.Quantity secondMoment) { }
+        public static AI.Units.Quantity CantileverTipDeflection(AI.Units.Quantity force, AI.Units.Quantity length, AI.Physics.Continuum.ElasticMaterial material, AI.Units.Quantity secondMoment) { }
+        public static AI.Units.Quantity CantileverUniformDeflection(AI.Units.Quantity loadPerLength, AI.Units.Quantity length, AI.Physics.Continuum.ElasticMaterial material, AI.Units.Quantity secondMoment) { }
+        public static AI.Units.Quantity CircleSecondMoment(AI.Units.Quantity diameter, AI.Units.Quantity innerDiameter = default) { }
+        public static double EffectiveLengthFactor(AI.Physics.Continuum.ColumnEnds ends) { }
+        public static AI.Units.Quantity EulerBucklingLoad(AI.Physics.Continuum.ElasticMaterial material, AI.Units.Quantity secondMoment, AI.Units.Quantity length, AI.Physics.Continuum.ColumnEnds ends) { }
+        public static AI.Units.Quantity RectangleSecondMoment(AI.Units.Quantity width, AI.Units.Quantity height) { }
+        public static AI.Units.Quantity SimplySupportedCentralDeflection(AI.Units.Quantity force, AI.Units.Quantity length, AI.Physics.Continuum.ElasticMaterial material, AI.Units.Quantity secondMoment) { }
+        public static AI.Units.Quantity SimplySupportedUniformDeflection(AI.Units.Quantity loadPerLength, AI.Units.Quantity length, AI.Physics.Continuum.ElasticMaterial material, AI.Units.Quantity secondMoment) { }
+    }
+    public enum ColumnEnds
+    {
+        PinnedPinned = 0,
+        FixedFree = 1,
+        FixedPinned = 2,
+        FixedFixed = 3,
+    }
+    public readonly struct ComplexModulus : System.IEquatable<AI.Physics.Continuum.ComplexModulus>
+    {
+        public ComplexModulus(AI.Units.Quantity Storage, AI.Units.Quantity Loss, double LossTangent) { }
+        public AI.Units.Quantity Loss { get; init; }
+        public double LossTangent { get; init; }
+        public AI.Units.Quantity Storage { get; init; }
+    }
+    public sealed class CrackAssessment : AI.Insights.IInterpretable
+    {
+        public AI.Units.Quantity CrackLength { get; }
+        public AI.Units.Quantity CriticalCrackLength { get; }
+        public AI.Units.Quantity CriticalStress { get; }
+        public bool Fractures { get; }
+        public bool NetSectionYielding { get; }
+        public AI.Units.Quantity PlasticZoneSize { get; }
+        public double SafetyFactor { get; }
+        public AI.Units.Quantity StressIntensity { get; }
+        public AI.Units.Quantity Toughness { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public readonly struct CylinderStress : System.IEquatable<AI.Physics.Continuum.CylinderStress>
+    {
+        public CylinderStress(AI.Units.Quantity Radial, AI.Units.Quantity Hoop, AI.Units.Quantity Axial) { }
+        public AI.Units.Quantity Axial { get; init; }
+        public AI.Units.Quantity Hoop { get; init; }
+        public AI.Units.Quantity Radial { get; init; }
+    }
+    public sealed class ElasticMaterial
+    {
+        public AI.Units.Quantity BulkModulus { get; }
+        public AI.Units.Quantity LameLambda { get; }
+        public AI.Units.Quantity PWaveModulus { get; }
+        public AI.Units.Quantity PlaneStrainModulus { get; }
+        public double PoissonRatio { get; }
+        public AI.Units.Quantity ShearModulus { get; }
+        public AI.Units.Quantity YoungModulus { get; }
+        public AI.Units.Quantity ConstrainedThermalStress(double expansionCoefficient, AI.Units.Quantity temperatureChange, AI.Physics.Continuum.ThermalConstraint constraint) { }
+        public AI.Units.Quantity StrainEnergyDensity(AI.Physics.Continuum.SymmetricTensor strain) { }
+        public AI.Physics.Continuum.SymmetricTensor StrainFromStress(AI.Physics.Continuum.SymmetricTensor stress) { }
+        public AI.Physics.Continuum.SymmetricTensor StressFromStrain(AI.Physics.Continuum.SymmetricTensor strain) { }
+        public override string ToString() { }
+        public AI.Physics.Continuum.ElasticWaveSpeeds WaveSpeeds(AI.Units.Quantity density) { }
+        public static AI.Physics.Continuum.ElasticMaterial FromBulkAndShear(AI.Units.Quantity bulkModulus, AI.Units.Quantity shearModulus) { }
+        public static AI.Physics.Continuum.ElasticMaterial FromLame(AI.Units.Quantity lambda, AI.Units.Quantity shearModulus) { }
+        public static AI.Physics.Continuum.ElasticMaterial FromWaveSpeeds(AI.Units.Quantity longitudinalSpeed, AI.Units.Quantity shearSpeed, AI.Units.Quantity density) { }
+        public static AI.Physics.Continuum.ElasticMaterial FromYoungAndPoisson(AI.Units.Quantity youngModulus, double poissonRatio) { }
+        public static AI.Physics.Continuum.SymmetricTensor ThermalStrain(double expansionCoefficient, AI.Units.Quantity temperatureChange) { }
+    }
+    public readonly struct ElasticWaveSpeeds : System.IEquatable<AI.Physics.Continuum.ElasticWaveSpeeds>
+    {
+        public ElasticWaveSpeeds(AI.Units.Quantity Longitudinal, AI.Units.Quantity Shear, AI.Units.Quantity Bar, AI.Units.Quantity Rayleigh) { }
+        public AI.Units.Quantity Bar { get; init; }
+        public AI.Units.Quantity Longitudinal { get; init; }
+        public AI.Units.Quantity Rayleigh { get; init; }
+        public AI.Units.Quantity Shear { get; init; }
+    }
+    public static class FractureMechanics
+    {
+        public static AI.Units.Dimension StressIntensityDimension { get; }
+        public static AI.Physics.Continuum.CrackAssessment Assess(AI.Units.Quantity stress, AI.Units.Quantity crackLength, AI.Units.Quantity toughness, AI.Units.Quantity yieldStrength, double geometryFactor = 1) { }
+        public static AI.Units.Quantity CriticalCrackLength(AI.Units.Quantity stress, AI.Units.Quantity toughness, double geometryFactor = 1) { }
+        public static AI.Units.Quantity EnergyReleaseRate(AI.Units.Quantity stressIntensity, AI.Physics.Continuum.ElasticMaterial material, bool planeStrain = true) { }
+        public static AI.Units.Quantity StressIntensity(AI.Units.Quantity stress, AI.Units.Quantity crackLength, double geometryFactor = 1) { }
+    }
+    public static class HertzContact
+    {
+        public static AI.Physics.Continuum.HertzContactResult SphereOnPlane(AI.Units.Quantity force, AI.Units.Quantity radius, AI.Physics.Continuum.ElasticMaterial sphereMaterial, AI.Physics.Continuum.ElasticMaterial planeMaterial) { }
+        public static AI.Physics.Continuum.HertzContactResult Spheres(AI.Units.Quantity force, AI.Units.Quantity firstRadius, AI.Physics.Continuum.ElasticMaterial firstMaterial, AI.Units.Quantity secondRadius, AI.Physics.Continuum.ElasticMaterial secondMaterial) { }
+    }
+    public readonly struct HertzContactResult : System.IEquatable<AI.Physics.Continuum.HertzContactResult>
+    {
+        public HertzContactResult(AI.Units.Quantity ContactRadius, AI.Units.Quantity MaxPressure, AI.Units.Quantity MeanPressure, AI.Units.Quantity Approach, AI.Units.Quantity EffectiveModulus, AI.Units.Quantity EffectiveRadius) { }
+        public AI.Units.Quantity Approach { get; init; }
+        public AI.Units.Quantity ContactRadius { get; init; }
+        public AI.Units.Quantity EffectiveModulus { get; init; }
+        public AI.Units.Quantity EffectiveRadius { get; init; }
+        public AI.Units.Quantity MaxPressure { get; init; }
+        public AI.Units.Quantity MeanPressure { get; init; }
+    }
+    public readonly struct MohrCircle : System.IEquatable<AI.Physics.Continuum.MohrCircle>
+    {
+        public MohrCircle(AI.Units.Quantity Center, AI.Units.Quantity Radius) { }
+        public AI.Units.Quantity Center { get; init; }
+        public AI.Units.Quantity Radius { get; init; }
+    }
+    public readonly struct PlaneTraction : System.IEquatable<AI.Physics.Continuum.PlaneTraction>
+    {
+        public PlaneTraction(AI.Geometry.Primitives.Vector3 Vector, AI.Units.Quantity Normal, AI.Units.Quantity Shear) { }
+        public AI.Units.Quantity Normal { get; init; }
+        public AI.Units.Quantity Shear { get; init; }
+        public AI.Geometry.Primitives.Vector3 Vector { get; init; }
+    }
+    public static class PlateWithHole
+    {
+        public const double StressConcentrationFactor = 3D;
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Radial",
+                "Hoop",
+                "Shear"})]
+        public static System.ValueTuple<AI.Units.Quantity, AI.Units.Quantity, AI.Units.Quantity> Stress(AI.Units.Quantity remoteStress, AI.Units.Quantity holeRadius, AI.Units.Quantity radius, double angleDegrees) { }
+    }
+    public readonly struct PrincipalValues : System.IEquatable<AI.Physics.Continuum.PrincipalValues>
+    {
+        public PrincipalValues(AI.Units.Quantity First, AI.Units.Quantity Second, AI.Units.Quantity Third, AI.Geometry.Primitives.Vector3 FirstDirection, AI.Geometry.Primitives.Vector3 SecondDirection, AI.Geometry.Primitives.Vector3 ThirdDirection) { }
+        public AI.Units.Quantity First { get; init; }
+        public AI.Geometry.Primitives.Vector3 FirstDirection { get; init; }
+        public AI.Units.Quantity Second { get; init; }
+        public AI.Geometry.Primitives.Vector3 SecondDirection { get; init; }
+        public AI.Units.Quantity Third { get; init; }
+        public AI.Geometry.Primitives.Vector3 ThirdDirection { get; init; }
+    }
+    public sealed class StressAssessment : AI.Insights.IInterpretable
+    {
+        public AI.Physics.Continuum.PrincipalValues Principal { get; }
+        public AI.Physics.Continuum.SymmetricTensor Stress { get; }
+        public AI.Units.Quantity Tresca { get; }
+        public double TrescaSafetyFactor { get; }
+        public double Triaxiality { get; }
+        public AI.Units.Quantity VonMises { get; }
+        public double VonMisesSafetyFactor { get; }
+        public AI.Units.Quantity YieldStrength { get; }
+        public bool Yields { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public sealed class SymmetricTensor : System.IEquatable<AI.Physics.Continuum.SymmetricTensor>
+    {
+        public AI.Physics.Continuum.SymmetricTensor Deviator { get; }
+        public AI.Units.Dimension Dimension { get; }
+        public double this[int i, int j] { get; }
+        public AI.Units.Quantity J2 { get; }
+        public AI.Units.Quantity J3 { get; }
+        public double LodeAngleDegrees { get; }
+        public AI.Units.Quantity MaxShear { get; }
+        public AI.Units.Quantity Mean { get; }
+        public AI.Units.Quantity OctahedralShear { get; }
+        public AI.Units.Quantity SecondInvariant { get; }
+        public AI.Units.Quantity ThirdInvariant { get; }
+        public AI.Units.Quantity Trace { get; }
+        public AI.Units.Quantity VonMises { get; }
+        public AI.Units.Quantity Xx { get; }
+        public AI.Units.Quantity Xy { get; }
+        public AI.Units.Quantity Yy { get; }
+        public AI.Units.Quantity Yz { get; }
+        public AI.Units.Quantity Zx { get; }
+        public AI.Units.Quantity Zz { get; }
+        public AI.Units.Quantity DoubleContraction(AI.Physics.Continuum.SymmetricTensor other) { }
+        public bool Equals(AI.Physics.Continuum.SymmetricTensor? other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public AI.Physics.Continuum.SymmetricTensor InBasis(AI.Geometry.Primitives.Vector3 e1, AI.Geometry.Primitives.Vector3 e2, AI.Geometry.Primitives.Vector3 e3) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Physics.Continuum.MohrCircle> MohrCircles() { }
+        public AI.Physics.Continuum.PrincipalValues Principal() { }
+        public AI.Physics.Continuum.SymmetricTensor RotatedAboutZ(double angleDegrees) { }
+        public override string ToString() { }
+        public AI.Physics.Continuum.PlaneTraction Traction(AI.Geometry.Primitives.Vector3 normal) { }
+        public static AI.Physics.Continuum.SymmetricTensor FromMatrix(double[] components, AI.Units.Dimension dimension) { }
+        public static AI.Physics.Continuum.SymmetricTensor Hydrostatic(AI.Units.Quantity pressure) { }
+        public static AI.Physics.Continuum.SymmetricTensor PureShear(AI.Units.Quantity shear) { }
+        public static AI.Physics.Continuum.SymmetricTensor Strain(double xx, double yy = 0, double zz = 0, double xy = 0, double yz = 0, double zx = 0) { }
+        public static AI.Physics.Continuum.SymmetricTensor Stress(AI.Units.Quantity xx, AI.Units.Quantity yy = default, AI.Units.Quantity zz = default, AI.Units.Quantity xy = default, AI.Units.Quantity yz = default, AI.Units.Quantity zx = default) { }
+        public static AI.Physics.Continuum.SymmetricTensor Uniaxial(AI.Units.Quantity stress) { }
+        public static AI.Physics.Continuum.SymmetricTensor operator *(AI.Physics.Continuum.SymmetricTensor a, double k) { }
+        public static AI.Physics.Continuum.SymmetricTensor operator *(double k, AI.Physics.Continuum.SymmetricTensor a) { }
+        public static AI.Physics.Continuum.SymmetricTensor operator +(AI.Physics.Continuum.SymmetricTensor a, AI.Physics.Continuum.SymmetricTensor b) { }
+        public static AI.Physics.Continuum.SymmetricTensor operator -(AI.Physics.Continuum.SymmetricTensor a) { }
+        public static AI.Physics.Continuum.SymmetricTensor operator -(AI.Physics.Continuum.SymmetricTensor a, AI.Physics.Continuum.SymmetricTensor b) { }
+    }
+    public enum ThermalConstraint
+    {
+        Uniaxial = 0,
+        Biaxial = 1,
+        Triaxial = 2,
+    }
+    public static class ThickWalledVessels
+    {
+        public static AI.Physics.Continuum.CylinderStress Cylinder(AI.Units.Quantity innerRadius, AI.Units.Quantity outerRadius, AI.Units.Quantity innerPressure, AI.Units.Quantity outerPressure, AI.Units.Quantity radius, AI.Physics.Continuum.AxialCondition axial = 1, double poissonRatio = 0.3) { }
+        public static AI.Units.Quantity CylinderRadialDisplacement(AI.Units.Quantity innerRadius, AI.Units.Quantity outerRadius, AI.Units.Quantity innerPressure, AI.Units.Quantity outerPressure, AI.Units.Quantity radius, AI.Physics.Continuum.ElasticMaterial material, AI.Physics.Continuum.AxialCondition axial = 1) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Radial",
+                "Hoop"})]
+        public static System.ValueTuple<AI.Units.Quantity, AI.Units.Quantity> Sphere(AI.Units.Quantity innerRadius, AI.Units.Quantity outerRadius, AI.Units.Quantity innerPressure, AI.Units.Quantity outerPressure, AI.Units.Quantity radius) { }
+    }
+    public static class Torsion
+    {
+        public static AI.Units.Quantity PolarMoment(AI.Units.Quantity diameter, AI.Units.Quantity innerDiameter = default) { }
+        public static AI.Units.Quantity ShearStress(AI.Units.Quantity torque, AI.Units.Quantity diameter, AI.Units.Quantity innerDiameter = default) { }
+        public static double TwistAngle(AI.Units.Quantity torque, AI.Units.Quantity length, AI.Physics.Continuum.ElasticMaterial material, AI.Units.Quantity diameter, AI.Units.Quantity innerDiameter = default) { }
+    }
+    public enum ViscoelasticKind
+    {
+        Maxwell = 0,
+        KelvinVoigt = 1,
+        StandardLinearSolid = 2,
+    }
+    public sealed class ViscoelasticModel
+    {
+        public AI.Physics.Continuum.ViscoelasticKind Kind { get; }
+        public AI.Units.Quantity RelaxationTime { get; }
+        public AI.Units.Quantity RetardationTime { get; }
+        public AI.Units.Quantity CreepCompliance(AI.Units.Quantity time) { }
+        public AI.Physics.Continuum.ComplexModulus Dynamic(AI.Units.Quantity angularFrequency) { }
+        public AI.Units.Quantity RelaxationModulus(AI.Units.Quantity time) { }
+        public static AI.Physics.Continuum.ViscoelasticModel KelvinVoigt(AI.Units.Quantity modulus, AI.Units.Quantity viscosity) { }
+        public static AI.Physics.Continuum.ViscoelasticModel Maxwell(AI.Units.Quantity modulus, AI.Units.Quantity viscosity) { }
+        public static AI.Physics.Continuum.ViscoelasticModel StandardLinearSolid(AI.Units.Quantity equilibriumModulus, AI.Units.Quantity armModulus, AI.Units.Quantity armViscosity) { }
+    }
+    public static class YieldCriteria
+    {
+        public static AI.Physics.Continuum.StressAssessment Assess(AI.Physics.Continuum.SymmetricTensor stress, AI.Units.Quantity yieldStrength) { }
+        public static double MohrCoulombSafetyFactor(AI.Physics.Continuum.SymmetricTensor stress, AI.Units.Quantity cohesion, double frictionAngleDegrees) { }
+    }
+}
+namespace AI.Physics.Electromagnetism
+{
+    public enum CircuitRegime
+    {
+        Underdamped = 0,
+        Critical = 1,
+        Overdamped = 2,
+    }
+    public static class Circuits
+    {
+        public static AI.Units.Quantity ChargingVoltage(AI.Units.Quantity supply, AI.Units.Quantity timeConstant, AI.Units.Quantity time) { }
+        public static AI.Units.Quantity Current(AI.Units.Quantity voltage, AI.Units.Quantity resistance) { }
+        public static AI.Units.Quantity Impedance(AI.Units.Quantity resistance, AI.Units.Quantity inductance, AI.Units.Quantity capacitance, AI.Units.Quantity frequency) { }
+        public static AI.Units.Quantity Power(AI.Units.Quantity voltage, AI.Units.Quantity current) { }
+        public static double QualityFactor(AI.Units.Quantity inductance, AI.Units.Quantity capacitance, AI.Units.Quantity resistance) { }
+        public static AI.Physics.Electromagnetism.CircuitRegime Regime(AI.Units.Quantity inductance, AI.Units.Quantity capacitance, AI.Units.Quantity resistance) { }
+        public static AI.Units.Quantity ResonanceFrequency(AI.Units.Quantity inductance, AI.Units.Quantity capacitance) { }
+        public static AI.Units.Quantity TimeConstantRC(AI.Units.Quantity resistance, AI.Units.Quantity capacitance) { }
+        public static AI.Units.Quantity TimeConstantRL(AI.Units.Quantity inductance, AI.Units.Quantity resistance) { }
+    }
+    public static class Electrostatics
+    {
+        public static AI.Units.Dimension FieldDimension { get; }
+        public static AI.Units.Quantity CapacitorEnergy(AI.Units.Quantity capacitance, AI.Units.Quantity voltage) { }
+        public static AI.Units.Quantity CoulombForce(AI.Units.Quantity firstCharge, AI.Units.Quantity secondCharge, AI.Units.Quantity distance, double relativePermittivity = 1) { }
+        public static AI.Units.Quantity FieldOfPointCharge(AI.Units.Quantity charge, AI.Units.Quantity distance, double relativePermittivity = 1) { }
+        public static AI.Units.Quantity ParallelPlateCapacitance(AI.Units.Quantity area, AI.Units.Quantity separation, double relativePermittivity = 1) { }
+        public static AI.Units.Quantity Potential(AI.Units.Quantity charge, AI.Units.Quantity distance, double relativePermittivity = 1) { }
+    }
+}
+namespace AI.Physics.Fluids
+{
+    public readonly struct BoundaryLayer : System.IEquatable<AI.Physics.Fluids.BoundaryLayer>
+    {
+        public BoundaryLayer(double Reynolds, AI.Units.Quantity Thickness, AI.Units.Quantity DisplacementThickness, AI.Units.Quantity MomentumThickness, double LocalSkinFriction, double AverageSkinFriction, AI.Units.Quantity WallShearStress, bool Laminar) { }
+        public double AverageSkinFriction { get; init; }
+        public AI.Units.Quantity DisplacementThickness { get; init; }
+        public bool Laminar { get; init; }
+        public double LocalSkinFriction { get; init; }
+        public AI.Units.Quantity MomentumThickness { get; init; }
+        public double Reynolds { get; init; }
+        public AI.Units.Quantity Thickness { get; init; }
+        public AI.Units.Quantity WallShearStress { get; init; }
+    }
+    public static class DimensionlessNumbers
+    {
+        public static double Froude(AI.Units.Quantity speed, AI.Units.Quantity length, AI.Units.Quantity gravity = default) { }
+        public static double Grashof(double expansionCoefficient, AI.Units.Quantity temperatureDifference, AI.Units.Quantity length, AI.Units.Quantity kinematicViscosity, AI.Units.Quantity gravity = default) { }
+        public static double Knudsen(AI.Units.Quantity meanFreePath, AI.Units.Quantity length) { }
+        public static double Mach(AI.Units.Quantity speed, AI.Units.Quantity soundSpeed) { }
+        public static double Prandtl(AI.Units.Quantity viscosity, AI.Units.Quantity specificHeat, AI.Units.Quantity thermalConductivity) { }
+        public static double Strouhal(AI.Units.Quantity frequency, AI.Units.Quantity length, AI.Units.Quantity speed) { }
+        public static double Weber(AI.Units.Quantity density, AI.Units.Quantity speed, AI.Units.Quantity length, AI.Units.Quantity surfaceTension) { }
+    }
+    public static class FlowDynamics
+    {
+        public static AI.Units.Dimension KinematicViscosityDimension { get; }
+        public static AI.Units.Dimension ViscosityDimension { get; }
+        public static AI.Units.Quantity BernoulliPressure(AI.Units.Quantity firstPressure, AI.Units.Quantity density, AI.Units.Quantity firstSpeed, AI.Units.Quantity secondSpeed, AI.Units.Quantity heightDifference = default, AI.Units.Quantity gravity = default) { }
+        public static double ColebrookFrictionFactor(double reynolds, double relativeRoughness) { }
+        public static AI.Units.Quantity ContinuitySpeed(AI.Units.Quantity firstSpeed, AI.Units.Quantity firstArea, AI.Units.Quantity secondArea) { }
+        public static AI.Units.Quantity DragForce(double dragCoefficient, AI.Units.Quantity density, AI.Units.Quantity speed, AI.Units.Quantity area) { }
+        public static AI.Physics.Fluids.PipeFlowResult PipeFlow(AI.Units.Quantity density, AI.Units.Quantity speed, AI.Units.Quantity diameter, AI.Units.Quantity viscosity, AI.Units.Quantity length, AI.Units.Quantity roughness = default) { }
+        public static double Reynolds(AI.Units.Quantity density, AI.Units.Quantity speed, AI.Units.Quantity diameter, AI.Units.Quantity viscosity) { }
+        public static AI.Units.Quantity TerminalSpeed(AI.Units.Quantity mass, double dragCoefficient, AI.Units.Quantity density, AI.Units.Quantity area, AI.Units.Quantity gravity = default) { }
+        public static AI.Units.Quantity TorricelliSpeed(AI.Units.Quantity head, AI.Units.Quantity gravity = default) { }
+    }
+    public enum FlowRegime
+    {
+        Laminar = 0,
+        Transitional = 1,
+        Turbulent = 2,
+    }
+    public static class GasDynamics
+    {
+        public static AI.Units.Quantity ChokedMassFlow(AI.Units.Quantity throatArea, AI.Units.Quantity stagnationPressure, AI.Units.Quantity stagnationTemperature, AI.Units.Quantity molarMass, double gamma = 1.4) { }
+        public static double CriticalPressureRatio(double gamma = 1.4) { }
+        public static AI.Physics.Fluids.IsentropicRatios Isentropic(double mach, double gamma = 1.4) { }
+        public static double Mach(AI.Units.Quantity speed, AI.Units.Quantity temperature, AI.Units.Quantity molarMass, AI.Physics.Thermodynamics.GasKind kind = 1) { }
+        public static double MachFromAreaRatio(double areaRatio, bool supersonic, double gamma = 1.4) { }
+        public static double MachFromPrandtlMeyer(double angleDegrees, double gamma = 1.4) { }
+        public static double PrandtlMeyerAngle(double mach, double gamma = 1.4) { }
+        public static AI.Physics.Fluids.NormalShock Shock(double upstreamMach, double gamma = 1.4) { }
+    }
+    public static class Hydrostatics
+    {
+        public static AI.Units.Quantity BarometricPressure(AI.Units.Quantity groundPressure, AI.Units.Quantity height, AI.Units.Quantity temperature, AI.Units.Quantity molarMass = default) { }
+        public static AI.Units.Quantity Buoyancy(AI.Units.Quantity fluidDensity, AI.Units.Quantity displacedVolume, AI.Units.Quantity gravity = default) { }
+        public static AI.Units.Quantity Pressure(AI.Units.Quantity density, AI.Units.Quantity depth, AI.Units.Quantity gravity = default) { }
+        public static double SubmergedFraction(AI.Units.Quantity bodyDensity, AI.Units.Quantity fluidDensity) { }
+    }
+    public readonly struct IsentropicRatios : System.IEquatable<AI.Physics.Fluids.IsentropicRatios>
+    {
+        public IsentropicRatios(double Mach, double Temperature, double Pressure, double Density, double Area) { }
+        public double Area { get; init; }
+        public double Density { get; init; }
+        public double Mach { get; init; }
+        public double Pressure { get; init; }
+        public double Temperature { get; init; }
+    }
+    public sealed class NormalShock : AI.Insights.IInterpretable
+    {
+        public double DensityRatio { get; }
+        public double DownstreamMach { get; }
+        public double EntropyRise { get; }
+        public double Gamma { get; }
+        public double PressureRatio { get; }
+        public double StagnationPressureRatio { get; }
+        public double TemperatureRatio { get; }
+        public double UpstreamMach { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public readonly struct PipeFlowResult : AI.Insights.IInterpretable, System.IEquatable<AI.Physics.Fluids.PipeFlowResult>
+    {
+        public PipeFlowResult(double Reynolds, AI.Physics.Fluids.FlowRegime Regime, double FrictionFactor, AI.Units.Quantity PressureLoss) { }
+        public double FrictionFactor { get; init; }
+        public AI.Units.Quantity PressureLoss { get; init; }
+        public AI.Physics.Fluids.FlowRegime Regime { get; init; }
+        public double Reynolds { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class StandardAtmosphere
+    {
+        public static AI.Units.Quantity MaxAltitude { get; }
+        public static AI.Units.Quantity MinAltitude { get; }
+        public static AI.Units.Quantity Density(AI.Units.Quantity altitude) { }
+        public static AI.Units.Quantity DynamicViscosity(AI.Units.Quantity altitude) { }
+        public static AI.Units.Quantity GeometricAltitude(AI.Units.Quantity geopotentialAltitude) { }
+        public static AI.Units.Quantity GeopotentialAltitude(AI.Units.Quantity geometricAltitude) { }
+        public static AI.Units.Quantity KinematicViscosity(AI.Units.Quantity altitude) { }
+        public static AI.Units.Quantity Pressure(AI.Units.Quantity altitude) { }
+        public static AI.Units.Quantity SpeedOfSound(AI.Units.Quantity altitude) { }
+        public static AI.Units.Quantity Temperature(AI.Units.Quantity altitude) { }
+    }
+    public static class ViscousFlow
+    {
+        public static AI.Physics.Fluids.BoundaryLayer Blasius(AI.Units.Quantity freeStreamSpeed, AI.Units.Quantity distance, AI.Units.Quantity kinematicViscosity, AI.Units.Quantity density) { }
+        public static AI.Units.Quantity ChannelFlowRatePerWidth(AI.Units.Quantity pressureDrop, AI.Units.Quantity gap, AI.Units.Quantity length, AI.Units.Quantity viscosity) { }
+        public static AI.Units.Quantity CouetteShearStress(AI.Units.Quantity viscosity, AI.Units.Quantity plateSpeed, AI.Units.Quantity gap) { }
+        public static AI.Units.Quantity PoiseuilleFlowRate(AI.Units.Quantity pressureDrop, AI.Units.Quantity radius, AI.Units.Quantity length, AI.Units.Quantity viscosity) { }
+        public static AI.Units.Quantity PoiseuilleVelocity(AI.Units.Quantity pressureDrop, AI.Units.Quantity radius, AI.Units.Quantity length, AI.Units.Quantity viscosity, AI.Units.Quantity distanceFromAxis) { }
+        public static AI.Units.Quantity PoiseuilleWallShear(AI.Units.Quantity pressureDrop, AI.Units.Quantity radius, AI.Units.Quantity length) { }
+        public static AI.Units.Quantity StokesDrag(AI.Units.Quantity viscosity, AI.Units.Quantity radius, AI.Units.Quantity speed) { }
+        public static AI.Units.Quantity StokesSettlingSpeed(AI.Units.Quantity particleDensity, AI.Units.Quantity fluidDensity, AI.Units.Quantity radius, AI.Units.Quantity viscosity, AI.Units.Quantity gravity = default) { }
+        public static AI.Units.Quantity SuddenlyStartedPlate(AI.Units.Quantity plateSpeed, AI.Units.Quantity kinematicViscosity, AI.Units.Quantity distance, AI.Units.Quantity time) { }
+    }
+}
+namespace AI.Physics.Mechanics
+{
+    public readonly struct CollisionResult : System.IEquatable<AI.Physics.Mechanics.CollisionResult>
+    {
+        public CollisionResult(AI.Units.Quantity FirstSpeed, AI.Units.Quantity SecondSpeed, AI.Units.Quantity EnergyLoss) { }
+        public AI.Units.Quantity EnergyLoss { get; init; }
+        public AI.Units.Quantity FirstSpeed { get; init; }
+        public AI.Units.Quantity SecondSpeed { get; init; }
+    }
+    public static class Collisions
+    {
+        public static AI.Physics.Mechanics.CollisionResult Collide(AI.Units.Quantity firstMass, AI.Units.Quantity firstSpeed, AI.Units.Quantity secondMass, AI.Units.Quantity secondSpeed, double restitution = 1) { }
+        public static AI.Units.Quantity KineticEnergy(AI.Units.Quantity mass, AI.Units.Quantity speed) { }
+        public static AI.Units.Quantity Momentum(AI.Units.Quantity mass, AI.Units.Quantity speed) { }
+    }
+    public enum DampingRegime
+    {
+        Undamped = 0,
+        Underdamped = 1,
+        Critical = 2,
+        Overdamped = 3,
+    }
+    public sealed class HarmonicOscillator : AI.Insights.IInterpretable
+    {
+        public HarmonicOscillator(AI.Units.Quantity mass, AI.Units.Quantity stiffness, AI.Units.Quantity damping = default) { }
+        public double CriticalDamping { get; }
+        public AI.Units.Quantity DampedFrequency { get; }
+        public double Damping { get; }
+        public double DampingRatio { get; }
+        public double Mass { get; }
+        public AI.Units.Quantity NaturalFrequency { get; }
+        public AI.Units.Quantity Period { get; }
+        public double QualityFactor { get; }
+        public AI.Physics.Mechanics.DampingRegime Regime { get; }
+        public double Stiffness { get; }
+        public AI.Units.Quantity Displacement(AI.Units.Quantity initialDisplacement, AI.Units.Quantity time) { }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class Kinematics
+    {
+        public static AI.Units.Quantity Displacement(AI.Units.Quantity initialSpeed, AI.Units.Quantity acceleration, AI.Units.Quantity time) { }
+        public static AI.Units.Quantity FreeFallTime(AI.Units.Quantity height, AI.Units.Quantity gravity = default) { }
+        public static AI.Units.Quantity Speed(AI.Units.Quantity initialSpeed, AI.Units.Quantity acceleration, AI.Units.Quantity time) { }
+        public static AI.Units.Quantity StoppingDistance(AI.Units.Quantity initialSpeed, AI.Units.Quantity deceleration) { }
+    }
+    public static class Orbits
+    {
+        public static AI.Units.Quantity CircularSpeed(AI.Units.Quantity parameter, AI.Units.Quantity radius) { }
+        public static double Eccentricity(AI.Units.Quantity periapsis, AI.Units.Quantity apoapsis) { }
+        public static AI.Units.Quantity EscapeSpeed(AI.Units.Quantity parameter, AI.Units.Quantity radius) { }
+        public static AI.Units.Quantity GravitationalParameter(AI.Units.Quantity mass) { }
+        public static AI.Units.Quantity HohmannDeltaV(AI.Units.Quantity parameter, AI.Units.Quantity fromRadius, AI.Units.Quantity toRadius) { }
+        public static AI.Units.Quantity Period(AI.Units.Quantity parameter, AI.Units.Quantity semiMajorAxis) { }
+        public static AI.Units.Quantity RadiusForPeriod(AI.Units.Quantity parameter, AI.Units.Quantity period) { }
+        public static AI.Units.Quantity VisViva(AI.Units.Quantity parameter, AI.Units.Quantity radius, AI.Units.Quantity semiMajorAxis) { }
+    }
+    public static class Projectile
+    {
+        public static double OptimalAngleDegrees { get; }
+        public static AI.Units.Quantity HeightAt(AI.Units.Quantity speed, double angleDegrees, AI.Units.Quantity distance, AI.Units.Quantity gravity = default) { }
+        public static AI.Physics.Mechanics.TrajectoryResult Launch(AI.Units.Quantity speed, double angleDegrees, AI.Units.Quantity gravity = default) { }
+    }
+    public static class RigidBody
+    {
+        public static AI.Units.Quantity Hoop(AI.Units.Quantity mass, AI.Units.Quantity radius) { }
+        public static AI.Units.Quantity ParallelAxis(AI.Units.Quantity centralInertia, AI.Units.Quantity mass, AI.Units.Quantity distance) { }
+        public static AI.Units.Quantity RodAboutCentre(AI.Units.Quantity mass, AI.Units.Quantity length) { }
+        public static AI.Units.Quantity RodAboutEnd(AI.Units.Quantity mass, AI.Units.Quantity length) { }
+        public static AI.Units.Quantity RotationalEnergy(AI.Units.Quantity inertia, AI.Units.Quantity angularSpeed) { }
+        public static AI.Units.Quantity SolidCylinder(AI.Units.Quantity mass, AI.Units.Quantity radius) { }
+        public static AI.Units.Quantity SolidSphere(AI.Units.Quantity mass, AI.Units.Quantity radius) { }
+        public static AI.Units.Quantity SphericalShell(AI.Units.Quantity mass, AI.Units.Quantity radius) { }
+    }
+    public readonly struct TrajectoryResult : AI.Insights.IInterpretable, System.IEquatable<AI.Physics.Mechanics.TrajectoryResult>
+    {
+        public TrajectoryResult(AI.Units.Quantity Range, AI.Units.Quantity MaxHeight, AI.Units.Quantity FlightTime, AI.Units.Quantity ImpactSpeed) { }
+        public AI.Units.Quantity FlightTime { get; init; }
+        public AI.Units.Quantity ImpactSpeed { get; init; }
+        public AI.Units.Quantity MaxHeight { get; init; }
+        public AI.Units.Quantity Range { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Physics.Nuclear
+{
+    public sealed record ChainMember : System.IEquatable<AI.Physics.Nuclear.ChainMember>
+    {
+        public ChainMember(string name, AI.Units.Quantity? halfLife, double branchingToNext = 1) { }
+        public double BranchingToNext { get; }
+        public AI.Units.Quantity? HalfLife { get; }
+        public bool IsStable { get; }
+        public string Name { get; }
+        public static AI.Physics.Nuclear.ChainMember Stable(string name) { }
+    }
+    public sealed class DecayChain
+    {
+        public const double SecularRatio = 1000D;
+        public DecayChain(params AI.Physics.Nuclear.ChainMember[] members) { }
+        public DecayChain(System.Collections.Generic.IEnumerable<AI.Physics.Nuclear.ChainMember> members) { }
+        public int Count { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Physics.Nuclear.ChainMember> Members { get; }
+        public AI.Units.Quantity[] Activities(AI.Units.Quantity time, System.Collections.Generic.IReadOnlyList<double> initialAtoms) { }
+        public double[] Amounts(AI.Units.Quantity time, System.Collections.Generic.IReadOnlyList<double> initialAtoms) { }
+        public double[] Amounts(AI.Units.Quantity time, double parentAtoms) { }
+        public AI.Units.Quantity DecayConstant(int member) { }
+        public AI.Physics.Nuclear.DecayEquilibrium Equilibrium(int parent) { }
+        public AI.Units.Quantity PeakActivityTime(int member, System.Collections.Generic.IReadOnlyList<double> initialAtoms) { }
+        public AI.Units.Quantity PeakActivityTime(int member, double parentAtoms) { }
+        public AI.Physics.Nuclear.DecayChainState State(AI.Units.Quantity time, System.Collections.Generic.IReadOnlyList<double> initialAtoms) { }
+        public AI.Physics.Nuclear.DecayChainState State(AI.Units.Quantity time, double parentAtoms) { }
+    }
+    public sealed record DecayChainState : AI.Insights.IInterpretable, System.IEquatable<AI.Physics.Nuclear.DecayChainState>
+    {
+        public DecayChainState(AI.Units.Quantity Time, System.Collections.Generic.IReadOnlyList<AI.Physics.Nuclear.ChainMember> Members, System.Collections.Generic.IReadOnlyList<double> Amounts, System.Collections.Generic.IReadOnlyList<AI.Units.Quantity> Activities, System.Collections.Generic.IReadOnlyList<AI.Physics.Nuclear.DecayEquilibrium> Equilibria) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Units.Quantity> Activities { get; init; }
+        public System.Collections.Generic.IReadOnlyList<double> Amounts { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Physics.Nuclear.DecayEquilibrium> Equilibria { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Physics.Nuclear.ChainMember> Members { get; init; }
+        public AI.Units.Quantity Time { get; init; }
+        public AI.Units.Quantity TotalActivity { get; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public enum DecayEquilibrium
+    {
+        None = 0,
+        Transient = 1,
+        Secular = 2,
+    }
+    public readonly struct MassFormulaCoefficients : System.IEquatable<AI.Physics.Nuclear.MassFormulaCoefficients>
+    {
+        public MassFormulaCoefficients(double VolumeMeV, double SurfaceMeV, double CoulombMeV, double AsymmetryMeV, double PairingMeV) { }
+        public double AsymmetryMeV { get; init; }
+        public double CoulombMeV { get; init; }
+        public double PairingMeV { get; init; }
+        public double SurfaceMeV { get; init; }
+        public double VolumeMeV { get; init; }
+        public static AI.Physics.Nuclear.MassFormulaCoefficients Rohlf { get; }
+    }
+    public readonly struct MassFormulaTerms : System.IEquatable<AI.Physics.Nuclear.MassFormulaTerms>
+    {
+        public MassFormulaTerms(AI.Units.Quantity Volume, AI.Units.Quantity Surface, AI.Units.Quantity Coulomb, AI.Units.Quantity Asymmetry, AI.Units.Quantity Pairing) { }
+        public AI.Units.Quantity Asymmetry { get; init; }
+        public AI.Units.Quantity Coulomb { get; init; }
+        public AI.Units.Quantity Pairing { get; init; }
+        public AI.Units.Quantity Surface { get; init; }
+        public AI.Units.Quantity Total { get; }
+        public AI.Units.Quantity Volume { get; init; }
+    }
+    public readonly struct NuclearBinding : AI.Insights.IInterpretable, System.IEquatable<AI.Physics.Nuclear.NuclearBinding>
+    {
+        public NuclearBinding(AI.Physics.Nuclear.Nuclide Nuclide, AI.Units.Quantity Energy, AI.Units.Quantity MassDefect, AI.Units.Quantity? Predicted) { }
+        public AI.Units.Quantity Energy { get; init; }
+        public AI.Units.Quantity MassDefect { get; init; }
+        public AI.Physics.Nuclear.Nuclide Nuclide { get; init; }
+        public AI.Units.Quantity PerNucleon { get; }
+        public AI.Units.Quantity? Predicted { get; init; }
+        public double? PredictionError { get; }
+        public static AI.Units.Quantity HydrogenAtomMass { get; }
+        public AI.Insights.Interpretation Interpret() { }
+        public static AI.Physics.Nuclear.NuclearBinding FromAtomicMass(AI.Physics.Nuclear.Nuclide nuclide, AI.Units.Quantity atomicMass, AI.Physics.Nuclear.SemiEmpiricalMassFormula? model = null) { }
+    }
+    public static class NuclearReactions
+    {
+        public static AI.Units.Quantity BetaMinusQ(AI.Units.Quantity parentAtomicMass, AI.Units.Quantity daughterAtomicMass) { }
+        public static AI.Units.Quantity ElectronCaptureQ(AI.Units.Quantity parentAtomicMass, AI.Units.Quantity daughterAtomicMass) { }
+        public static AI.Units.Quantity PositronEmissionQ(AI.Units.Quantity parentAtomicMass, AI.Units.Quantity daughterAtomicMass) { }
+        public static AI.Units.Quantity QValue(System.Collections.Generic.IEnumerable<AI.Units.Quantity> initial, System.Collections.Generic.IEnumerable<AI.Units.Quantity> final) { }
+        public static AI.Units.Quantity SpecificEnergy(AI.Units.Quantity qValue, System.Collections.Generic.IEnumerable<AI.Units.Quantity> reactantMasses) { }
+    }
+    public readonly struct Nuclide : System.IEquatable<AI.Physics.Nuclear.Nuclide>
+    {
+        public Nuclide(int protonNumber, int massNumber, string? name = null) { }
+        public bool IsEvenEven { get; }
+        public bool IsMagic { get; }
+        public bool IsOddOdd { get; }
+        public int MassNumber { get; }
+        public string? Name { get; }
+        public int NeutronNumber { get; }
+        public int ProtonNumber { get; }
+        public override string ToString() { }
+    }
+    public static class RadioactiveDecay
+    {
+        public static AI.Units.Quantity Activity(AI.Units.Quantity halfLife, double atoms) { }
+        public static double AtomsForActivity(AI.Units.Quantity activity, AI.Units.Quantity halfLife) { }
+        public static AI.Units.Quantity DecayConstant(AI.Units.Quantity halfLife) { }
+        public static AI.Units.Quantity ElapsedTime(AI.Units.Quantity halfLife, double remainingFraction) { }
+        public static AI.Units.Quantity MeanLife(AI.Units.Quantity halfLife) { }
+        public static double RemainingFraction(AI.Units.Quantity halfLife, AI.Units.Quantity elapsed) { }
+        public static AI.Units.Quantity SpecificActivity(AI.Units.Quantity halfLife, AI.Units.Quantity molarMass) { }
+    }
+    public sealed class SemiEmpiricalMassFormula
+    {
+        public SemiEmpiricalMassFormula() { }
+        public SemiEmpiricalMassFormula(AI.Physics.Nuclear.MassFormulaCoefficients coefficients) { }
+        public AI.Physics.Nuclear.MassFormulaCoefficients Coefficients { get; }
+        public AI.Units.Quantity AtomicMass(AI.Physics.Nuclear.Nuclide nuclide) { }
+        public AI.Units.Quantity BindingEnergy(AI.Physics.Nuclear.Nuclide nuclide) { }
+        public int MostStableProtonNumber(int massNumber) { }
+        public AI.Physics.Nuclear.MassFormulaTerms Terms(AI.Physics.Nuclear.Nuclide nuclide) { }
+    }
+}
+namespace AI.Physics.Optics
+{
+    public static class GeometricOptics
+    {
+        public static double BrewsterAngleDegrees(double firstIndex, double secondIndex) { }
+        public static double CriticalAngleDegrees(double denseIndex, double rareIndex) { }
+        public static AI.Units.Quantity ImageDistance(AI.Units.Quantity focalLength, AI.Units.Quantity objectDistance) { }
+        public static AI.Units.Quantity LensMakerFocalLength(double refractiveIndex, AI.Units.Quantity firstRadius, AI.Units.Quantity secondRadius) { }
+        public static double Magnification(AI.Units.Quantity objectDistance, AI.Units.Quantity imageDistance) { }
+        public static double OpticalPower(AI.Units.Quantity focalLength) { }
+        public static double RefractionAngleDegrees(double incidenceDegrees, double firstIndex, double secondIndex) { }
+        public static AI.Units.Quantity SpeedInMedium(double refractiveIndex) { }
+    }
+    public static class WaveOptics
+    {
+        public static AI.Units.Quantity ConstructiveFilmThickness(AI.Units.Quantity wavelength, double refractiveIndex, int order = 0) { }
+        public static AI.Units.Quantity FringeSpacing(AI.Units.Quantity wavelength, AI.Units.Quantity slitSeparation, AI.Units.Quantity screenDistance) { }
+        public static double GratingMaximumDegrees(AI.Units.Quantity wavelength, AI.Units.Quantity gratingPeriod, int order = 1) { }
+        public static AI.Units.Quantity PhotonEnergy(AI.Units.Quantity wavelength) { }
+        public static double RayleighResolution(AI.Units.Quantity wavelength, AI.Units.Quantity apertureDiameter) { }
+        public static double SingleSlitMinimumDegrees(AI.Units.Quantity wavelength, AI.Units.Quantity slitWidth, int order = 1) { }
+    }
+}
+namespace AI.Physics.Relativity
+{
+    public readonly struct FourVector : System.IEquatable<AI.Physics.Relativity.FourVector>
+    {
+        public FourVector(double T, AI.Geometry.Primitives.Vector3 Space) { }
+        public AI.Geometry.Primitives.Vector3 Space { get; init; }
+        public double Square { get; }
+        public double T { get; init; }
+        public AI.Geometry.Primitives.Vector3 Velocity { get; }
+        public static AI.Physics.Relativity.FourVector Zero { get; }
+        public AI.Physics.Relativity.FourVector Boost(AI.Geometry.Primitives.Vector3 beta) { }
+        public double Dot(AI.Physics.Relativity.FourVector other) { }
+        public static AI.Physics.Relativity.FourVector operator *(AI.Physics.Relativity.FourVector a, double k) { }
+        public static AI.Physics.Relativity.FourVector operator +(AI.Physics.Relativity.FourVector a, AI.Physics.Relativity.FourVector b) { }
+        public static AI.Physics.Relativity.FourVector operator -(AI.Physics.Relativity.FourVector a, AI.Physics.Relativity.FourVector b) { }
+    }
+    public static class MassEnergy
+    {
+        public static AI.Units.Dimension Momentum { get; }
+        public static AI.Units.Quantity Mass(AI.Units.Quantity restEnergy) { }
+        public static AI.Units.Quantity RestEnergy(AI.Units.Quantity mass) { }
+    }
+    public readonly struct ReactionThreshold : AI.Insights.IInterpretable, System.IEquatable<AI.Physics.Relativity.ReactionThreshold>
+    {
+        public ReactionThreshold(AI.Units.Quantity InitialRestEnergy, AI.Units.Quantity FinalRestEnergy, AI.Units.Quantity ProjectileRestEnergy, AI.Units.Quantity TargetRestEnergy, AI.Units.Quantity KineticEnergy) { }
+        public AI.Units.Quantity ClassicalEstimate { get; }
+        public AI.Units.Quantity FinalRestEnergy { get; init; }
+        public AI.Units.Quantity InitialRestEnergy { get; init; }
+        public bool IsEndothermic { get; }
+        public AI.Units.Quantity KineticEnergy { get; init; }
+        public double MassCreationShare { get; }
+        public AI.Units.Quantity ProjectileRestEnergy { get; init; }
+        public AI.Units.Quantity QValue { get; }
+        public AI.Units.Quantity TargetRestEnergy { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class RelativisticKinematics
+    {
+        public static AI.Physics.Relativity.FourVector AtRest(AI.Units.Quantity mass) { }
+        public static AI.Units.Quantity CentreOfMassEnergy(params AI.Physics.Relativity.FourVector[] particles) { }
+        public static AI.Physics.Relativity.TwoBodyDecay Decay(AI.Units.Quantity parent, AI.Units.Quantity first, AI.Units.Quantity second) { }
+        public static AI.Physics.Relativity.FourVector FromKineticEnergy(AI.Units.Quantity mass, AI.Units.Quantity kineticEnergy, AI.Geometry.Primitives.Vector3 direction) { }
+        public static AI.Physics.Relativity.FourVector FromMomentum(AI.Units.Quantity mass, AI.Units.Quantity momentum, AI.Geometry.Primitives.Vector3 direction) { }
+        public static AI.Units.Quantity KineticEnergy(AI.Physics.Relativity.FourVector momentum) { }
+        public static AI.Physics.Relativity.FourVector Photon(AI.Units.Quantity energy, AI.Geometry.Primitives.Vector3 direction) { }
+        public static AI.Physics.Relativity.ReactionThreshold Threshold(AI.Units.Quantity projectile, AI.Units.Quantity target, params AI.Units.Quantity[] products) { }
+    }
+    public static class SpecialRelativity
+    {
+        public static AI.Units.Quantity AddVelocities(AI.Units.Quantity first, AI.Units.Quantity second) { }
+        public static double Beta(AI.Units.Quantity speed) { }
+        public static AI.Units.Quantity ContractedLength(AI.Units.Quantity properLength, AI.Units.Quantity speed) { }
+        public static AI.Units.Quantity DilatedTime(AI.Units.Quantity properTime, AI.Units.Quantity speed) { }
+        public static double DopplerFactor(double beta) { }
+        public static double LorentzFactor(AI.Units.Quantity speed) { }
+        public static double LorentzFactor(double beta) { }
+        public static double Rapidity(double beta) { }
+    }
+    public readonly struct TwoBodyDecay : AI.Insights.IInterpretable, System.IEquatable<AI.Physics.Relativity.TwoBodyDecay>
+    {
+        public TwoBodyDecay(AI.Units.Quantity ParentRestEnergy, AI.Units.Quantity FirstRestEnergy, AI.Units.Quantity SecondRestEnergy, AI.Units.Quantity Momentum, AI.Units.Quantity FirstEnergy, AI.Units.Quantity SecondEnergy) { }
+        public double FirstBeta { get; }
+        public AI.Units.Quantity FirstEnergy { get; init; }
+        public AI.Units.Quantity FirstKineticEnergy { get; }
+        public AI.Units.Quantity FirstRestEnergy { get; init; }
+        public AI.Units.Quantity Momentum { get; init; }
+        public AI.Units.Quantity ParentRestEnergy { get; init; }
+        public AI.Units.Quantity ReleasedEnergy { get; }
+        public double SecondBeta { get; }
+        public AI.Units.Quantity SecondEnergy { get; init; }
+        public AI.Units.Quantity SecondKineticEnergy { get; }
+        public AI.Units.Quantity SecondRestEnergy { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+}
+namespace AI.Physics.Thermodynamics
+{
+    public readonly struct CycleResult : AI.Insights.IInterpretable, System.IEquatable<AI.Physics.Thermodynamics.CycleResult>
+    {
+        public CycleResult(double Efficiency, string Name) { }
+        public double Efficiency { get; init; }
+        public string Name { get; init; }
+        public AI.Insights.Interpretation Interpret() { }
+    }
+    public static class Cycles
+    {
+        public static AI.Physics.Thermodynamics.CycleResult Carnot(AI.Units.Quantity hotTemperature, AI.Units.Quantity coldTemperature) { }
+        public static AI.Physics.Thermodynamics.CycleResult Diesel(double compressionRatio, double cutoffRatio, AI.Physics.Thermodynamics.GasKind kind = 1) { }
+        public static double HeatPumpCoefficient(AI.Units.Quantity hotTemperature, AI.Units.Quantity coldTemperature) { }
+        public static AI.Physics.Thermodynamics.CycleResult Otto(double compressionRatio, AI.Physics.Thermodynamics.GasKind kind = 1) { }
+        public static double RefrigeratorCoefficient(AI.Units.Quantity hotTemperature, AI.Units.Quantity coldTemperature) { }
+    }
+    public enum GasKind
+    {
+        Monatomic = 0,
+        Diatomic = 1,
+        Polyatomic = 2,
+    }
+    public static class HeatTransfer
+    {
+        public static AI.Units.Dimension ConductivityDimension { get; }
+        public static AI.Units.Dimension FilmDimension { get; }
+        public static AI.Units.Dimension FluxDimension { get; }
+        public static AI.Units.Quantity Conduction(AI.Units.Quantity conductivity, AI.Units.Quantity temperatureDifference, AI.Units.Quantity thickness) { }
+        public static AI.Units.Quantity Convection(AI.Units.Quantity coefficient, AI.Units.Quantity temperatureDifference) { }
+        public static AI.Units.Quantity CoolingTime(AI.Units.Quantity initialExcess, AI.Units.Quantity finalExcess, AI.Units.Quantity timeConstant) { }
+        public static AI.Units.Quantity NetRadiation(AI.Units.Quantity bodyTemperature, AI.Units.Quantity ambientTemperature, double emissivity = 1) { }
+        public static AI.Units.Quantity Radiation(AI.Units.Quantity temperature, double emissivity = 1) { }
+        public static AI.Units.Quantity WallResistance(System.Collections.Generic.IReadOnlyList<AI.Units.Quantity> thicknesses, System.Collections.Generic.IReadOnlyList<AI.Units.Quantity> conductivities) { }
+    }
+    public static class IdealGas
+    {
+        public static AI.Units.Quantity AdiabaticPressure(AI.Units.Quantity pressure, AI.Units.Quantity initialVolume, AI.Units.Quantity finalVolume, AI.Physics.Thermodynamics.GasKind kind = 1) { }
+        public static AI.Units.Quantity AdiabaticTemperature(AI.Units.Quantity temperature, AI.Units.Quantity initialVolume, AI.Units.Quantity finalVolume, AI.Physics.Thermodynamics.GasKind kind = 1) { }
+        public static AI.Units.Quantity EntropyChange(AI.Units.Quantity amount, AI.Units.Quantity initialTemperature, AI.Units.Quantity finalTemperature, AI.Units.Quantity initialVolume, AI.Units.Quantity finalVolume, AI.Physics.Thermodynamics.GasKind kind = 1) { }
+        public static double HeatCapacityRatio(AI.Physics.Thermodynamics.GasKind kind) { }
+        public static AI.Units.Quantity InternalEnergy(AI.Units.Quantity amount, AI.Units.Quantity temperature, AI.Physics.Thermodynamics.GasKind kind = 1) { }
+        public static AI.Units.Quantity IsobaricWork(AI.Units.Quantity pressure, AI.Units.Quantity initialVolume, AI.Units.Quantity finalVolume) { }
+        public static AI.Units.Quantity IsothermalWork(AI.Units.Quantity amount, AI.Units.Quantity temperature, AI.Units.Quantity initialVolume, AI.Units.Quantity finalVolume) { }
+        public static AI.Units.Quantity MolarHeatCapacityAtConstantPressure(AI.Physics.Thermodynamics.GasKind kind) { }
+        public static AI.Units.Quantity MolarHeatCapacityAtConstantVolume(AI.Physics.Thermodynamics.GasKind kind) { }
+        public static AI.Units.Quantity Pressure(AI.Units.Quantity amount, AI.Units.Quantity temperature, AI.Units.Quantity volume) { }
+        public static AI.Units.Quantity SpeedOfSound(AI.Units.Quantity temperature, AI.Units.Quantity molarMass, AI.Physics.Thermodynamics.GasKind kind = 1) { }
+        public static AI.Units.Quantity Temperature(AI.Units.Quantity pressure, AI.Units.Quantity volume, AI.Units.Quantity amount) { }
+        public static AI.Units.Quantity Volume(AI.Units.Quantity amount, AI.Units.Quantity temperature, AI.Units.Quantity pressure) { }
+    }
+}
