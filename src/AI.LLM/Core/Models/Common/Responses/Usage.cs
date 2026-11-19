@@ -69,11 +69,24 @@ public static class CostExtractor
             }
         }
 
-        // 3. Пытаемся преобразовать в decimal из любого другого типа.
-        // Этот метод безопасен и не выбрасывает исключений.
-        // Он справится с int, long, double, string и самим decimal.
-        // Используем CultureInfo.InvariantCulture, чтобы избежать проблем с разделителями (точка вместо запятой).
-        if (decimal.TryParse(cost.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+        // 2. Число CLR берем как есть: клиенты кладут в Cost готовую сумму.
+        switch (cost)
+        {
+            case decimal value: return value;
+            case double value: return double.IsFinite(value) ? (decimal)value : null;
+            case float value: return float.IsFinite(value) ? (decimal)value : null;
+            case int value: return value;
+            case long value: return value;
+        }
+
+        // 3. Остальное разбираем строкой. Строку делаем и читаем в одной, инвариантной культуре:
+        // ToString() текущей культуры под ru-RU пишет «0,5», а инвариантный разбор принимает
+        // запятую за разделитель тысяч, и сумма вырастает в 10 раз и больше.
+        var text = cost is IFormattable formattable
+            ? formattable.ToString(null, CultureInfo.InvariantCulture)
+            : cost.ToString();
+
+        if (decimal.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
         {
             return result;
         }

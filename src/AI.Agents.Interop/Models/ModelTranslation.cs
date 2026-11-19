@@ -715,16 +715,10 @@ public static class ModelTranslation
     }
 
     /// <summary>
-    /// Стоимость: число CLR — как есть, остальное — <c>CostExtractor</c>. Число в обход нужно потому, что
-    /// <c>CostExtractor</c> разбирает его через <c>ToString()</c> в текущей культуре: при запятой в дроби 0,5
-    /// читается как 5. JSON провайдера (<see cref="JsonElement"/>) этой ошибки не знает.
+    /// Стоимость: и число CLR, и JSON провайдера (<see cref="JsonElement"/>) разбирает <c>CostExtractor</c>
+    /// без оглядки на культуру процесса.
     /// </summary>
-    private static decimal? Cost(object? cost) => cost switch
-    {
-        decimal value => value,
-        double or float or int or long => Convert.ToDecimal(cost, System.Globalization.CultureInfo.InvariantCulture),
-        _ => CostExtractor.TryExtract(cost),
-    };
+    private static decimal? Cost(object? cost) => cost is null ? null : CostExtractor.TryExtract(cost);
 
     private static LlmRequestException Refused(HttpStatusCode code, string reason) =>
         LlmRequestException.FromResponse(

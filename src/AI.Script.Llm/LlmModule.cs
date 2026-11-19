@@ -384,25 +384,13 @@ public sealed partial class LlmModule
     /// Стоимость вызова из ответа провайдера.
     /// </summary>
     /// <remarks>
-    /// Числовые значения читаются напрямую, и лишь остальное отдаётся <c>CostExtractor</c>.
-    /// Тот приводит значение к строке текущей культурой, а разбирает инвариантной: под русской
-    /// локалью <c>0,25</c> превращается в <c>25</c>, потому что запятая читается как разделитель
-    /// тысяч. Ошибка в сто раз в учёте расходов — не то, с чем стоит мириться ради одной строки.
+    /// Число CLR и JSON провайдера разбирает <c>CostExtractor</c>, не завися от культуры процесса.
     /// </remarks>
     private static decimal CostOf(ChatCompletionsResponse response)
     {
         object? cost = response.Usage?.Cost;
 
-        return cost switch
-        {
-            null => 0,
-            decimal value => value,
-            double value => (decimal)value,
-            float value => (decimal)value,
-            int value => value,
-            long value => value,
-            _ => CostExtractor.TryExtract(cost) ?? 0,
-        };
+        return cost is null ? 0 : CostExtractor.TryExtract(cost) ?? 0;
     }
 
     private static string? TextOf(ChatCompletionsResponse response)

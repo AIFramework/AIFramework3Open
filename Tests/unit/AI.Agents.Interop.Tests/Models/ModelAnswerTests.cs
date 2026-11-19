@@ -60,8 +60,8 @@ public sealed class ModelAnswerTests
     }
 
     /// <summary>
-    /// Число CLR в Cost не идет через CostExtractor: тот разбирает его строкой текущей культуры, и при запятой в
-    /// дроби 0,5 становится 5.
+    /// Число CLR в Cost не зависит от культуры: под ru-RU дробь пишется через запятую, и прежний разбор строкой
+    /// превращал 0,5 в 5.
     /// </summary>
     [Fact]
     public void NumericCost_IsCultureIndependent()
