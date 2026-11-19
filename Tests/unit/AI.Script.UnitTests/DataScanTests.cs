@@ -117,6 +117,71 @@ public sealed class DataScanTests
         return result;
     }
 
+    /// <summary>
+    /// Хранилище с одним файлом <c>bad.db</c>, которое запоминает, в какой файл на диске копируют его поток.
+    /// </summary>
+    private sealed class CopyWatchingSandbox(string content) : IScriptSandbox
+    {
+        private readonly MemorySandbox _inner = new MemorySandbox().Put("bad.db", content);
+        private readonly List<string> _copies = [];
+
+        /// <summary>Файлы, в которые скопировали поток.</summary>
+        public IReadOnlyList<string> Copies
+        {
+            get
+            {
+                lock (_copies) return [.. _copies];
+            }
+        }
+
+        public bool Enabled => true;
+
+        public string Root => _inner.Root;
+
+        public bool IsReadOnly => true;
+
+        public Task<IReadOnlyList<ScriptFileInfo>> ListAsync(string directory, string mask, CancellationToken cancellationToken = default) =>
+            _inner.ListAsync(directory, mask, cancellationToken);
+
+        public Task<ScriptFileInfo?> InfoAsync(string path, CancellationToken cancellationToken = default) =>
+            _inner.InfoAsync(path, cancellationToken);
+
+        public Task<byte[]> ReadAsync(string path, CancellationToken cancellationToken = default) =>
+            _inner.ReadAsync(path, cancellationToken);
+
+        public async Task<Stream> OpenReadAsync(string path, CancellationToken cancellationToken = default) =>
+            new WatchedStream(await _inner.ReadAsync(path, cancellationToken), this);
+
+        public Task WriteAsync(string path, byte[] data, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException("хранилище только для чтения");
+
+        private void Saw(Stream destination)
+        {
+            if (destination is FileStream file)
+            {
+                lock (_copies) _copies.Add(file.Name);
+            }
+        }
+
+        /// <summary>Поток файла, сообщающий, куда его копируют.</summary>
+        private sealed class WatchedStream(byte[] data, CopyWatchingSandbox owner) : MemoryStream(data, writable: false)
+        {
+            public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+            {
+                owner.Saw(destination);
+
+                return base.CopyToAsync(destination, bufferSize, cancellationToken);
+            }
+
+            public override void CopyTo(Stream destination, int bufferSize)
+            {
+                owner.Saw(destination);
+
+                base.CopyTo(destination, bufferSize);
+            }
+        }
+    }
+
     private static RunOptions Options(MemorySandbox store, long allocations = 0)
     {
         var options = new RunOptions { Sandbox = store };
@@ -221,19 +286,23 @@ public sealed class DataScanTests
     }
 
     /// <summary>Не база: внятный отказ, а временная копия не остается на диске.</summary>
+    /// <remarks>
+    /// Проверяется своя копия по имени, а не число файлов <c>ais-*.db*</c> во временной папке: папка общая,
+    /// и копии соседних тестов и других процессов появлялись и исчезали между двумя подсчетами.
+    /// </remarks>
     [Fact]
     public void Sqlite_NotADatabase_FailsClearlyWithoutLeak()
     {
-        var store = new MemorySandbox();
+        var store = new CopyWatchingSandbox(new string('x', 4096));
 
-        store.Put("bad.db", Encoding.UTF8.GetBytes(new string('x', 4096)));
-
-        int before = Directory.GetFiles(Path.GetTempPath(), "ais-*.db*").Length;
-        RunResult result = Script.RunWith(Script.FullHost(), "emit t = data.tables(\"bad.db\")", Options(store));
+        RunResult result = Script.RunWith(Script.FullHost(), "emit t = data.tables(\"bad.db\")", new RunOptions { Sandbox = store });
 
         Assert.False(result.Success);
         Assert.Equal(DiagnosticCodes.BadFileFormat, result.Error!.Code);
-        Assert.Equal(before, Directory.GetFiles(Path.GetTempPath(), "ais-*.db*").Length);
+
+        // Иначе проверка ниже смотрела бы на пустоту.
+        string copy = Assert.Single(store.Copies);
+        Assert.All([copy, copy + "-wal", copy + "-shm", copy + "-journal"], part => Assert.False(File.Exists(part), part));
     }
 
     /// <summary>Таблица с именем на «sqlite» пользовательская, а не служебная.</summary>

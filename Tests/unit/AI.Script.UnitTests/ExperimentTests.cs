@@ -461,10 +461,16 @@ public sealed class ExperimentTests
     /// Лямбда численного метода не должна уходить в сеть: метод зовёт её тысячи раз, и каждое
     /// ожидание занимало бы поток. Отказ внятный, а не тихая блокировка.
     /// </summary>
+    /// <remarks>
+    /// Хранилище не отвечает вовсе (<see cref="SlowSandbox"/>), поэтому мост синхронного вызова видит
+    /// незавершенную задачу при любой скорости машины. Потолок времени прогона — страховка от зависания,
+    /// если мост начнет ждать: тогда код Timeout, и тест падает с понятной причиной.
+    /// </remarks>
     [Fact]
     public void NumericCallback_GoingToNetwork_IsRefused()
     {
         var options = new RunOptions { Sandbox = new SlowSandbox() };
+        options.Limits.Timeout = TimeSpan.FromMinutes(1);
 
         Diagnostic error = Script.FailsWith(
             "emit r = solve.root(x => x - len(io.files()), from: 0, to: 10)",
@@ -475,15 +481,19 @@ public sealed class ExperimentTests
     }
 
     /// <summary>
-    /// Хранилище, которое и правда ждёт.
+    /// Хранилище, которое и правда ждёт: его ответ не приходит никогда.
     /// </summary>
     /// <remarks>
     /// Хранилище в памяти отвечает мгновенно, и лямбда с чтением файла завершается синхронно —
-    /// на нём разницу между «ждём» и «не ждём» не увидеть. Здесь чтение отдаёт управление, как
-    /// это делает сеть либо настоящий диск.
+    /// на нём разницу между «ждём» и «не ждём» не увидеть. Раньше здесь стоял <c>Task.Yield</c>:
+    /// продолжение уходило в пул потоков, на занятой машине успевало завершить задачу до проверки
+    /// <c>IsCompleted</c> в мосте, и мост получал готовое значение — «скрипт отработал». Ответ,
+    /// которого нет, от планировщика не зависит: в момент проверки задача не завершена всегда.
     /// </remarks>
     private sealed class SlowSandbox : IScriptSandbox
     {
+        private readonly TaskCompletionSource _never = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
         public bool Enabled => true;
 
         public string Root => "медленное хранилище";
@@ -493,21 +503,21 @@ public sealed class ExperimentTests
         public async Task<IReadOnlyList<ScriptFileInfo>> ListAsync(
             string directory, string mask, CancellationToken cancellationToken = default)
         {
-            await Task.Yield();
+            await _never.Task.WaitAsync(cancellationToken);
 
             return [];
         }
 
         public async Task<ScriptFileInfo?> InfoAsync(string path, CancellationToken cancellationToken = default)
         {
-            await Task.Yield();
+            await _never.Task.WaitAsync(cancellationToken);
 
             return null;
         }
 
         public async Task<byte[]> ReadAsync(string path, CancellationToken cancellationToken = default)
         {
-            await Task.Yield();
+            await _never.Task.WaitAsync(cancellationToken);
 
             return [];
         }

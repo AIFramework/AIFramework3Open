@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using AI.Agents.Contracts.Tools;
 using AI.LLM.Agents.ReAct;
+using AI.LLM.Agents.ReAct.Policies;
 using AI.LLM.Agents.ReAct.Tools;
 using Serilog;
 
@@ -33,7 +34,7 @@ internal sealed class ReActToolAsTool : ITool
         _log = log;
 
         string schema = string.IsNullOrWhiteSpace(tool.ParametersJsonSchema)
-            ? NativePolicyBridge.BuildPlainSchema(tool.Description)
+            ? NativeToolCallPolicy.BuildPlainSchema(tool.Description)
             : tool.ParametersJsonSchema;
 
         using JsonDocument document = JsonDocument.Parse(schema);
@@ -81,7 +82,7 @@ internal sealed class ReActToolAsTool : ITool
 
         // У инструмента без схемы модель видит {"input": "…"}, а сам он ждет строку — разворачиваем так же,
         // как NativeToolCallPolicy, иначе один инструмент получал бы разный аргумент в двух движках.
-        string arguments = NativePolicyBridge.Unwrap(_tool, raw);
+        string arguments = NativeToolCallPolicy.Unwrap(_tool.Name, raw, [_tool]);
 
         var invocation = new ReActToolInvocation(
             new ReActAction(_tool.Name, arguments, call.Id),

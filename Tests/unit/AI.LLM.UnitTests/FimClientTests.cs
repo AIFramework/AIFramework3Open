@@ -100,10 +100,12 @@ public class FimClientTests
         Assert.Contains("not found", error.Message);
     }
 
+    // Сервер в двух тестах ниже не отвечает вовсе: ответ через фиксированное время соревновался бы
+    // с таймером клиента, и на занятой машине таймер мог опоздать.
     [Fact]
     public async Task CompleteAsync_SlowServer_ThrowsNoResponseAfterTimeout()
     {
-        var handler = new Handler(async token => { await Task.Delay(5000, token); return Json("{}"); });
+        var handler = new Handler(async token => { await Task.Delay(Timeout.Infinite, token); return Json("{}"); });
         var client = new FimClient(FimClient.OllamaEndpoint, "m", httpClient: new HttpClient(handler)) { Timeout = TimeSpan.FromMilliseconds(100) };
 
         var error = await Assert.ThrowsAsync<LlmRequestException>(() => client.CompleteAsync("a", "b"));
@@ -114,7 +116,7 @@ public class FimClientTests
     [Fact]
     public async Task CompleteAsync_CancelledByCaller_ThrowsCancellation()
     {
-        var handler = new Handler(async token => { await Task.Delay(5000, token); return Json("{}"); });
+        var handler = new Handler(async token => { await Task.Delay(Timeout.Infinite, token); return Json("{}"); });
         var client = new FimClient(FimClient.OllamaEndpoint, "m", httpClient: new HttpClient(handler));
         using var cancel = new CancellationTokenSource(50);
 

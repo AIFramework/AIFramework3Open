@@ -354,10 +354,25 @@ public sealed class StageTests
 
     // --- таймаут стадии ---
 
+    /// <summary>
+    /// Стадию без конца останавливает только ее собственный таймаут.
+    /// </summary>
+    /// <remarks>
+    /// Потолок шагов снят, а цикл сам не кончается: иначе исход решала бы гонка таймера с потолком.
+    /// Таймер срабатывает в пуле потоков; когда пул занят соседними тестами, он опаздывал на секунды,
+    /// и потолок в 5 млн шагов наступал раньше (AIS3201 вместо AIS3202). Теперь от скорости машины
+    /// зависит только длительность теста. Отмена извне — страховка от зависания при поломке таймаута:
+    /// она дает код Cancelled, и тест падает с понятной причиной.
+    /// </remarks>
     [Fact]
     public void Stage_Timeout_StopsLongStage()
     {
-        RunResult result = Script.Run("""
+        var options = new RunOptions();
+        options.Limits.Steps = 0;
+
+        using var hang = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+
+        RunResult result = Script.RunWith(Script.Host(), """
             @timeout(0.05s)
             stage slow(n: num) -> num {
                 let total = 0
@@ -367,8 +382,8 @@ public sealed class StageTests
                 total
             }
 
-            emit r = slow(50000000)
-            """);
+            emit r = slow(1e15)
+            """, options, hang.Token);
 
         Assert.False(result.Success);
         Assert.Equal(DiagnosticCodes.Timeout, result.Error!.Code);

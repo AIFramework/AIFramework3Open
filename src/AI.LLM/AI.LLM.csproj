@@ -34,6 +34,9 @@
     <!-- Состояние прогона ReAct (ReActTrace) намеренно закрыто от потребителей: им владеет
          движок. Тестам нужно собирать след вручную, поэтому открываем его только им. -->
     <InternalsVisibleTo Include="AI.LLM.UnitTests" />
+    <!-- Адаптеры контрактов агентов переиспользуют закрытую логику NativeToolCallPolicy
+         (простая схема и разворачивание аргумента), а не копируют ее. -->
+    <InternalsVisibleTo Include="AI.Agents.Interop" />
   </ItemGroup>
 
   <ItemGroup>

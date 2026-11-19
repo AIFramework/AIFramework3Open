@@ -293,7 +293,8 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     }
 
     /// <summary>Схема для инструмента с одним свободным строковым аргументом.</summary>
-    private static string BuildPlainSchema(string description)
+    /// <remarks>Открыт сборке AI.Agents.Interop: адаптер строит ту же схему, что видит модель здесь.</remarks>
+    internal static string BuildPlainSchema(string description)
     {
         string safe = JsonSerializer.Serialize(string.IsNullOrWhiteSpace(description)
             ? "Аргумент инструмента."
@@ -309,7 +310,8 @@ public sealed class NativeToolCallPolicy : IReActPolicy
     /// собственной схемы. Иначе один и тот же инструмент получал бы разный аргумент в
     /// зависимости от того, каким способом получено решение.
     /// </summary>
-    private static string Unwrap(string toolName, string arguments, IReadOnlyList<IReActTool> tools)
+    /// <remarks>Открыт сборке AI.Agents.Interop: адаптер разворачивает аргумент так же.</remarks>
+    internal static string Unwrap(string toolName, string arguments, IReadOnlyList<IReActTool> tools)
     {
         if (string.IsNullOrWhiteSpace(arguments))
             return string.Empty;

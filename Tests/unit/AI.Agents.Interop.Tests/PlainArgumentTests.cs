@@ -7,10 +7,10 @@ using Xunit;
 namespace AI.Agents.Interop.Tests;
 
 /// <summary>
-/// Связь с закрытой логикой NativeToolCallPolicy через отражение: простая схема и разворачивание аргумента.
-/// Падение здесь значит, что метод в AI.LLM переименовали или изменили, — поправьте NativePolicyBridge.
+/// Инструмент без своей схемы: адаптер строит простую схему и разворачивает аргумент той же логикой,
+/// что NativeToolCallPolicy (вызов напрямую через InternalsVisibleTo).
 /// </summary>
-public sealed class NativePolicyBridgeTests
+public sealed class PlainArgumentTests
 {
     [Fact]
     public void ReActTool_WithoutSchema_GetsPlainInputSchemaOfNativePolicy()

@@ -71,7 +71,7 @@ IReActToolSource legacy = tools.AsToolSource();             // обратно, �
 
 ## Переиспользование кода AI.LLM
 
-Простая схема `{"input": string}` и разворачивание аргумента — закрытые методы `NativeToolCallPolicy` (`BuildPlainSchema`, `Unwrap`). Чтобы не копировать их, `NativePolicyBridge` вызывает их через отражение. `InternalsVisibleTo` здесь не помог бы: методы `private`, а любая правка `AI.LLM` изменила бы его снимок API. Если метод переименуют, адаптер при первом обращении упадет с понятной ошибкой, а тест `NativePolicyBridgeTests` поймает это раньше.
+Простая схема `{"input": string}` и разворачивание аргумента — внутренние методы `NativeToolCallPolicy` (`BuildPlainSchema`, `Unwrap`). Чтобы не копировать их, `AI.LLM` открывает свои внутренние члены этой сборке (`InternalsVisibleTo`), и адаптер вызывает их напрямую: переименование ловит компилятор. Атрибут виден в снимке API `AI.LLM` — это решение владельца. Отражения для вызова членов `AI.LLM` в сборке нет, это проверяет храповик `NoReflectionTests`.
 
 ## Модель
 
