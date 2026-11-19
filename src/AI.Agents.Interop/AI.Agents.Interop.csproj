@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Адаптеры между старыми типами агентного слоя AI.LLM (ReAct) и контрактами AI.Agents.Contracts.
+    Отдельная сборка, а не часть AI.LLM: AI.LLM публикуется в NuGet, а контракты — нет
+    (предварительный статус), и пакет не может зависеть от неопубликованной сборки.
+    Поэтому и эта сборка не упаковывается: IsPackable=false перекрывает правило
+    корневого Directory.Build.props для src. Подробности — README.md.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>AI.Agents.Interop</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.LLM\AI.LLM.csproj" />
+    <ProjectReference Include="..\AI.Agents.Contracts\AI.Agents.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -64,6 +64,7 @@ jobs:
             'Tests/NNW.V2.Tests/NNW.V2.Tests.csproj'
             'Tests/NNW.V2.Onnx.Tests/NNW.V2.Onnx.Tests.csproj'
             'Tests/unit/AI.Agents.Contracts.Tests/AI.Agents.Contracts.Tests.csproj'
+            'Tests/unit/AI.Agents.Interop.Tests/AI.Agents.Interop.Tests.csproj'
             'Tests/unit/AI.Economics.UnitTests/AI.Economics.UnitTests.csproj'
             'Tests/unit/AI.LLM.UnitTests/AI.LLM.UnitTests.csproj'
             'Tests/unit/AI.Script.UnitTests/AI.Script.UnitTests.csproj'

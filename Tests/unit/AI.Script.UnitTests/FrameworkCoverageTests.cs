@@ -34,6 +34,7 @@ public sealed class FrameworkCoverageTests
         ["AI.Agents.Contracts"] =
             "контракты агентного слоя: только типы, вычислять в них нечего; когда AI.Script.Llm получит мосты " +
             "IToolSet и ITool, сборка станет привязанной и строку надо убрать",
+        ["AI.Agents.Interop"] = "адаптеры агентного слоя, к AIScript не относятся",
     };
 
     /// <summary>

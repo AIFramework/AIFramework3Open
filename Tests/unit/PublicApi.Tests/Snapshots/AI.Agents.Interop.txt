@@ -1,0 +1,34 @@
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Agents.Interop.ReAct
+{
+    public static class ReActInteropCodes
+    {
+        public const string AwaitsUser = "awaits_user";
+        public const string Denied = "denied";
+        public const string NeedsInput = "needs_input";
+        public const string UnknownStatus = "unknown_status";
+        public const string UnknownTool = "unknown_tool";
+    }
+    public static class ReActToolExtensions
+    {
+        public static AI.LLM.Agents.ReAct.Tools.IReActTool AsReActTool(this AI.Agents.Contracts.Tools.ITool tool, Serilog.ILogger? log = null) { }
+        public static AI.Agents.Contracts.Tools.ITool AsTool(this AI.LLM.Agents.ReAct.Tools.IReActTool tool, AI.Agents.Contracts.Tools.ToolAction? action = default, Serilog.ILogger? log = null) { }
+        public static AI.Agents.Contracts.Tools.IToolSet AsToolSet(this AI.LLM.Agents.ReAct.Tools.IReActToolSource source, AI.LLM.Agents.ReAct.ReActRunContext? run = null, System.Collections.Generic.IReadOnlyDictionary<string, AI.Agents.Contracts.Tools.ToolAction>? actions = null, Serilog.ILogger? log = null) { }
+        public static AI.LLM.Agents.ReAct.Tools.IReActToolSource AsToolSource(this AI.Agents.Contracts.Tools.IToolSet set, Serilog.ILogger? log = null) { }
+    }
+    public static class ReActTranslation
+    {
+        public static AI.Agents.Contracts.Citations.Citation ToCitation(this AI.LLM.Agents.ReAct.ReActCitation citation) { }
+        public static AI.Agents.Contracts.Tools.ToolFile ToFile(this AI.LLM.Agents.Multimodal.AgentImage image) { }
+        public static AI.LLM.Agents.Multimodal.AgentImage? ToImage(this AI.Agents.Contracts.Tools.ToolFile file) { }
+        public static AI.LLM.Agents.ReAct.Tools.ReActToolOutcome ToOutcome(this AI.Agents.Contracts.Tools.ToolResult result, Serilog.ILogger? log = null) { }
+        public static AI.LLM.Agents.ReAct.ReActCitation? ToReActCitation(this AI.Agents.Contracts.Citations.Citation citation) { }
+        public static AI.Agents.Contracts.Tools.ToolResult ToResult(this AI.LLM.Agents.ReAct.Tools.ReActToolOutcome outcome, Serilog.ILogger? log = null) { }
+    }
+    public static class ReActTranslationTable
+    {
+        public static System.Collections.Generic.IReadOnlyDictionary<string, string> NotTranslated { get; }
+        public static System.Collections.Generic.IReadOnlyDictionary<string, string> Translated { get; }
+    }
+}
