@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Общие контракты агентного слоя: инструмент, движок, порт модели, подтверждение.
+    Только BCL (System.Text.Json входит в общий фреймворк): ни одного PackageReference
+    и ProjectReference, это проверяет тест AI.Agents.Contracts.Tests.
+    Статус предварительный: пакет NuGet не выпускается до объявления стабильности
+    (CONTRIBUTING.md, «Изменение публичного API»), поэтому IsPackable=false
+    перекрывает правило корневого Directory.Build.props для src.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>AI.Agents.Contracts</RootNamespace>
+  </PropertyGroup>
+
+</Project>

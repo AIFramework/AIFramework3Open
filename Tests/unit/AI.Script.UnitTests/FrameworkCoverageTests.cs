@@ -31,6 +31,9 @@ public sealed class FrameworkCoverageTests
         ["AI.NeuralNetworks.Onnx"] = "то же, что AI.ONNX (DESIGN §18.41)",
         ["AI.NeuralNetworks.Gpu"] = "сети, которые обучает язык, малы для видеокарты (DESIGN §18.42)",
         ["AI.Faiss"] = "на размерах прототипа поиск перебором точен и быстр (DESIGN §18.28)",
+        ["AI.Agents.Contracts"] =
+            "контракты агентного слоя: только типы, вычислять в них нечего; когда AI.Script.Llm получит мосты " +
+            "IToolSet и ITool, сборка станет привязанной и строку надо убрать",
     };
 
     /// <summary>
