@@ -11,7 +11,7 @@
 | Пространство | Что внутри |
 |---|---|
 | `AI.Agents.Interop.ReAct` | инструмент ReAct (`IReActTool`, `IReActToolSource`, `ReActToolOutcome`, `ReActCitation`) ↔ `ITool`, `IToolSet`, `ToolResult`, `Citation` |
-| `AI.Agents.Interop.Models` | будет на шаге Ф4: клиент модели `AI.LLM` ↔ `IModelPort` |
+| `AI.Agents.Interop.Models` | клиент модели `ILLMClient` (`LLMMessage`, `GenerateSettings`, `ChatCompletionsResponse`, `LlmRequestException`) ↔ `IModelPort`, `ModelAsk`, `LlmAnswer` |
 
 ## Точки входа
 
@@ -73,6 +73,78 @@ IReActToolSource legacy = tools.AsToolSource();             // обратно, �
 
 Простая схема `{"input": string}` и разворачивание аргумента — закрытые методы `NativeToolCallPolicy` (`BuildPlainSchema`, `Unwrap`). Чтобы не копировать их, `NativePolicyBridge` вызывает их через отражение. `InternalsVisibleTo` здесь не помог бы: методы `private`, а любая правка `AI.LLM` изменила бы его снимок API. Если метод переименуют, адаптер при первом обращении упадет с понятной ошибкой, а тест `NativePolicyBridgeTests` поймает это раньше.
 
+## Модель
+
+### Точки входа
+
+| Вызов | Что получается |
+|---|---|
+| `ModelPort.Fixed(client, capabilities, settings: null, log: null)` | `IModelPort` над `ILLMClient`: одна модель на все роли |
+| `client.AsModelPort(capabilities, settings: null, log: null)` | то же расширением |
+| `port.AsLlmClient(role, log: null)` | `ILLMClient` над портом: старые пути (`Agent`, `PlanGenerator`, `ScriptWriter`, модуль `llm`) ходят через порт без изменений в себе |
+
+Значения без адаптера переводит `ModelTranslation`: `ToLlmMessages`, `ask.ToSettings(...)`, `response.ToAnswer(lost)`, `ModelTranslation.ToAnswer(exception)`, `ToAsk(messages, settings, role, lost)`, `answer.ToResponse()`, `answer.ToException()`, `usage.ToUsage()`, `usage.ToLlmUsage()`. Поле, которое теряется без исключения, метод кладет ключом из таблицы в список `lost`, и адаптеры пишут о нем предупреждение.
+
+```csharp
+using AI.Agents.Contracts.Models;
+using AI.Agents.Interop.Models;
+
+IModelPort port = llm.AsModelPort(new ModelCapabilities
+{
+    ToolCalling = true, Images = true, Audio = false, StructuredOutput = true, Streaming = true,
+});
+ILLMClient legacy = port.AsLlmClient(ModelRole.Decide);   // обратно, для старых путей
+```
+
+Клиент не сообщает, что умеет модель, поэтому `ModelCapabilities` задает вызывающий. При `Streaming = true` поток идет через перегрузку `SendFullAsync` с `onChunk`, а при `false` порт отдает один итоговый кадр, как реализация по умолчанию. Начальные настройки (`GenerateSettings`) несут то, чего нет в контракте: температуру, рассуждение, `IncludeUsage` для стоимости у OpenRouter. Инструменты, режим инструментов, схему ответа и предел токенов задает запрос.
+
+### Итог и сбой
+
+| Старая форма | Итог порта |
+|---|---|
+| ответ с текстом или вызовами | `Ok` |
+| `finish_reason = length`, `MAX_TOKENS` | `Truncated` |
+| ни текста, ни вызовов; `EmptyModelAnswerException`, в том числе внутри `LlmRequestException` | `Empty` (рассуждение сохраняется) |
+| `content_filter`, отказ модели (`refusal`) без ответа | `Failed`, `ProviderRefusal` |
+| переполнение окна (`IsContextOverflow`) | `Failed`, `ContextOverflow` |
+| нет ответа сервера: сеть, обрыв потока, тайм-аут; 408 | `Failed`, `Network` |
+| 429 | `Failed`, `RateLimit` |
+| 401, 402, 403 | `Failed`, `Access` |
+| 400, 404, 409, 413, 422, 451 | `Failed`, `ProviderRefusal` |
+| прочие коды и исключения | `Failed`, `Other` |
+
+Отмена токеном вызывающего остается исключением, как требует контракт. Текст сбоя для человека и `RetryAfter` в `LlmAnswer` не помещаются, поэтому адаптер пишет их в журнал. Расход берется из `Usage`: нули без стоимости означают, что провайдер ничего не сообщил, и дают `null`. Последний кадр потока — итог с расходом.
+
+Обратно итог без ответа становится тем исключением, по которому старые вызывающие его различают: `Empty` — `LlmRequestException.NoResponse(EmptyModelAnswerException)` (`IsEmptyAnswer`, как у `ChatLLMApi`), `Failed` — `LlmRequestException` с условным кодом HTTP (переполнение — 400 с признаком переполнения, частота — 429, доступ — 403, отказ — 400, сеть — без ответа, прочее — 500). Код подобран так, что перевод обратно дает тот же `LlmFailure`. Исключения две: `Cancelled` возвращается как `Network`, незаданный код как `Other`, потому что в старой форме их не различить. `TokenizeAsync` клиент над портом не поддерживает: в `IModelPort` такой операции нет.
+
+### Что отвергается до отправки
+
+Запрос, который старая форма не выражает, бросает исключение при вызове `AskAsync` или `StreamAsync`, до обращения к клиенту:
+
+- картинка или звук не в сообщении пользователя: конструктор `LLMMessage` молча выбрасывает их из остальных ролей, поэтому переносить их в сообщение пользователя должен цикл (`NotSupportedException`);
+- звук по адресу: в старой форме звук только байтами (`NotSupportedException`);
+- `ToolMode.Unknown`, `Required` или `Named` без инструментов, `ToolName` не из списка (`ArgumentException`).
+
+### Происхождение
+
+В старой форме происхождения нет. Внешний текст (`OriginKind.External`) уходит без обрамления, как на старом пути. Формат обрамления выберет сборщик контекста на шаге Ф5. Обратно каждая часть получает `OriginKind.Unknown`: доверенным такой текст контракт не считает.
+
+### Что не переводится
+
+Полный список лежит в `ModelTranslationTable`, его проверяет такой же храповик, как у ReAct. Главное:
+
+- обратно не передаются настройки, которых нет в `ModelAsk`: температура, `TopP`, `TopK`, рассуждение, модальности, `IncludeUsage`, `json_object` вместо схемы. О каждой пишется одно предупреждение на клиент;
+- в ответе теряются картинки, сгенерированные моделью, текст отказа, второй и следующие варианты, токены рассуждения и кэша, идентификатор и провайдер ответа;
+- роль модели при `Fixed` не используется: модель на все роли одна.
+
+### Стоимость числом
+
+`CostExtractor` (AI.LLM) разбирает число CLR в `Usage.Cost` строкой текущей культуры. При запятой в дроби (ru-RU) 0,5 читается как 5. JSON провайдера этой ошибки не знает. Адаптер берет число CLR как есть, а обратно кладет стоимость числом JSON. Сам `CostExtractor` и `AgentUsage` не меняются.
+
+### Долг: вызовы мимо адаптеров
+
+Файл `Tests/unit/AI.Agents.Interop.Tests/Models/ModelCallDebt.txt` перечисляет вызовы `ILLMClient.Send*` в `src/AI.LLM/Agents`, `src/AI.LLM/Services/Reranking/Llm` и `src/AI.Script.Llm`. Сейчас их десять: `Agent`, `NativeToolCallPolicy`, `StructuredJsonPolicy`, `DelegateReActSynthesizer`, `PlanGenerator`, `LlmStepValidator`, `SummarizationMemory`, `LlmReranker`, `LlmModule`, `ScriptWriter`. Храповик `ModelCallDebtTests` не дает долгу расти, а переведенный вызов требует вычеркнуть.
+
 ## Имена
 
-Контракты и `AI.LLM` оба объявляют `ToolResult` и `ToolCall` (долг в `OwnershipTests.NameDebt` контрактов). Поэтому здесь пространство `AI.LLM.Agents.Multimodal` целиком не подключается: `AgentImage` берется псевдонимом `using`.
+Контракты и `AI.LLM` оба объявляют `ToolResult` и `ToolCall` (долг в `OwnershipTests.NameDebt` контрактов). Поэтому здесь пространство `AI.LLM.Agents.Multimodal` целиком не подключается: `AgentImage` берется псевдонимом `using`. В адаптерах модели оба `ToolCall` берутся псевдонимами `ContractToolCall` и `LlmToolCall`. В таблице перевода старый записан ключом `LLM.ToolCall`.

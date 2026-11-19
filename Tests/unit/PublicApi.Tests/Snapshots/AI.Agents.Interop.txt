@@ -1,5 +1,40 @@
 [assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Agents.Interop.Models
+{
+    public static class ModelPort
+    {
+        public static AI.LLM.Core.Abstractions.ILLMClient AsLlmClient(this AI.Agents.Contracts.Models.IModelPort port, AI.Agents.Contracts.Models.ModelRole role, Serilog.ILogger? log = null) { }
+        public static AI.Agents.Contracts.Models.IModelPort AsModelPort(this AI.LLM.Core.Abstractions.ILLMClient client, AI.Agents.Contracts.Models.ModelCapabilities capabilities, AI.LLM.Core.Models.Common.Requests.GenerateSettings? settings = null, Serilog.ILogger? log = null) { }
+        public static AI.Agents.Contracts.Models.IModelPort Fixed(AI.LLM.Core.Abstractions.ILLMClient client, AI.Agents.Contracts.Models.ModelCapabilities capabilities, AI.LLM.Core.Models.Common.Requests.GenerateSettings? settings = null, Serilog.ILogger? log = null) { }
+    }
+    public static class ModelTranslation
+    {
+        public const string SchemaName = "response";
+        public static AI.Agents.Contracts.Models.LlmFailure FailureOf(System.Exception error) { }
+        public static System.Text.Json.JsonElement ParseArguments(string? arguments) { }
+        public static AI.Agents.Contracts.Models.LlmAnswer ToAnswer(System.Exception error) { }
+        public static AI.Agents.Contracts.Models.LlmAnswer ToAnswer(this AI.LLM.Core.Models.Common.Responses.ChatCompletionsResponse response, System.Collections.Generic.ICollection<string>? lost = null) { }
+        public static AI.Agents.Contracts.Models.ModelAsk ToAsk(System.Collections.Generic.IEnumerable<AI.LLM.Core.Models.Common.Messages.LLMMessage> messages, AI.LLM.Core.Models.Common.Requests.GenerateSettings? settings, AI.Agents.Contracts.Models.ModelRole role, System.Collections.Generic.ICollection<string>? lost = null) { }
+        public static AI.LLM.Core.Models.Common.ToolCalling.ToolDefinition ToDefinition(this AI.Agents.Contracts.Tools.ToolSpec spec) { }
+        public static System.Exception? ToException(this AI.Agents.Contracts.Models.LlmAnswer answer) { }
+        public static AI.LLM.Core.Models.Common.Messages.LLMMessage ToLlmMessage(this AI.Agents.Contracts.Models.ModelMessage message) { }
+        public static System.Collections.Generic.List<AI.LLM.Core.Models.Common.Messages.LLMMessage> ToLlmMessages(System.Collections.Generic.IEnumerable<AI.Agents.Contracts.Models.ModelMessage> messages) { }
+        public static AI.LLM.Core.Models.Common.ToolCalling.ToolCall ToLlmToolCall(this AI.Agents.Contracts.Tools.ToolCall call) { }
+        public static AI.LLM.Core.Models.Common.Responses.Usage ToLlmUsage(this AI.Agents.Contracts.Models.ModelUsage? usage) { }
+        public static AI.Agents.Contracts.Models.ModelMessage ToModelMessage(this AI.LLM.Core.Models.Common.Messages.LLMMessage message, System.Collections.Generic.ICollection<string>? lost = null) { }
+        public static AI.LLM.Core.Models.Common.Responses.ChatCompletionsResponse ToResponse(this AI.Agents.Contracts.Models.LlmAnswer answer) { }
+        public static AI.LLM.Core.Models.Common.Requests.GenerateSettings ToSettings(this AI.Agents.Contracts.Models.ModelAsk ask, AI.LLM.Core.Models.Common.Requests.GenerateSettings? baseSettings = null) { }
+        public static AI.Agents.Contracts.Tools.ToolSpec ToSpec(this AI.LLM.Core.Models.Common.ToolCalling.ToolDefinition definition) { }
+        public static AI.Agents.Contracts.Tools.ToolCall ToToolCall(this AI.LLM.Core.Models.Common.ToolCalling.ToolCall call) { }
+        public static AI.Agents.Contracts.Models.ModelUsage? ToUsage(this AI.LLM.Core.Models.Common.Responses.Usage? usage) { }
+    }
+    public static class ModelTranslationTable
+    {
+        public static System.Collections.Generic.IReadOnlyDictionary<string, string> NotTranslated { get; }
+        public static System.Collections.Generic.IReadOnlyDictionary<string, string> Translated { get; }
+    }
+}
 namespace AI.Agents.Interop.ReAct
 {
     public static class ReActInteropCodes

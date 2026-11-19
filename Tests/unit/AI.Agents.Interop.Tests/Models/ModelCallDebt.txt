@@ -1,0 +1,13 @@
+# Вызовы ILLMClient.Send* мимо адаптеров модели (шаг Ф4): долг, а не разрешение.
+# Каждая строка — файл и число вызовов в нем. Новый файл или лишний вызов роняет храповик,
+# переведенный на IModelPort вызов отсюда вычеркивается (число уменьшается, нулевая строка удаляется).
+src/AI.LLM/Agents/Agent.cs: 1
+src/AI.LLM/Agents/Memory/SummarizationMemory.cs: 1
+src/AI.LLM/Agents/Orchestration/LlmStepValidator.cs: 1
+src/AI.LLM/Agents/Planning/PlanGenerator.cs: 1
+src/AI.LLM/Agents/ReAct/Policies/NativeToolCallPolicy.cs: 1
+src/AI.LLM/Agents/ReAct/Policies/StructuredJsonPolicy.cs: 1
+src/AI.LLM/Agents/ReAct/Synthesis/DelegateReActSynthesizer.cs: 1
+src/AI.LLM/Services/Reranking/Llm/LlmReranker.cs: 1
+src/AI.Script.Llm/LlmModule.cs: 1
+src/AI.Script.Llm/ScriptWriter.cs: 1
