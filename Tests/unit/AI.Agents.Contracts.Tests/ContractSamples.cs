@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using AI.Agents.Contracts.Citations;
 using AI.Agents.Contracts.Engines;
+using AI.Agents.Contracts.Memory;
 using AI.Agents.Contracts.Models;
 using AI.Agents.Contracts.Runs;
 using AI.Agents.Contracts.Tools;
@@ -177,6 +178,81 @@ internal static class ContractSamples
         [typeof(LlmChunk.Text)] = [() => new LlmChunk.Text { Chunk = "Курс " }],
         [typeof(LlmChunk.Reasoning)] = [() => new LlmChunk.Reasoning { Chunk = "Сначала поиск" }],
         [typeof(LlmChunk.Final)] = [() => new LlmChunk.Final { Answer = FullAnswerOfModel() }],
+
+        // Memory
+        [typeof(MemoryScope)] =
+        [
+            () => FullScope(),
+            () => new MemoryScope { Owner = "user-7" },
+        ],
+        [typeof(MemoryEpisode)] =
+        [
+            () => FullEpisode(),
+            () => new MemoryEpisode { Id = "edit-3", Actor = MemoryActor.User, At = Moment },
+        ],
+        [typeof(MemoryWrite)] =
+        [
+            () => FullWrite(),
+            () => new MemoryWrite { Scope = FullScope(), Episode = FullEpisode() },
+        ],
+        [typeof(MemoryChange)] =
+        [
+            () => FullChange(),
+            () => new MemoryChange { Op = MemoryOp.Add, Fact = SaidFact() },
+            () => new MemoryChange { Op = MemoryOp.Confirm, Target = "fact-12" },
+        ],
+        [typeof(MemoryObject)] =
+        [
+            () => FullObject(),
+            () => new MemoryObject { Id = "obj-9", Name = "Тетя Маша" },
+        ],
+        [typeof(MemoryFact)] =
+        [
+            () => FullFact(),
+            () => SaidFact(),
+            () => new MemoryFact
+            {
+                Id = "fact-30",
+                Subject = FullObject(),
+                Property = "mem:wheels",
+                Value = "4",
+                Source = ValueSource.Kind,
+            },
+        ],
+        [typeof(MemoryOutcome)] =
+        [
+            () => FullOutcome(),
+            () => new MemoryOutcome { Fact = SaidFact(), Verdict = MemoryVerdict.Written },
+        ],
+        [typeof(MemoryWriteResult)] =
+        [
+            () => new MemoryWriteResult
+            {
+                Status = MemoryStatus.Partial,
+                Outcomes = [FullOutcome()],
+                Problems = ["Очередь предложений не ответила"],
+            },
+            () => new MemoryWriteResult { Status = MemoryStatus.Ok, Outcomes = [] },
+        ],
+        [typeof(MemoryAsk)] = [() => new MemoryAsk { Scope = FullScope(), Task = "Подбери шины", Budget = 1200 }],
+        [typeof(MemoryPick)] =
+        [
+            () => new MemoryPick { Fact = "fact-12", Channel = MemoryPick.Channels.Meaning, Score = 0.82 },
+            () => new MemoryPick { Fact = "fact-1", Channel = MemoryPick.Channels.Profile },
+        ],
+        [typeof(MemoryView)] =
+        [
+            () => new MemoryView
+            {
+                Status = MemoryStatus.Partial,
+                Profile = [SaidFact()],
+                Focus = [FullFact()],
+                Others = [new MemoryObject { Id = "obj-9", Name = "Тетя Маша" }],
+                Trace = [new MemoryPick { Fact = "fact-12", Channel = MemoryPick.Channels.Words, Score = 3.5 }],
+                Problems = ["Поиск по смыслу не ответил"],
+            },
+            () => new MemoryView { Status = MemoryStatus.Failed, Profile = [], Focus = [], Others = [], Trace = [] },
+        ],
     };
 
     /// <summary>JSON-элемент, не зависящий от документа.</summary>
@@ -188,6 +264,71 @@ internal static class ContractSamples
 
     /// <summary>Объект JSON.</summary>
     public static JsonObject Obj(string text) => JsonNode.Parse(text)!.AsObject();
+
+    private static readonly DateTimeOffset Moment = new(2026, 11, 21, 10, 30, 0, TimeSpan.FromHours(3));
+
+    private static MemoryScope FullScope() => new() { Owner = "user-7", Project = "garage", Chat = "chat-42" };
+
+    private static MemoryEpisode FullEpisode() => new()
+    {
+        Id = "turn-118",
+        Actor = MemoryActor.User,
+        At = Moment,
+        Text = "Я продал «Ниву», теперь езжу на «Тигуане».",
+        Read = [FullCitation()],
+    };
+
+    private static MemoryObject FullObject() => new() { Id = "obj-3", Name = "Тигуан", Kind = "kind:car" };
+
+    private static MemoryFact FullFact() => new()
+    {
+        Id = "fact-12",
+        Subject = new MemoryObject { Id = "obj-1", Name = "Владелец", Kind = "kind:person" },
+        Property = "mem:drives",
+        Value = "Тигуан",
+        Target = FullObject(),
+        Source = ValueSource.Derived,
+        ValidFrom = new DateOnly(2026, 10, 1),
+        ValidTo = new DateOnly(2026, 12, 31),
+        Recorded = Moment,
+        Episodes = ["turn-118"],
+        Premises = ["fact-10", "fact-11"],
+        Quote = "теперь езжу на «Тигуане»",
+    };
+
+    private static MemoryFact SaidFact() => new()
+    {
+        Subject = new MemoryObject { Id = "obj-1", Name = "Владелец" },
+        Property = "mem:prefers",
+        Value = "зимние шины с шипами",
+        Source = ValueSource.Said,
+        Episodes = ["turn-118"],
+        Quote = "люблю шипы",
+    };
+
+    private static MemoryChange FullChange() => new()
+    {
+        Op = MemoryOp.Revise,
+        Fact = FullFact(),
+        Target = "fact-7",
+        Reason = "Машина продана",
+    };
+
+    private static MemoryWrite FullWrite() => new()
+    {
+        Scope = FullScope(),
+        Episode = FullEpisode(),
+        Changes = [FullChange(), new MemoryChange { Op = MemoryOp.Retire, Target = "fact-5", Reason = "Устарело" }],
+        Withdraw = ["turn-90"],
+    };
+
+    private static MemoryOutcome FullOutcome() => new()
+    {
+        Fact = FullFact(),
+        Verdict = MemoryVerdict.Revised,
+        Reason = "Новое значение закрыло старое",
+        Existing = "fact-7",
+    };
 
     private static About FullAbout() => new()
     {

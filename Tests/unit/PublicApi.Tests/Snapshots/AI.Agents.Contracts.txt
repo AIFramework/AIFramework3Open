@@ -320,6 +320,162 @@ namespace AI.Agents.Contracts.Engines
         public override string ToString() { }
     }
 }
+namespace AI.Agents.Contracts.Memory
+{
+    public interface IMemoryPort
+    {
+        System.Threading.Tasks.Task<AI.Agents.Contracts.Memory.MemoryView> ViewAsync(AI.Agents.Contracts.Memory.MemoryAsk ask, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AI.Agents.Contracts.Memory.MemoryWriteResult> WriteAsync(AI.Agents.Contracts.Memory.MemoryWrite write, System.Threading.CancellationToken cancellationToken = default);
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Memory.MemoryActor>))]
+    public enum MemoryActor
+    {
+        Unknown = 0,
+        User = 1,
+        Assistant = 2,
+        Agent = 3,
+        Host = 4,
+    }
+    public sealed record MemoryAsk : System.IEquatable<AI.Agents.Contracts.Memory.MemoryAsk>
+    {
+        public MemoryAsk() { }
+        public required int Budget { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryScope Scope { get; init; }
+        public required string Task { get; init; }
+    }
+    public sealed record MemoryChange : System.IEquatable<AI.Agents.Contracts.Memory.MemoryChange>
+    {
+        public MemoryChange() { }
+        public AI.Agents.Contracts.Memory.MemoryFact? Fact { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryOp Op { get; init; }
+        public string? Reason { get; init; }
+        public string? Target { get; init; }
+    }
+    public sealed record MemoryEpisode : System.IEquatable<AI.Agents.Contracts.Memory.MemoryEpisode>
+    {
+        public MemoryEpisode() { }
+        public required AI.Agents.Contracts.Memory.MemoryActor Actor { get; init; }
+        public required System.DateTimeOffset At { get; init; }
+        public required string Id { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Citations.Citation>? Read { get; init; }
+        public string? Text { get; init; }
+    }
+    public sealed record MemoryFact : System.IEquatable<AI.Agents.Contracts.Memory.MemoryFact>
+    {
+        public MemoryFact() { }
+        public System.Collections.Generic.IReadOnlyList<string>? Episodes { get; init; }
+        public string? Id { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Premises { get; init; }
+        public required string Property { get; init; }
+        public string? Quote { get; init; }
+        public System.DateTimeOffset? Recorded { get; init; }
+        public required AI.Agents.Contracts.Memory.ValueSource Source { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryObject Subject { get; init; }
+        public AI.Agents.Contracts.Memory.MemoryObject? Target { get; init; }
+        public System.DateOnly? ValidFrom { get; init; }
+        public System.DateOnly? ValidTo { get; init; }
+        public required string Value { get; init; }
+    }
+    public sealed record MemoryObject : System.IEquatable<AI.Agents.Contracts.Memory.MemoryObject>
+    {
+        public MemoryObject() { }
+        public required string Id { get; init; }
+        public string? Kind { get; init; }
+        public required string Name { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Memory.MemoryOp>))]
+    public enum MemoryOp
+    {
+        Unknown = 0,
+        Add = 1,
+        Revise = 2,
+        Confirm = 3,
+        Retire = 4,
+    }
+    public sealed record MemoryOutcome : System.IEquatable<AI.Agents.Contracts.Memory.MemoryOutcome>
+    {
+        public MemoryOutcome() { }
+        public string? Existing { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryFact Fact { get; init; }
+        public string? Reason { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryVerdict Verdict { get; init; }
+    }
+    public sealed record MemoryPick : System.IEquatable<AI.Agents.Contracts.Memory.MemoryPick>
+    {
+        public MemoryPick() { }
+        public required string Channel { get; init; }
+        public required string Fact { get; init; }
+        public double? Score { get; init; }
+        public static class Channels
+        {
+            public const string Graph = "graph";
+            public const string Meaning = "meaning";
+            public const string Premise = "premise";
+            public const string Profile = "profile";
+            public const string Words = "words";
+        }
+    }
+    public sealed record MemoryScope : System.IEquatable<AI.Agents.Contracts.Memory.MemoryScope>
+    {
+        public MemoryScope() { }
+        public string? Chat { get; init; }
+        public required string Owner { get; init; }
+        public string? Project { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Memory.MemoryStatus>))]
+    public enum MemoryStatus
+    {
+        Unknown = 0,
+        Ok = 1,
+        Partial = 2,
+        Failed = 3,
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Memory.MemoryVerdict>))]
+    public enum MemoryVerdict
+    {
+        Unknown = 0,
+        Written = 1,
+        Revised = 2,
+        Confirmed = 3,
+        Proposed = 4,
+        Archived = 5,
+        Rejected = 6,
+    }
+    public sealed record MemoryView : System.IEquatable<AI.Agents.Contracts.Memory.MemoryView>
+    {
+        public MemoryView() { }
+        public required System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Memory.MemoryFact> Focus { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Memory.MemoryObject> Others { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Problems { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Memory.MemoryFact> Profile { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryStatus Status { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Memory.MemoryPick> Trace { get; init; }
+    }
+    public sealed record MemoryWrite : System.IEquatable<AI.Agents.Contracts.Memory.MemoryWrite>
+    {
+        public MemoryWrite() { }
+        public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Memory.MemoryChange>? Changes { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryEpisode Episode { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryScope Scope { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Withdraw { get; init; }
+    }
+    public sealed record MemoryWriteResult : System.IEquatable<AI.Agents.Contracts.Memory.MemoryWriteResult>
+    {
+        public MemoryWriteResult() { }
+        public required System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Memory.MemoryOutcome> Outcomes { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Problems { get; init; }
+        public required AI.Agents.Contracts.Memory.MemoryStatus Status { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Memory.ValueSource>))]
+    public enum ValueSource
+    {
+        Unknown = 0,
+        Said = 1,
+        Document = 2,
+        Kind = 3,
+        Derived = 4,
+    }
+}
 namespace AI.Agents.Contracts.Models
 {
     public interface IModelPort

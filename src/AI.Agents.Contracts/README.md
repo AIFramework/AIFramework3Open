@@ -1,6 +1,6 @@
 # AI.Agents.Contracts
 
-Общие контракты агентного слоя: инструмент, движок, запуск, запись агента, порт модели и подтверждение. Сборка содержит только типы и чистые помощники без поведения хоста. Реализации (циклы, клиенты моделей, наборы инструментов, хранилища запусков) живут в других сборках и ссылаются сюда.
+Общие контракты агентного слоя: инструмент, движок, запуск, запись агента, порт модели, порт памяти и подтверждение. Сборка содержит только типы и чистые помощники без поведения хоста. Реализации (циклы, клиенты моделей, наборы инструментов, хранилища запусков) живут в других сборках и ссылаются сюда.
 
 Статус предварительный: версия пакета с суффиксом предварительной версии (сейчас `0.1.0-preview.1`), API может меняться по решению владельца без мажорной версии, пока стабильность не объявлена. `.\build.ps1 -Pack` собирает его в `artifacts/nuget`, а `build/nuget-push.ps1` выкладывает пакеты с суффиксом предварительной версии только с явным флагом `-IncludePreview` (признак — суффикс, а не нулевой старший номер). Обычные пакеты от него не зависят: `AI.LLM` на контракты не ссылается (храповик `RunContractTests.AiLlm_DoesNotReferenceAgentPackages`). Снимок API проверяется наравне с остальными сборками: `Tests/unit/PublicApi.Tests/Snapshots/AI.Agents.Contracts.txt`.
 
@@ -13,6 +13,7 @@
 | `AI.Agents.Contracts.Engines` | `IEngine`, `EngineInput`, `EngineTask`, `EngineContext`, `EngineEvent` (девять видов), `EngineResult`, `EngineStatus`, `StopCode`, `StepPath`, `IRunBudget`, `IStepRunner`, `Question`, `QuestionKind`, `Answer`, `InputField`, `AgentRef`, `AgentDefinition`, `AgentInstructions`, `EngineChoice`, `AgentLimits` |
 | `AI.Agents.Contracts.Models` | `IModelPort`, `ModelAsk`, `ModelRole`, `ModelCapabilities`, `ModelMessage`, `MessageRole`, `MessagePart` (`Text`, `Image`, `Audio`), `ToolMode`, `LlmAnswer`, `LlmChunk` (`Text`, `Reasoning`, `Final`), `LlmStatus`, `LlmFailure`, `ModelUsage` |
 | `AI.Agents.Contracts.Citations` | `Citation`, `CitationKind`, `SourceLocation`, `LocationSegment`, `LineRange`, `TimeInterval`, `RelativeRect` |
+| `AI.Agents.Contracts.Memory` | порт памяти `IMemoryPort` (`WriteAsync`, `ViewAsync`), `MemoryScope`, `MemoryEpisode`, `MemoryActor`, `MemoryWrite`, `MemoryChange`, `MemoryOp`, `MemoryObject`, `MemoryFact`, `ValueSource`, `MemoryWriteResult`, `MemoryOutcome`, `MemoryVerdict`, `MemoryAsk`, `MemoryView`, `MemoryPick`, `MemoryStatus`. Подробности в [Memory/README.md](Memory/README.md) |
 
 ## Правила
 
