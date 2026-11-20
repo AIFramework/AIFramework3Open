@@ -58,6 +58,13 @@ public sealed record ToolSpec
     /// </summary>
     public required ToolAction Action { get; init; }
 
+    /// <summary>
+    /// Безопасен ли повтор вызова с теми же аргументами; ось отдельная от <see cref="Action"/>.
+    /// <see langword="null"/>: не объявлено, как и <see cref="ToolIdempotency.Unknown"/>; оба трактуются как
+    /// <see cref="ToolIdempotency.NotIdempotent"/> через <see cref="ToolIdempotencies.Effective(ToolIdempotency?)"/>.
+    /// </summary>
+    public ToolIdempotency? Idempotency { get; init; }
+
     /// <summary>Группа каталога, по которой агент перечисляет инструменты; <see langword="null"/>: без группы.</summary>
     public string? Group { get; init; }
 

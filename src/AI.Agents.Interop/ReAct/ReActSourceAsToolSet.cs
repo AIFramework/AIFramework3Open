@@ -20,6 +20,7 @@ internal sealed class ReActSourceAsToolSet : IToolSet
     private readonly IReActToolSource _source;
     private readonly ReActRunContext _baseRun;
     private readonly IReadOnlyDictionary<string, ToolAction>? _actions;
+    private readonly IReadOnlyDictionary<string, ToolIdempotency>? _idempotency;
     private readonly ILogger? _log;
     private readonly HashSet<string> _warned = new(ToolSpec.NameComparer);
 
@@ -28,6 +29,21 @@ internal sealed class ReActSourceAsToolSet : IToolSet
         IReActToolSource source,
         ReActRunContext? baseRun,
         IReadOnlyDictionary<string, ToolAction>? actions,
+        ILogger? log)
+        : this(source, baseRun, actions, idempotency: null, log)
+    {
+    }
+
+    /// <summary>
+    /// Оборачивает источник старых инструментов с известными осями «повтор безопасен». Если
+    /// <paramref name="idempotency"/> задан, инструмент без записи в нем получает <see cref="ToolIdempotency.Unknown"/>
+    /// и предупреждение (одно на имя, вместе с видом действия).
+    /// </summary>
+    public ReActSourceAsToolSet(
+        IReActToolSource source,
+        ReActRunContext? baseRun,
+        IReadOnlyDictionary<string, ToolAction>? actions,
+        IReadOnlyDictionary<string, ToolIdempotency>? idempotency,
         ILogger? log)
     {
         _source = source ?? throw new ArgumentNullException(nameof(source));
@@ -42,6 +58,7 @@ internal sealed class ReActSourceAsToolSet : IToolSet
 
         _baseRun = baseRun ?? new ReActRunContext(string.Empty);
         _actions = actions;
+        _idempotency = idempotency;
         _log = log;
     }
 
@@ -88,13 +105,23 @@ internal sealed class ReActSourceAsToolSet : IToolSet
                 continue;
 
             ToolAction? action = _actions != null && _actions.TryGetValue(tool.Name, out ToolAction known) ? known : null;
-            var adapter = new ReActToolAsTool(tool, action, _baseRun, _log);
+            ToolIdempotency? idempotency = null;
+            bool idempotencyMissing = false;
+            if (_idempotency != null)
+            {
+                idempotencyMissing = !_idempotency.TryGetValue(tool.Name, out ToolIdempotency declared);
+                idempotency = idempotencyMissing ? ToolIdempotency.Unknown : declared;
+            }
+
+            var adapter = new ReActToolAsTool(tool, action, idempotency, _baseRun, _log);
 
             bool first;
             lock (_warned)
                 first = _warned.Add(adapter.Spec.Name);
 
-            if (action == null && first)
+            if (first && idempotencyMissing)
+                adapter.WarnUnknownEffect();
+            else if (first && action == null)
                 adapter.WarnUnknownAction();
 
             tools.Add(adapter);

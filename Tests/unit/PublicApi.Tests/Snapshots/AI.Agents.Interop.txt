@@ -1,5 +1,85 @@
 [assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AIFramework/AIFramework3Open")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
+namespace AI.Agents.Interop.Effects
+{
+    public static class AttributedTools
+    {
+        public static AI.Agents.Contracts.Tools.IToolSet AsToolSet(System.Collections.Generic.IEnumerable<object> instances, Serilog.ILogger? log = null) { }
+    }
+    public sealed class EffectGate : AI.Agents.Contracts.Tools.IToolSet
+    {
+        public EffectGate(AI.Agents.Contracts.Tools.IToolSet inner, Serilog.ILogger? log = null) { }
+        public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Tools.ToolSpec> Available { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Runs.EffectRecord> Journal { get; }
+        public System.Collections.Generic.IAsyncEnumerable<AI.Agents.Contracts.Tools.ToolUpdate> CallAsync(AI.Agents.Contracts.Tools.ToolCall call, AI.Agents.Contracts.Tools.ToolContext context, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public static class EffectGateCodes
+    {
+        public const string Exception = "exception";
+        public const string Interrupted = "interrupted";
+        public const string NoResult = "no_result";
+        public const string RepeatUnsafe = "repeat_unsafe";
+    }
+    public static class EffectKeys
+    {
+        public static string Create(string runId, string toolName, System.Text.Json.JsonElement arguments) { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple=false, Inherited=false)]
+    public sealed class ToolEffectAttribute : System.Attribute
+    {
+        public ToolEffectAttribute(AI.Agents.Contracts.Tools.ToolAction action, AI.Agents.Contracts.Tools.ToolIdempotency idempotency) { }
+        public AI.Agents.Contracts.Tools.ToolAction Action { get; }
+        public AI.Agents.Contracts.Tools.ToolIdempotency Idempotency { get; }
+    }
+}
+namespace AI.Agents.Interop.Engines
+{
+    public static class EngineInteropCodes
+    {
+        public const string ContinuationNotSupported = "continuation_not_supported";
+        public const string InvalidOptions = "invalid_options";
+        public const string PlanRejected = "plan_rejected";
+    }
+    public sealed class PlanningEngineAdapter : AI.Agents.Contracts.Engines.IEngine
+    {
+        public const string EngineKey = "plan";
+        public PlanningEngineAdapter(Serilog.ILogger? log = null) { }
+        public string Key { get; }
+        public System.Collections.Generic.IAsyncEnumerable<AI.Agents.Contracts.Engines.EngineEvent> RunAsync(AI.Agents.Contracts.Engines.EngineInput input, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class ReActEngineAdapter : AI.Agents.Contracts.Engines.IEngine
+    {
+        public const string EngineKey = "react";
+        public ReActEngineAdapter(Serilog.ILogger? log = null) { }
+        public string Key { get; }
+        public System.Collections.Generic.IAsyncEnumerable<AI.Agents.Contracts.Engines.EngineEvent> RunAsync(AI.Agents.Contracts.Engines.EngineInput input, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public static class ReActEngineTranslationTable
+    {
+        public static System.Collections.Generic.IReadOnlyDictionary<string, string> Events { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Status",
+                "Code"})]
+        public static System.Collections.Generic.IReadOnlyDictionary<AI.LLM.Agents.ReAct.ReActStopReason, System.ValueTuple<AI.Agents.Contracts.Engines.EngineStatus, AI.Agents.Contracts.Engines.StopCode>> StopReasons { get; }
+    }
+}
+namespace AI.Agents.Interop.Humans
+{
+    public sealed record AnsweredToolContext : AI.Agents.Contracts.Tools.ToolContext, System.IEquatable<AI.Agents.Interop.Humans.AnsweredToolContext>
+    {
+        public AnsweredToolContext() { }
+        public required AI.Agents.Contracts.Engines.Answer Answer { get; init; }
+    }
+    public static class HumanChannelCodes
+    {
+        public const string AnswerMismatch = "answer_mismatch";
+        public const string Declined = "declined";
+    }
+    public static class HumanChannels
+    {
+        public static AI.Agents.Contracts.Tools.IToolSet WithHumanChannel(this AI.Agents.Contracts.Tools.IToolSet set, AI.Agents.Contracts.Runs.IHumanChannel channel, Serilog.ILogger? log = null) { }
+    }
+}
 namespace AI.Agents.Interop.Models
 {
     public static class ModelPort

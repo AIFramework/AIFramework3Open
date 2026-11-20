@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using AI.Agents.Contracts.Citations;
 using AI.Agents.Contracts.Engines;
 using AI.Agents.Contracts.Models;
+using AI.Agents.Contracts.Runs;
 using AI.Agents.Contracts.Tools;
 
 namespace AI.Agents.Contracts.Tests;
@@ -121,6 +122,21 @@ internal static class ContractSamples
         [typeof(EngineTask)] = [() => FullTask()],
         [typeof(EngineContext)] = [() => FullContext()],
         [typeof(EngineResult)] = [() => FullEngineResult()],
+
+        // Runs
+        [typeof(RunState)] =
+        [
+            () => FullRun(),
+            () => new RunState
+            {
+                Id = "run-2",
+                Agent = new AgentRef { Id = "writer" },
+                Task = new EngineTask { Text = "Короткая задача" },
+                Status = RunStatus.Queued,
+                Updated = new DateTimeOffset(2026, 11, 20, 9, 0, 0, TimeSpan.Zero),
+            },
+        ],
+        [typeof(EffectRecord)] = [() => FullEffect()],
         [typeof(EngineEvent.Step)] = [() => new EngineEvent.Step { Path = FullPath(), Thought = "Нужно найти курс" }],
         [typeof(EngineEvent.ToolStarted)] = [() => new EngineEvent.ToolStarted { Path = FullPath(), Call = FullCall() }],
         [typeof(EngineEvent.ToolProgress)] =
@@ -188,6 +204,7 @@ internal static class ContractSamples
         Description = "Курс валюты на дату",
         Parameters = Json("""{"type":"object","properties":{"code":{"type":"string"}},"required":["code"]}"""),
         Action = ToolAction.Read,
+        Idempotency = ToolIdempotency.Idempotent,
         Group = "finance",
         About = FullAbout(),
     };
@@ -293,6 +310,25 @@ internal static class ContractSamples
         Key = "currency",
         Text = "Какая валюта?",
         Choices = ["EUR", "USD"],
+    };
+
+    private static EffectRecord FullEffect() => new()
+    {
+        Key = "3f2a9c0d1e4b5a6f7081928374655647382910abcdef0123456789abcdef0123",
+        Tool = "send_mail",
+        Result = FullResult(),
+    };
+
+    private static RunState FullRun() => new()
+    {
+        Id = "run-1",
+        Agent = new AgentRef { Id = "mailer", Version = 4 },
+        Task = FullTask(),
+        Status = RunStatus.AwaitsUser,
+        Updated = new DateTimeOffset(2026, 11, 20, 12, 30, 0, TimeSpan.FromHours(3)),
+        EngineState = new JsonObject { ["step"] = 3, ["pending"] = "send_mail" },
+        Question = FullQuestion(),
+        Effects = [FullEffect(), new EffectRecord { Key = "k2", Tool = "draft", Result = new ToolResult { Status = ToolStatus.Unknown, Text = "начат", Origin = new Origin { Kind = OriginKind.Trusted } } }],
     };
 
     private static Question FullQuestion() => new()

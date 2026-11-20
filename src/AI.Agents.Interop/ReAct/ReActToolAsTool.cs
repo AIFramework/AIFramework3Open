@@ -28,6 +28,17 @@ internal sealed class ReActToolAsTool : ITool
     /// <param name="baseRun">Запрос и история прогона для контекста вызова; <see langword="null"/>: пустые.</param>
     /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/> на момент записи.</param>
     public ReActToolAsTool(IReActTool tool, ToolAction? action, ReActRunContext? baseRun, ILogger? log)
+        : this(tool, action, idempotency: null, baseRun, log)
+    {
+    }
+
+    /// <summary>Оборачивает старый инструмент с известной осью «повтор безопасен».</summary>
+    /// <param name="tool">Старый инструмент.</param>
+    /// <param name="action">Вид действия; <see langword="null"/>: <see cref="ToolAction.Unknown"/>.</param>
+    /// <param name="idempotency">«Повтор безопасен»; <see langword="null"/>: не объявлено (<see cref="ToolSpec.Idempotency"/> = <see langword="null"/>).</param>
+    /// <param name="baseRun">Запрос и история прогона для контекста вызова; <see langword="null"/>: пустые.</param>
+    /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/> на момент записи.</param>
+    public ReActToolAsTool(IReActTool tool, ToolAction? action, ToolIdempotency? idempotency, ReActRunContext? baseRun, ILogger? log)
     {
         _tool = tool ?? throw new ArgumentNullException(nameof(tool));
         _baseRun = baseRun;
@@ -44,6 +55,7 @@ internal sealed class ReActToolAsTool : ITool
             Description = tool.Description ?? string.Empty,
             Parameters = document.RootElement.Clone(),
             Action = action ?? ToolAction.Unknown,
+            Idempotency = idempotency,
             Group = null,
             About = null,
         };
@@ -69,6 +81,13 @@ internal sealed class ReActToolAsTool : ITool
         Logger.Warning(
             "ReAct → контракт: инструмент {Tool} не знает вида действия; вид Unknown, действует как Irreversible. " +
             "Если вид известен, передайте его явно: AsTool(action: ...)",
+            Spec.Name);
+
+    /// <summary>Пишет одно предупреждение о незаданном атрибуте эффекта: вид и «повтор безопасен» неизвестны.</summary>
+    public void WarnUnknownEffect() =>
+        Logger.Warning(
+            "[AgentTool] → контракт: у инструмента {Tool} нет [ToolEffect]; вид Unknown (действует как Irreversible), " +
+            "повтор Unknown (действует как NotIdempotent). Объявите их атрибутом [ToolEffect(...)] на методе",
             Spec.Name);
 
     /// <inheritdoc />

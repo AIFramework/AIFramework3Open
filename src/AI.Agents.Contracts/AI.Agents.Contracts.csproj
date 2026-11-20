@@ -1,20 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Общие контракты агентного слоя: инструмент, движок, порт модели, подтверждение.
+    Общие контракты агентного слоя: инструмент, движок, запуск, порт модели, подтверждение.
     Только BCL (System.Text.Json входит в общий фреймворк): ни одного PackageReference
     и ProjectReference, это проверяет тест AI.Agents.Contracts.Tests.
-    Статус предварительный: пакет NuGet не выпускается до объявления стабильности
-    (CONTRIBUTING.md, «Изменение публичного API»), поэтому IsPackable=false
-    перекрывает правило корневого Directory.Build.props для src.
+    Предварительный пакет (суффикс версии -preview, решение владельца 20.11): собирается
+    build.ps1 -Pack, но build/nuget-push.ps1 выкладывает его только с флагом -IncludePreview.
+    Стабильные пакеты (в том числе AI.LLM) от него не зависят.
   -->
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
     <RootNamespace>AI.Agents.Contracts</RootNamespace>
+    <PackageId>AI.Agents.Contracts</PackageId>
+    <Version>0.1.0-preview.1</Version>
+    <Description>Agent contracts for AIFramework: tool, engine, run, model port, human question. Preview: the API may change.</Description>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
 </Project>

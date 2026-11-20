@@ -478,6 +478,51 @@ namespace AI.Agents.Contracts.Models
         Named = 4,
     }
 }
+namespace AI.Agents.Contracts.Runs
+{
+    public sealed record EffectRecord : System.IEquatable<AI.Agents.Contracts.Runs.EffectRecord>
+    {
+        public EffectRecord() { }
+        public required string Key { get; init; }
+        public required AI.Agents.Contracts.Tools.ToolResult Result { get; init; }
+        public required string Tool { get; init; }
+    }
+    public interface IHumanChannel
+    {
+        System.Threading.Tasks.Task<AI.Agents.Contracts.Engines.Answer> AskAsync(AI.Agents.Contracts.Engines.Question question, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IRunStore
+    {
+        System.Threading.Tasks.Task<AI.Agents.Contracts.Runs.RunState?> GetAsync(string runId, System.Threading.CancellationToken cancellationToken = default);
+        System.Collections.Generic.IAsyncEnumerable<AI.Agents.Contracts.Runs.RunState> ListAsync(AI.Agents.Contracts.Runs.RunStatus status, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task SaveAsync(AI.Agents.Contracts.Runs.RunState run, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public sealed record RunState : System.IEquatable<AI.Agents.Contracts.Runs.RunState>
+    {
+        public RunState() { }
+        public required AI.Agents.Contracts.Engines.AgentRef Agent { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Runs.EffectRecord>? Effects { get; init; }
+        public System.Text.Json.Nodes.JsonObject? EngineState { get; init; }
+        public required string Id { get; init; }
+        public AI.Agents.Contracts.Engines.Question? Question { get; init; }
+        public required AI.Agents.Contracts.Runs.RunStatus Status { get; init; }
+        public required AI.Agents.Contracts.Engines.EngineTask Task { get; init; }
+        public required System.DateTimeOffset Updated { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Runs.RunStatus>))]
+    public enum RunStatus
+    {
+        Unknown = 0,
+        Queued = 1,
+        Running = 2,
+        AwaitsUser = 3,
+        Done = 4,
+        Incomplete = 5,
+        Failed = 6,
+        Cancelled = 7,
+        Lost = 8,
+    }
+}
 namespace AI.Agents.Contracts.Tools
 {
     public sealed record About : System.IEquatable<AI.Agents.Contracts.Tools.About>
@@ -550,6 +595,19 @@ namespace AI.Agents.Contracts.Tools
         public bool ShowToModel { get; init; }
         public string? Uri { get; init; }
     }
+    public static class ToolIdempotencies
+    {
+        public static AI.Agents.Contracts.Tools.ToolIdempotency Effective(this AI.Agents.Contracts.Tools.ToolIdempotency idempotency) { }
+        public static AI.Agents.Contracts.Tools.ToolIdempotency Effective(this AI.Agents.Contracts.Tools.ToolIdempotency? idempotency) { }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Tools.ToolIdempotency>))]
+    public enum ToolIdempotency
+    {
+        Unknown = 0,
+        Idempotent = 1,
+        WithKey = 2,
+        NotIdempotent = 3,
+    }
     public sealed record ToolResult : System.IEquatable<AI.Agents.Contracts.Tools.ToolResult>
     {
         public ToolResult() { }
@@ -572,6 +630,7 @@ namespace AI.Agents.Contracts.Tools
         public required AI.Agents.Contracts.Tools.ToolAction Action { get; init; }
         public required string Description { get; init; }
         public string? Group { get; init; }
+        public AI.Agents.Contracts.Tools.ToolIdempotency? Idempotency { get; init; }
         public required string Name { get; init; }
         public required System.Text.Json.JsonElement Parameters { get; init; }
         public static System.StringComparer NameComparer { get; }

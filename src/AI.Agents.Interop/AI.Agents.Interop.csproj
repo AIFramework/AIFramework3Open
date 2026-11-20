@@ -1,24 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Адаптеры между старыми типами агентного слоя AI.LLM (ReAct) и контрактами AI.Agents.Contracts.
-    Отдельная сборка, а не часть AI.LLM: AI.LLM публикуется в NuGet, а контракты — нет
-    (предварительный статус), и пакет не может зависеть от неопубликованной сборки.
-    Поэтому и эта сборка не упаковывается: IsPackable=false перекрывает правило
-    корневого Directory.Build.props для src. Подробности — README.md.
+    Адаптеры между старыми типами агентного слоя AI.LLM (ReAct, PlanningAgent) и контрактами
+    AI.Agents.Contracts: инструменты, модель, гейт эффектов, движки IEngine.
+    Отдельная сборка, а не часть AI.LLM: стабильный пакет AI.LLM не зависит от предварительных
+    контрактов (решение владельца 20.11). Эта сборка ссылается на обе.
+    Предварительный пакет (суффикс версии -preview): build/nuget-push.ps1 выкладывает его только
+    с флагом -IncludePreview.
   -->
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
     <RootNamespace>AI.Agents.Interop</RootNamespace>
+    <PackageId>AI.Agents.Interop</PackageId>
+    <Version>0.1.0-preview.1</Version>
+    <Description>Adapters between AI.LLM agents (ReAct, PlanningAgent, attributed tools) and AI.Agents.Contracts: tool sets, model port, effect gate, IEngine. Preview: the API may change.</Description>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AI.LLM\AI.LLM.csproj" />
     <ProjectReference Include="..\AI.Agents.Contracts\AI.Agents.Contracts.csproj" />
   </ItemGroup>
+
+  <!--
+    Зависимость на AI.LLM в пакете — точная версия [X], та же, с которой собрана сборка (решение
+    владельца 20.11). Interop обращается к внутренним членам AI.LLM через InternalsVisibleTo, а их
+    форма от версии к версии не обещана: с диапазоном >= X новая AI.LLM сломала бы адаптер во время
+    выполнения, а не при сборке. Interop и AI.LLM выпускаются вместе; привязку снимают, когда нужные
+    члены станут публичными. Сам AI.LLM для этого не меняется: версию в пакете переписывает цель
+    ниже, после того как NuGet прочитал версии ссылок на проекты.
+  -->
+  <Target Name="PinAiLlmExactVersion" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Condition="'%(Filename)' == 'AI.LLM'">
+        <ProjectVersion>[%(ProjectVersion)]</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
 
 </Project>

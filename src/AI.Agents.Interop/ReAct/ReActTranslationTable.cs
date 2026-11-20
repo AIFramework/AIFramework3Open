@@ -115,6 +115,9 @@ public static class ReActTranslationTable
         ["ToolSpec.Action"] =
             "у IReActTool вида действия нет: вперед Unknown или явный параметр адаптера (Read сам не появляется), " +
             "обратно не переносится — перед вызовом вид из Classify пишется в журнал",
+        ["ToolSpec.Idempotency"] =
+            "у IReActTool оси «повтор безопасен» нет: вперед null (не объявлено), а из [ToolEffect] через " +
+            "AttributedTools.AsToolSet; обратно не переносится, решает гейт эффектов",
         ["ToolSpec.Group"] = "у IReActTool группы нет; метки (Tags) в группу не превращаются",
         ["ToolSpec.About"] = "у IReActTool есть только Description; вперед null",
         ["IReActTool.Tags"] = "в контракте меток нет, а превращать их в ToolSpec.Group нельзя: смысл другой",

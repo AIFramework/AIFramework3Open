@@ -14,6 +14,19 @@ public sealed class NoReflectionTests
     private static readonly string[] Markers =
         ["System.Reflection", "GetMethod(", "GetField(", "BindingFlags", ".Invoke(", "CreateDelegate"];
 
+    /// <summary>
+    /// Файлы, которым разрешена часть маркеров, с причиной. Исключение ровно одно: чтение пользовательского
+    /// атрибута [ToolEffect] с MethodInfo метода-инструмента (решение владельца 20.11). Вызов членов AI.LLM через
+    /// отражение и там запрещен: для этого файла снимаются только маркеры чтения метаданных.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, (string[] Allowed, string Reason)> Exceptions =
+        new Dictionary<string, (string[], string)>
+        {
+            ["src/AI.Agents.Interop/Effects/AttributedTools.cs"] = (
+                ["System.Reflection", "BindingFlags"],
+                "чтение [ToolEffect] с метода пользователя и поиск [ToolEffect] без [AgentTool]"),
+        };
+
     [Fact]
     public void InteropSources_DoNotUseReflection()
     {
@@ -30,13 +43,23 @@ public sealed class NoReflectionTests
             .SelectMany(path =>
             {
                 string text = File.ReadAllText(Path.Combine(Repository.Root, path));
-                return Markers.Where(marker => text.Contains(marker, StringComparison.Ordinal))
+                string[] allowed = Exceptions.TryGetValue(path, out var exception) ? exception.Allowed : [];
+                return Markers.Where(marker => !allowed.Contains(marker) && text.Contains(marker, StringComparison.Ordinal))
                     .Select(marker => $"{path}: {marker}");
             })];
 
         Assert.True(offenders.Length == 0,
             "Отражение в src/AI.Agents.Interop — вызывайте члены AI.LLM напрямую (InternalsVisibleTo): " +
             string.Join(", ", offenders));
+    }
+
+    /// <summary>Исключение одно и указывает на существующий файл: иначе оно разрешало бы отражение где угодно.</summary>
+    [Fact]
+    public void Exceptions_AreExactlyOneExistingFile()
+    {
+        Assert.Single(Exceptions);
+        foreach (string path in Exceptions.Keys)
+            Assert.True(File.Exists(Path.Combine(Repository.Root, path)), path);
     }
 
     private static bool IsBuildOutput(string path) =>

@@ -159,6 +159,7 @@ public static class ModelTranslationTable
         ["MessagePart.Audio.Origin"] = "то же, что MessagePart.Text.Origin",
         ["ToolCall.EffectKey"] = "в старой форме ключа действия нет; модель его не присылает",
         ["ToolSpec.Action"] = "модели не нужен; обратно — ToolAction.Unknown",
+        ["ToolSpec.Idempotency"] = "модели не нужен; обратно — null (не объявлено)",
         ["ToolSpec.Group"] = "модели не передается",
         ["ToolSpec.About"] = "модели не передается: у FunctionDefinition есть только описание",
 
