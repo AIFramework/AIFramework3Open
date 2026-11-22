@@ -22,6 +22,7 @@ namespace AI.Agents.Interop.Effects
     }
     public static class EffectKeys
     {
+        public const string Version = "ek1:";
         public static string Create(string runId, string toolName, System.Text.Json.JsonElement arguments) { }
     }
     [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple=false, Inherited=false)]
