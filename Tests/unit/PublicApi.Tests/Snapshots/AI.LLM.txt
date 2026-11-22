@@ -1656,8 +1656,6 @@ namespace AI.LLM.Clients.Tavily.Models
     public class ExtractArgs
     {
         public ExtractArgs() { }
-        [System.Text.Json.Serialization.JsonPropertyName("api_key")]
-        public string ApiKey { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("extract_depth")]
         public string ExtractDepth { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("format")]
@@ -1710,8 +1708,6 @@ namespace AI.LLM.Clients.Tavily.Models
     public class SearchArgs
     {
         public SearchArgs() { }
-        [System.Text.Json.Serialization.JsonPropertyName("api_key")]
-        public string ApiKey { get; set; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("country")]
         public string Country { get; set; }

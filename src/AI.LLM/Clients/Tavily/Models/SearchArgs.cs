@@ -16,9 +16,6 @@ public class SearchArgs
     [JsonPropertyName("include_images")]
     public bool IncludeImages { get; set; }
 
-    [JsonPropertyName("api_key")]
-    public string ApiKey { get; set; }
-
     [JsonPropertyName("search_depth")]
     public string SearchDepth { get; set; }
 

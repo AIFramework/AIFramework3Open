@@ -4,9 +4,6 @@ namespace AI.LLM.Clients.Tavily.Models;
 
 public class ExtractArgs
 {
-    [JsonPropertyName("api_key")]
-    public string ApiKey { get; set; }
-
     [JsonPropertyName("urls")]
     public IEnumerable<string> Urls { get; set; }
 

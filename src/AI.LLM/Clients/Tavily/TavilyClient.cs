@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,27 +13,46 @@ public class TavilyClient : IDisposable
     public const string Host = "https://api.tavily.com";
 
     private readonly HttpClient _httpClient;
-    private readonly HttpClientHandler _httpHandler;
-    private readonly string _apiKey;
+    private readonly HttpMessageHandler _httpHandler;
     private int _disposed; // 0 = not disposed, 1 = disposed (для Interlocked)
 
     public TavilyClient(string apiKey, WebProxy proxy = null)
+        : this(apiKey, CreateHandler(proxy))
     {
-        _apiKey = apiKey;
-        if (string.IsNullOrEmpty(apiKey))
-            throw new ArgumentException($"{nameof(apiKey)} is missing");
+    }
 
-        _httpHandler = new HttpClientHandler();
-        if (proxy != null)
+    /// <summary>
+    /// Клиент поверх готового обработчика (подставного в тестах). Ключ ставится один раз —
+    /// заголовком <c>Authorization: Bearer</c> на весь клиент; в тело запросов он не попадает,
+    /// а в поле объекта не хранится, чтобы не утечь в лог или текст исключения.
+    /// </summary>
+    internal TavilyClient(string apiKey, HttpMessageHandler handler)
+    {
+        if (string.IsNullOrEmpty(apiKey))
         {
-            _httpHandler.UseProxy = true;
-            _httpHandler.Proxy = proxy;
+            handler?.Dispose();
+            throw new ArgumentException($"{nameof(apiKey)} is missing");
         }
+
+        _httpHandler = handler ?? throw new ArgumentNullException(nameof(handler));
         _httpClient = new HttpClient(_httpHandler)
         {
             BaseAddress = new Uri(Host),
             Timeout = TimeSpan.FromSeconds(60),
         };
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+    }
+
+    private static HttpClientHandler CreateHandler(WebProxy proxy)
+    {
+        var handler = new HttpClientHandler();
+        if (proxy != null)
+        {
+            handler.UseProxy = true;
+            handler.Proxy = proxy;
+        }
+
+        return handler;
     }
 
     public async Task<SearchResult> SearchAsync(string query, int maxResults = 5, bool includeRawContent = true, bool includeAnswer = false, bool includeImages = false,
@@ -61,7 +81,6 @@ public class TavilyClient : IDisposable
 
                 using var response = await _httpClient.PostAsJsonAsync("/search", new SearchArgs
                 {
-                    ApiKey = _apiKey,
                     IncludeAnswer = includeAnswer,
                     IncludeImages = includeImages,
                     IncludeImageDescriptions = includeImageDescriptions,
@@ -123,7 +142,6 @@ public class TavilyClient : IDisposable
                 
                 using var response = await _httpClient.PostAsJsonAsync("/extract", new ExtractArgs
                 {
-                    ApiKey = _apiKey,
                     Urls = urls,
                     IncludeImages = includeImages,
                     ExtractDepth = extractDepth.GetDescription(),
