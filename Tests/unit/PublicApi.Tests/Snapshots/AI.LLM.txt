@@ -1656,6 +1656,10 @@ namespace AI.LLM.Clients.Tavily.Models
     public class ExtractArgs
     {
         public ExtractArgs() { }
+        [System.Obsolete("Ключ передаётся заголовком Authorization: Bearer через конструктор TavilyClient; " +
+            "свойство игнорируется и будет удалено в следующей мажорной версии")]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string ApiKey { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("extract_depth")]
         public string ExtractDepth { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("format")]
@@ -1708,6 +1712,10 @@ namespace AI.LLM.Clients.Tavily.Models
     public class SearchArgs
     {
         public SearchArgs() { }
+        [System.Obsolete("Ключ передаётся заголовком Authorization: Bearer через конструктор TavilyClient; " +
+            "свойство игнорируется и будет удалено в следующей мажорной версии")]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string ApiKey { get; set; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("country")]
         public string Country { get; set; }

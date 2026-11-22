@@ -4,6 +4,10 @@ namespace AI.LLM.Clients.Tavily.Models;
 
 public class ExtractArgs
 {
+    [Obsolete("Ключ передаётся заголовком Authorization: Bearer через конструктор TavilyClient; свойство игнорируется и будет удалено в следующей мажорной версии")]
+    [JsonIgnore]
+    public string ApiKey { get; set; }
+
     [JsonPropertyName("urls")]
     public IEnumerable<string> Urls { get; set; }
 

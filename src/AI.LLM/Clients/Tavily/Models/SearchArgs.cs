@@ -16,6 +16,10 @@ public class SearchArgs
     [JsonPropertyName("include_images")]
     public bool IncludeImages { get; set; }
 
+    [Obsolete("Ключ передаётся заголовком Authorization: Bearer через конструктор TavilyClient; свойство игнорируется и будет удалено в следующей мажорной версии")]
+    [JsonIgnore]
+    public string ApiKey { get; set; }
+
     [JsonPropertyName("search_depth")]
     public string SearchDepth { get; set; }
 

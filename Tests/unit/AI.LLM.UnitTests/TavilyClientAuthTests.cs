@@ -66,6 +66,29 @@ public class TavilyClientAuthTests
         AssertNoKey(handler.Bodies[0]);
     }
 
+    /// <summary>
+    /// Устаревшее <c>ApiKey</c> оставлено ради совместимости API, но в тело не сериализуется:
+    /// даже если вызывающий его заполнил, ключ уходит только заголовком.
+    /// </summary>
+    [Fact]
+    public void ObsoleteApiKey_IsNotSerializedIntoBody()
+    {
+#pragma warning disable CS0618 // проверяем именно устаревшее свойство
+        var search = new SearchArgs { Query = "запрос", ApiKey = Key };
+        var extract = new ExtractArgs { Urls = ["https://site/page"], ApiKey = Key };
+#pragma warning restore CS0618
+
+        // Те же настройки, что у PostAsJsonAsync в клиенте.
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        var searchBody = JsonSerializer.Serialize(search, options);
+        var extractBody = JsonSerializer.Serialize(extract, options);
+
+        AssertNoKey(searchBody);
+        AssertNoKey(extractBody);
+        Assert.DoesNotContain("apiKey", searchBody, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("apiKey", extractBody, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Ключ не должен попадать в текст исключения при отказе сервера.</summary>
     [Fact]
     public async Task Search_Unauthorized_DoesNotLeakKeyInException()
