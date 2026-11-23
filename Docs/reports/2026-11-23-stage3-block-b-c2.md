@@ -1,0 +1,175 @@
+# Этап 3, блок Б, сессия С2: общие понятия в открытых контрактах
+
+Дата: 23.11.2026. Репозиторий AIFramework3Open, ветка main. Правки только добавляют типы и члены. Прежние входы, у которых был молчаливый выбор, помечены `[Obsolete]`, работают как раньше и ведут на новые перегрузки. Ничего не удалено. MASAgents, MASMarketplace, FractalCoder и `Neighbors.props` не трогались.
+
+Вход:
+
+- разведка блока Б: `AIRefactoring/разведка/2026-11-22-stage3-block-b-recon.md`, `-2.md`, `-3.md` (механизмы М1–М6, состав С2);
+- проект обвязок `MASAgents/docs/design/2026-11-22-obvyazki-reliability.md`, раздел 0.1 (шесть кодов);
+- отчет порта `MASAgents/docs/reports/2026-11-22-stage3-block-a4-model-port.md`, развилки 3 и 4;
+- разведка `2026-11-22-fractal-coder-recon.md` и отчет FractalCoder `2026-11-22-fractal-reliability.md`, развилка 1.
+
+## Коммиты
+
+| Коммит | Что |
+|---|---|
+| `3811190` | код, тесты, снимки API и README сборок: коды исхода, гейт с прежним журналом, правило строкового результата `[AgentTool]`, порт модели, бюджет и сторож, классификатор |
+| этот отчет | `Docs/reports/2026-11-23-stage3-block-b-c2.md` |
+
+В коммиты вошли только файлы этой сессии (52 файла кода и тестов), чужих изменений в рабочем дереве не было.
+
+## Что сделано
+
+### Состав С2 по разведке: гейт с тремя исходами и прежними записями
+
+- **Код временного отказа в контрактах.** Новый словарь `ToolCodes` (пространство `AI.Agents.Contracts.Tools`), в нем `transient`.
+- **Гейт снимает запись при отказе до действия.** `EffectGate` снимает запись не только при `Denied`, `NeedsInput`, `AwaitsUser`, но и при `Failed` с кодом отказа до действия (`ToolCodes.NotPerformed`). Если запись была раньше (например, `Unknown` прошлого вызова), она возвращается: временный отказ повтора не стирает того, что первый вызов мог состояться.
+- **Гейт принимает прежний журнал (Ф6 на уровне гейта).** Новый конструктор `new EffectGate(set, previous, log)` берет `RunState.Effects`. Ключ с итогом `Ok` второй раз не исполняется. Начатый с неизвестным исходом ключ повторяется только при `Idempotent` и `WithKey`, при `NotIdempotent` гейт отвечает `repeat_unsafe`. Испорченный журнал (два раза один ключ, пустая запись) — `ArgumentException`.
+- **Гейт сообщает о каждом изменении.** Событие `JournalChanged` со снимком всего журнала приходит на начало вызова, итог и снятие записи. Последний снимок всегда самый новый, даже при одновременных вызовах. Исключение обработчика пишется ошибкой в журнал и вызов не прерывает.
+- **Закреп в `Neighbors.props` не делался:** по заданию это отдельный шаг.
+
+### 1. Один результат инструмента (М3)
+
+- `ToolCodes` — один словарь на 13 кодов:
+  - пять из разведки: `transient`, `unknown_result`, `partial`, `not_configured`, `needs_input`;
+  - шесть кодов обвязок: `needs_reconnect`, `pending`, `too_long`, `bad_markup`, `no_rights`, `not_found`;
+  - два кода гейта и движка: `repeat_unsafe`, `unknown_tool`.
+- Код уточняет статус, а не заменяет его. Пары описаны в XML-документации и в README контрактов: `Ok` + `partial` или `pending`, `Unknown` + `unknown_result`, `Failed` + остальные.
+- **Отложенный результат — часть того же `ToolResult`.** Статус `Ok`, код `pending` и новое необязательное поле `ToolResult.Handle`: по нему хост забирает итог позже. Нового типа результата нет. Гейт держит такую запись, и повтор вызова возвращает тот же `Handle`, а не запускает действие второй раз.
+- `ToolResult.ErrorCode` теперь описан как код исхода из словаря: при `Ok` он уточняет удачу. Имя поля не менялось, см. развилку 2.
+- Коды адаптеров, совпадающие со словарем, стали ссылками на него: `EffectGateCodes.RepeatUnsafe`, `ReActInteropCodes.NeedsInput`, `ReActInteropCodes.UnknownTool`. Значения не изменились.
+
+### 2. Одно объявление инструмента (М1) и итог `[AgentTool]`
+
+Вид действия и идемпотентность для `[AgentTool]` уже объявлялись атрибутом `[ToolEffect]` в Interop (очередь 0). AI.LLM на `AI.Agents.*` по-прежнему не ссылается. В С2 закрыта вторая половина: строка инструмента больше не считается удачей молча.
+
+- **Правило выбирается явно.** Новое перечисление `ToolTextResult` в AI.LLM: `Unspecified` (отвергается), `Success` (строка — удача, как раньше), `Refused` (метод обязан вернуть итог с признаком успеха).
+- **При `Refused` проверка идет до вызова.** Инструмент со строкой, `object` или `ValueTask` — `ArgumentException` при создании источника с именами таких инструментов. Инструмент, зарегистрированный позже, проверяется на следующем `GetTools`.
+- **Одно правило на оба пути.** Его принимают `ToolRegistryToolSource` (конструктор и `FromObjects`), `ReActAgentBuilder` (`WithAttributedTools`, `WithToolRegistry`) и `AttributedTools.AsToolSet`. Старые входы без правила помечены `[Obsolete]` и работают как `Success`.
+- **Итог контракта проходит целиком.** Метод `[AgentTool]` может вернуть `ToolResult` контракта (или `Task` с ним). Через `AttributedTools` он доходит до набора без потерь: статус, код, `Handle`, подтверждения. Механизм: закрытое поле `ToolExecutionResult.Value` в AI.LLM, закрытый конструктор источника через `InternalsVisibleTo` и одно правило в `ReActTranslation`: `Payload` с итогом контракта и есть итог. Перевод остается в одном месте, `ReActTranslation.Carry`.
+
+### 3. Порт модели (`IModelPort`)
+
+- **Температура и уровень размышления в `ModelAsk`.** Поля `Temperature` (`double?`, от 0) и `Reasoning` (`ReasoningLevel?`: `None`, `Minimal`, `Low`, `Medium`, `High`). `null` значит «выбирает порт». Отрицательная температура и `ReasoningLevel.Unknown` отвергаются при создании.
+- **Перевод уровня в AI.LLM.** `ReasoningSettings.Effort`, если начальные настройки порта говорят объектом рассуждения (OpenRouter), иначе `ReasoningEffort`. Обратно температура и знакомый уровень переводятся, а не теряются.
+- **Текст сбоя для человека рядом с кодом.** Новое поле `LlmAnswer.FailureText`: сообщение исключения клиента, текст отказа модели или причина `content_filter`. Обратно в старую форму текст дописывается к сообщению `LlmRequestException`.
+- **Размер окна.** `ModelCapabilities.ContextTokens` был в контракте с Ф1. `Describe` порта над клиентом отдает то, что задал вызывающий, правки не понадобилось.
+- **Ответ по схеме — итог со статусом и расходом.** Правило одно на все реализации: `LlmAnswers.RequireJson`.
+  - `Ok` значит разбираемый JSON.
+  - Ответ не JSON — `Failed` с новым кодом `LlmFailure.InvalidOutput`. Текст ответа уходит в `FailureText`, расход и модель сохраняются.
+  - Пустой ответ остается `Empty`, а не сбоем.
+  - Порт над клиентом применяет правило к каждому запросу со схемой.
+- `ModelTranslation.cs` был 804 строки. Он разделен на три части одного `partial` класса (382, 274 и 246 строк), API не изменился.
+
+### 4. Бюджет хода и сторож потока
+
+Контракт:
+
+- `IRunBudget.Exhausted` (`CancellationToken`) с реализацией по умолчанию `CancellationToken.None`: прежние реализации не ломаются;
+- `RunLimits` — пределы хода: шаги, токены, деньги, вызовы модели, длительность; `Narrow(AgentLimits)` сводит их с потолками агента, побеждает меньший;
+- `StopCode.CallLimit` (`call_limit`);
+- `StreamWatch` — сторож потока: `FirstChunk` и `Idle`;
+- `LlmFailure.Stalled` — модель замолчала.
+
+Эталонные реализации в Interop:
+
+- **`LimitedRunBudget`.**
+  - Первый исчерпанный предел запоминается и отдается кодом `TryStep`.
+  - Исчерпание отменяет `Exhausted` сразу при `Spend`, не дожидаясь следующего шага.
+  - Срок работает через `TimeProvider`.
+  - Вызов без стоимости при пределе денег считается в `UnpricedCalls`: неполный учет не выглядит точным.
+- **`port.Watched(watch)`.**
+  - Нет первого фрагмента за `FirstChunk` или тишина дольше `Idle` посреди ответа — итог `Failed`/`Stalled` с причиной в `FailureText`, внутренний поток отменяется.
+  - Фрагмент рассуждения считается признаком жизни.
+  - Порт без настоящего потока идет без сторожа: молчание у него не отличить от работы.
+
+Реализация MAS (`Shared.Llm`: `RunBudget`, `FirstTokenGuard`) не тронута.
+
+### 5. Классификатор поверх `IModelPort`
+
+- **`ModelClassifier` в Interop.**
+  - Запрос с температурой 0, класс — первое слово ответа из списка.
+  - Итог `Classification`: статус `Ok`, `NoClass`, `Empty` или `Failed`, класс и весь `LlmAnswer` с расходом и текстом сбоя.
+  - Сбой судьи больше не выглядит как ответ «нет замечаний».
+- **`ClassifierWithLLM` помечен `[Obsolete]` и работает как прежде.** Путь перехода со старой настройки — `ModelClassifier.FromChatApi(chatApi, classes, prompt)` через `LLMBase` и `ModelPort.Fixed`.
+- **Вероятностей классов у замены нет:** порт не отдает вероятности токенов (развилка 3).
+
+### 6. Одна ссылка на источник (М6)
+
+В С2 не входит: по разведке М6 — сессии С7 (MASAgents) и С8 (MASMarketplace). Нужные типы фреймворка (`Citation`, `SourceLocation`, `ToolResult.Evidence`) готовы с Ф1б, правок в AIF не требуется.
+
+## Изменения публичного API
+
+Снимки обновлены: `AI.Agents.Contracts.txt` +56 строк, `AI.Agents.Interop.txt` +49, `AI.LLM.txt` +23. Удалений нет.
+
+| Сборка | Добавлено |
+|---|---|
+| AI.Agents.Contracts | `ToolCodes`, `ToolResult.Handle`, `ReasoningLevel`, `ModelAsk.Temperature`, `ModelAsk.Reasoning`, `LlmAnswer.FailureText`, `LlmAnswers.RequireJson`, `LlmFailure.InvalidOutput`, `LlmFailure.Stalled`, `StreamWatch`, `RunLimits`, `StopCode.CallLimit`, `IRunBudget.Exhausted` (с реализацией по умолчанию) |
+| AI.Agents.Interop | `EffectGate(set, previous, log)`, `EffectGate.JournalChanged`, `AttributedTools.AsToolSet(instances, textResults, log)`, `LimitedRunBudget`, `ModelPort.Watched`, `ModelClassifier`, `Classification`, `ClassificationStatus` |
+| AI.LLM | `ToolTextResult`; перегрузки с ним у `ToolRegistryToolSource` (конструктор, `FromObjects`) и `ReActAgentBuilder` (`WithAttributedTools`, `WithToolRegistry`) |
+
+Помечены `[Obsolete]`, поведение прежнее:
+
+- `ToolRegistryToolSource(ToolRegistry)` и `ToolRegistryToolSource.FromObjects(params object[])` — строка молча считается удачей;
+- `ReActAgentBuilder.WithAttributedTools(object)` и `WithToolRegistry(ToolRegistry)` — то же;
+- `AttributedTools.AsToolSet(instances, log)` — то же;
+- `ClassifierWithLLM` целиком — замена `ModelClassifier`.
+
+`CS0618` в репозитории — подсказка, а не ошибка, поэтому сборка не ломается. Соседи закреплены на коммите AIF `4744852` и увидят пометки только при обновлении закрепа.
+
+## Храповики
+
+| Тест | Что держит |
+|---|---|
+| `ToolCodesTests` (Contracts) | каждая константа в `ToolCodes.All`, коды в `snake_case`, все 11 кодов разведки и обвязок на месте, список «отказа до действия» меняется только вместе с тестом, коды словаря не пишутся литералом в `src/AI.Agents.Contracts` и `src/AI.Agents.Interop` |
+| `EffectGateJournalTests` | каждый код `NotPerformed` снимает запись; отказ по существу (`unknown_result`, `repeat_unsafe`, свой код) держит запись; `transient` после `Unknown` возвращает `Unknown`; `pending` не запускается второй раз; прежний журнал: `Ok` без вызова, `Unknown` повторяется только при объявленной безопасности; испорченный журнал отвергается; `JournalChanged` на начало, итог и снятие, исключение обработчика не ломает вызов |
+| `AttributedResultTests` | итог контракта проходит целиком (код, `Handle`, `Origin`); `Failure` из AI.LLM и исключение — `Failed`; при `Refused` строковый инструмент — ошибка с его именем; `Success` — прежнее поведение; `Unspecified` отвергается; `transient` через гейт не оставляет записи |
+| `ToolTextResultTests` (AI.LLM) | то же правило на пути AI.LLM, проверка поздно зарегистрированного инструмента; старые входы есть, помечены `[Obsolete]` и ведут себя по-старому |
+| `ModelAskSettingsTests` | температура и уровень доходят до `GenerateSettings` в нужное поле, настройки порта не мутируются; обратно переводятся без потерь, незнакомый уровень — потеря, а не догадка; недопустимые значения отвергаются; `FailureText` из исключения и обратно в сообщение; ответ по схеме не JSON — `InvalidOutput` с расходом, пустой — `Empty` |
+| `StreamWatchTests` | молчание до первого фрагмента и посреди ответа — `Stalled`, внутренний поток отменен; живой поток проходит; `AskAsync` тоже под сторожем; порт без потока не сторожится; отмена вызывающим — исключение, а не `Stalled` |
+| `LimitedRunBudgetTests` | у каждого предела свой код, исчерпание отменяет `Exhausted`, первый предел остается, вызов без цены виден, срок, `Narrow`, `Exhausted` по умолчанию — `None` |
+| `ModelClassifierTests` | `Ok`, `NoClass`, `Empty`, `Failed` различаются; расход и текст сбоя в итоге; температура 0 и защита места вставки; неработоспособная настройка отвергается при создании |
+| прежние храповики | `JsonRoundTripTests` (образцы для `RunLimits`, `StreamWatch`, новых полей), таблицы перевода ReAct и модели (новые поля записаны), `OneTranslationPlaceTests`, `NoReflectionTests`, `OwnershipTests`, `PublicApi.Tests` |
+
+Поправлены три прежних теста, которые фиксировали старое поведение:
+
+- отказ модели раньше терялся, теперь едет в `FailureText`;
+- температура раньше была потерей, теперь переводится;
+- проверка перевода сбоя в старую форму и обратно учитывает два новых кода.
+
+## Проверка
+
+- Сборка `AIFramework.Full.sln -c Release` и `Tests/AI.ML.Integration`: 0 ошибок; в правленых файлах новых предупреждений нет (113 предупреждений решения — прежние, в документации AI.LLM и других сборках).
+- Все 12 тестовых проектов из `build-and-test.yml` локально в Release: 4526 тестов, 0 падений. Контракты — 194 (было 188), Interop — 275 (было 206), AI.LLM — 203, `PublicApi.Tests` — 53.
+- Тесты сторожа потока, бюджета и гейта прогнаны три раза подряд: устойчивы. Тест живого потока идет с пределами 10 с, чтобы не зависеть от скорости раннера.
+- CI GitHub на коммите `3811190`: Build and test (прогон 45144362310) и Docs lint (45144362302) — зеленые.
+
+## Что теперь могут взять MASAgents (С3) и FractalCoder
+
+MASAgents, сессия С3:
+
+- `ToolCodes` вместо своих строк: `IntegrationCheck` с кодом, `unknown` MCP → `ToolStatus.Unknown` + `unknown_result` (а не успех), частичный успех расписаний → `Ok` + `partial`;
+- гейт на сборке набора хода с прежним журналом: `new EffectGate(set, runJournal.Effects)` и `JournalChanged` → `RunJournal`. Второго гейта рядом не нужно (развилка 3 разведки решена вариантом (а));
+- `LlmModelPort`: заполнить `FailureText` (сейчас текст уходит только в журнал), применить `LlmAnswers.RequireJson` к ответу по схеме (закрывает развилку 4 отчета А4 со стороны контракта), читать `ModelAsk.Temperature` и `Reasoning` (развилка 3 отчета А4: пакеты можно переводить на порт без потери температуры);
+- позже `Shared.Llm.RunBudget` и `FirstTokenGuard` встают на `IRunBudget.Exhausted`, `RunLimits`, `StreamWatch` и `LlmFailure.Stalled`; эталон — `LimitedRunBudget` и `ModelPort.Watched`;
+- `CommitClassifier` (BrowserAct) — на `ModelClassifier`, если ему не нужны вероятности.
+
+FractalCoder, после обновления пакетов AIF (развилка 2 его отчета):
+
+- `AttributedTools.AsToolSet(tools, ToolTextResult.Refused)` вместо меток «Не выполнено: »: инструменты возвращают `ToolResult` контракта (`Failed` + `not_found` и т. п.) или `ToolResult.Failure` из AI.LLM; переход можно делать по одному инструменту с `ToolTextResult.Success` на время перевода;
+- классификаторы стратегии, навыков и застрявшего хода и судья критика — `ModelClassifier` поверх своего порта (`ModelClient` через `ModelPort.Fixed`): повторы и цена, сбой отличим от «нет замечаний» (развилка 1 его отчета закрыта);
+- бюджет хода — `LimitedRunBudget`, сторож — `port.Watched(new StreamWatch { FirstChunk = …, Idle = … })`: закрывает сбой №6 разведки (поставщик замолчал посреди потока).
+
+## Развилки для решения владельца
+
+1. **Список «отказа до действия» шире, чем в разведке.** Разведка называла только `transient`. Гейт снимает запись для девяти кодов: `transient`, `not_configured`, `needs_reconnect`, `needs_input`, `too_long`, `bad_markup`, `no_rights`, `not_found`, `unknown_tool`. Все они значат «сервер не принял, мир не изменился», и одно правило данными лучше веток. Риск в том, что инструмент, ошибочно вернувший такой код после действия, получит повтор. Варианты: (а) как сделано; (б) только `transient`, остальные пишутся как отказ по существу. Рекомендация: (а), список закреплен тестом, смена видна в ревью.
+2. **Имя `ToolResult.ErrorCode`.** Теперь поле несет и коды удачи (`partial`, `pending`). Варианты: (а) оставить имя, смысл описан в документации; (б) ввести `Code`, а `ErrorCode` пометить `[Obsolete]` до 1.0 контрактов. Рекомендация: (а) до 1.0, решить при объявлении стабильности.
+3. **Вероятности классов.** `IModelPort` не отдает вероятности токенов, поэтому `ModelClassifier` дает класс без вероятности. Варианты: (а) оставить; (б) добавить в `ModelAsk` запрос альтернатив токенов, а в `LlmAnswer` — их список. Рекомендация: (а), пока потребителю не нужен порог по вероятности.
+4. **Продолжение через движки (Ф6).** Гейт принимает прежний журнал, но `react` и `plan` по-прежнему отвечают `continuation_not_supported` на `EngineInput.State`. Пока гейт с журналом собирает хост и передает набором. Перевод движков на `State` — отдельный шаг.
+5. **Температура шага плана.** Старый исполнитель шага шел с температурой 0,15. Теперь ее можно выразить (`ModelAsk.Temperature`), но адаптер `plan` ее не задает: это изменило бы поведение. Задавать ли.
+6. **Новые значения перечислений.** `LlmFailure.InvalidOutput` и `Stalled` строгий конвертер JSON старых версий не прочтет. Риска сейчас нет: в базах эти значения не хранятся, MAS переводит неизвестное в `Other`. Но такие добавления будут повторяться. Нужно ли до 1.0 правило «новое значение перечисления — только с версией формы».
+7. **Где жить словарю ролей и лимитам MAS.** `RunLimits` описывает ход, а не тариф. Тарифные рамки хоста (плательщик, `MasChatBillingGate`) остаются в продукте. Подтвердить, что второй биллинг маркетплейса на `RunLimits` не переводится (развилка 13 разведки, не блок Б).
+
+## Не делалось
+
+Реранк, эмбеддинги, звук и картинка на выходе: по заданию это отдельные порты позже. Правки MASAgents, MASMarketplace и FractalCoder, закреп `Neighbors.props`.
