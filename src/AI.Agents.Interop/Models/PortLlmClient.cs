@@ -13,8 +13,9 @@ namespace AI.Agents.Interop.Models;
 /// </summary>
 /// <remarks>
 /// Итог без ответа становится тем исключением, которое ждут старые вызывающие (<c>LlmRequestException</c>, см.
-/// <see cref="ModelTranslation.ToException(LlmAnswer)"/>). Настройки, которых нет в контракте (температура,
-/// рассуждение и прочее), не передаются: о каждой — одно предупреждение на экземпляр клиента.
+/// <see cref="ModelTranslation.ToException(LlmAnswer)"/>). Температура и уровень размышления передаются; настройки,
+/// которых нет в контракте (TopP, бюджет рассуждения и прочее), не передаются: о каждой — одно предупреждение на
+/// экземпляр клиента.
 /// </remarks>
 internal sealed class PortLlmClient : ILLMClient
 {

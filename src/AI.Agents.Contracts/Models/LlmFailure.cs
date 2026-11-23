@@ -3,7 +3,8 @@ using System.Text.Json.Serialization;
 namespace AI.Agents.Contracts.Models;
 
 /// <summary>
-/// Машинный код сбоя вызова модели. Текст для человека из него строит продукт, в контракте его нет.
+/// Машинный код сбоя вызова модели. Решения принимаются по коду; текст для человека едет рядом, в
+/// <see cref="LlmAnswer.FailureText"/>.
 /// </summary>
 [JsonConverter(typeof(StrictEnumConverter<LlmFailure>))]
 public enum LlmFailure
@@ -34,4 +35,15 @@ public enum LlmFailure
 
     /// <summary>Прочий сбой.</summary>
     Other,
+
+    /// <summary>
+    /// Ответ не того вида, что просили: при <see cref="ModelAsk.Schema"/> текст не разбирается как JSON.
+    /// </summary>
+    InvalidOutput,
+
+    /// <summary>
+    /// Модель замолчала: первый фрагмент потока не пришел в срок или поток встал посреди ответа (сторож потока).
+    /// Действие на стороне провайдера могло начаться; повтор решает вызывающий.
+    /// </summary>
+    Stalled,
 }

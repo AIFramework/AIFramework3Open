@@ -120,6 +120,10 @@ public static class ReActTranslation
     {
         ArgumentNullException.ThrowIfNull(outcome);
 
+        // Инструмент вернул итог контракта целиком (AttributedTools): он и есть итог, переводить нечего.
+        if (outcome.Payload is ToolResult whole)
+            return whole;
+
         string text = outcome.Observation ?? string.Empty;
 
         // В контракте один текст. У финала движок брал ответ запуска из TerminalAnswer, поэтому он и
@@ -166,6 +170,21 @@ public static class ReActTranslation
         };
     }
 
+    /// <summary>
+    /// Итог контракта, который едет через старую форму целиком: в <c>Payload</c> лежит он сам, и
+    /// <see cref="ToResult(ReActToolOutcome, string, ILogger)"/> отдает его без потерь. Признак успеха и текст —
+    /// для тех, кто читает старую форму.
+    /// </summary>
+    internal static ReActToolOutcome Carry(ToolResult result) => new()
+    {
+        Ok = result.Status == ToolStatus.Ok,
+        Observation = result.Text,
+        ErrorCode = result.ErrorCode,
+        EndsTurn = result.EndsRun,
+        TerminalAnswer = result.EndsRun ? result.Text : null,
+        Payload = result,
+    };
+
     /// <summary>Итог контракта → итог старого инструмента.</summary>
     internal static ReActToolOutcome ToOutcome(ToolResult result, string toolName, ILogger log)
     {
@@ -206,6 +225,14 @@ public static class ReActTranslation
                 "Контракт → ReAct: у инструмента {Tool} {Count} файлов не переданы: в старой форме есть только " +
                 "картинки для модели с байтами (ShowToModel, image/*, Content)",
                 toolName, skippedFiles);
+        }
+
+        if (result.Handle is { } handle)
+        {
+            log.Warning(
+                "Контракт → ReAct: у инструмента {Tool} итог с Handle {Handle}; в старой форме поля нет, значение " +
+                "не переносится",
+                toolName, handle);
         }
 
         if (result.Raised is { } raised)

@@ -9,9 +9,9 @@
 | Пространство | Что внутри |
 |---|---|
 | `AI.Agents.Contracts.Runs` | `RunState`, `RunStatus`, `EffectRecord`, порт хранилища `IRunStore`, синхронный канал к человеку `IHumanChannel` |
-| `AI.Agents.Contracts.Tools` | `ITool`, `IToolSet`, `ToolSpec`, `About`, `ToolAction` и помощник `ToolActions.Effective`, `ToolIdempotency` и помощник `ToolIdempotencies.Effective`, `ToolCall`, `ToolResult`, `ToolStatus`, `ToolUpdate` (`Progress`, `Final`), `ToolContext`, `ToolFile`, `Origin`, `OriginKind` |
-| `AI.Agents.Contracts.Engines` | `IEngine`, `EngineInput`, `EngineTask`, `EngineContext`, `EngineEvent` (девять видов), `EngineResult`, `EngineStatus`, `StopCode`, `StepPath`, `IRunBudget`, `IStepRunner`, `Question`, `QuestionKind`, `Answer`, `InputField`, `AgentRef`, `AgentDefinition`, `AgentInstructions`, `EngineChoice`, `AgentLimits` |
-| `AI.Agents.Contracts.Models` | `IModelPort`, `ModelAsk`, `ModelRole`, `ModelCapabilities`, `ModelMessage`, `MessageRole`, `MessagePart` (`Text`, `Image`, `Audio`), `ToolMode`, `LlmAnswer`, `LlmChunk` (`Text`, `Reasoning`, `Final`), `LlmStatus`, `LlmFailure`, `ModelUsage` |
+| `AI.Agents.Contracts.Tools` | `ITool`, `IToolSet`, `ToolSpec`, `About`, `ToolAction` и помощник `ToolActions.Effective`, `ToolIdempotency` и помощник `ToolIdempotencies.Effective`, `ToolCall`, `ToolResult`, `ToolStatus`, словарь кодов исхода `ToolCodes`, `ToolUpdate` (`Progress`, `Final`), `ToolContext`, `ToolFile`, `Origin`, `OriginKind` |
+| `AI.Agents.Contracts.Engines` | `IEngine`, `EngineInput`, `EngineTask`, `EngineContext`, `EngineEvent` (девять видов), `EngineResult`, `EngineStatus`, `StopCode`, `StepPath`, `IRunBudget`, `RunLimits`, `IStepRunner`, `Question`, `QuestionKind`, `Answer`, `InputField`, `AgentRef`, `AgentDefinition`, `AgentInstructions`, `EngineChoice`, `AgentLimits` |
+| `AI.Agents.Contracts.Models` | `IModelPort`, `ModelAsk`, `ModelRole`, `ModelCapabilities`, `ModelMessage`, `MessageRole`, `MessagePart` (`Text`, `Image`, `Audio`), `ToolMode`, `ReasoningLevel`, `LlmAnswer` и помощник `LlmAnswers.RequireJson`, `LlmChunk` (`Text`, `Reasoning`, `Final`), `LlmStatus`, `LlmFailure`, `ModelUsage`, сторож потока `StreamWatch` |
 | `AI.Agents.Contracts.Citations` | `Citation`, `CitationKind`, `SourceLocation`, `LocationSegment`, `LineRange`, `TimeInterval`, `RelativeRect` |
 | `AI.Agents.Contracts.Memory` | порт памяти `IMemoryPort` (`WriteAsync`, `ViewAsync`), `MemoryScope`, `MemoryEpisode`, `MemoryActor`, `MemoryWrite`, `MemoryChange`, `MemoryOp`, `MemoryObject`, `MemoryFact`, `ValueSource`, `MemoryWriteResult`, `MemoryOutcome`, `MemoryVerdict`, `MemoryAsk`, `MemoryView`, `MemoryPick`, `MemoryStatus`. Подробности в [Memory/README.md](Memory/README.md) |
 
@@ -29,6 +29,33 @@
 10. **Каждый публичный неабстрактный тип проходит круг через JSON.** Образец лежит в `Tests/unit/AI.Agents.Contracts.Tests/ContractSamples.cs`, и первый образец заполняет все свойства. Новый тип без образца роняет тест. Если свойства взаимоисключающие (`AgentInstructions.Key` и `Text`), они записаны в `ContractSamples.Exclusive`: первый образец заполняет одно, следующие — остальные. Исключение составляет `EngineInput`: он несет порты хоста, а его данные (`EngineTask`, `EngineContext`, состояние) проходят круг отдельно.
 11. **«Повтор безопасен» — ось, отдельная от вида действия.** `ToolSpec.Idempotency` (`ToolIdempotency?`): `null` и `Unknown` значат «не объявлено» и трактуются как `NotIdempotent` одним помощником `ToolIdempotencies.Effective`. Подробности — раздел «Повтор безопасен».
 12. **Опасность, видная только по состоянию мира, объявляется итогом.** Если вид действия решают не аргументы, а состояние мира (кнопка на странице браузера оказалась оплатой), инструмент не исполняет действие и сам возвращает `ToolStatus.AwaitsUser` с `Question`: `Kind = Confirm`, `Action` (обычно `Irreversible`), `Target` и сумма в тексте вопроса. `ITool.Classify` не меняется и остается синхронным: он видит только аргументы. Общий гейт такой итог только передает и записывает.
+
+## Коды исхода инструмента
+
+`ToolCodes` — один словарь машинных кодов для `ToolResult.ErrorCode`: его читают гейт эффектов, движок, хост и интерфейс. Код уточняет статус, а не заменяет его. Новый случай добавляется строкой словаря, а не новым форматом результата; свой код инструмента тоже допустим (строчные буквы, цифры, `_`).
+
+| Статус | Коды | Смысл |
+|---|---|---|
+| `Failed` | `transient`, `not_configured`, `needs_reconnect`, `too_long`, `bad_markup`, `no_rights`, `not_found`, `unknown_tool` | отказ до действия: мир не изменился (`ToolCodes.NotPerformed`), гейт снимает запись, повтор возможен |
+| `NeedsInput` | `needs_input` | не хватает данных; действия не было |
+| `Unknown` | `unknown_result` | тайм-аут после отправки, обрыв, 502/504: действие могло состояться |
+| `Ok` | `partial` | сделано не все; сделанное в `Data` |
+| `Ok` | `pending` | действие начато, итог придет позже по `ToolResult.Handle`; повтор не запускает его второй раз |
+| `Failed` | `repeat_unsafe` | гейт не повторил начатый вызов, повтор не объявлен безопасным |
+
+Отложенный результат — часть того же `ToolResult` (`Ok`, код `pending`, `Handle`), а не отдельный тип. Храповик `ToolCodesTests` следит, чтобы каждая константа была в `ToolCodes.All`, список «отказа до действия» менялся только вместе с тестом, а коды словаря не писались литералом в контрактах и адаптерах.
+
+## Порт модели: настройки, сбой, ответ по схеме
+
+- `ModelAsk.Temperature` (от 0) и `ModelAsk.Reasoning` (`ReasoningLevel`: `None`, `Minimal`, `Low`, `Medium`, `High`) — `null` значит «выбирает реализация порта»; `ReasoningLevel.Unknown` и отрицательная температура отвергаются при создании.
+- `LlmAnswer.FailureText` — текст сбоя для человека рядом с кодом `Failure`. Решения принимаются по коду.
+- Ответ по схеме (`ModelAsk.Schema`): `Ok` значит разбираемый JSON; ответ не JSON — `Failed` с `LlmFailure.InvalidOutput`, пустой ответ — `Empty`. Правило одно на все реализации: `LlmAnswers.RequireJson`.
+- `ModelCapabilities.ContextTokens` — размер окна, если реализация его знает.
+- Сторож потока `StreamWatch`: `FirstChunk` (сколько ждать первого фрагмента) и `Idle` (простой посреди ответа). Срабатывание — `Failed` с `LlmFailure.Stalled`. Эталонная реализация — `ModelPort.Watched` в `AI.Agents.Interop`.
+
+## Бюджет хода
+
+`IRunBudget` дополнен членом `Exhausted` (`CancellationToken`) с реализацией по умолчанию `CancellationToken.None`: бюджет, который умеет сигналить, отменяет его при исчерпании любого предела, и долгая работа внутри шага прекращается. `RunLimits` — пределы хода (шаги, токены, деньги, вызовы модели, длительность), `Narrow(AgentLimits)` сводит их с потолками агента, побеждает меньший. Новый код `StopCode.CallLimit` (`call_limit`). Эталонный бюджет — `LimitedRunBudget` в `AI.Agents.Interop`.
 
 ## Место в источнике
 
@@ -109,7 +136,7 @@
 
 Ключ эффекта (`ToolCall.EffectKey`) назначает фреймворк перед вызовом, в одном месте (`EffectKeys` в `AI.Agents.Interop`): детерминированно из идентификатора запуска, имени инструмента и канонизированных аргументов. Повтор вызова с ключом, который уже исполнен успешно, инструмент не исполняет: возвращается сохраненный итог. Вызов `Unknown` и `NotIdempotent` после сбоя или обрыва сам не повторяется, `WithKey` повторяется только с тем же ключом. Правила исполняет гейт эффектов `AI.Agents.Interop`.
 
-Граница до шага Ф6: защита от повтора действует внутри одного запуска. Между запусками она заработает, когда движок начнет принимать `EngineInput.State`, а продолжение получит журнал `RunState.Effects`.
+Между прогонами одного запуска защита держится на журнале `RunState.Effects`: продолжение создает гейт с прежним журналом, и ключ с итогом `Ok` второй раз не исполняется. Отказ до действия (код из `ToolCodes`, для которого `ToolCodes.NotPerformed`) записи не оставляет. Движки пока не принимают `EngineInput.State` (Ф6), поэтому гейт с прежним журналом собирает хост.
 
 ## Запуск
 
@@ -162,7 +189,7 @@ Remove-Item Env:AI_PUBLIC_API_UPDATE
 Контракты использует только `AI.Agents.Interop` (адаптеры старых типов `AI.LLM`, гейт эффектов, движки `react` и `plan`); `AI.LLM` на них не ссылается, и его поведение не изменилось. Следующие шаги идут отдельными изменениями:
 
 1. Порты в `ReActEngine`: `WithModel(IModelPort)`, `WithTools(IToolSet)`, `WithBudget(IRunBudget)` с проверкой токенов и денег на каждом вызове модели (Ф5). Ссылку `AI.LLM` → контракты владелец вернет к 1.0 контрактов или к Ф5 отдельным решением.
-2. Продолжение с места (Ф6): состояние на выходе и входе движка, журнал эффектов прошлого прогона в гейте, пауза вместо `IHumanChannel`.
-3. Готовые реализации для внешнего пользователя: набор инструментов из списка, бюджет по числу шагов, хранилище запусков в памяти. Готовый набор не исполняет `Irreversible` без подтверждения.
+2. Продолжение с места (Ф6): состояние на выходе и входе движка, пауза вместо `IHumanChannel`. Журнал эффектов прошлого прогона гейт уже принимает (`new EffectGate(set, previous)`, сессия С2).
+3. Готовые реализации для внешнего пользователя: набор инструментов из списка, хранилище запусков в памяти. Готовый набор не исполняет `Irreversible` без подтверждения. Бюджет по пределам есть: `LimitedRunBudget` (сессия С2).
 4. Поля из раздела «Чего в форме пока нет» — по решениям владельца.
 

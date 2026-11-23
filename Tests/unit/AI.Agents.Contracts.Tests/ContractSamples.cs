@@ -117,6 +117,11 @@ internal static class ContractSamples
             () => FullLimits(),
             () => new AgentLimits { Steps = 5 },
         ],
+        [typeof(RunLimits)] =
+        [
+            () => new RunLimits { Steps = 30, Tokens = 200_000, Cost = 0.5m, ModelCalls = 40, Duration = TimeSpan.FromMinutes(10) },
+            () => new RunLimits { Tokens = 1000 },
+        ],
         [typeof(InputField)] = [() => FullField()],
         [typeof(Question)] = [() => FullQuestion()],
         [typeof(Answer)] = [() => FullAnswer()],
@@ -156,6 +161,11 @@ internal static class ContractSamples
 
         // Models
         [typeof(ModelRole)] = [() => ModelRole.Decide, () => new ModelRole("extract")],
+        [typeof(StreamWatch)] =
+        [
+            () => new StreamWatch { FirstChunk = TimeSpan.FromSeconds(20), Idle = TimeSpan.FromSeconds(60) },
+            () => new StreamWatch { FirstChunk = TimeSpan.FromSeconds(5) },
+        ],
         [typeof(ModelCapabilities)] =
         [
             () => new ModelCapabilities
@@ -509,6 +519,7 @@ internal static class ContractSamples
         Question = FullQuestion(),
         Raised = ToolAction.Irreversible,
         EndsRun = true,
+        Handle = "task-17",
     };
 
     private static ToolUpdate.Progress FullProgress() => new()
@@ -598,6 +609,8 @@ internal static class ContractSamples
         ToolName = "get_rate",
         Schema = Json("""{"type":"object"}"""),
         MaxTokens = 512,
+        Temperature = 0.2,
+        Reasoning = ReasoningLevel.Low,
     };
 
     private static LlmAnswer FullAnswerOfModel() => new()
@@ -607,6 +620,7 @@ internal static class ContractSamples
         Reasoning = "Думаю",
         ToolCalls = [FullCall()],
         Failure = LlmFailure.RateLimit,
+        FailureText = "429: слишком часто",
         Model = "provider/model-1",
         Usage = FullUsage(),
     };

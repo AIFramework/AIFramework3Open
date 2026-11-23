@@ -28,7 +28,8 @@ public static class ReActTranslationTable
         ["ReActToolOutcome.IsTerminal"] = "вычисляется из EndsTurn, отдельно не переводится",
         ["ReActToolOutcome.Payload"] =
             "ToolResult.Data через System.Text.Json; не сериализуется — InvalidOperationException; обратно приходит " +
-            "JsonElement, тип CLR не сохраняется",
+            "JsonElement, тип CLR не сохраняется. Если Payload — сам ToolResult контракта (метод [AgentTool] вернул " +
+            "итог контракта, AttributedTools), он и становится итогом целиком",
         ["ReActToolOutcome.ErrorCode"] = "ToolResult.ErrorCode",
 
         // ToolResult → ReActToolOutcome
@@ -93,6 +94,8 @@ public static class ReActTranslationTable
         ["ToolResult.Question"] =
             "в ReActToolOutcome вопрос не выражается: текст вопроса дописывается в Observation, факт виден в " +
             "ErrorCode needs_input или awaits_user, а поля, вид и адресат вопроса теряются",
+        ["ToolResult.Handle"] =
+            "в старой форме поля нет: вперед всегда null, обратно значение пишется предупреждением",
         ["ToolResult.Raised"] =
             "вперед всегда null (старый инструмент вида не знает); обратно поля нет, значение пишется предупреждением",
 

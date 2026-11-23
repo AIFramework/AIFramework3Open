@@ -260,6 +260,7 @@ namespace AI.Agents.Contracts.Engines
     public interface IRunBudget
     {
         System.DateTimeOffset? Deadline { get; }
+        System.Threading.CancellationToken Exhausted { get; }
         void Spend(AI.Agents.Contracts.Models.ModelUsage usage);
         bool TryStep(out AI.Agents.Contracts.Engines.StopCode stop);
     }
@@ -293,6 +294,16 @@ namespace AI.Agents.Contracts.Engines
         Input = 1,
         Confirm = 2,
     }
+    public sealed record RunLimits : System.IEquatable<AI.Agents.Contracts.Engines.RunLimits>
+    {
+        public RunLimits() { }
+        public decimal? Cost { get; init; }
+        public System.TimeSpan? Duration { get; init; }
+        public int? ModelCalls { get; init; }
+        public int? Steps { get; init; }
+        public long? Tokens { get; init; }
+        public AI.Agents.Contracts.Engines.RunLimits Narrow(AI.Agents.Contracts.Engines.AgentLimits? agent) { }
+    }
     public sealed record StepPath : System.IEquatable<AI.Agents.Contracts.Engines.StepPath>
     {
         public StepPath() { }
@@ -306,6 +317,7 @@ namespace AI.Agents.Contracts.Engines
         public StopCode(string name) { }
         public string Name { get; }
         public static AI.Agents.Contracts.Engines.StopCode AwaitsUser { get; }
+        public static AI.Agents.Contracts.Engines.StopCode CallLimit { get; }
         public static AI.Agents.Contracts.Engines.StopCode Cancelled { get; }
         public static AI.Agents.Contracts.Engines.StopCode CostLimit { get; }
         public static AI.Agents.Contracts.Engines.StopCode EngineFailure { get; }
@@ -488,12 +500,17 @@ namespace AI.Agents.Contracts.Models
     {
         public LlmAnswer() { }
         public AI.Agents.Contracts.Models.LlmFailure? Failure { get; init; }
+        public string? FailureText { get; init; }
         public string? Model { get; init; }
         public string? Reasoning { get; init; }
         public required AI.Agents.Contracts.Models.LlmStatus Status { get; init; }
         public string? Text { get; init; }
         public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Tools.ToolCall>? ToolCalls { get; init; }
         public AI.Agents.Contracts.Models.ModelUsage? Usage { get; init; }
+    }
+    public static class LlmAnswers
+    {
+        public static AI.Agents.Contracts.Models.LlmAnswer RequireJson(AI.Agents.Contracts.Models.LlmAnswer answer) { }
     }
     [System.Text.Json.Serialization.JsonDerivedType(typeof(AI.Agents.Contracts.Models.LlmChunk.Final), "Final")]
     [System.Text.Json.Serialization.JsonDerivedType(typeof(AI.Agents.Contracts.Models.LlmChunk.Reasoning), "Reasoning")]
@@ -529,6 +546,8 @@ namespace AI.Agents.Contracts.Models
         Network = 5,
         Cancelled = 6,
         Other = 7,
+        InvalidOutput = 8,
+        Stalled = 9,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Models.LlmStatus>))]
     public enum LlmStatus
@@ -581,8 +600,10 @@ namespace AI.Agents.Contracts.Models
         public ModelAsk() { }
         public int? MaxTokens { get; init; }
         public required System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Models.ModelMessage> Messages { get; init; }
+        public AI.Agents.Contracts.Models.ReasoningLevel? Reasoning { get; init; }
         public required AI.Agents.Contracts.Models.ModelRole Role { get; init; }
         public System.Text.Json.JsonElement? Schema { get; init; }
+        public double? Temperature { get; init; }
         public required AI.Agents.Contracts.Models.ToolMode ToolMode { get; init; }
         public string? ToolName { get; init; }
         public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Tools.ToolSpec>? Tools { get; init; }
@@ -623,6 +644,22 @@ namespace AI.Agents.Contracts.Models
         public decimal? Cost { get; init; }
         public required long InputTokens { get; init; }
         public required long OutputTokens { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Models.ReasoningLevel>))]
+    public enum ReasoningLevel
+    {
+        Unknown = 0,
+        None = 1,
+        Minimal = 2,
+        Low = 3,
+        Medium = 4,
+        High = 5,
+    }
+    public sealed record StreamWatch : System.IEquatable<AI.Agents.Contracts.Models.StreamWatch>
+    {
+        public StreamWatch() { }
+        public required System.TimeSpan FirstChunk { get; init; }
+        public System.TimeSpan? Idle { get; init; }
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(AI.Agents.Contracts.StrictEnumConverter<AI.Agents.Contracts.Models.ToolMode>))]
     public enum ToolMode
@@ -736,6 +773,24 @@ namespace AI.Agents.Contracts.Tools
         public required string Id { get; init; }
         public required string Name { get; init; }
     }
+    public static class ToolCodes
+    {
+        public const string BadMarkup = "bad_markup";
+        public const string NeedsInput = "needs_input";
+        public const string NeedsReconnect = "needs_reconnect";
+        public const string NoRights = "no_rights";
+        public const string NotConfigured = "not_configured";
+        public const string NotFound = "not_found";
+        public const string Partial = "partial";
+        public const string Pending = "pending";
+        public const string RepeatUnsafe = "repeat_unsafe";
+        public const string TooLong = "too_long";
+        public const string Transient = "transient";
+        public const string UnknownResult = "unknown_result";
+        public const string UnknownTool = "unknown_tool";
+        public static System.Collections.Generic.IReadOnlyList<string> All { get; }
+        public static bool NotPerformed(string? code) { }
+    }
     public record ToolContext : System.IEquatable<AI.Agents.Contracts.Tools.ToolContext>
     {
         public ToolContext() { }
@@ -772,6 +827,7 @@ namespace AI.Agents.Contracts.Tools
         public string? ErrorCode { get; init; }
         public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Citations.Citation>? Evidence { get; init; }
         public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Tools.ToolFile>? Files { get; init; }
+        public string? Handle { get; init; }
         public required AI.Agents.Contracts.Tools.Origin Origin { get; init; }
         public AI.Agents.Contracts.Engines.Question? Question { get; init; }
         public AI.Agents.Contracts.Tools.ToolAction? Raised { get; init; }

@@ -524,7 +524,10 @@ namespace AI.LLM.Agents.ReAct
     {
         public AI.LLM.Agents.ReAct.ReActEngine Build() { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithAnswerStreaming() { }
+        [System.Obsolete("Строка инструмента здесь молча считается удачей. Используйте перегрузку с ToolTex" +
+            "tResult.")]
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithAttributedTools(object toolInstance) { }
+        public AI.LLM.Agents.ReAct.ReActAgentBuilder WithAttributedTools(object toolInstance, AI.LLM.Agents.Tools.ToolTextResult textResults) { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithGuard(AI.LLM.Agents.Guards.IAgentGuard guard) { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithLlmSynthesis(AI.LLM.Core.Abstractions.ILLMClient llm, AI.LLM.Core.Models.Common.Requests.GenerateSettings settings = null, string instruction = null, AI.LLM.Agents.ReAct.Synthesis.ReActSynthesisMode mode = 1) { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithMalformedDecisionBudget(int count) { }
@@ -544,7 +547,10 @@ namespace AI.LLM.Agents.ReAct
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithSynthesizer(AI.LLM.Agents.ReAct.Synthesis.IReActSynthesizer synthesizer, AI.LLM.Agents.ReAct.Synthesis.ReActSynthesisMode mode = 1) { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithSystemPrompt(string prompt) { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithTool(AI.LLM.Agents.ReAct.Tools.IReActTool tool) { }
+        [System.Obsolete("Строка инструмента здесь молча считается удачей. Используйте перегрузку с ToolTex" +
+            "tResult.")]
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithToolRegistry(AI.LLM.Agents.Tools.ToolRegistry registry) { }
+        public AI.LLM.Agents.ReAct.ReActAgentBuilder WithToolRegistry(AI.LLM.Agents.Tools.ToolRegistry registry, AI.LLM.Agents.Tools.ToolTextResult textResults) { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithToolSource(AI.LLM.Agents.ReAct.Tools.IReActToolSource source) { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithToolTimeout(System.TimeSpan timeout) { }
         public AI.LLM.Agents.ReAct.ReActAgentBuilder WithTools(System.Collections.Generic.IEnumerable<AI.LLM.Agents.ReAct.Tools.IReActTool> tools) { }
@@ -774,9 +780,17 @@ namespace AI.LLM.Agents.ReAct.Interop
 {
     public sealed class ToolRegistryToolSource : AI.LLM.Agents.ReAct.Tools.IReActToolSource
     {
+        [System.Obsolete("Строка инструмента здесь молча считается удачей. Выберите правило явно: перегрузк" +
+            "а с ToolTextResult (Success — как прежде, Refused — только итог с признаком успе" +
+            "ха).")]
         public ToolRegistryToolSource(AI.LLM.Agents.Tools.ToolRegistry registry) { }
+        public ToolRegistryToolSource(AI.LLM.Agents.Tools.ToolRegistry registry, AI.LLM.Agents.Tools.ToolTextResult textResults) { }
         public System.Collections.Generic.IEnumerable<AI.LLM.Agents.ReAct.Tools.IReActTool> GetTools(AI.LLM.Agents.ReAct.ReActRunContext context) { }
+        [System.Obsolete("Строка инструмента здесь молча считается удачей. Выберите правило явно: перегрузк" +
+            "а с ToolTextResult (Success — как прежде, Refused — только итог с признаком успе" +
+            "ха).")]
         public static AI.LLM.Agents.ReAct.Interop.ToolRegistryToolSource FromObjects(params object[] toolInstances) { }
+        public static AI.LLM.Agents.ReAct.Interop.ToolRegistryToolSource FromObjects(AI.LLM.Agents.Tools.ToolTextResult textResults, params object[] toolInstances) { }
     }
 }
 namespace AI.LLM.Agents.ReAct.Policies
@@ -988,6 +1002,12 @@ namespace AI.LLM.Agents.Tools
         public static AI.LLM.Agents.Tools.ToolRegistry FromObjects(params object[] toolInstances) { }
         public static System.Collections.Generic.List<AI.LLM.Core.Models.Common.Messages.LLMMessage> ToPromptResultMessages(System.Collections.Generic.IEnumerable<AI.LLM.Agents.Tools.ToolExecutionResult> results) { }
         public static System.Collections.Generic.List<AI.LLM.Core.Models.Common.Messages.LLMMessage> ToToolMessages(System.Collections.Generic.IEnumerable<AI.LLM.Agents.Tools.ToolExecutionResult> results) { }
+    }
+    public enum ToolTextResult
+    {
+        Unspecified = 0,
+        Success = 1,
+        Refused = 2,
     }
 }
 namespace AI.LLM.Agents.Tools.Builtin
@@ -3031,6 +3051,9 @@ namespace AI.LLM.Services.Embeddings.OpenRouter
 }
 namespace AI.LLM.Services.LLM
 {
+    [System.Obsolete("Используйте AI.Agents.Interop.Models.ModelClassifier поверх IModelPort (переход —" +
+        " ModelClassifier.FromChatApi): итог со статусом отличает сбой от ответа без клас" +
+        "са и несет расход.")]
     public class ClassifierWithLLM
     {
         public ClassifierWithLLM() { }

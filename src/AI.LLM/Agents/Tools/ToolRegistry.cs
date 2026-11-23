@@ -135,11 +135,11 @@ public sealed class ToolRegistry
             var rawResult = registered.Method.Invoke(
                 registered.Method.IsStatic ? null : registered.Target, args);
 
-            var (content, images, success) = await UnwrapResultAsync(rawResult).ConfigureAwait(false);
+            var (content, images, success, value) = await UnwrapResultAsync(rawResult).ConfigureAwait(false);
 
             sw.Stop();
             // Инструмент мог сообщить об отказе без исключения — тогда это не успех.
-            return new ToolExecutionResult(toolCall.Id, funcName, content, success, sw.Elapsed, images);
+            return new ToolExecutionResult(toolCall.Id, funcName, content, success, sw.Elapsed, images) { Value = value };
         }
         catch (Exception ex)
         {
@@ -249,6 +249,31 @@ public sealed class ToolRegistry
 
             yield return (name, new RegisteredTool(name, definition, method, instance));
         }
+    }
+
+    /// <summary>
+    /// Инструменты, чей метод возвращает не итог с признаком успеха: строку, <c>object</c>, <c>ValueTask</c> и прочее,
+    /// кроме <c>void</c>, <c>Task</c>, <see cref="ToolResult"/> и <c>Task&lt;ToolResult&gt;</c>. Для правила
+    /// <see cref="ToolTextResult.Refused"/>.
+    /// </summary>
+    /// <param name="alsoTyped">Свой тип итога вызывающего, который тоже несет признак успеха (сам тип или аргумент
+    /// <c>Task&lt;T&gt;</c>); <c>null</c> — только типы AI.LLM.</param>
+    /// <returns>Имена инструментов в порядке имени.</returns>
+    internal IReadOnlyList<string> UntypedResultTools(Func<Type, bool> alsoTyped = null) =>
+        [.. _tools.Values
+            .Where(t => !IsTypedResult(t.Method.ReturnType, alsoTyped))
+            .Select(t => t.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+    private static bool IsTypedResult(Type type, Func<Type, bool> alsoTyped)
+    {
+        if (type == typeof(void) || type == typeof(Task) || type == typeof(ToolResult))
+            return true;
+
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
+            type = type.GetGenericArguments()[0];
+
+        return type == typeof(ToolResult) || alsoTyped?.Invoke(type) == true;
     }
 
     #endregion
@@ -375,22 +400,24 @@ public sealed class ToolRegistry
 
     /// <summary>
     /// Разворачивает результат метода инструмента: поддерживает string, ToolResult,
-    /// Task&lt;string&gt;, Task&lt;ToolResult&gt; и любой Task&lt;T&gt;.
+    /// Task&lt;string&gt;, Task&lt;ToolResult&gt; и любой Task&lt;T&gt;. Последним идет само значение метода после
+    /// ожидания (<see cref="ToolExecutionResult.Value"/>).
     /// </summary>
-    private static async Task<(string Content, IReadOnlyList<AgentImage> Images, bool Success)> UnwrapResultAsync(
+    private static async Task<(string Content, IReadOnlyList<AgentImage> Images, bool Success, object Value)> UnwrapResultAsync(
         object rawResult)
     {
         switch (rawResult)
         {
             case ToolResult tr:
-                return (tr.Text, tr.Images, tr.IsSuccess);
+                return (tr.Text, tr.Images, tr.IsSuccess, tr);
 
             case Task<ToolResult> taskTr:
                 var tr2 = await taskTr.ConfigureAwait(false);
-                return (tr2.Text, tr2.Images, tr2.IsSuccess);
+                return (tr2.Text, tr2.Images, tr2.IsSuccess, tr2);
 
             case Task<string> taskStr:
-                return (await taskStr.ConfigureAwait(false), [], true);
+                var text = await taskStr.ConfigureAwait(false);
+                return (text, [], true, text);
 
             case Task task:
             {
@@ -398,15 +425,15 @@ public sealed class ToolRegistry
                 var resultProp = task.GetType().GetProperty("Result");
                 var innerResult = resultProp?.GetValue(task);
                 if (innerResult is ToolResult trInner)
-                    return (trInner.Text, trInner.Images, trInner.IsSuccess);
-                return (innerResult?.ToString() ?? "OK", [], true);
+                    return (trInner.Text, trInner.Images, trInner.IsSuccess, trInner);
+                return (innerResult?.ToString() ?? "OK", [], true, innerResult);
             }
 
             case string s:
-                return (s, [], true);
+                return (s, [], true, s);
 
             default:
-                return (rawResult?.ToString() ?? "OK", [], true);
+                return (rawResult?.ToString() ?? "OK", [], true, rawResult);
         }
     }
 

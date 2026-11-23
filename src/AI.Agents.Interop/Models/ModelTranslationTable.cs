@@ -23,6 +23,10 @@ public static class ModelTranslationTable
         ["ModelAsk.ToolName"] = "ToolChoice.ForFunction; не из Tools или не при Named — ArgumentException",
         ["ModelAsk.Schema"] = "GenerateSettings.ResponseFormat json_schema с именем «response», strict; null → без формата",
         ["ModelAsk.MaxTokens"] = "GenerateSettings.MaxTokens; null → значение начальных настроек порта",
+        ["ModelAsk.Temperature"] = "GenerateSettings.Temperature; null → значение начальных настроек порта",
+        ["ModelAsk.Reasoning"] =
+            "ReasoningSettings.Effort, если в начальных настройках порта есть ReasoningSettings (OpenRouter), иначе " +
+            "GenerateSettings.ReasoningEffort; значение строчными: none, minimal, low, medium, high; null → начальные настройки",
 
         // ModelMessage → LLMMessage
         ["ModelMessage.Role"] = "LLMMessage.Role: system, user, assistant, tool; Unknown — ArgumentException",
@@ -78,7 +82,8 @@ public static class ModelTranslationTable
         ["LLMMessage.ToolCallId"] = "ModelMessage.ToolCallId",
         ["LLMMessage.Reasoning"] = "в ответе — LlmAnswer.Reasoning; в истории не переводится (потеря в списке lost)",
         ["LLMMessage.Refusal"] =
-            "в ответе без текста и вызовов — Failed (ProviderRefusal); текст отказа в контракт не помещается (потеря в списке lost)",
+            "в ответе без текста и вызовов — Failed (ProviderRefusal), текст отказа — LlmAnswer.FailureText; отказ рядом " +
+            "с ответом — потеря в списке lost",
 
         // Usage ↔ ModelUsage
         ["Usage.PromptTokens"] = "ModelUsage.InputTokens",
@@ -99,6 +104,9 @@ public static class ModelTranslationTable
         ["LlmAnswer.Failure"] =
             "условный код LlmRequestException: ContextOverflow — 400 с признаком переполнения, RateLimit — 429, " +
             "Access — 403, ProviderRefusal — 400, Network и Cancelled — без ответа, Other и null — 500",
+        ["LlmAnswer.FailureText"] =
+            "дописывается к сообщению LlmRequestException после причины; вперед — текст исключения клиента, отказ " +
+            "модели (refusal) или причина content_filter",
         ["LlmAnswer.Model"] = "ChatCompletionsResponse.Model",
         ["LlmAnswer.Usage"] = "ChatCompletionsResponse.Usage; null → нули, как у старого клиента",
 
@@ -111,6 +119,9 @@ public static class ModelTranslationTable
 
         // GenerateSettings → ModelAsk
         ["GenerateSettings.MaxTokens"] = "ModelAsk.MaxTokens",
+        ["GenerateSettings.Temperature"] = "ModelAsk.Temperature",
+        ["GenerateSettings.ReasoningEffort"] =
+            "ModelAsk.Reasoning, если ReasoningSettings.Effort не задан; незнакомое значение — потеря в списке lost",
         ["GenerateSettings.Tools"] = "ModelAsk.Tools через ToolDefinition → ToolSpec (Action = Unknown)",
         ["GenerateSettings.ToolChoice"] =
             "ModelAsk.ToolMode и ToolName; null → Auto при инструментах, иначе None",
@@ -180,21 +191,21 @@ public static class ModelTranslationTable
         ["LlmRequestException.IsRetryable"] = "повторы — дело реализации порта; в LlmAnswer признака нет",
         ["LlmRequestException.RetryAfter"] = "в LlmAnswer нет срока повтора",
 
-        ["GenerateSettings.Temperature"] = "в ModelAsk нет; вперед — из начальных настроек порта, обратно — потеря в списке lost",
-        ["GenerateSettings.TopP"] = "то же, что Temperature",
-        ["GenerateSettings.TopK"] = "то же, что Temperature",
-        ["GenerateSettings.RepetitionPenalty"] = "то же, что Temperature",
-        ["GenerateSettings.MinTokens"] = "то же, что Temperature",
-        ["GenerateSettings.LogProbs"] = "то же, что Temperature",
-        ["GenerateSettings.TopLogprobs"] = "то же, что Temperature",
+        ["GenerateSettings.TopP"] = "в ModelAsk нет; вперед — из начальных настроек порта, обратно — потеря в списке lost",
+        ["GenerateSettings.TopK"] = "то же, что TopP",
+        ["GenerateSettings.RepetitionPenalty"] = "то же, что TopP",
+        ["GenerateSettings.MinTokens"] = "то же, что TopP",
+        ["GenerateSettings.LogProbs"] = "то же, что TopP",
+        ["GenerateSettings.TopLogprobs"] = "то же, что TopP",
         ["GenerateSettings.StreamId"] = "поток в контракте — StreamAsync, а не настройка",
         ["GenerateSettings.StreamMethod"] = "то же, что StreamId",
         ["GenerateSettings.Stream"] = "то же, что StreamId",
-        ["GenerateSettings.ReasoningSettings"] = "то же, что Temperature",
-        ["GenerateSettings.ReasoningEffort"] = "то же, что Temperature",
-        ["GenerateSettings.Modalities"] = "то же, что Temperature",
-        ["GenerateSettings.IncludeUsage"] = "то же, что Temperature; для стоимости у OpenRouter задается в начальных настройках порта",
-        ["GenerateSettings.IncludeReasoning"] = "то же, что Temperature",
+        ["GenerateSettings.ReasoningSettings"] =
+            "обратно переводится только Effort (ModelAsk.Reasoning); MaxTokens, Exclude, Enabled и незнакомый Effort — " +
+            "потеря в списке lost",
+        ["GenerateSettings.Modalities"] = "то же, что TopP",
+        ["GenerateSettings.IncludeUsage"] = "то же, что TopP; для стоимости у OpenRouter задается в начальных настройках порта",
+        ["GenerateSettings.IncludeReasoning"] = "то же, что TopP",
         ["JsonSchemaDefinition.Name"] = "в контракте у схемы нет имени; вперед — «response»",
         ["LLM.ToolCall.Type"] = "всегда function",
         ["LLM.ToolCall.Index"] = "номер в потоке; клиент собирает вызовы сам",

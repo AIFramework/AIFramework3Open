@@ -27,6 +27,12 @@ public sealed record LlmAnswer
     /// <summary>Код сбоя при <see cref="LlmStatus.Failed"/>; иначе <see langword="null"/>.</summary>
     public LlmFailure? Failure { get; init; }
 
+    /// <summary>
+    /// Текст сбоя для человека рядом с кодом <see cref="Failure"/>: что сказал провайдер или клиент (без ключей и
+    /// заголовков). <see langword="null"/>: сбоя нет или текста нет. Решения принимаются по коду, а не по тексту.
+    /// </summary>
+    public string? FailureText { get; init; }
+
     /// <summary>Модель, которая фактически ответила (после запасных); <see langword="null"/>: неизвестно.</summary>
     public string? Model { get; init; }
 

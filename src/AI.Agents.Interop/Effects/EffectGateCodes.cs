@@ -1,3 +1,5 @@
+using AI.Agents.Contracts.Tools;
+
 namespace AI.Agents.Interop.Effects;
 
 /// <summary>
@@ -9,7 +11,7 @@ public static class EffectGateCodes
     /// Повтор не исполнен: вызов с этим ключом уже начинался и не кончился успехом, а инструмент не объявлен
     /// идемпотентным. Повторить может только человек или хост, зная, что первое действие не состоялось.
     /// </summary>
-    public const string RepeatUnsafe = "repeat_unsafe";
+    public const string RepeatUnsafe = ToolCodes.RepeatUnsafe;
 
     /// <summary>Поток инструмента кончился без итога; исход неизвестен (контракт <c>ToolUpdate</c>).</summary>
     public const string NoResult = "no_result";

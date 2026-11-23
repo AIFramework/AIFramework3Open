@@ -1,6 +1,6 @@
 # AI.Agents.Interop
 
-Адаптеры между старыми типами агентного слоя `AI.LLM` и контрактами [AI.Agents.Contracts](../AI.Agents.Contracts/README.md). Сборка добавляет только новые типы: поведение `AI.LLM` не меняется, его код и снимок API остаются прежними.
+Адаптеры между старыми типами агентного слоя `AI.LLM` и контрактами [AI.Agents.Contracts](../AI.Agents.Contracts/README.md). Сборка добавляет только новые типы: поведение `AI.LLM` не меняется. В сессии С2 `AI.LLM` получил только добавления (правило `ToolTextResult`, перегрузки с ним) и пометки `[Obsolete]` на прежних входах, которые работают как раньше.
 
 ## Почему отдельная сборка
 
@@ -13,10 +13,10 @@
 | Пространство | Что внутри |
 |---|---|
 | `AI.Agents.Interop.ReAct` | инструмент ReAct (`IReActTool`, `IReActToolSource`, `ReActToolOutcome`, `ReActCitation`) ↔ `ITool`, `IToolSet`, `ToolResult`, `Citation` |
-| `AI.Agents.Interop.Models` | клиент модели `ILLMClient` (`LLMMessage`, `GenerateSettings`, `ChatCompletionsResponse`, `LlmRequestException`) ↔ `IModelPort`, `ModelAsk`, `LlmAnswer` |
+| `AI.Agents.Interop.Models` | клиент модели `ILLMClient` (`LLMMessage`, `GenerateSettings`, `ChatCompletionsResponse`, `LlmRequestException`) ↔ `IModelPort`, `ModelAsk`, `LlmAnswer`; сторож потока `ModelPort.Watched`; классификатор `ModelClassifier` |
 | `AI.Agents.Interop.Effects` | атрибут эффекта `ToolEffectAttribute`, набор из `[AgentTool]` (`AttributedTools`), ключ эффекта (`EffectKeys`), гейт эффектов (`EffectGate`, `EffectGateCodes`) |
 | `AI.Agents.Interop.Humans` | синхронный канал к человеку над набором: `WithHumanChannel`, `AnsweredToolContext`, `HumanChannelCodes` |
-| `AI.Agents.Interop.Engines` | движки `IEngine`: `ReActEngineAdapter` (`react`), `PlanningEngineAdapter` (`plan`), `ReActEngineTranslationTable`, `EngineInteropCodes` |
+| `AI.Agents.Interop.Engines` | движки `IEngine`: `ReActEngineAdapter` (`react`), `PlanningEngineAdapter` (`plan`), `ReActEngineTranslationTable`, `EngineInteropCodes`; эталонный бюджет хода `LimitedRunBudget` |
 
 ## Точки входа
 
@@ -80,7 +80,7 @@ IReActToolSource legacy = tools.AsToolSource();             // обратно, �
 
 ## Атрибут эффекта
 
-`[AgentTool]` в `AI.LLM` не меняется, поэтому вид действия и «повтор безопасен» объявляет отдельный атрибут `[ToolEffect(action, idempotency)]` на том же методе. Оба значения обязательны в конструкторе: выбор не пропускается молча. Читает атрибут только `AttributedTools.AsToolSet(instances, log)`: реестр `ToolRegistry` о нем не знает, исполнение и схема те же, что у `ToolRegistryToolSource`.
+`[AgentTool]` в `AI.LLM` не меняется, поэтому вид действия и «повтор безопасен» объявляет отдельный атрибут `[ToolEffect(action, idempotency)]` на том же методе. Оба значения обязательны в конструкторе: выбор не пропускается молча. Читает атрибут только `AttributedTools.AsToolSet(instances, textResults, log)`: реестр `ToolRegistry` о нем не знает, исполнение и схема те же, что у `ToolRegistryToolSource`.
 
 ```csharp
 using AI.Agents.Contracts.Tools;
@@ -91,10 +91,13 @@ public sealed class MailTools
 {
     [AgentTool("send_mail", "Отправить письмо")]
     [ToolEffect(ToolAction.Irreversible, ToolIdempotency.NotIdempotent)]
-    public string SendMail(string to, string body) => "отправлено";
+    public ToolResult SendMail(string to, string body) => new()
+    {
+        Status = ToolStatus.Ok, Text = "отправлено", Origin = new Origin { Kind = OriginKind.Trusted },
+    };
 }
 
-IToolSet tools = AttributedTools.AsToolSet([new MailTools()]);
+IToolSet tools = AttributedTools.AsToolSet([new MailTools()], ToolTextResult.Refused);
 ```
 
 | Случай | Что получается |
@@ -102,6 +105,19 @@ IToolSet tools = AttributedTools.AsToolSet([new MailTools()]);
 | `[AgentTool]` и `[ToolEffect]` | `ToolSpec.Action` и `ToolSpec.Idempotency` из атрибута |
 | `[AgentTool]` без `[ToolEffect]` | `ToolAction.Unknown` и `ToolIdempotency.Unknown` (действуют как «необратимо» и «повторять нельзя») и одно предупреждение в журнал на инструмент; `Read` и `Idempotent` сами не появляются |
 | `[ToolEffect]` без `[AgentTool]` | `ArgumentException` при построении набора с именем типа и метода |
+
+### Итог метода
+
+Строка не говорит, удалось ли действие, поэтому правило для строкового результата выбирается явно (`ToolTextResult` из `AI.LLM`, то же правило у `ToolRegistryToolSource` и `ReActAgentBuilder`). Старая перегрузка `AsToolSet(instances, log)` помечена `[Obsolete]` и работает как `ToolTextResult.Success`.
+
+| Метод вернул | Итог контракта |
+|---|---|
+| `ToolResult` контракта (или `Task` с ним) | проходит целиком: статус, код из `ToolCodes`, `Handle`, подтверждения, файлы |
+| `ToolResult` из `AI.LLM` (`Success` или `Failure`) | `Ok` или `Failed` |
+| ничего (`void`, `Task`) | `Ok`; исключение — `Failed` |
+| строку, `object`, `ValueTask` и прочее | `ToolTextResult.Success` — `Ok`, как раньше; `ToolTextResult.Refused` — `ArgumentException` при построении набора с именами таких инструментов; `Unspecified` — `ArgumentOutOfRangeException` |
+
+Итог контракта едет через старую форму в `ReActToolOutcome.Payload` и переводом назад (`ReActTranslation`) отдается без потерь. Так `[AgentTool]`-инструмент может вернуть отказ до действия (`transient`), неизвестный исход или отложенный результат (`pending` с `Handle`), и гейт эффектов поймет его так же, как у любого `ITool`.
 
 ## Ключ эффекта
 
@@ -128,7 +144,7 @@ IToolSet tools = AttributedTools.AsToolSet([new MailTools()]);
 
 ## Гейт эффектов
 
-`new EffectGate(set, log)` оборачивает любой `IToolSet`. Перед каждым вызовом он назначает ключ эффекта (ключ хоста заменяется, с предупреждением) и ведет журнал эффектов запуска `Journal` (`EffectRecord`: ключ, инструмент, итог), который хост кладет в `RunState.Effects`.
+`new EffectGate(set, log)` оборачивает любой `IToolSet`. Перед каждым вызовом он назначает ключ эффекта (ключ хоста заменяется, с предупреждением) и ведет журнал эффектов запуска `Journal` (`EffectRecord`: ключ, инструмент, итог), который хост кладет в `RunState.Effects`. Продолжение запуска создает гейт с прежним журналом: `new EffectGate(set, runState.Effects ?? [], log)`; два раза один ключ или пустая запись — `ArgumentException`. О каждом изменении журнала (начало вызова, итог, снятие записи) гейт сообщает событием `JournalChanged` со снимком всего журнала, чтобы хост сохранял его сразу; исключение обработчика пишется ошибкой и вызов не прерывает.
 
 | Случай | Что делает гейт |
 |---|---|
@@ -137,10 +153,12 @@ IToolSet tools = AttributedTools.AsToolSet([new MailTools()]);
 | ключ уже исполнен с итогом `Ok` | инструмент не вызывается, возвращается сохраненный итог |
 | ключ начинался и кончился иначе (сбой, обрыв, исключение, поток без итога, вызов еще идет) | `Idempotent` и `WithKey` — вызов повторяется с тем же ключом; `NotIdempotent` и незаданное — `Failed` с кодом `repeat_unsafe`, инструмент не вызывается |
 | итог `Denied`, `NeedsInput`, `AwaitsUser` | действие не исполнялось: запись снимается, вызов можно повторить (например, с ответом человека) |
+| итог `Failed` с кодом отказа до действия (`ToolCodes.NotPerformed`: `transient`, `not_configured`, `needs_reconnect`, `needs_input`, `too_long`, `bad_markup`, `no_rights`, `not_found`, `unknown_tool`) | сервер ничего не сделал: запись снимается (или возвращается прежняя), вызов можно повторить |
+| итог `Ok` с кодом `pending` и `Handle` | действие начато: запись остается, повтор возвращает тот же `Handle`, второй раз действие не запускается |
 
 Поток без итога дает `Unknown` с кодом `no_result`, исключение — `exception` (исключение пробрасывается дальше), отмена и остановка чтения до итога — `interrupted`. Повтор с другим ключом через гейт невозможен: ключ детерминирован.
 
-Граница до шага Ф6: защита от повтора действует только внутри одного запуска, то есть одного экземпляра гейта. Между запусками она заработает, когда движок начнет принимать `EngineInput.State`, а продолжение получит журнал прошлого прогона.
+Между прогонами одного запуска защита держится на прежнем журнале: ключ с итогом `Ok` не исполняется второй раз, начатый с неизвестным исходом (`Unknown` потерянного прогона) повторяется только при `Idempotent` и `WithKey`. Движки `react` и `plan` пока не принимают `EngineInput.State`, поэтому гейт с прежним журналом хост собирает сам и передает набором: движок не оборачивает уже огражденный набор второй раз.
 
 ## Канал к человеку
 
@@ -223,6 +241,8 @@ IToolSet tools = AttributedTools.AsToolSet([new MailTools()]);
 | `ModelPort.Fixed(client, capabilities, settings: null, log: null)` | `IModelPort` над `ILLMClient`: одна модель на все роли |
 | `client.AsModelPort(capabilities, settings: null, log: null)` | то же расширением |
 | `port.AsLlmClient(role, log: null)` | `ILLMClient` над портом: старые пути (`Agent`, `PlanGenerator`, `ScriptWriter`, модуль `llm`) ходят через порт без изменений в себе |
+| `port.Watched(watch, time: null, log: null)` | сторож потока (`StreamWatch`): нет первого фрагмента за `FirstChunk` или тишина дольше `Idle` посреди ответа — итог `Failed`, `Stalled`, текст причины в `FailureText`, внутренний поток отменяется. Порт без настоящего потока идет без сторожа |
+| `new ModelClassifier(port, role, classes, prompt)` | классификатор поверх порта (замена `ClassifierWithLLM`, см. ниже) |
 
 Значения без адаптера переводит `ModelTranslation`: `ToLlmMessages`, `ask.ToSettings(...)`, `response.ToAnswer(lost)`, `ModelTranslation.ToAnswer(exception)`, `ToAsk(messages, settings, role, lost)`, `answer.ToResponse()`, `answer.ToException()`, `usage.ToUsage()`, `usage.ToLlmUsage()`. Поле, которое теряется без исключения, метод кладет ключом из таблицы в список `lost`, и адаптеры пишут о нем предупреждение.
 
@@ -237,7 +257,9 @@ IModelPort port = llm.AsModelPort(new ModelCapabilities
 ILLMClient legacy = port.AsLlmClient(ModelRole.Decide);   // обратно, для старых путей
 ```
 
-Клиент не сообщает, что умеет модель, поэтому `ModelCapabilities` задает вызывающий. При `Streaming = true` поток идет через перегрузку `SendFullAsync` с `onChunk`, а при `false` порт отдает один итоговый кадр, как реализация по умолчанию. Начальные настройки (`GenerateSettings`) несут то, чего нет в контракте: температуру, рассуждение, `IncludeUsage` для стоимости у OpenRouter. Инструменты, режим инструментов, схему ответа и предел токенов задает запрос.
+Клиент не сообщает, что умеет модель, поэтому `ModelCapabilities` задает вызывающий, в том числе размер окна `ContextTokens`, если он известен (`Describe` отдает его как есть). При `Streaming = true` поток идет через перегрузку `SendFullAsync` с `onChunk`, а при `false` порт отдает один итоговый кадр, как реализация по умолчанию. Начальные настройки (`GenerateSettings`) несут то, чего нет в контракте: `TopP`, бюджет рассуждения, `IncludeUsage` для стоимости у OpenRouter. Инструменты, режим инструментов, схему ответа, предел токенов, температуру (`ModelAsk.Temperature`) и уровень размышления (`ModelAsk.Reasoning`) задает запрос; `null` оставляет значение начальных настроек. Уровень размышления ложится в `ReasoningSettings.Effort`, если начальные настройки говорят с провайдером объектом рассуждения (OpenRouter), иначе в `ReasoningEffort`.
+
+Ответ по схеме (`ModelAsk.Schema`) проверяется правилом контракта `LlmAnswers.RequireJson`: `Ok` значит разбираемый JSON, ответ не JSON — `Failed`, `InvalidOutput` (текст ответа в `FailureText`, расход сохранен), пустой ответ — `Empty`, а не сбой.
 
 ### Итог и сбой
 
@@ -254,9 +276,9 @@ ILLMClient legacy = port.AsLlmClient(ModelRole.Decide);   // обратно, д�
 | 400, 404, 409, 413, 422, 451 | `Failed`, `ProviderRefusal` |
 | прочие коды и исключения | `Failed`, `Other` |
 
-Отмена токеном вызывающего остается исключением, как требует контракт. Текст сбоя для человека и `RetryAfter` в `LlmAnswer` не помещаются, поэтому адаптер пишет их в журнал. Расход берется из `Usage`: нули без стоимости означают, что провайдер ничего не сообщил, и дают `null`. Последний кадр потока — итог с расходом.
+Отмена токеном вызывающего остается исключением, как требует контракт. Текст сбоя для человека едет рядом с кодом в `LlmAnswer.FailureText`: сообщение исключения клиента, текст отказа модели или причина `content_filter`. `RetryAfter` в `LlmAnswer` не помещается, адаптер пишет его в журнал. Расход берется из `Usage`: нули без стоимости означают, что провайдер ничего не сообщил, и дают `null`. Последний кадр потока — итог с расходом.
 
-Обратно итог без ответа становится тем исключением, по которому старые вызывающие его различают: `Empty` — `LlmRequestException.NoResponse(EmptyModelAnswerException)` (`IsEmptyAnswer`, как у `ChatLLMApi`), `Failed` — `LlmRequestException` с условным кодом HTTP (переполнение — 400 с признаком переполнения, частота — 429, доступ — 403, отказ — 400, сеть — без ответа, прочее — 500). Код подобран так, что перевод обратно дает тот же `LlmFailure`. Исключения две: `Cancelled` возвращается как `Network`, незаданный код как `Other`, потому что в старой форме их не различить. `TokenizeAsync` клиент над портом не поддерживает: в `IModelPort` такой операции нет.
+Обратно итог без ответа становится тем исключением, по которому старые вызывающие его различают: `Empty` — `LlmRequestException.NoResponse(EmptyModelAnswerException)` (`IsEmptyAnswer`, как у `ChatLLMApi`), `Failed` — `LlmRequestException` с условным кодом HTTP (переполнение — 400 с признаком переполнения, частота — 429, доступ — 403, отказ — 400, сеть — без ответа, прочее — 500). Код подобран так, что перевод обратно дает тот же `LlmFailure`, а `FailureText` дописывается к сообщению исключения. Исключения четыре: `Cancelled` и `Stalled` возвращаются как `Network` (ответа нет), незаданный код и `InvalidOutput` — как `Other`, потому что в старой форме их не различить. `TokenizeAsync` клиент над портом не поддерживает: в `IModelPort` такой операции нет.
 
 ### Что отвергается до отправки
 
@@ -274,8 +296,8 @@ ILLMClient legacy = port.AsLlmClient(ModelRole.Decide);   // обратно, д�
 
 Полный список лежит в `ModelTranslationTable`, его проверяет такой же храповик, как у ReAct. Главное:
 
-- обратно не передаются настройки, которых нет в `ModelAsk`: температура, `TopP`, `TopK`, рассуждение, модальности, `IncludeUsage`, `json_object` вместо схемы. О каждой пишется одно предупреждение на клиент;
-- в ответе теряются картинки, сгенерированные моделью, текст отказа, второй и следующие варианты, токены рассуждения и кэша, идентификатор и провайдер ответа;
+- обратно не передаются настройки, которых нет в `ModelAsk`: `TopP`, `TopK`, бюджет и исключение рассуждения, незнакомый уровень рассуждения, модальности, `IncludeUsage`, `json_object` вместо схемы. О каждой пишется одно предупреждение на клиент. Температура и уровень рассуждения (`none`, `minimal`, `low`, `medium`, `high`) с сессии С2 переводятся;
+- в ответе теряются картинки, сгенерированные моделью, отказ рядом с ответом, второй и следующие варианты, токены рассуждения и кэша, идентификатор и провайдер ответа;
 - роль модели при `Fixed` не используется: модель на все роли одна.
 
 ### Стоимость числом
@@ -285,6 +307,23 @@ ILLMClient legacy = port.AsLlmClient(ModelRole.Decide);   // обратно, д�
 ### Долг: вызовы мимо адаптеров
 
 Файл `Tests/unit/AI.Agents.Interop.Tests/Models/ModelCallDebt.txt` перечисляет вызовы `ILLMClient.Send*` в `src/AI.LLM/Agents`, `src/AI.LLM/Services/Reranking/Llm` и `src/AI.Script.Llm`. Сейчас их десять: `Agent`, `NativeToolCallPolicy`, `StructuredJsonPolicy`, `DelegateReActSynthesizer`, `PlanGenerator`, `LlmStepValidator`, `SummarizationMemory`, `LlmReranker`, `LlmModule`, `ScriptWriter`. Храповик `ModelCallDebtTests` не дает долгу расти, а переведенный вызов требует вычеркнуть.
+
+### Классификатор
+
+`ModelClassifier` относит текст к одному из классов-слов через `IModelPort`: запрос с температурой 0 (`Temperature`, `MaxTokens`, `Reasoning` настраиваются), класс — первое слово ответа из списка, без учета регистра и знаков по краям. Итог `Classification` несет статус, класс и весь `LlmAnswer` с расходом и текстом сбоя:
+
+| Статус | Когда |
+|---|---|
+| `Ok` | в ответе есть слово из списка |
+| `NoClass` | модель ответила, но слова из списка нет |
+| `Empty` | модель не написала ответа |
+| `Failed` | вызов не состоялся: код и текст в `Answer` |
+
+`ClassifierWithLLM` из `AI.LLM` помечен `[Obsolete]` и работает как прежде: он ходит мимо порта (без повторов, цены и плательщика хоста) и сбой сообщает исключением. Переход со старой настройки — `ModelClassifier.FromChatApi(chatApi, classes, prompt)`. Вероятностей классов у замены нет: порт не отдает вероятности токенов.
+
+## Бюджет хода
+
+`LimitedRunBudget` — эталонный `IRunBudget` по пределам `RunLimits` (шаги, токены, деньги, вызовы модели, длительность). Его делят все участники хода. Первый исчерпанный предел запоминается и отдается кодом из `TryStep` (`step_limit`, `token_limit`, `cost_limit`, `call_limit`, `time_limit`). Исчерпание отменяет `Exhausted`: долгая работа внутри шага прекращается, не дожидаясь границы шага. Вызов модели без стоимости при пределе денег считается в `UnpricedCalls`, чтобы неполный учет не выглядел точным. Пределы хоста сводятся с потолками агента через `RunLimits.Narrow(agentLimits)`, побеждает меньший.
 
 ## Имена
 

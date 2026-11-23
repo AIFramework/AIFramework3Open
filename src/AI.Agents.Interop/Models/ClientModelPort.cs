@@ -14,7 +14,8 @@ namespace AI.Agents.Interop.Models;
 /// </summary>
 /// <remarks>
 /// Сбой клиента становится итогом <see cref="LlmStatus.Failed"/> или <see cref="LlmStatus.Empty"/>, текст сбоя
-/// для человека — предупреждением в журнал (в контракте для него места нет). Отмена токеном вызывающего остается
+/// для человека — в <see cref="LlmAnswer.FailureText"/> и предупреждением в журнал. Ответ по схеме проверяется
+/// правилом <see cref="LlmAnswers.RequireJson(LlmAnswer)"/>. Отмена токеном вызывающего остается
 /// исключением. Запрос, который старая форма не выражает, отвергается до отправки исключением.
 /// </remarks>
 internal sealed class ClientModelPort : IModelPort
@@ -37,16 +38,17 @@ internal sealed class ClientModelPort : IModelPort
     public Task<LlmAnswer> AskAsync(ModelAsk ask, CancellationToken cancellationToken = default)
     {
         (List<LLMMessage> messages, GenerateSettings settings) = Request(ask);
-        return CallAsync(messages, settings, onChunk: null, cancellationToken);
+        return CallAsync(messages, settings, onChunk: null, ask.Schema != null, cancellationToken);
     }
 
     public IAsyncEnumerable<LlmChunk> StreamAsync(ModelAsk ask, CancellationToken cancellationToken = default)
     {
         (List<LLMMessage> messages, GenerateSettings settings) = Request(ask);
 
+        bool json = ask.Schema != null;
         return _capabilities.Streaming
-            ? Stream(messages, settings, cancellationToken)
-            : SingleFinal(() => CallAsync(messages, settings, onChunk: null, cancellationToken));
+            ? Stream(messages, settings, json, cancellationToken)
+            : SingleFinal(() => CallAsync(messages, settings, onChunk: null, json, cancellationToken));
     }
 
     public ModelCapabilities Describe(ModelRole role) => _capabilities;
@@ -59,7 +61,7 @@ internal sealed class ClientModelPort : IModelPort
     }
 
     private async IAsyncEnumerable<LlmChunk> Stream(
-        List<LLMMessage> messages, GenerateSettings settings, [EnumeratorCancellation] CancellationToken cancellationToken)
+        List<LLMMessage> messages, GenerateSettings settings, bool json, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var frames = Channel.CreateUnbounded<LlmChunk>(new UnboundedChannelOptions { SingleReader = true });
 
@@ -71,7 +73,7 @@ internal sealed class ClientModelPort : IModelPort
                 frames.Writer.TryWrite(new LlmChunk.Text { Chunk = chunk.Content });
         }
 
-        Task<LlmAnswer> call = CompleteAfter(CallAsync(messages, settings, OnChunk, cancellationToken), frames.Writer);
+        Task<LlmAnswer> call = CompleteAfter(CallAsync(messages, settings, OnChunk, json, cancellationToken), frames.Writer);
 
         await foreach (LlmChunk frame in frames.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
             yield return frame;
@@ -98,7 +100,8 @@ internal sealed class ClientModelPort : IModelPort
     }
 
     private async Task<LlmAnswer> CallAsync(
-        List<LLMMessage> messages, GenerateSettings settings, Action<LLMStreamChunk>? onChunk, CancellationToken cancellationToken)
+        List<LLMMessage> messages, GenerateSettings settings, Action<LLMStreamChunk>? onChunk, bool json,
+        CancellationToken cancellationToken)
     {
         ChatCompletionsResponse? response;
         try
@@ -136,6 +139,12 @@ internal sealed class ClientModelPort : IModelPort
         foreach (string field in lost.Distinct())
             Logger.Warning("Порт модели: поле ответа {Field} в контракт не переводится и не передано", field);
 
-        return answer;
+        if (!json)
+            return answer;
+
+        LlmAnswer checkedAnswer = LlmAnswers.RequireJson(answer);
+        if (checkedAnswer.Status != answer.Status)
+            Logger.Warning("Порт модели: ответ по схеме не JSON, итог Failed (InvalidOutput)");
+        return checkedAnswer;
     }
 }

@@ -46,6 +46,9 @@ public readonly record struct StopCode
     /// <summary>Исчерпан предел денег.</summary>
     public static StopCode CostLimit { get; } = new("cost_limit");
 
+    /// <summary>Исчерпан предел вызовов модели.</summary>
+    public static StopCode CallLimit { get; } = new("call_limit");
+
     /// <summary>Вышел срок.</summary>
     public static StopCode TimeLimit { get; } = new("time_limit");
 

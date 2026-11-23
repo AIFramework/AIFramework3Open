@@ -20,7 +20,8 @@ public interface IRunBudget
     /// </summary>
     /// <param name="stop">
     /// Если нельзя — код исчерпанного предела (<see cref="StopCode.StepLimit"/>, <see cref="StopCode.TokenLimit"/>,
-    /// <see cref="StopCode.CostLimit"/>, <see cref="StopCode.TimeLimit"/> или свой); тот же код движок пишет в
+    /// <see cref="StopCode.CostLimit"/>, <see cref="StopCode.CallLimit"/>, <see cref="StopCode.TimeLimit"/> или свой);
+    /// тот же код движок пишет в
     /// <see cref="EngineResult.StopCode"/>. Если можно — значение не задано.
     /// </param>
     /// <returns><see langword="true"/>, если шаг разрешен и засчитан.</returns>
@@ -31,4 +32,15 @@ public interface IRunBudget
     /// </summary>
     /// <param name="usage">Расход одного вызова.</param>
     void Spend(ModelUsage usage);
+
+    /// <summary>
+    /// Отменяется, когда исчерпан любой предел (в том числе срок): долгая работа внутри шага (поток модели,
+    /// инструмент, подзадача) прекращается, не дожидаясь следующего <see cref="TryStep(out StopCode)"/>. Код предела
+    /// отдает следующий <see cref="TryStep(out StopCode)"/>.
+    /// </summary>
+    /// <remarks>
+    /// Реализация по умолчанию — <see cref="CancellationToken.None"/>: бюджет не сигналит, пределы проверяются только
+    /// на границе шага. Поэтому член не ломает прежние реализации.
+    /// </remarks>
+    CancellationToken Exhausted => CancellationToken.None;
 }

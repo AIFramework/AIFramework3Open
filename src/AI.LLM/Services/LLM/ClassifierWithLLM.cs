@@ -8,6 +8,13 @@ namespace AI.LLM.Services.LLM;
 /// <summary>
 /// Классификатор на базе LLM с использованием вероятностей токенов.
 /// </summary>
+/// <remarks>
+/// Устарел: ходит мимо порта модели (без повторов, цены и плательщика хоста), а сбой сообщает исключением. Замена —
+/// <c>AI.Agents.Interop.Models.ModelClassifier</c> поверх <c>IModelPort</c>; переход со старой настройки —
+/// <c>ModelClassifier.FromChatApi</c>. Вероятностей классов у замены нет.
+/// </remarks>
+[Obsolete("Используйте AI.Agents.Interop.Models.ModelClassifier поверх IModelPort (переход — ModelClassifier.FromChatApi): " +
+          "итог со статусом отличает сбой от ответа без класса и несет расход.")]
 public class ClassifierWithLLM
 {
     /// <summary>

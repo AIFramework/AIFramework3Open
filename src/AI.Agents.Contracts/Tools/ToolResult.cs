@@ -19,10 +19,18 @@ public sealed record ToolResult
     public required Origin Origin { get; init; }
 
     /// <summary>
-    /// Машинный код ошибки (<c>timeout</c>, <c>no_result</c>, свой код инструмента); <see langword="null"/>:
-    /// ошибки нет.
+    /// Машинный код исхода из словаря <see cref="ToolCodes"/> или свой код инструмента; <see langword="null"/>:
+    /// уточнять нечего. Обычно это причина сбоя, но при <see cref="ToolStatus.Ok"/> код уточняет удачу:
+    /// <see cref="ToolCodes.Partial"/> или <see cref="ToolCodes.Pending"/>.
     /// </summary>
     public string? ErrorCode { get; init; }
+
+    /// <summary>
+    /// По чему забрать итог позже, когда действие начато, а результат придет потом (код
+    /// <see cref="ToolCodes.Pending"/>): идентификатор задачи, операции или запуска у внешнего сервиса.
+    /// <see langword="null"/>: итог уже здесь.
+    /// </summary>
+    public string? Handle { get; init; }
 
     /// <summary>Структурный результат; <see langword="null"/>: есть только <see cref="Text"/>.</summary>
     public JsonElement? Data { get; init; }

@@ -157,12 +157,14 @@ public sealed class ModelRoundTripTests
     {
         var log = new CapturingLog();
         ILLMClient client = new FakePort().AsLlmClient(ModelRole.Decide, log.Logger);
-        var settings = new GenerateSettings(temperature: 0.3) { ResponseFormat = ResponseFormat.CreateJsonObject() };
+        var settings = new GenerateSettings(temperature: 0.3) { TopP = 0.9, ResponseFormat = ResponseFormat.CreateJsonObject() };
 
         for (int i = 0; i < 3; i++)
             await client.SendAsync([new LLMMessage("user", "q")], settings);
 
-        Assert.Equal(1, log.Warnings.Count(w => w.Contains("GenerateSettings.Temperature")));
+        // Температура с С2 переводится в ModelAsk.Temperature и потерей не считается.
+        Assert.Equal(0, log.Warnings.Count(w => w.Contains("GenerateSettings.Temperature")));
+        Assert.Equal(1, log.Warnings.Count(w => w.Contains("GenerateSettings.TopP")));
         Assert.Equal(1, log.Warnings.Count(w => w.Contains("GenerateSettings.ResponseFormat")));
         Assert.Equal(1, log.Warnings.Count(w => w.Contains("GenerateSettings.TopK")));
     }

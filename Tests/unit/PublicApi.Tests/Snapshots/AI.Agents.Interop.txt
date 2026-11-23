@@ -4,13 +4,18 @@ namespace AI.Agents.Interop.Effects
 {
     public static class AttributedTools
     {
+        [System.Obsolete("Строка метода здесь молча считается удачей. Выберите правило явно: перегрузка с T" +
+            "oolTextResult.")]
         public static AI.Agents.Contracts.Tools.IToolSet AsToolSet(System.Collections.Generic.IEnumerable<object> instances, Serilog.ILogger? log = null) { }
+        public static AI.Agents.Contracts.Tools.IToolSet AsToolSet(System.Collections.Generic.IEnumerable<object> instances, AI.LLM.Agents.Tools.ToolTextResult textResults, Serilog.ILogger? log = null) { }
     }
     public sealed class EffectGate : AI.Agents.Contracts.Tools.IToolSet
     {
         public EffectGate(AI.Agents.Contracts.Tools.IToolSet inner, Serilog.ILogger? log = null) { }
+        public EffectGate(AI.Agents.Contracts.Tools.IToolSet inner, System.Collections.Generic.IEnumerable<AI.Agents.Contracts.Runs.EffectRecord> previous, Serilog.ILogger? log = null) { }
         public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Tools.ToolSpec> Available { get; }
         public System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Runs.EffectRecord> Journal { get; }
+        public event System.Action<System.Collections.Generic.IReadOnlyList<AI.Agents.Contracts.Runs.EffectRecord>>? JournalChanged;
         public System.Collections.Generic.IAsyncEnumerable<AI.Agents.Contracts.Tools.ToolUpdate> CallAsync(AI.Agents.Contracts.Tools.ToolCall call, AI.Agents.Contracts.Tools.ToolContext context, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class EffectGateCodes
@@ -40,6 +45,23 @@ namespace AI.Agents.Interop.Engines
         public const string ContinuationNotSupported = "continuation_not_supported";
         public const string InvalidOptions = "invalid_options";
         public const string PlanRejected = "plan_rejected";
+    }
+    public sealed class LimitedRunBudget : AI.Agents.Contracts.Engines.IRunBudget, System.IDisposable
+    {
+        public LimitedRunBudget(AI.Agents.Contracts.Engines.RunLimits limits, System.TimeProvider? time = null) { }
+        public decimal Cost { get; }
+        public System.DateTimeOffset? Deadline { get; }
+        public System.Threading.CancellationToken Exhausted { get; }
+        public AI.Agents.Contracts.Engines.RunLimits Limits { get; }
+        public int ModelCalls { get; }
+        public System.TimeSpan? Remaining { get; }
+        public int Steps { get; }
+        public AI.Agents.Contracts.Engines.StopCode? Stop { get; }
+        public long Tokens { get; }
+        public int UnpricedCalls { get; }
+        public void Dispose() { }
+        public void Spend(AI.Agents.Contracts.Models.ModelUsage usage) { }
+        public bool TryStep(out AI.Agents.Contracts.Engines.StopCode stop) { }
     }
     public sealed class PlanningEngineAdapter : AI.Agents.Contracts.Engines.IEngine
     {
@@ -83,11 +105,38 @@ namespace AI.Agents.Interop.Humans
 }
 namespace AI.Agents.Interop.Models
 {
+    public sealed record Classification : System.IEquatable<AI.Agents.Interop.Models.Classification>
+    {
+        public Classification() { }
+        public required AI.Agents.Contracts.Models.LlmAnswer Answer { get; init; }
+        public string? Class { get; init; }
+        public required AI.Agents.Interop.Models.ClassificationStatus Status { get; init; }
+    }
+    public enum ClassificationStatus
+    {
+        Unknown = 0,
+        Ok = 1,
+        NoClass = 2,
+        Empty = 3,
+        Failed = 4,
+    }
+    public sealed class ModelClassifier
+    {
+        public const string InputPlaceholder = "{{input_text}}";
+        public ModelClassifier(AI.Agents.Contracts.Models.IModelPort port, AI.Agents.Contracts.Models.ModelRole role, System.Collections.Generic.IEnumerable<string> classes, string prompt, Serilog.ILogger? log = null) { }
+        public System.Collections.Generic.IReadOnlyCollection<string> Classes { get; }
+        public int? MaxTokens { get; init; }
+        public AI.Agents.Contracts.Models.ReasoningLevel? Reasoning { get; init; }
+        public double? Temperature { get; init; }
+        public System.Threading.Tasks.Task<AI.Agents.Interop.Models.Classification> ClassifyAsync(string text, System.Threading.CancellationToken cancellationToken = default) { }
+        public static AI.Agents.Interop.Models.ModelClassifier FromChatApi(AI.LLM.Clients.Base.ChatLLMApi api, System.Collections.Generic.IEnumerable<string>? classes, string prompt, Serilog.ILogger? log = null) { }
+    }
     public static class ModelPort
     {
         public static AI.LLM.Core.Abstractions.ILLMClient AsLlmClient(this AI.Agents.Contracts.Models.IModelPort port, AI.Agents.Contracts.Models.ModelRole role, Serilog.ILogger? log = null) { }
         public static AI.Agents.Contracts.Models.IModelPort AsModelPort(this AI.LLM.Core.Abstractions.ILLMClient client, AI.Agents.Contracts.Models.ModelCapabilities capabilities, AI.LLM.Core.Models.Common.Requests.GenerateSettings? settings = null, Serilog.ILogger? log = null) { }
         public static AI.Agents.Contracts.Models.IModelPort Fixed(AI.LLM.Core.Abstractions.ILLMClient client, AI.Agents.Contracts.Models.ModelCapabilities capabilities, AI.LLM.Core.Models.Common.Requests.GenerateSettings? settings = null, Serilog.ILogger? log = null) { }
+        public static AI.Agents.Contracts.Models.IModelPort Watched(this AI.Agents.Contracts.Models.IModelPort port, AI.Agents.Contracts.Models.StreamWatch watch, System.TimeProvider? time = null, Serilog.ILogger? log = null) { }
     }
     public static class ModelTranslation
     {

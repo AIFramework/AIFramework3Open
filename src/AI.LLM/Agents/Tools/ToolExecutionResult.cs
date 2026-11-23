@@ -28,6 +28,12 @@ public sealed class ToolExecutionResult
     /// <summary>Время выполнения.</summary>
     public TimeSpan Elapsed { get; }
 
+    /// <summary>
+    /// Значение, которое вернул метод (после ожидания <c>Task</c>); <c>null</c> — метод ничего не вернул, бросил
+    /// исключение или не найден. Нужно адаптерам, которые понимают свой тип итога целиком, а не его текст.
+    /// </summary>
+    internal object Value { get; init; }
+
     public ToolExecutionResult(string toolCallId, string toolName, string content, bool isSuccess, TimeSpan elapsed,
         IReadOnlyList<AgentImage> images = null)
     {

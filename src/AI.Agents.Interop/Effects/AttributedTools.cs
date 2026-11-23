@@ -4,6 +4,7 @@ using AI.Agents.Interop.ReAct;
 using AI.LLM.Agents.ReAct.Interop;
 using AI.LLM.Agents.Tools;
 using Serilog;
+using AI.LLM.Agents.ReAct.Tools;
 
 namespace AI.Agents.Interop.Effects;
 
@@ -18,6 +19,13 @@ namespace AI.Agents.Interop.Effects;
 /// закрытого <c>ToolRegistry.ScanMethods</c> (через <c>InternalsVisibleTo</c>), поэтому правило имени одно.
 /// </para>
 /// <para>
+/// Итог метода. Метод может вернуть итог контракта (<see cref="ToolResult"/> или <c>Task</c> с ним): он проходит целиком —
+/// статус, код из <see cref="ToolCodes"/>, <see cref="ToolResult.Handle"/>, подтверждения. Итог AI.LLM с признаком
+/// успеха (<c>ToolResult.Success</c>/<c>Failure</c>) дает <see cref="ToolStatus.Ok"/> или <see cref="ToolStatus.Failed"/>,
+/// исключение метода — <see cref="ToolStatus.Failed"/>. Строку правило <see cref="ToolTextResult"/> считает удачей
+/// (<see cref="ToolTextResult.Success"/>) или запрещает уже при построении набора (<see cref="ToolTextResult.Refused"/>).
+/// </para>
+/// <para>
 /// Это единственный файл сборки, которому разрешено отражение (храповик <c>NoReflectionTests</c>, исключение с
 /// причиной): чтение пользовательского атрибута с <see cref="MethodInfo"/> и поиск методов с
 /// <see cref="ToolEffectAttribute"/> без <c>[AgentTool]</c>. Члены AI.LLM через отражение не вызываются.
@@ -25,15 +33,27 @@ namespace AI.Agents.Interop.Effects;
 /// </remarks>
 public static class AttributedTools
 {
+    /// <summary>Набор инструментов из объектов с методами <c>[AgentTool]</c>; строка метода считается удачей.</summary>
+    /// <param name="instances">Объекты с методами-инструментами.</param>
+    /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/>.</param>
+    /// <returns>Набор контракта, как <see cref="AsToolSet(IEnumerable{object}, ToolTextResult, ILogger?)"/> с
+    /// <see cref="ToolTextResult.Success"/>.</returns>
+    [Obsolete("Строка метода здесь молча считается удачей. Выберите правило явно: перегрузка с ToolTextResult.")]
+    public static IToolSet AsToolSet(IEnumerable<object> instances, ILogger? log = null) =>
+        AsToolSet(instances, ToolTextResult.Success, log);
+
     /// <summary>Набор инструментов из объектов с методами <c>[AgentTool]</c>.</summary>
     /// <param name="instances">Объекты с методами-инструментами; порядок как у <c>ToolRegistry.FromObjects</c>: при
     /// совпадении имени побеждает последний.</param>
+    /// <param name="textResults">Как понимать строку, которую вернул метод: удача или ошибка конфигурации.</param>
     /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/>.</param>
     /// <returns>Набор контракта. Метод без <see cref="ToolEffectAttribute"/> получает <see cref="ToolAction.Unknown"/> и
     /// <see cref="ToolIdempotency.Unknown"/> и одно предупреждение в журнал на инструмент.</returns>
     /// <exception cref="ArgumentException">У метода есть <see cref="ToolEffectAttribute"/>, но нет <c>[AgentTool]</c>: атрибут
-    /// эффекта ничего бы не объявил, а пропускать его молча нельзя.</exception>
-    public static IToolSet AsToolSet(IEnumerable<object> instances, ILogger? log = null)
+    /// эффекта ничего бы не объявил, а пропускать его молча нельзя. При <see cref="ToolTextResult.Refused"/> — метод
+    /// возвращает не итог с признаком успеха.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Правило не выбрано (<see cref="ToolTextResult.Unspecified"/>).</exception>
+    public static IToolSet AsToolSet(IEnumerable<object> instances, ToolTextResult textResults, ILogger? log = null)
     {
         ArgumentNullException.ThrowIfNull(instances);
         object[] objects = [.. instances];
@@ -60,9 +80,17 @@ public static class AttributedTools
             }
         }
 
-        var source = new ToolRegistryToolSource(ToolRegistry.FromObjects(objects));
+        var source = new ToolRegistryToolSource(
+            ToolRegistry.FromObjects(objects), textResults, IsContractResult, ToOutcome);
         return new ReActSourceAsToolSet(source, baseRun: null, actions, idempotency, log);
     }
+
+    /// <summary>Итог контракта тоже несет признак успеха: правило <see cref="ToolTextResult.Refused"/> его принимает.</summary>
+    private static bool IsContractResult(Type type) => type == typeof(ToolResult);
+
+    /// <summary>Итог контракта едет в старой форме целиком; остальные значения — обычное правило источника.</summary>
+    private static ReActToolOutcome? ToOutcome(object value) =>
+        value is ToolResult result ? ReActTranslation.Carry(result) : null;
 
     /// <summary>Атрибут эффекта без <c>[AgentTool]</c> на том же методе — ошибка с именем типа и метода.</summary>
     private static void EnsureNoOrphanEffects(object instance)

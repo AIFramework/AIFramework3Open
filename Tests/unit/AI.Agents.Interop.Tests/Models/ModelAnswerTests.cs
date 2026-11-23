@@ -133,7 +133,9 @@ public sealed class ModelAnswerTests
         LlmAnswer answer = Response(null, refusal: "не могу помочь").ToAnswer(lost);
 
         Assert.Equal(LlmFailure.ProviderRefusal, answer.Failure);
-        Assert.Contains("LLMMessage.Refusal", lost);
+        // Текст отказа едет рядом с кодом, а не теряется.
+        Assert.Equal("не могу помочь", answer.FailureText);
+        Assert.DoesNotContain("LLMMessage.Refusal", lost);
     }
 
     [Fact]

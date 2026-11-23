@@ -121,6 +121,9 @@ public sealed class ModelFailureTests
             // В старой форме отмена не вызывающим неотличима от сети, а незаданный код — от прочего сбоя.
             [LlmFailure.Cancelled] = LlmFailure.Network,
             [LlmFailure.Unknown] = LlmFailure.Other,
+            // Молчание модели в старой форме — ответа нет (тайм-аут); ответ не по схеме — прочий сбой.
+            [LlmFailure.Stalled] = LlmFailure.Network,
+            [LlmFailure.InvalidOutput] = LlmFailure.Other,
         };
 
         Assert.Equal(Enum.GetValues<LlmFailure>().Order(), expected.Keys.Order());

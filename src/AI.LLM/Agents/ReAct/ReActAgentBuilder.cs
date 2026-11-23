@@ -104,18 +104,32 @@ public sealed class ReActAgentBuilder
         return this;
     }
 
+    /// <summary>Подключает инструменты, объявленные атрибутами на методах объекта; строка инструмента — удача.</summary>
+    /// <param name="toolInstance">Объект с методами <see cref="AI.LLM.Agents.Tools.AgentToolAttribute"/>.</param>
+    [Obsolete("Строка инструмента здесь молча считается удачей. Используйте перегрузку с ToolTextResult.")]
+    public ReActAgentBuilder WithAttributedTools(object toolInstance) =>
+        WithAttributedTools(toolInstance, AI.LLM.Agents.Tools.ToolTextResult.Success);
+
     /// <summary>Подключает инструменты, объявленные атрибутами на методах объекта.</summary>
     /// <param name="toolInstance">Объект с методами <see cref="AI.LLM.Agents.Tools.AgentToolAttribute"/>.</param>
-    public ReActAgentBuilder WithAttributedTools(object toolInstance)
+    /// <param name="textResults">Как понимать строку, которую вернул метод-инструмент.</param>
+    public ReActAgentBuilder WithAttributedTools(object toolInstance, AI.LLM.Agents.Tools.ToolTextResult textResults)
     {
         ArgumentNullException.ThrowIfNull(toolInstance);
-        return WithToolSource(ToolRegistryToolSource.FromObjects(toolInstance));
+        return WithToolSource(ToolRegistryToolSource.FromObjects(textResults, toolInstance));
     }
+
+    /// <summary>Подключает готовый реестр инструментов; строка инструмента — удача.</summary>
+    /// <param name="registry">Реестр.</param>
+    [Obsolete("Строка инструмента здесь молча считается удачей. Используйте перегрузку с ToolTextResult.")]
+    public ReActAgentBuilder WithToolRegistry(AI.LLM.Agents.Tools.ToolRegistry registry) =>
+        WithToolRegistry(registry, AI.LLM.Agents.Tools.ToolTextResult.Success);
 
     /// <summary>Подключает готовый реестр инструментов.</summary>
     /// <param name="registry">Реестр.</param>
-    public ReActAgentBuilder WithToolRegistry(AI.LLM.Agents.Tools.ToolRegistry registry) =>
-        WithToolSource(new ToolRegistryToolSource(registry));
+    /// <param name="textResults">Как понимать строку, которую вернул метод-инструмент.</param>
+    public ReActAgentBuilder WithToolRegistry(AI.LLM.Agents.Tools.ToolRegistry registry, AI.LLM.Agents.Tools.ToolTextResult textResults) =>
+        WithToolSource(new ToolRegistryToolSource(registry, textResults));
 
     /// <summary>Задаёт базовый системный промпт.</summary>
     /// <param name="prompt">Промпт вызывающей стороны.</param>

@@ -26,12 +26,17 @@ namespace AI.Agents.Interop.Effects;
 /// он детерминирован), при <see cref="ToolIdempotency.NotIdempotent"/> и незаданном — не повторяется: итог
 /// <see cref="ToolStatus.Failed"/> с кодом <see cref="EffectGateCodes.RepeatUnsafe"/>.</item>
 /// <item>Итоги <see cref="ToolStatus.Denied"/>, <see cref="ToolStatus.NeedsInput"/> и <see cref="ToolStatus.AwaitsUser"/>
-/// значат, что действие не исполнялось: запись снимается, и вызов можно повторить (например, с ответом человека).</item>
+/// значат, что действие не исполнялось: запись снимается, и вызов можно повторить (например, с ответом человека).
+/// Так же снимается запись итога <see cref="ToolStatus.Failed"/> с кодом отказа до действия
+/// (<see cref="ToolCodes.NotPerformed(string?)"/>: <see cref="ToolCodes.Transient"/>,
+/// <see cref="ToolCodes.NotConfigured"/> и другие): сервер ничего не сделал.</item>
 /// </list>
 /// <para>
-/// Журнал (<see cref="Journal"/>) хост кладет в <see cref="RunState.Effects"/>. Граница до шага Ф6: защита от
-/// повтора действует внутри одного запуска, то есть одного экземпляра гейта. Между запусками она заработает,
-/// когда движок начнет принимать <c>EngineInput.State</c> и продолжение получит журнал прошлого прогона.
+/// Журнал (<see cref="Journal"/>) хост кладет в <see cref="RunState.Effects"/>. Продолжение запуска создает гейт с
+/// прежним журналом (конструктор с <c>previous</c>): ключи детерминированы запуском, поэтому исполненное второй раз
+/// не исполняется, а начатое с неизвестным исходом повторяется только при объявленной безопасности повтора. О
+/// каждом изменении журнала гейт сообщает событием <see cref="JournalChanged"/>, чтобы хост сохранял журнал сразу,
+/// а не по концу прогона.
 /// </para>
 /// </remarks>
 public sealed class EffectGate : IToolSet
@@ -39,16 +44,50 @@ public sealed class EffectGate : IToolSet
     private readonly IToolSet _inner;
     private readonly ILogger? _log;
     private readonly object _sync = new();
+    private readonly object _notify = new();
     private readonly List<EffectRecord> _journal = [];
 
-    /// <summary>Оборачивает набор инструментов.</summary>
+    /// <summary>Оборачивает набор инструментов; журнал запуска пуст.</summary>
     /// <param name="inner">Набор, к которому идут вызовы.</param>
     /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/> на момент записи.</param>
     public EffectGate(IToolSet inner, ILogger? log = null)
+        : this(inner, [], log)
+    {
+    }
+
+    /// <summary>Оборачивает набор инструментов и продолжает журнал прежнего прогона того же запуска.</summary>
+    /// <param name="inner">Набор, к которому идут вызовы.</param>
+    /// <param name="previous">
+    /// Журнал запуска (<see cref="RunState.Effects"/>) в порядке начала вызовов. Ключ с итогом
+    /// <see cref="ToolStatus.Ok"/> не исполняется второй раз; ключ с другим итогом (в том числе
+    /// <see cref="ToolStatus.Unknown"/> у потерянного прогона) повторяется только при объявленной безопасности повтора.
+    /// </param>
+    /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/> на момент записи.</param>
+    /// <exception cref="ArgumentException">В журнале пустая запись или один ключ дважды: журнал испорчен, а молча
+    /// выбрать одну из записей нельзя.</exception>
+    public EffectGate(IToolSet inner, IEnumerable<EffectRecord> previous, ILogger? log = null)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+        ArgumentNullException.ThrowIfNull(previous);
         _log = log;
+
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (EffectRecord? record in previous)
+        {
+            if (record?.Key == null || record.Result == null)
+                throw new ArgumentException("В прежнем журнале эффектов пустая запись.", nameof(previous));
+            if (!keys.Add(record.Key))
+                throw new ArgumentException($"В прежнем журнале эффектов ключ {record.Key} встречается дважды.", nameof(previous));
+            _journal.Add(record);
+        }
     }
+
+    /// <summary>
+    /// Журнал изменился: добавлена, заменена или снята запись. Аргумент — снимок всего журнала; при одновременных
+    /// вызовах последний снимок всегда самый новый. Обработчик зовется синхронно и не должен звать гейт; его
+    /// исключение пишется в журнал ошибкой и вызов инструмента не прерывает.
+    /// </summary>
+    public event Action<IReadOnlyList<EffectRecord>>? JournalChanged;
 
     /// <inheritdoc />
     public IReadOnlyList<ToolSpec> Available => _inner.Available;
@@ -118,6 +157,9 @@ public sealed class EffectGate : IToolSet
                 Put(new EffectRecord { Key = key, Tool = spec.Name, Result = Pending(spec.Name) });
             }
         }
+
+        if (refusal == null)
+            Notify();
 
         if (refusal != null)
         {
@@ -191,25 +233,62 @@ public sealed class EffectGate : IToolSet
         }
     }
 
-    /// <summary>Записывает итог; если действие не исполнялось (отказ, вопрос), возвращает прежнюю запись или снимает ее.</summary>
+    /// <summary>
+    /// Записывает итог; если действие не исполнялось (отказ, вопрос, отказ до действия), возвращает прежнюю запись
+    /// или снимает ее.
+    /// </summary>
     private void Settle(string key, string tool, ToolResult result, EffectRecord? previous)
     {
         lock (_sync)
         {
-            if (result.Status is ToolStatus.Denied or ToolStatus.NeedsInput or ToolStatus.AwaitsUser)
+            if (NotPerformed(result))
             {
                 int index = _journal.FindIndex(r => r.Key == key);
-                if (index < 0)
-                    return;
-
-                if (previous != null)
-                    _journal[index] = previous;
-                else
-                    _journal.RemoveAt(index);
-                return;
+                if (index >= 0)
+                {
+                    if (previous != null)
+                        _journal[index] = previous;
+                    else
+                        _journal.RemoveAt(index);
+                }
             }
+            else
+            {
+                Put(new EffectRecord { Key = key, Tool = tool, Result = result });
+            }
+        }
 
-            Put(new EffectRecord { Key = key, Tool = tool, Result = result });
+        Notify();
+    }
+
+    /// <summary>Итог значит, что действие не исполнялось: мир не изменился, запись журнала не нужна.</summary>
+    private static bool NotPerformed(ToolResult result) =>
+        result.Status is ToolStatus.Denied or ToolStatus.NeedsInput or ToolStatus.AwaitsUser
+        || (result.Status == ToolStatus.Failed && ToolCodes.NotPerformed(result.ErrorCode));
+
+    /// <summary>
+    /// Сообщает снимок журнала. Снимок берется под замком уведомлений: последний вызванный обработчик видит самый
+    /// новый журнал, даже если изменения шли из разных потоков.
+    /// </summary>
+    private void Notify()
+    {
+        if (JournalChanged == null)
+            return;
+
+        lock (_notify)
+        {
+            Action<IReadOnlyList<EffectRecord>>? handler = JournalChanged;
+            if (handler == null)
+                return;
+
+            try
+            {
+                handler(Journal);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Гейт эффектов: обработчик JournalChanged упал; журнал в памяти гейта цел");
+            }
         }
     }
 

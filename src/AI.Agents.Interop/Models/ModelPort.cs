@@ -6,7 +6,8 @@ using Serilog;
 namespace AI.Agents.Interop.Models;
 
 /// <summary>
-/// Точки входа адаптеров модели: <c>ModelPort.Fixed(client, capabilities)</c> (или <c>client.AsModelPort(…)</c>)
+/// Точки входа адаптеров модели: <c>ModelPort.Fixed(client, capabilities)</c> (или <c>client.AsModelPort(…)</c>),
+/// сторож потока <c>port.Watched(watch)</c>
 /// и <c>port.AsLlmClient(role)</c>.
 /// </summary>
 /// <remarks>
@@ -47,6 +48,24 @@ public static class ModelPort
     public static IModelPort AsModelPort(
         this ILLMClient client, ModelCapabilities capabilities, GenerateSettings? settings = null, ILogger? log = null) =>
         Fixed(client, capabilities, settings, log);
+
+    /// <summary>Сторож потока над портом: молчание модели дольше <paramref name="watch"/> — итог сбоя, а не ожидание.</summary>
+    /// <param name="port">Порт.</param>
+    /// <param name="watch">Сколько ждать первого фрагмента и сколько терпеть простой посреди ответа.</param>
+    /// <param name="time">Часы; <see langword="null"/>: <see cref="TimeProvider.System"/>.</param>
+    /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/>.</param>
+    /// <returns>
+    /// Порт. Срабатывание сторожа — кадр <see cref="LlmChunk.Final"/> с <see cref="LlmStatus.Failed"/> и
+    /// <see cref="LlmFailure.Stalled"/> (текст причины в <see cref="LlmAnswer.FailureText"/>), внутренний поток при
+    /// этом отменяется. Порт без настоящего потока (<see cref="ModelCapabilities.Streaming"/> =
+    /// <see langword="false"/>) идет без сторожа: молчание у него не отличить от работы.
+    /// </returns>
+    public static IModelPort Watched(this IModelPort port, StreamWatch watch, TimeProvider? time = null, ILogger? log = null)
+    {
+        ArgumentNullException.ThrowIfNull(port);
+        ArgumentNullException.ThrowIfNull(watch);
+        return new WatchedModelPort(port, watch, time ?? TimeProvider.System, log);
+    }
 
     /// <summary>Старый клиент над портом модели.</summary>
     /// <param name="port">Порт.</param>

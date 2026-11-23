@@ -1,3 +1,5 @@
+using AI.Agents.Contracts.Tools;
+
 namespace AI.Agents.Interop.ReAct;
 
 /// <summary>
@@ -13,7 +15,7 @@ public static class ReActInteropCodes
     public const string Denied = "denied";
 
     /// <summary>Инструменту не хватает данных от человека (<c>ToolStatus.NeedsInput</c>).</summary>
-    public const string NeedsInput = "needs_input";
+    public const string NeedsInput = ToolCodes.NeedsInput;
 
     /// <summary>Инструмент ждет решения человека (<c>ToolStatus.AwaitsUser</c>).</summary>
     public const string AwaitsUser = "awaits_user";
@@ -22,5 +24,5 @@ public static class ReActInteropCodes
     public const string UnknownStatus = "unknown_status";
 
     /// <summary>Инструмента с таким именем в наборе нет; тот же код, что у движка ReAct.</summary>
-    public const string UnknownTool = "unknown_tool";
+    public const string UnknownTool = ToolCodes.UnknownTool;
 }
