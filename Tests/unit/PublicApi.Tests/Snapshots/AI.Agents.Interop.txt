@@ -44,6 +44,7 @@ namespace AI.Agents.Interop.Engines
     {
         public const string ContinuationNotSupported = "continuation_not_supported";
         public const string InvalidOptions = "invalid_options";
+        public const string NotConfigured = "not_configured";
         public const string PlanRejected = "plan_rejected";
     }
     public sealed class LimitedRunBudget : AI.Agents.Contracts.Engines.IRunBudget, System.IDisposable

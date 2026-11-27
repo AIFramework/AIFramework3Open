@@ -77,7 +77,7 @@ public sealed class PlanningEngineAdapter : IEngine
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        if (ReActRun.Refusal(input, out EngineOptions options) is { } refusal)
+        if (ReActRun.Refusal(input, out EngineOptions options, planSteps: true) is { } refusal)
         {
             yield return new EngineEvent.Finished { Result = refusal };
             yield break;

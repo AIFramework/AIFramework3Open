@@ -79,6 +79,68 @@ public sealed class EngineRolesTests
         Assert.Equal(EngineInteropCodes.InvalidOptions, result.StopCode.Name);
     }
 
+    /// <summary>
+    /// Прежде такой запуск падал <see cref="ArgumentException"/> на первом шаге, уже после вызова планировщика.
+    /// Теперь роли проверяются против порта до старта: отказ с кодом и ни одного обращения к модели.
+    /// </summary>
+    [Fact]
+    public async Task Plan_ModelAcceptance_WithoutJudgeRole_RefusedBeforeAnyModelCall()
+    {
+        ScriptedClient decide = Decider();
+        EngineInput input = Input(decide, new ScriptedClient(), new JsonObject { ["acceptance"] = "model" }) with
+        {
+            Model = ModelPort.Routed(new Dictionary<ModelRole, IReadOnlyList<ModelSlot>>
+            {
+                [ModelRole.Decide] = [new ModelSlot("model-decide", ModelPort.Fixed(decide, Caps))],
+            }),
+        };
+
+        List<EngineEvent> events = await Kit.ReadAll(new PlanningEngineAdapter().RunAsync(input));
+
+        EngineResult result = Assert.IsType<EngineEvent.Finished>(Assert.Single(events)).Result;
+        Assert.Equal(EngineStatus.Failed, result.Status);
+        Assert.Equal(AI.Agents.Contracts.Tools.ToolCodes.NotConfigured, result.StopCode.Name);
+        Assert.Contains("judge", Assert.Single(result.Unfinished!), StringComparison.Ordinal);
+        Assert.Empty(decide.Sent);
+    }
+
+    [Fact]
+    public async Task React_PortWithoutDecideRole_RefusedBeforeAnyModelCall()
+    {
+        ScriptedClient judge = new ScriptedClient();
+        EngineInput input = Input(Decider(), judge, options: null) with
+        {
+            Model = ModelPort.Routed(new Dictionary<ModelRole, IReadOnlyList<ModelSlot>>
+            {
+                [ModelRole.Judge] = [new ModelSlot("model-judge", ModelPort.Fixed(judge, Caps))],
+            }),
+        };
+
+        List<EngineEvent> events = await Kit.ReadAll(new ReActEngineAdapter().RunAsync(input));
+
+        EngineResult result = Assert.IsType<EngineEvent.Finished>(Assert.Single(events)).Result;
+        Assert.Equal(AI.Agents.Contracts.Tools.ToolCodes.NotConfigured, result.StopCode.Name);
+        Assert.Empty(judge.Sent);
+    }
+
+    [Fact]
+    public async Task React_AcceptanceOption_IsInvalid_EvenWithoutJudgeRole()
+    {
+        ScriptedClient decide = Decider();
+        EngineInput input = Input(decide, new ScriptedClient(), new JsonObject { ["acceptance"] = "model" }) with
+        {
+            Model = ModelPort.Routed(new Dictionary<ModelRole, IReadOnlyList<ModelSlot>>
+            {
+                [ModelRole.Decide] = [new ModelSlot("model-decide", ModelPort.Fixed(decide, Caps))],
+            }),
+        };
+
+        List<EngineEvent> events = await Kit.ReadAll(new ReActEngineAdapter().RunAsync(input));
+
+        // Чужой движку параметр — ошибка входа, она называется раньше, чем недостающая роль.
+        Assert.Equal(EngineInteropCodes.InvalidOptions, Assert.IsType<EngineEvent.Finished>(Assert.Single(events)).Result.StopCode.Name);
+    }
+
     [Fact]
     public async Task Plan_UnknownAcceptanceValue_IsRefused()
     {

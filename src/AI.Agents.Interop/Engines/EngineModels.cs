@@ -30,6 +30,38 @@ internal static class EngineModels
     /// <summary>Что умеет модель решения хода.</summary>
     public static ModelCapabilities DecisionCapabilities(EngineInput input) => input.Model.Describe(DecisionRole);
 
+    /// <summary>Роли, которые нужны запуску: решение хода всегда, остальные — по параметрам движка.</summary>
+    /// <param name="options">Разобранные параметры движка.</param>
+    public static IEnumerable<ModelRole> RequiredRoles(EngineOptions options)
+    {
+        yield return DecisionRole;
+        if (options.Acceptance == EngineOptions.Model)
+            yield return AcceptanceRole;
+    }
+
+    /// <summary>
+    /// Первая роль запуска, которую порт не настраивает; <see langword="null"/>: все на месте. Порт спрашивается
+    /// <see cref="IModelPort.Describe(ModelRole)"/>, без вызова модели: ненастроенная роль — <see cref="ArgumentException"/>.
+    /// </summary>
+    /// <param name="input">Вход движка.</param>
+    /// <param name="options">Разобранные параметры движка.</param>
+    public static ModelRole? MissingRole(EngineInput input, EngineOptions options)
+    {
+        foreach (ModelRole role in RequiredRoles(options))
+        {
+            try
+            {
+                input.Model.Describe(role);
+            }
+            catch (ArgumentException)
+            {
+                return role;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>Клиент приемки шага.</summary>
     public static ILLMClient Acceptance(EngineInput input, ILogger? log) => input.Model.AsLlmClient(AcceptanceRole, log);
 }

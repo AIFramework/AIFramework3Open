@@ -53,24 +53,9 @@ public sealed class ReActEngineAdapter : IEngine
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        if (ReActRun.Refusal(input, out EngineOptions options) is { } refusal)
+        if (ReActRun.Refusal(input, out EngineOptions options, planSteps: false) is { } refusal)
         {
             yield return new EngineEvent.Finished { Result = refusal };
-            yield break;
-        }
-
-        if (options.Acceptance != null)
-        {
-            // Шагов плана у react нет, принимать нечего: параметр не пропускается молча.
-            yield return new EngineEvent.Finished
-            {
-                Result = new EngineResult
-                {
-                    Status = EngineStatus.Failed,
-                    StopCode = new StopCode(EngineInteropCodes.InvalidOptions),
-                    Unfinished = [$"{EngineOptions.AcceptanceKey}: приемка шага есть только у движка plan"],
-                },
-            };
             yield break;
         }
 

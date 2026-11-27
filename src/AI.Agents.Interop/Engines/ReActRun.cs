@@ -61,11 +61,23 @@ internal sealed class ReActOutcome
 internal static class ReActRun
 {
     /// <summary>
-    /// Отказ до старта: продолжение с места, неразобранные параметры, истекший срок. <see langword="null"/>: можно идти.
+    /// Отказ до старта: неразобранные или чужие движку параметры, ненастроенная роль модели, продолжение с места,
+    /// истекший срок. <see langword="null"/>: можно идти.
     /// </summary>
-    public static EngineResult? Refusal(EngineInput input, out EngineOptions options)
+    /// <param name="input">Вход движка.</param>
+    /// <param name="options">Разобранные параметры.</param>
+    /// <param name="planSteps">Есть ли у движка шаги плана (параметр приемки шага допустим только тогда).</param>
+    public static EngineResult? Refusal(EngineInput input, out EngineOptions options, bool planSteps)
     {
-        if (!EngineOptions.TryParse(input.Options, out options, out string? error))
+        bool parsed = EngineOptions.TryParse(input.Options, out options, out string? error);
+        if (parsed && !planSteps && options.Acceptance != null)
+        {
+            // Шагов плана нет, принимать нечего: параметр не пропускается молча.
+            parsed = false;
+            error = $"{EngineOptions.AcceptanceKey}: приемка шага есть только у движка plan";
+        }
+
+        if (!parsed)
         {
             Log.Warning("Адаптер движка: параметры не разобраны: {Error}", error);
             return new EngineResult
@@ -73,6 +85,19 @@ internal static class ReActRun
                 Status = EngineStatus.Failed,
                 StopCode = new StopCode(EngineInteropCodes.InvalidOptions),
                 Unfinished = [error!],
+            };
+        }
+
+        // Роли запуска проверяются против порта до первого шага: ненастроенная роль — отказ с кодом, а не
+        // исключение посреди плана после уже оплаченных вызовов. Одно место для всех ролей, которые требуют параметры.
+        if (EngineModels.MissingRole(input, options) is { } missing)
+        {
+            Log.Warning("Адаптер движка: роль модели {Role} нужна запуску, но в порте не настроена", missing.Name);
+            return new EngineResult
+            {
+                Status = EngineStatus.Failed,
+                StopCode = new StopCode(EngineInteropCodes.NotConfigured),
+                Unfinished = [$"роль модели «{missing.Name}» нужна запуску, но в порте модели не настроена"],
             };
         }
 

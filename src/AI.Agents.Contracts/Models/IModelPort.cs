@@ -47,8 +47,13 @@ public interface IModelPort
     /// <summary>
     /// Что умеет модель, которую порт ставит на роль.
     /// </summary>
+    /// <remarks>
+    /// Вызов модели не делается: по ответу хост и движок проверяют настройку порта до запуска. Роль, которую
+    /// реализация не настраивает, — <see cref="ArgumentException"/>, а не возможности модели по умолчанию.
+    /// </remarks>
     /// <param name="role">Роль.</param>
     /// <returns>Возможности модели.</returns>
+    /// <exception cref="ArgumentException">Роль в порте не настроена.</exception>
     ModelCapabilities Describe(ModelRole role);
 
     /// <summary>
