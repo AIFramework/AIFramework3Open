@@ -52,7 +52,7 @@ public class ProxyHTTPClientOptions
     /// <summary>
     /// Таймаут на один запрос (весь запрос включая получение ответа)
     /// </summary>
-    public TimeSpan RequestTimeout { get; set; } = ProxyHTTPClient.DefaultRequestTimeout;
+    public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromMinutes(18);
 
     /// <summary>
     /// Глобальный таймаут для всех попыток

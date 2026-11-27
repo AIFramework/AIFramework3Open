@@ -109,7 +109,7 @@ public sealed class StructuredJsonPolicy : IReActPolicy
         {
             throw;
         }
-        catch (AI.LLM.Clients.Base.LlmRequestException ex) when (ex.IsEmptyAnswer)
+        catch (Exception ex) when (ex is AI.LLM.Clients.Base.EmptyModelAnswerException or AI.LLM.Clients.Base.LlmRequestException { IsEmptyAnswer: true })
         {
             // Модель ответила молча — это не отказ сервера: цикл напомнит формат и спросит снова.
             Serilog.Log.Warning("ReAct: пустой ответ модели на шаге {Step}", context.StepNumber);
@@ -122,8 +122,10 @@ public sealed class StructuredJsonPolicy : IReActPolicy
         }
         catch (Exception ex)
         {
+            // Клиент модели упал не ответом сервера: это тоже сбой хоста модели, а не «неверный формат» —
+            // подсказка формата не поможет, и причина не должна теряться.
             Serilog.Log.Warning(ex, "ReAct: обращение к модели на шаге {Step} не удалось", context.StepNumber);
-            return ReActDecision.Malformed(null);
+            throw AI.LLM.Clients.Base.LlmRequestException.FromClient(ex);
         }
 
         return Parse(raw);

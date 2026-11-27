@@ -1,6 +1,6 @@
 ﻿using AI.LLM.Core.Models.Providers.VLLM;
-using AI.LLM.Infrastructure.Extensions;
-using System.Net.Http.Json;
+using AI.LLM.Infrastructure.Http;
+using AI.LLM.Infrastructure.Resilience;
 
 namespace AI.LLM.Services.Reranking.VLLM;
 
@@ -14,7 +14,10 @@ public class Qwen3VLLMReranker
     public const string QueryTemplate = "{Prefix}<Instruct>: {Instruction}\n<Query>: {Query}\n";
     public const string DocumentTemplate = "<Document>: {Document}{Suffix}";
 
-    private readonly HttpClient _httpClient;
+    private readonly ProviderHttpClient _http;
+
+    /// <summary>Правило повторов: две попытки, пауза 1 с; повторяется только временный сбой.</summary>
+    public RetryPolicy Retry { get; set; } = RetryPolicy.Default with { MaxAttempts = 2 };
 
     /// <summary>
     /// Имя модели реранкера
@@ -36,11 +39,11 @@ public class Qwen3VLLMReranker
         _apiUrl = apiUrl;
         RerankerModelName = rerankerModelName;
 
-        _httpClient = new HttpClient
+        _http = new ProviderHttpClient(new ProviderHttpClientOptions
         {
             BaseAddress = new Uri(_apiUrl),
-            Timeout = TimeSpan.FromMinutes(5)
-        };
+            RequestTimeout = TimeSpan.FromMinutes(5),
+        });
     }
 
     /// <summary>
@@ -63,43 +66,19 @@ public class Qwen3VLLMReranker
                                            .Replace("{Document}", doc))
             .ToArray();
 
-        Exception lastException = new();
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+        var request = new VLLMRerankRequest { Model = RerankerModelName, Query = queryPrompt, Documents = documentPrompts };
 
-        for (int attempt = 0; attempt < 2; attempt++)
-        {
-            try
-            {
+        // Ранжирование ничего не меняет — повтор безопасен; повторяется только временный сбой.
+        var result = await (Retry ?? RetryPolicy.Default).RunAsync(
+            (_, token) => _http.PostJsonAsync<VLLMRerankResponse>("/rerank", request, "vLLM rerank", token),
+            RepeatSafety.Safe,
+            linkedCts.Token);
 
-                using var response = await _httpClient.PostAsJsonAsync("/rerank", new VLLMRerankRequest
-                {
-                    Model = RerankerModelName,
-                    Query = queryPrompt,
-                    Documents = documentPrompts
-                }, linkedCts.Token);
-
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception((await response.Content.ReadAsStringAsync(linkedCts.Token) ?? "").TruncateForLogging());
-
-                response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadFromJsonAsync<VLLMRerankResponse>(cancellationToken: linkedCts.Token);
-                if (result?.Results == null)
-                    throw new InvalidOperationException("VLLM rerank response or results are null.");
-                result.Results = [.. result.Results.OrderBy(t => t.Index)];
-                return result;
-            }
-            catch (Exception ex)
-            {
-                lastException = ex;
-                if (attempt < 1) // Только для первой попытки
-                {
-                    try { await Task.Delay(1000, linkedCts.Token); }
-                    catch (OperationCanceledException) { throw lastException; }
-                }
-            }
-        }
-
-        throw lastException;
+        if (result?.Results == null)
+            throw new InvalidOperationException("VLLM rerank response or results are null.");
+        result.Results = [.. result.Results.OrderBy(t => t.Index)];
+        return result;
     }
 }

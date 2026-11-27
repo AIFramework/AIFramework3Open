@@ -82,8 +82,10 @@ public sealed class LlmStepValidator : IAsyncStepValidator
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "LlmStepValidator: приёмка шага {StepId} не отработала, шаг принят", step?.Id);
-            return true;
+            // Сбой хоста модели — не вердикт: ни «принят», ни «отклонён». Шаг без приёмки не выдаётся за
+            // принятый; причина уходит наверх, и итог прогона называет её кодом сбоя модели.
+            Log.Warning(ex, "LlmStepValidator: приёмка шага {StepId} не отработала: сбой модели", step?.Id);
+            throw AI.LLM.Clients.Base.LlmRequestException.FromClient(ex);
         }
     }
 

@@ -131,12 +131,24 @@ namespace AI.Agents.Interop.Models
         public System.Threading.Tasks.Task<AI.Agents.Interop.Models.Classification> ClassifyAsync(string text, System.Threading.CancellationToken cancellationToken = default) { }
         public static AI.Agents.Interop.Models.ModelClassifier FromChatApi(AI.LLM.Clients.Base.ChatLLMApi api, System.Collections.Generic.IEnumerable<string>? classes, string prompt, Serilog.ILogger? log = null) { }
     }
+    public static class ModelFallback
+    {
+        public static bool Cures(AI.Agents.Contracts.Models.LlmFailure failure) { }
+        public static bool TryNext(AI.Agents.Contracts.Models.LlmAnswer answer) { }
+    }
     public static class ModelPort
     {
         public static AI.LLM.Core.Abstractions.ILLMClient AsLlmClient(this AI.Agents.Contracts.Models.IModelPort port, AI.Agents.Contracts.Models.ModelRole role, Serilog.ILogger? log = null) { }
         public static AI.Agents.Contracts.Models.IModelPort AsModelPort(this AI.LLM.Core.Abstractions.ILLMClient client, AI.Agents.Contracts.Models.ModelCapabilities capabilities, AI.LLM.Core.Models.Common.Requests.GenerateSettings? settings = null, Serilog.ILogger? log = null) { }
         public static AI.Agents.Contracts.Models.IModelPort Fixed(AI.LLM.Core.Abstractions.ILLMClient client, AI.Agents.Contracts.Models.ModelCapabilities capabilities, AI.LLM.Core.Models.Common.Requests.GenerateSettings? settings = null, Serilog.ILogger? log = null) { }
+        public static AI.Agents.Contracts.Models.IModelPort Routed(System.Collections.Generic.IReadOnlyDictionary<AI.Agents.Contracts.Models.ModelRole, System.Collections.Generic.IReadOnlyList<AI.Agents.Interop.Models.ModelSlot>> chains, Serilog.ILogger? log = null) { }
         public static AI.Agents.Contracts.Models.IModelPort Watched(this AI.Agents.Contracts.Models.IModelPort port, AI.Agents.Contracts.Models.StreamWatch watch, System.TimeProvider? time = null, Serilog.ILogger? log = null) { }
+    }
+    public sealed record ModelSlot : System.IEquatable<AI.Agents.Interop.Models.ModelSlot>
+    {
+        public ModelSlot(string Model, AI.Agents.Contracts.Models.IModelPort Port) { }
+        public string Model { get; }
+        public AI.Agents.Contracts.Models.IModelPort Port { get; }
     }
     public static class ModelTranslation
     {
@@ -180,6 +192,7 @@ namespace AI.Agents.Interop.ReAct
         public static AI.LLM.Agents.ReAct.Tools.IReActTool AsReActTool(this AI.Agents.Contracts.Tools.ITool tool, Serilog.ILogger? log = null) { }
         public static AI.Agents.Contracts.Tools.ITool AsTool(this AI.LLM.Agents.ReAct.Tools.IReActTool tool, AI.Agents.Contracts.Tools.ToolAction? action = default, Serilog.ILogger? log = null) { }
         public static AI.Agents.Contracts.Tools.IToolSet AsToolSet(this AI.LLM.Agents.ReAct.Tools.IReActToolSource source, AI.LLM.Agents.ReAct.ReActRunContext? run = null, System.Collections.Generic.IReadOnlyDictionary<string, AI.Agents.Contracts.Tools.ToolAction>? actions = null, Serilog.ILogger? log = null) { }
+        public static AI.Agents.Contracts.Tools.IToolSet AsToolSet(this AI.LLM.Agents.ReAct.Tools.IReActToolSource source, System.Collections.Generic.IEnumerable<AI.Agents.Contracts.Tools.ToolSpec> specs, AI.LLM.Agents.ReAct.ReActRunContext? run = null, Serilog.ILogger? log = null) { }
         public static AI.LLM.Agents.ReAct.Tools.IReActToolSource AsToolSource(this AI.Agents.Contracts.Tools.IToolSet set, Serilog.ILogger? log = null) { }
     }
     public static class ReActTranslation

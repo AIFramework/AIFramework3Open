@@ -3,10 +3,10 @@ using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Requests;
 using AI.LLM.Core.Models.Providers.OpenRouter;
 using AI.LLM.Infrastructure.Extensions;
+using AI.LLM.Infrastructure.Http;
+using AI.LLM.Infrastructure.Resilience;
 using AI.LLM.Services.Reranking.Base;
 using Serilog;
-using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace AI.LLM.Services.Reranking.OpenRouter;
@@ -24,9 +24,8 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
     /// </summary>
     public const string DefaultApiUrl = "https://openrouter.ai/api/v1/rerank";
 
-    private readonly string _apiKey;
-    private readonly HttpClient _httpClient;
-    private readonly bool _ownsHttpClient;
+    private readonly ProviderHttpClient _http;
+    private readonly bool _ownsHttp;
     private int _disposed; // 0 = not disposed, 1 = disposed
     private int _imageWarningLogged; // предупреждение о картинках пишем один раз на экземпляр
 
@@ -46,9 +45,14 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
     public ProviderPreference PreferredProvider { get; set; }
 
     /// <summary>
-    /// Число повторов при сетевых ошибках, 429 и 5xx
+    /// Число повторов при временных сбоях (сеть, 408, 425, 429, 5xx); правило — <see cref="Retry"/>.
     /// </summary>
     public int MaxRetries { get; set; } = 3;
+
+    /// <summary>
+    /// Правило повторов (паузы, предел <c>Retry-After</c>); число попыток задаёт <see cref="MaxRetries"/>.
+    /// </summary>
+    public RetryPolicy Retry { get; set; } = RetryPolicy.Default;
 
     /// <summary>
     /// Таймаут одного запроса
@@ -99,11 +103,29 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
         if (string.IsNullOrWhiteSpace(rerankerModelName))
             throw new ArgumentNullException(nameof(rerankerModelName), "Имя модели не может быть пустым");
 
-        _apiKey = apiKey;
         RerankerModelName = rerankerModelName;
 
-        _ownsHttpClient = httpClient == null;
-        _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromMinutes(7) };
+        _ownsHttp = true;
+        _http = new ProviderHttpClient(new ProviderHttpClientOptions
+        {
+            Keys = ApiKeyPool.Single(apiKey),
+            Client = httpClient,
+            RequestTimeout = TimeSpan.FromMinutes(7),
+        });
+    }
+
+    /// <summary>
+    /// Реранкер поверх общего клиента провайдера: пул ключей и прокси задаёт клиент.
+    /// </summary>
+    /// <param name="http">Клиент провайдера; им владеет вызывающий.</param>
+    /// <param name="rerankerModelName">Слаг модели, см. <see cref="OpenRouterRerankModels"/></param>
+    public OpenRouterReranker(ProviderHttpClient http, string rerankerModelName = OpenRouterRerankModels.CohereRerankV35)
+    {
+        if (string.IsNullOrWhiteSpace(rerankerModelName))
+            throw new ArgumentNullException(nameof(rerankerModelName), "Имя модели не может быть пустым");
+
+        _http = http ?? throw new ArgumentNullException(nameof(http));
+        RerankerModelName = rerankerModelName;
     }
 
     /// <summary>
@@ -304,100 +326,37 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
             Provider = PreferredProvider
         };
 
-        Exception lastException = null;
+        RetryPolicy retry = (Retry ?? RetryPolicy.Default) with { MaxAttempts = Math.Max(0, MaxRetries) + 1 };
+        return await retry.RunAsync((_, token) => AttemptAsync(request, token), RepeatSafety.Safe, cancellationToken);
+    }
 
-        for (int attempt = 0; ; attempt++)
-        {
-            bool fatal = false;
-            using var timeoutCts = new CancellationTokenSource(RequestTimeout);
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+    /// <summary>Одна попытка: ответ или исключение с кодом ответа (и сроком <c>Retry-After</c>).</summary>
+    private async Task<OpenRouterRerankResponse> AttemptAsync(OpenRouterRerankRequest request, CancellationToken cancellationToken)
+    {
+        using var timeoutCts = new CancellationTokenSource(RequestTimeout);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-            try
+        using var response = await _http.SendAsync(
+            () =>
             {
-                using var message = new HttpRequestMessage(HttpMethod.Post, ApiUrl)
-                {
-                    Content = JsonContent.Create(request)
-                };
-                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                var message = new HttpRequestMessage(HttpMethod.Post, ApiUrl) { Content = JsonContent.Create(request) };
                 if (!string.IsNullOrEmpty(HttpReferer))
                     message.Headers.TryAddWithoutValidation("HTTP-Referer", HttpReferer);
                 if (!string.IsNullOrEmpty(AppTitle))
                     message.Headers.TryAddWithoutValidation("X-Title", AppTitle);
+                return message;
+            },
+            HttpCompletionOption.ResponseContentRead,
+            linkedCts.Token);
 
-                using var response = await _httpClient.SendAsync(message, linkedCts.Token);
+        await ProviderHttpClient.EnsureSuccessAsync(response, $"OpenRouter rerank ({RerankerModelName})", linkedCts.Token);
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    var body = await response.Content.ReadAsStringAsync(linkedCts.Token);
-                    var error = new HttpRequestException(
-                        $"OpenRouter rerank ({RerankerModelName}) вернул {(int)response.StatusCode}: {(body ?? "").TruncateForLogging()}");
+        var result = await response.Content.ReadFromJsonAsync<OpenRouterRerankResponse>(linkedCts.Token);
+        if (result?.Results == null)
+            throw new InvalidOperationException("OpenRouter rerank вернул пустой результат");
 
-                    if (attempt >= MaxRetries || !IsTransient(response.StatusCode))
-                    {
-                        fatal = true;
-                        throw error;
-                    }
-
-                    lastException = error;
-                    await Task.Delay(GetRetryDelay(response, attempt), cancellationToken);
-                    continue;
-                }
-
-                var result = await response.Content.ReadFromJsonAsync<OpenRouterRerankResponse>(linkedCts.Token);
-
-                if (result?.Results == null)
-                {
-                    fatal = true;
-                    throw new InvalidOperationException("OpenRouter rerank вернул пустой результат");
-                }
-
-                LastUsage = result.Usage;
-                return result;
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex) when (!fatal && attempt < MaxRetries)
-            {
-                lastException = ex;
-                try
-                {
-                    await Task.Delay(GetBackoff(attempt), cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw lastException;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Ошибки, которые имеет смысл повторить: перегрузка провайдера, лимиты, таймауты шлюза
-    /// </summary>
-    private static bool IsTransient(HttpStatusCode statusCode) =>
-        statusCode == HttpStatusCode.TooManyRequests ||
-        statusCode == HttpStatusCode.RequestTimeout ||
-        (int)statusCode >= 500;
-
-    private static TimeSpan GetBackoff(int attempt) => TimeSpan.FromSeconds(Math.Pow(2, attempt));
-
-    /// <summary>
-    /// Уважаем Retry-After, если сервер его прислал, иначе экспоненциальная пауза
-    /// </summary>
-    private static TimeSpan GetRetryDelay(HttpResponseMessage response, int attempt)
-    {
-        var retryAfter = response.Headers.RetryAfter;
-        if (retryAfter?.Delta is TimeSpan delta && delta > TimeSpan.Zero)
-            return delta;
-        if (retryAfter?.Date is DateTimeOffset date)
-        {
-            var wait = date - DateTimeOffset.UtcNow;
-            if (wait > TimeSpan.Zero)
-                return wait;
-        }
-        return GetBackoff(attempt);
+        LastUsage = result.Usage;
+        return result;
     }
 
     /// <summary>
@@ -413,7 +372,7 @@ public class OpenRouterReranker : RerankerBase<string, string>, IMultimodalReran
     {
         if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0) return;
 
-        if (disposing && _ownsHttpClient)
-            _httpClient?.Dispose();
+        if (disposing && _ownsHttp)
+            _http.Dispose();
     }
 }

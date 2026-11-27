@@ -23,30 +23,34 @@ public sealed class CallMechanicsRatchetTests
     /// <summary>Механизмы и пороги.</summary>
     public static readonly Mechanism[] Mechanisms =
     [
-        // 1. Ключ провайдера: свой заголовок Authorization со своим ключом.
-        new("keys", "\"Bearer", Threshold: 7),
+        // 1. Ключ провайдера: свой заголовок Authorization со своим ключом. Было 7 (клиенты прокси и без прокси, Tavily,
+        // FIM, Replicate, эмбеддер и реранкер OpenRouter).
+        new("keys", "\"Bearer", Threshold: 0, Home: "src/AI.LLM/Infrastructure/Resilience/ApiKeyPool.cs"),
 
-        // 3. Повторы: свой цикл попыток с паузой.
-        new("retry-loops", @"(?s)\battempt\b.*Task\.Delay\(|Task\.Delay\(.*\battempt\b", Threshold: 7),
+        // 3. Повторы: свой цикл попыток с паузой. Было 7 (ChatLLMApi, Tavily, эмбеддеры и реранкеры).
+        new("retry-loops", @"(?s)\battempt\b.*Task\.Delay\(|Task\.Delay\(.*\battempt\b", Threshold: 0,
+            Home: "src/AI.LLM/Infrastructure/Resilience/RetryPolicy.cs"),
 
-        // 3. Повторы: свой разбор Retry-After.
-        new("retry-after", @"[Rr]etryAfter\?\.Delta", Threshold: 3),
+        // 3. Повторы: свой разбор Retry-After. Было 3.
+        new("retry-after", @"\.Delta is TimeSpan", Threshold: 0, Home: "src/AI.LLM/Infrastructure/Resilience/RetryPolicy.cs"),
 
-        // 3. Повторы: своё правило «временный ли статус».
-        new("transient-status", @"(==|!=)\s*HttpStatusCode\.TooManyRequests|\b429 or\b", Threshold: 4),
+        // 3. Повторы: своё правило «временный ли статус». Было 4.
+        new("transient-status", @"(==|!=)\s*HttpStatusCode\.TooManyRequests|\b429 or\b", Threshold: 0,
+            Home: "src/AI.LLM/Infrastructure/Resilience/RetryPolicy.cs"),
 
-        // 5. HTTP-клиент провайдера: свой HttpClient или обработчик.
-        new("http-clients", @"new HttpClient\b|new SocketsHttpHandler\b|new HttpClientHandler\b", Threshold: 11),
+        // 5. HTTP-клиент провайдера: свой HttpClient или обработчик. Было 11.
+        new("http-clients", @"new HttpClient\b|new SocketsHttpHandler\b|new HttpClientHandler\b", Threshold: 0,
+            Home: "src/AI.LLM/Infrastructure/Http/ProviderHttpClient.cs"),
 
-        // 5. Прокси: свой обработчик с прокси.
-        new("proxy-handlers", @"UseProxy = true", Threshold: 2),
+        // 5. Прокси: свой обработчик с прокси. Было 2 (ProxyHTTPClient, Tavily).
+        new("proxy-handlers", @"UseProxy = ", Threshold: 0, Home: "src/AI.LLM/Infrastructure/Http/ProviderHttpClient.cs"),
 
-        // 6. Сбой хоста модели выглядит как успех или как «неверный формат».
-        new("model-failure-as-success", @"(?s)catch \(Exception[^)]*\)\s*\{(?:(?!catch \().){0,400}?(Malformed\(null\)|return true;)", Threshold: 3,
+        // 6. Сбой хоста модели выглядит как успех или как «неверный формат». Было 3 (политики ReAct, приёмка шага).
+        new("model-failure-as-success", @"(?s)catch \(Exception[^)]*\)\s*\{(?:(?!catch \().){0,400}?(Malformed\(null\)|return true;)", Threshold: 0,
             Scope: ["src/AI.LLM/Agents", "src/AI.Agents.Interop"]),
 
-        // 7. Вид действия и повторяемость инструмента — два словаря вместо одного описания.
-        new("split-effects", @"Dictionary<string, ToolIdempotency>", Threshold: 2),
+        // 7. Вид действия и повторяемость инструмента — два словаря вместо одного описания. Было 2.
+        new("split-effects", @"Dictionary<string, ToolIdempotency>", Threshold: 0),
 
         // 4. Выбор модели по имени в слое агентов: движки берут модель по роли через IModelPort.
         new("model-by-name", @"\bModelName\b|new ChatLLMApi\(|ModelApi\(", Threshold: 0,
@@ -81,6 +85,20 @@ public sealed class CallMechanicsRatchetTests
         Assert.True(found.Length >= mechanism.Threshold,
             $"{mechanism.Name}: мест стало {found.Length}, порог {mechanism.Threshold} — опустите порог до {found.Length} " +
             "в CallMechanicsRatchetTests, чтобы копия не вернулась незаметно.");
+    }
+
+    [Theory]
+    [MemberData(nameof(All))]
+    public void Home_HoldsTheMechanism(Mechanism mechanism)
+    {
+        if (mechanism.Home == null)
+            return;
+
+        string path = Path.Combine(Repository.Root, mechanism.Home);
+        Assert.True(File.Exists(path), $"{mechanism.Name}: дома механизма {mechanism.Home} нет.");
+
+        // Иначе счёт выше проверял бы пустоту: признак должен находить и саму общую реализацию.
+        Assert.Matches(new Regex(mechanism.Pattern, RegexOptions.CultureInvariant), File.ReadAllText(path));
     }
 
     private static string[] Offenders(Mechanism mechanism)

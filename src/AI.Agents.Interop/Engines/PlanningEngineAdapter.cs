@@ -9,6 +9,7 @@ using AI.LLM.Agents.Orchestration;
 using AI.LLM.Agents.Planning;
 using AI.LLM.Agents.ReAct;
 using AI.LLM.Agents.Tools;
+using AI.LLM.Clients.Base;
 using Serilog;
 
 namespace AI.Agents.Interop.Engines;
@@ -150,6 +151,11 @@ public sealed class PlanningEngineAdapter : IEngine
             {
                 // Отмену изнутри сделал бюджет или срок: это недоделанный прогон, а не отмена вызывающим.
                 return ReActRun.BudgetStopped(_budgetStop ?? StopCode.TimeLimit, _usage.Usage);
+            }
+            catch (LlmRequestException ex)
+            {
+                // Сбой хоста модели (план, приёмка шага): тот же итог, что у ReAct, — код model_failure и причина.
+                return ReActRun.ModelFailed(ex, _usage.Usage, Logger);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

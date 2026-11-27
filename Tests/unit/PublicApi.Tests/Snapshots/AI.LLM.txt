@@ -709,7 +709,9 @@ namespace AI.LLM.Agents.ReAct
         public System.TimeSpan Elapsed { get; init; }
         public string Error { get; init; }
         public bool Failed { get; }
+        public System.Exception Failure { get; init; }
         public bool HasAnswer { get; }
+        public bool ModelFailed { get; }
         public object Payload { get; init; }
         public System.Collections.Generic.IReadOnlyList<AI.LLM.Agents.ReAct.ReActStep> Steps { get; init; }
         public AI.LLM.Agents.ReAct.ReActStopReason StopReason { get; init; }
@@ -1030,13 +1032,14 @@ namespace AI.LLM.Clients.Base
         public AI.LLM.Infrastructure.Http.IdleTimeoutSettings IdleTimeoutSettings { get; set; }
         public virtual string ModelName { get; set; }
         public virtual AI.LLM.Core.Models.Common.Requests.ProviderPreference PreferredProvider { get; set; }
+        public AI.LLM.Infrastructure.Resilience.RetryPolicy Retry { get; set; }
         public AI.LLM.Core.Models.Common.Requests.StreamOptions StreamOptions { get; set; }
         public virtual string TokenizeApiUrl { get; set; }
         public event System.Action<string> ProxyInfo;
         public AI.LLM.API.LLMAPI.SendDataLLM GetSendDataAsync(string text, AI.LLM.Core.Models.Common.Requests.GenerateSettings generateSettings = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<AI.LLM.Core.Models.Common.Responses.ChatCompletionsResponse> SendWithContextAsync(System.Collections.Generic.IEnumerable<AI.LLM.Core.Models.Common.Messages.LLMMessage> context, AI.LLM.Core.Models.Common.Requests.GenerateSettings generateSettings = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<AI.LLM.Core.Models.Common.Responses.ChatCompletionsResponse> SendWithContextAsync(System.Collections.Generic.IEnumerable<AI.LLM.Core.Models.Common.Messages.LLMMessage> context, AI.LLM.Core.Models.Common.Requests.GenerateSettings generateSettings, System.Action<AI.LLM.Core.Models.Common.Responses.LLMStreamChunk> onChunk, System.Threading.CancellationToken cancellationToken = default) { }
-        [System.Runtime.CompilerServices.AsyncIteratorStateMachine(typeof(AI.LLM.Clients.Base.ChatLLMApi.<SendWithContextStreamAsync>d__50))]
+        [System.Runtime.CompilerServices.AsyncIteratorStateMachine(typeof(AI.LLM.Clients.Base.ChatLLMApi.<SendWithContextStreamAsync>d__53))]
         public System.Collections.Generic.IAsyncEnumerable<AI.LLM.Core.Models.Common.Responses.LLMStreamChunk> SendWithContextStreamAsync(System.Collections.Generic.IEnumerable<AI.LLM.Core.Models.Common.Messages.LLMMessage> context, AI.LLM.Core.Models.Common.Requests.GenerateSettings generateSettings = null, [System.Runtime.CompilerServices.EnumeratorCancellation] System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<string> SendWithContextTextAsync(System.Collections.Generic.IEnumerable<AI.LLM.Core.Models.Common.Messages.LLMMessage> context, AI.LLM.Core.Models.Common.Requests.GenerateSettings generateSettings = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<AI.LLM.Core.Models.Common.Responses.ChatCompletionsResponse> SendWithoutContextAsync(string text, AI.LLM.Core.Models.Common.Requests.GenerateSettings generateSettings = null, System.Threading.CancellationToken cancellationToken = default) { }
@@ -1060,6 +1063,7 @@ namespace AI.LLM.Clients.Base
         public bool IsRetryable { get; }
         public System.TimeSpan? RetryAfter { get; }
         public System.Net.HttpStatusCode? StatusCode { get; }
+        public static AI.LLM.Clients.Base.LlmRequestException FromClient(System.Exception cause) { }
         public static AI.LLM.Clients.Base.LlmRequestException FromResponse(System.Net.HttpStatusCode statusCode, string body, System.Net.Http.Headers.RetryConditionHeaderValue retryAfter, string details = null) { }
         public static AI.LLM.Clients.Base.LlmRequestException NoResponse(System.Exception cause, System.Exception details = null) { }
         public static string UpstreamCause(string body) { }
@@ -1841,7 +1845,10 @@ namespace AI.LLM.Clients.Tavily
     public class TavilyClient : System.IDisposable
     {
         public const string Host = "https://api.tavily.com";
+        public TavilyClient(AI.LLM.Infrastructure.Resilience.ApiKeyPool keys, System.Net.WebProxy proxy = null) { }
         public TavilyClient(string apiKey, System.Net.WebProxy proxy = null) { }
+        public AI.LLM.Infrastructure.Resilience.RetryPolicy ExtractRetry { get; set; }
+        public AI.LLM.Infrastructure.Resilience.RetryPolicy SearchRetry { get; set; }
         public virtual bool ContainsForbiddenContent(string url, string rawContent, System.Collections.Generic.IEnumerable<System.Uri> excludeDomains) { }
         public virtual bool ContainsForbiddenContent(string url, string rawContent, System.Collections.Generic.IEnumerable<System.Uri> excludeDomains, bool requireRawContent) { }
         public void Dispose() { }
@@ -2728,6 +2735,49 @@ namespace AI.LLM.Infrastructure.Http
         public static AI.LLM.Infrastructure.Http.IdleTimeoutSettings FromSeconds(int seconds) { }
         public static AI.LLM.Infrastructure.Http.IdleTimeoutSettings FromTimeSpan(System.TimeSpan timeSpan) { }
     }
+    public sealed class ProviderHttpClient : AI.LLM.Infrastructure.Http.IWebAPIClient, System.IDisposable
+    {
+        public ProviderHttpClient(AI.LLM.Infrastructure.Http.ProviderHttpClientOptions? options = null) { }
+        public System.Net.Http.Headers.AuthenticationHeaderValue? Authentication { get; set; }
+        public AI.LLM.Infrastructure.Resilience.ApiKeyPool? Keys { get; }
+        public event System.EventHandler<AI.LLM.Infrastructure.Http.DebugLogEventArgs>? OnDebugLog;
+        public event System.EventHandler<AI.LLM.Infrastructure.Http.ProxyErrorEventArgs>? OnProxyError;
+        public void Dispose() { }
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsJsonAsync(string apiUrl, AI.LLM.API.LLMAPI.SendDataLLM sendData, System.Threading.CancellationToken? cancellationToken = default) { }
+        public System.Threading.Tasks.Task<T?> PostJsonAsync<T>(string url, object body, string what, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Net.WebProxy ProxyAt(int index) { }
+        public System.Collections.Generic.IReadOnlyList<AI.LLM.Infrastructure.Resilience.PoolEntryHealth> ProxyHealth() { }
+        public void ResetProxies() { }
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SendAsync(System.Func<System.Net.Http.HttpRequestMessage> createRequest, System.Net.Http.HttpCompletionOption completion, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task EnsureSuccessAsync(System.Net.Http.HttpResponseMessage response, string what, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class ProviderHttpClientOptions
+    {
+        public ProviderHttpClientOptions() { }
+        public bool AllowAutoRedirect { get; init; }
+        public System.Uri? BaseAddress { get; init; }
+        public System.Net.Http.HttpClient? Client { get; init; }
+        public System.TimeSpan ConnectTimeout { get; init; }
+        public System.Net.CookieContainer? Cookie { get; init; }
+        public System.Net.DecompressionMethods? Decompression { get; init; }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>>? DefaultHeaders { get; init; }
+        public bool DisableCertificateValidation { get; init; }
+        public bool EnableDebugLogging { get; init; }
+        public System.TimeSpan? GlobalTimeout { get; init; }
+        public System.Net.Http.HttpMessageHandler? Handler { get; init; }
+        public AI.LLM.Infrastructure.Resilience.ApiKeyPool? Keys { get; init; }
+        public int? MaxConcurrentRequests { get; init; }
+        public int MaxProxiesPerRequest { get; init; }
+        public System.Collections.Generic.IEnumerable<System.Net.WebProxy>? Proxies { get; init; }
+        public System.TimeSpan ProxyCooldown { get; init; }
+        public int ProxyFailuresBeforeCooldown { get; init; }
+        public System.TimeSpan RequestTimeout { get; init; }
+        public bool RequireAvailableProxy { get; init; }
+        public System.TimeSpan ResponseHeadersTimeout { get; init; }
+        public System.TimeProvider? Time { get; init; }
+        public bool UseCookies { get; init; }
+        public string? UserAgent { get; init; }
+    }
     [System.Serializable]
     public class ProxyData
     {
@@ -2752,6 +2802,8 @@ namespace AI.LLM.Infrastructure.Http
         public System.Exception Exception { get; }
         public System.Net.WebProxy Proxy { get; }
     }
+    [System.Obsolete("Используйте ProviderHttpClient: ключи пулом, прокси пулом, одно правило карантина" +
+        ".")]
     [System.Serializable]
     public class ProxyHTTPClient : AI.LLM.Infrastructure.Http.IWebAPIClient, System.IDisposable
     {
@@ -2786,6 +2838,11 @@ namespace AI.LLM.Infrastructure.Http
         public bool UseCookies { get; set; }
         public string UserAgent { get; set; }
     }
+    public static class ProxyList
+    {
+        public static System.Collections.Generic.List<System.Net.WebProxy> FromJson(string jsonFilePath) { }
+        public static System.Net.WebProxy ToWebProxy(AI.LLM.Infrastructure.Http.ProxyData proxyData) { }
+    }
     public class ProxyStatistics
     {
         public ProxyStatistics() { }
@@ -2813,6 +2870,8 @@ namespace AI.LLM.Infrastructure.Http
         public override void SetLength(long value) { }
         public override void Write(byte[] buffer, int offset, int count) { }
     }
+    [System.Obsolete("Используйте ProviderHttpClient: ключи пулом, прокси пулом, одно правило карантина" +
+        ".")]
     [System.Serializable]
     public class WithoutProxyClient : AI.LLM.Infrastructure.Http.IWebAPIClient, System.IDisposable
     {
@@ -2823,6 +2882,113 @@ namespace AI.LLM.Infrastructure.Http
         public void Dispose() { }
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsJsonAsync(string apiUrl, AI.LLM.API.LLMAPI.SendDataLLM sendData, System.Threading.CancellationToken? cancellationToken = default) { }
         public static System.Threading.Tasks.Task<AI.LLM.Infrastructure.Http.WithoutProxyClient> CreateAsync(string apiKey) { }
+    }
+}
+namespace AI.LLM.Infrastructure.Resilience
+{
+    public sealed class ApiKeyPool
+    {
+        public ApiKeyPool(System.Collections.Generic.IEnumerable<string> keys, AI.LLM.Infrastructure.Resilience.KeyCooldowns? cooldowns = null, System.TimeProvider? time = null) { }
+        public int AvailableCount { get; }
+        public int Count { get; }
+        public void Authorize(System.Net.Http.HttpRequestMessage request, AI.LLM.Infrastructure.Resilience.PoolLease<string> lease) { }
+        public AI.LLM.Infrastructure.Resilience.PoolLease<string> Lease() { }
+        public bool ReportFailure(AI.LLM.Infrastructure.Resilience.PoolLease<string> lease, AI.LLM.Infrastructure.Resilience.KeyFailure failure, System.TimeSpan? retryAfter = default) { }
+        public void ReportSuccess(AI.LLM.Infrastructure.Resilience.PoolLease<string> lease) { }
+        public System.Collections.Generic.IReadOnlyList<AI.LLM.Infrastructure.Resilience.KeyHealth> Snapshot() { }
+        public bool TryLeaseAvailable(out AI.LLM.Infrastructure.Resilience.PoolLease<string> lease, System.Collections.Generic.IReadOnlyCollection<int>? exclude = null) { }
+        public static System.Net.Http.Headers.AuthenticationHeaderValue Bearer(string key) { }
+        public static AI.LLM.Infrastructure.Resilience.KeyFailure? FailureOf(System.Net.HttpStatusCode status) { }
+        public static string Mask(string key) { }
+        public static AI.LLM.Infrastructure.Resilience.ApiKeyPool Single(string key) { }
+        public static AI.LLM.Infrastructure.Resilience.ApiKeyPool? SingleOrNone(string? key) { }
+    }
+    public sealed class CooldownPool<T>
+        where T :  notnull
+    {
+        public CooldownPool(System.Collections.Generic.IEnumerable<T> items, int failuresBeforeCooldown = 1, System.TimeProvider? time = null, System.Random? random = null) { }
+        public int AvailableCount { get; }
+        public int Count { get; }
+        public T ItemAt(int index) { }
+        public AI.LLM.Infrastructure.Resilience.PoolLease<T> Lease() { }
+        public bool ReportFailure(AI.LLM.Infrastructure.Resilience.PoolLease<T> lease, System.TimeSpan cooldown, string? reason = null) { }
+        public void ReportSuccess(AI.LLM.Infrastructure.Resilience.PoolLease<T> lease) { }
+        public void Reset() { }
+        public System.Collections.Generic.IReadOnlyList<AI.LLM.Infrastructure.Resilience.PoolEntryHealth> Snapshot() { }
+        public bool TryLeaseAvailable(out AI.LLM.Infrastructure.Resilience.PoolLease<T> lease, System.Collections.Generic.IReadOnlyCollection<int>? exclude = null) { }
+    }
+    public enum FailureKind
+    {
+        Unspecified = 0,
+        Transient = 1,
+        Unknown = 2,
+        Fatal = 3,
+    }
+    public sealed record KeyCooldowns : System.IEquatable<AI.LLM.Infrastructure.Resilience.KeyCooldowns>
+    {
+        public KeyCooldowns(System.TimeSpan RateLimit, System.TimeSpan Payment, System.TimeSpan Unauthorized) { }
+        public System.TimeSpan Payment { get; init; }
+        public System.TimeSpan RateLimit { get; init; }
+        public System.TimeSpan Unauthorized { get; init; }
+        public static AI.LLM.Infrastructure.Resilience.KeyCooldowns Default { get; }
+    }
+    public enum KeyFailure
+    {
+        Unspecified = 0,
+        RateLimit = 1,
+        Payment = 2,
+        Unauthorized = 3,
+    }
+    public sealed record KeyHealth : System.IEquatable<AI.LLM.Infrastructure.Resilience.KeyHealth>
+    {
+        public KeyHealth(int Index, string Mask, AI.LLM.Infrastructure.Resilience.PoolEntryHealth Health) { }
+        public AI.LLM.Infrastructure.Resilience.PoolEntryHealth Health { get; init; }
+        public int Index { get; init; }
+        public string Mask { get; init; }
+    }
+    public sealed record PoolEntryHealth : System.IEquatable<AI.LLM.Infrastructure.Resilience.PoolEntryHealth>
+    {
+        public PoolEntryHealth(int Index, int ConsecutiveFailures, System.DateTimeOffset? CoolingUntil, System.DateTimeOffset? LastSuccess, System.DateTimeOffset? LastFailure, string? LastReason) { }
+        public int ConsecutiveFailures { get; init; }
+        public System.DateTimeOffset? CoolingUntil { get; init; }
+        public int Index { get; init; }
+        public bool IsCooling { get; }
+        public System.DateTimeOffset? LastFailure { get; init; }
+        public string? LastReason { get; init; }
+        public System.DateTimeOffset? LastSuccess { get; init; }
+    }
+    public readonly struct PoolLease<T> : System.IEquatable<AI.LLM.Infrastructure.Resilience.PoolLease<T>>
+    {
+        public PoolLease(int Index, T Item) { }
+        public int Index { get; init; }
+        public T Item { get; init; }
+    }
+    public enum RepeatSafety
+    {
+        Unspecified = 0,
+        Safe = 1,
+        Unsafe = 2,
+    }
+    public sealed record RetryPolicy : System.IEquatable<AI.LLM.Infrastructure.Resilience.RetryPolicy>
+    {
+        public const string RetryAfterKey = "RetryAfter";
+        public RetryPolicy() { }
+        public System.TimeSpan InitialDelay { get; init; }
+        public int MaxAttempts { get; init; }
+        public System.TimeSpan MaxDelay { get; init; }
+        public System.TimeSpan MaxRetryAfter { get; init; }
+        public System.TimeProvider? Time { get; init; }
+        public static AI.LLM.Infrastructure.Resilience.RetryPolicy Default { get; }
+        public static AI.LLM.Infrastructure.Resilience.RetryPolicy None { get; }
+        public System.TimeSpan DelayAfter(int attemptsMade, System.TimeSpan? retryAfter = default) { }
+        public System.Threading.Tasks.Task<T> RunAsync<T>(System.Func<int, System.Threading.CancellationToken, System.Threading.Tasks.Task<T>> call, AI.LLM.Infrastructure.Resilience.RepeatSafety safety, System.Threading.CancellationToken cancellationToken = default, System.Action<int, System.Exception, System.TimeSpan>? onRetry = null) { }
+        public bool ShouldRetry(AI.LLM.Infrastructure.Resilience.FailureKind kind, AI.LLM.Infrastructure.Resilience.RepeatSafety safety, int attemptsMade, System.TimeSpan? retryAfter = default) { }
+        public static AI.LLM.Infrastructure.Resilience.FailureKind Classify(System.Exception error, AI.LLM.Infrastructure.Resilience.RepeatSafety safety) { }
+        public static bool IsTransient(System.Net.HttpStatusCode status) { }
+        public static System.TimeSpan? RetryAfterOf(System.Exception error) { }
+        public static System.TimeSpan? RetryAfterOf(System.Net.Http.Headers.RetryConditionHeaderValue? header, System.TimeProvider? time = null) { }
+        public static TException WithRetryAfter<TException>(TException error, System.TimeSpan? retryAfter)
+            where TException : System.Exception { }
     }
 }
 namespace AI.LLM.Integration.SemanticKernel.Adapters
@@ -2917,6 +3083,7 @@ namespace AI.LLM.Services.Embeddings.Infinity
     {
         public BaseInfinityEmbedder(string host = "http://172.17.0.1:11111/") { }
         public string Host { get; set; }
+        public AI.LLM.Infrastructure.Resilience.RetryPolicy Retry { get; set; }
         public void Dispose() { }
         protected virtual void Dispose(bool disposing) { }
         public override System.Threading.Tasks.Task<AI.DataStructs.Algebraic.Vector[]> EncodeAsync(System.Collections.Generic.IEnumerable<string> texts, System.Threading.CancellationToken cancellationToken = default) { }
@@ -2998,6 +3165,7 @@ namespace AI.LLM.Services.Embeddings.OpenRouter
     public class OpenRouterEmbedder : AI.LLM.Services.Embeddings.Base.EmbedderServiceBase, AI.LLM.Core.Abstractions.IEmbedderService, AI.LLM.Core.Abstractions.IMultimodalEmbedderService, AI.LLM.Services.Embeddings.Base.IBiEncoder, System.IDisposable
     {
         public const string DefaultApiUrl = "https://openrouter.ai/api/v1/embeddings";
+        public OpenRouterEmbedder(AI.LLM.Infrastructure.Http.ProviderHttpClient http, string modelName = "openai/text-embedding-3-small", int? dimensions = default) { }
         public OpenRouterEmbedder(string apiKey, string modelName = "openai/text-embedding-3-small", int? dimensions = default, System.Net.Http.HttpClient httpClient = null) { }
         public string ApiUrl { get; set; }
         public string AppTitle { get; set; }
@@ -3011,6 +3179,7 @@ namespace AI.LLM.Services.Embeddings.OpenRouter
         public AI.LLM.Core.Models.Common.Requests.ProviderPreference PreferredProvider { get; set; }
         public string QueryInstruction { get; set; }
         public System.TimeSpan RequestTimeout { get; set; }
+        public AI.LLM.Infrastructure.Resilience.RetryPolicy Retry { get; set; }
         public bool SupportsImages { get; }
         public void Dispose() { }
         protected virtual void Dispose(bool disposing) { }
@@ -3228,6 +3397,7 @@ namespace AI.LLM.Services.Reranking.Infinity
     {
         public InfinityReranker(string apiUrl, string rerankerModelName) { }
         public string RerankerModelName { get; set; }
+        public AI.LLM.Infrastructure.Resilience.RetryPolicy Retry { get; set; }
         public System.Threading.Tasks.Task<AI.LLM.Core.Models.Providers.Infinity.RerankResponse> RerankAsync(string query, System.Collections.Generic.IEnumerable<string> documents, System.Threading.CancellationToken cancellationToken = default) { }
     }
 }
@@ -3269,6 +3439,7 @@ namespace AI.LLM.Services.Reranking.OpenRouter
     public class OpenRouterReranker : AI.LLM.Services.Reranking.Base.RerankerBase<string, string>, AI.LLM.Core.Abstractions.IMultimodalRerankerService, System.IDisposable
     {
         public const string DefaultApiUrl = "https://openrouter.ai/api/v1/rerank";
+        public OpenRouterReranker(AI.LLM.Infrastructure.Http.ProviderHttpClient http, string rerankerModelName = "cohere/rerank-v3.5") { }
         public OpenRouterReranker(string apiKey, string rerankerModelName = "cohere/rerank-v3.5", System.Net.Http.HttpClient httpClient = null) { }
         public string ApiUrl { get; set; }
         public string AppTitle { get; set; }
@@ -3279,6 +3450,7 @@ namespace AI.LLM.Services.Reranking.OpenRouter
         public AI.LLM.Core.Models.Common.Requests.ProviderPreference PreferredProvider { get; set; }
         public System.TimeSpan RequestTimeout { get; set; }
         public string RerankerModelName { get; set; }
+        public AI.LLM.Infrastructure.Resilience.RetryPolicy Retry { get; set; }
         public bool SupportsImages { get; }
         public void Dispose() { }
         protected virtual void Dispose(bool disposing) { }
@@ -3312,6 +3484,7 @@ namespace AI.LLM.Services.Reranking.VLLM
         public const string Suffix = "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n";
         public Qwen3VLLMReranker(string apiUrl, string rerankerModelName) { }
         public string RerankerModelName { get; set; }
+        public AI.LLM.Infrastructure.Resilience.RetryPolicy Retry { get; set; }
         public System.Threading.Tasks.Task<AI.LLM.Core.Models.Providers.VLLM.VLLMRerankResponse> RerankAsync(string query, System.Collections.Generic.IEnumerable<string> documents, string instruct = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
 }

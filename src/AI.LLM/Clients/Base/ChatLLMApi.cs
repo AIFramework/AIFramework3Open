@@ -10,6 +10,7 @@ using AI.LLM.Core.Models.Common.Responses;
 using AI.LLM.Core.Models.Common.ToolCalling;
 using AI.LLM.Infrastructure.Extensions;
 using AI.LLM.Infrastructure.Http;
+using AI.LLM.Infrastructure.Resilience;
 using AI.LLM.Services.Prompts;
 using Newtonsoft.Json;
 using Serilog;
@@ -63,17 +64,22 @@ public partial class ChatLLMApi
         // Возможно стоит заменить на логер
         ProxyInfo += ChatLLMApi_ProxyInfo;
 
-        if (proxies != null && proxies.Any())
+        // Один клиент провайдера на оба случая: с прокси и без. Ключ — пулом из одного ключа, тем же путём,
+        // что и у приложения с несколькими ключами (конструктор с IWebAPIClient и ProviderHttpClient).
+        var client = new ProviderHttpClient(new ProviderHttpClientOptions
         {
-            _webApi = new ProxyHTTPClient(proxies, apiKey);
-            (_webApi as ProxyHTTPClient).OnProxyError += LLMApi_OnProxyError;
-        }
-        else
-        {
-            _webApi = new WithoutProxyClient(apiKey);
-        }
-
+            Keys = ApiKeyPool.SingleOrNone(apiKey),
+            Proxies = proxies,
+        });
+        client.OnProxyError += LLMApi_OnProxyError;
+        _webApi = client;
     }
+
+    /// <summary>
+    /// Правило повторов запроса к модели: по умолчанию <see cref="RetryPolicy.Default"/>. Запрос к модели ничего не
+    /// меняет в мире, поэтому повтор безопасен (<see cref="RepeatSafety.Safe"/>).
+    /// </summary>
+    public RetryPolicy Retry { get; set; } = RetryPolicy.Default;
 
     /// <summary>
     /// Апи поверх ГОТОВОГО http-клиента: ключом, маршрутами и повторами распоряжается вызывающий.
@@ -227,95 +233,61 @@ public partial class ChatLLMApi
     CancellationToken cancellationToken = default)
     {
         var sendData = BuildStreamingSendData(context, generateSettings);
+        RetryPolicy retry = Retry ?? RetryPolicy.Default;
 
-        // Повторяется только то, что повтор может вылечить: перегрузка, лимит частоты, сбой
-        // сервера, сеть. Неверный ключ, пустой счёт и переполнение окна сразу уходят наверх —
-        // раньше они повторялись вслепую, а Retry-After не учитывался.
-        const int maxAttempts = 3;
-        const int initialDelaySeconds = 1;
-        LlmRequestException lastException = null;
-
-        for (int attempt = 0; attempt < maxAttempts; attempt++)
-        {
-            try
-            {
-                using var response = await _webApi.PostAsJsonAsync(ApiUrl, sendData, cancellationToken);
-
-                // Проверка успешности HTTP-запроса
-                if (!response.IsSuccessStatusCode)
-                {
-                    lastException = await CreateHttpErrorException(
-                        attempt,
-                        response,
-                        context,
-                        cancellationToken,
-                        maxAttempts);
-                    Log.Warning(lastException.InnerException, "ChatLLMApi: {Message}", lastException.Message);
-
-                    if (!lastException.IsRetryable)
-                        throw lastException;
-
-                    if (attempt < maxAttempts - 1)
-                        await DelayAsync(lastException.RetryAfter, attempt, initialDelaySeconds, cancellationToken);
-
-                    continue;
-                }
-
-                // ВСЕГДА обрабатываем как streaming: он включён принудительно в
-                // BuildStreamingSendData ради раннего обнаружения зависших запросов.
-                return await ProcessStreamResponseInternal(response, onChunk, cancellationToken);
-            }
-            catch (LlmRequestException)
-            {
-                throw;
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                var sendDataRaw = JsonConvert.SerializeObject(sendData).TruncateForLogging();
-                Log.Error(ex, $"ChatLLMApi SendWithContext Exception, ApiUrl={ApiUrl}, ModelName={ModelName}, SendData={sendDataRaw}");
-
-                lastException = LlmRequestException.NoResponse(ex, await CreateProcessingErrorException(
-                    attempt,
-                    ex,
-                    context,
-                    sendData,
-                    cancellationToken));
-
-                // Переполнение окна повтором не лечится.
-                if (!lastException.IsRetryable)
-                    throw lastException;
-
-                if (attempt < maxAttempts - 1)
-                    await DelayWithExponentialBackoff(attempt, initialDelaySeconds, cancellationToken);
-            }
-        }
-
-        throw lastException;
+        // Повторяет правило RetryPolicy: только временный сбой, пауза по Retry-After или нарастающая.
+        // Неверный ключ, пустой счёт и переполнение окна сразу уходят наверх; смену ключа и маршрута
+        // делает клиент провайдера, не этот цикл.
+        return await retry.RunAsync(
+            (attempt, token) => AttemptAsync(context, sendData, onChunk, attempt, retry.MaxAttempts, token),
+            RepeatSafety.Safe,
+            cancellationToken);
     }
 
-    /// <summary>Пауза перед повтором: сколько сказал сервер (<c>Retry-After</c>), иначе экспоненциально.</summary>
-    private static Task DelayAsync(TimeSpan? retryAfter, int attempt, int initialDelaySeconds, CancellationToken cancellationToken) =>
-        retryAfter is TimeSpan wait
-            ? Task.Delay(wait, cancellationToken)
-            : DelayWithExponentialBackoff(attempt, initialDelaySeconds, cancellationToken);
-
-    /// <summary>
-    /// Выполняет задержку с экспоненциальным увеличением времени ожидания
-    /// </summary>
-    /// <param name="attempt">Номер текущей попытки (начиная с 0)</param>
-    /// <param name="initialDelaySeconds">Начальная задержка в секундах</param>
-    /// <param name="cancellationToken">Токен отмены</param>
-    private static async Task DelayWithExponentialBackoff(
-        int attempt,
-        int initialDelaySeconds,
-        CancellationToken cancellationToken)
+    /// <summary>Одна попытка: ответ сервера или <see cref="LlmRequestException"/> с причиной.</summary>
+    private async Task<ChatCompletionsResponse> AttemptAsync(
+        IEnumerable<LLMMessage> context, SendDataLLM sendData, Action<LLMStreamChunk> onChunk,
+        int attempt, int maxAttempts, CancellationToken cancellationToken)
     {
-        // Экспоненциальная задержка: 1, 2, 4, 8, 16 секунд
-        int delaySeconds = initialDelaySeconds * (int)Math.Pow(2, attempt);
-        await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
+        try
+        {
+            using var response = await _webApi.PostAsJsonAsync(ApiUrl, sendData, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                LlmRequestException error = await CreateHttpErrorException(attempt - 1, response, context, cancellationToken, maxAttempts);
+                Log.Warning(error.InnerException, "ChatLLMApi: {Message}", error.Message);
+                throw error;
+            }
+
+            // ВСЕГДА обрабатываем как streaming: он включён принудительно в
+            // BuildStreamingSendData ради раннего обнаружения зависших запросов.
+            return await ProcessStreamResponseInternal(response, onChunk, cancellationToken);
+        }
+        catch (LlmRequestException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode is { } status)
+        {
+            // Клиент отправки сообщил код ответа исключением (прежний ProxyHTTPClient): код не теряем.
+            throw LlmRequestException.FromResponse(status, ex.Message, null, $"Attempt #{attempt}/{maxAttempts}");
+        }
+        catch (Exception ex)
+        {
+            var sendDataRaw = JsonConvert.SerializeObject(sendData).TruncateForLogging();
+            Log.Error(ex, $"ChatLLMApi SendWithContext Exception, ApiUrl={ApiUrl}, ModelName={ModelName}, SendData={sendDataRaw}");
+
+            throw LlmRequestException.NoResponse(ex, await CreateProcessingErrorException(
+                attempt - 1,
+                ex,
+                context,
+                sendData,
+                cancellationToken));
+        }
     }
 }

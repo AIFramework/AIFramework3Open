@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using AI.Agents.Contracts.Tools;
+using AI.Agents.Interop.Effects;
 using AI.LLM.Agents.ReAct;
 using AI.LLM.Agents.ReAct.Tools;
 using Serilog;
@@ -20,7 +21,7 @@ internal sealed class ReActSourceAsToolSet : IToolSet
     private readonly IReActToolSource _source;
     private readonly ReActRunContext _baseRun;
     private readonly IReadOnlyDictionary<string, ToolAction>? _actions;
-    private readonly IReadOnlyDictionary<string, ToolIdempotency>? _idempotency;
+    private readonly IReadOnlyDictionary<string, ToolEffect>? _effects;
     private readonly ILogger? _log;
     private readonly HashSet<string> _warned = new(ToolSpec.NameComparer);
 
@@ -30,20 +31,29 @@ internal sealed class ReActSourceAsToolSet : IToolSet
         ReActRunContext? baseRun,
         IReadOnlyDictionary<string, ToolAction>? actions,
         ILogger? log)
-        : this(source, baseRun, actions, idempotency: null, log)
+        : this(source, baseRun, actions, effects: null, log)
     {
     }
 
     /// <summary>
-    /// Оборачивает источник старых инструментов с известными осями «повтор безопасен». Если
-    /// <paramref name="idempotency"/> задан, инструмент без записи в нем получает <see cref="ToolIdempotency.Unknown"/>
-    /// и предупреждение (одно на имя, вместе с видом действия).
+    /// Оборачивает источник старых инструментов с эффектами из описаний: вид действия и «повтор безопасен» одной
+    /// записью. Инструмент без записи получает <see cref="ToolAction.Unknown"/> и <see cref="ToolIdempotency.Unknown"/>
+    /// и предупреждение (одно на имя).
     /// </summary>
     public ReActSourceAsToolSet(
         IReActToolSource source,
         ReActRunContext? baseRun,
+        IReadOnlyDictionary<string, ToolEffect> effects,
+        ILogger? log)
+        : this(source, baseRun, actions: null, effects ?? throw new ArgumentNullException(nameof(effects)), log)
+    {
+    }
+
+    private ReActSourceAsToolSet(
+        IReActToolSource source,
+        ReActRunContext? baseRun,
         IReadOnlyDictionary<string, ToolAction>? actions,
-        IReadOnlyDictionary<string, ToolIdempotency>? idempotency,
+        IReadOnlyDictionary<string, ToolEffect>? effects,
         ILogger? log)
     {
         _source = source ?? throw new ArgumentNullException(nameof(source));
@@ -58,7 +68,7 @@ internal sealed class ReActSourceAsToolSet : IToolSet
 
         _baseRun = baseRun ?? new ReActRunContext(string.Empty);
         _actions = actions;
-        _idempotency = idempotency;
+        _effects = effects;
         _log = log;
     }
 
@@ -107,10 +117,11 @@ internal sealed class ReActSourceAsToolSet : IToolSet
             ToolAction? action = _actions != null && _actions.TryGetValue(tool.Name, out ToolAction known) ? known : null;
             ToolIdempotency? idempotency = null;
             bool idempotencyMissing = false;
-            if (_idempotency != null)
+            if (_effects != null)
             {
-                idempotencyMissing = !_idempotency.TryGetValue(tool.Name, out ToolIdempotency declared);
-                idempotency = idempotencyMissing ? ToolIdempotency.Unknown : declared;
+                idempotencyMissing = !_effects.TryGetValue(tool.Name, out ToolEffect effect);
+                action = idempotencyMissing ? null : effect.Action;
+                idempotency = idempotencyMissing ? ToolIdempotency.Unknown : effect.Idempotency;
             }
 
             var adapter = new ReActToolAsTool(tool, action, idempotency, _baseRun, _log);

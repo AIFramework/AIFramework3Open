@@ -58,8 +58,7 @@ public static class AttributedTools
         ArgumentNullException.ThrowIfNull(instances);
         object[] objects = [.. instances];
 
-        var actions = new Dictionary<string, ToolAction>(ToolSpec.NameComparer);
-        var idempotency = new Dictionary<string, ToolIdempotency>(ToolSpec.NameComparer);
+        var effects = new Dictionary<string, ToolEffect>(ToolSpec.NameComparer);
 
         foreach (object instance in objects)
         {
@@ -69,20 +68,16 @@ public static class AttributedTools
             foreach ((string name, ToolRegistry.RegisteredTool tool) in ToolRegistry.ScanMethods(instance))
             {
                 // Последний объект побеждает, как в реестре: прежнее объявление с тем же именем забывается.
-                actions.Remove(name);
-                idempotency.Remove(name);
+                effects.Remove(name);
 
                 if (tool.Method.GetCustomAttribute<ToolEffectAttribute>() is { } effect)
-                {
-                    actions[name] = effect.Action;
-                    idempotency[name] = effect.Idempotency;
-                }
+                    effects[name] = new ToolEffect(effect.Action, effect.Idempotency);
             }
         }
 
         var source = new ToolRegistryToolSource(
             ToolRegistry.FromObjects(objects), textResults, IsContractResult, ToOutcome);
-        return new ReActSourceAsToolSet(source, baseRun: null, actions, idempotency, log);
+        return new ReActSourceAsToolSet(source, baseRun: null, effects, log);
     }
 
     /// <summary>Итог контракта тоже несет признак успеха: правило <see cref="ToolTextResult.Refused"/> его принимает.</summary>

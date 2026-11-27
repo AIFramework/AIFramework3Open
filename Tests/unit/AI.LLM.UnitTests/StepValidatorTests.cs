@@ -94,13 +94,16 @@ public class StepValidatorTests
     }
 
     [Fact]
-    public async Task LlmStepValidator_IsSuccessAsync_AcceptsStepWhenCheckItselfFails()
+    public async Task LlmStepValidator_IsSuccessAsync_ModelFailureIsNotAVerdict()
     {
         var llm = new FakeLLMClient { BeforeSend = () => throw new InvalidOperationException("сеть лежит") };
         llm.EnqueueText("НЕТ");
 
-        // Сломанная приёмка не должна сама становиться источником провалов.
-        Assert.True(await new LlmStepValidator(llm).IsSuccessAsync(Step(doneWhen: "есть текст"), Result("ответ")));
+        // Сбой хоста модели — не «принят» и не «отклонён»: прежде шаг молча считался принятым. Теперь причина
+        // уходит наверх сбоем модели, и итог прогона называет её.
+        var error = await Assert.ThrowsAsync<AI.LLM.Clients.Base.LlmRequestException>(
+            () => new LlmStepValidator(llm).IsSuccessAsync(Step(doneWhen: "есть текст"), Result("ответ")));
+        Assert.Contains("сеть лежит", error.Message);
     }
 
     [Fact]

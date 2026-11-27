@@ -81,6 +81,30 @@ public static class ReActToolExtensions
         return new ReActSourceAsToolSet(source, run, actions, log);
     }
 
+    /// <summary>
+    /// Источник старых инструментов под контрактом <see cref="IToolSet"/>; вид действия и «повтор безопасен» берутся из
+    /// описаний инструментов — то, что нужно гейту эффектов, одним входом.
+    /// </summary>
+    /// <param name="source">Источник старых инструментов.</param>
+    /// <param name="specs">
+    /// Описания инструментов источника: по имени берутся <see cref="ToolSpec.Action"/> и <see cref="ToolSpec.Idempotency"/>
+    /// (не объявленная — <see cref="ToolIdempotency.Unknown"/>). Имя без описания: <see cref="ToolAction.Unknown"/>,
+    /// <see cref="ToolIdempotency.Unknown"/> и одно предупреждение на имя. При повторе имени побеждает последнее описание.
+    /// </param>
+    /// <param name="run">Контекст прогона, как в <see cref="AsToolSet(IReActToolSource, ReActRunContext?, IReadOnlyDictionary{string, ToolAction}?, ILogger?)"/>.</param>
+    /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/>.</param>
+    /// <returns>Набор контракта: спецификации <see cref="IToolSet.Available"/> несут обе оси, и гейт решает повтор по ним.</returns>
+    /// <exception cref="ArgumentException">У <paramref name="run"/> занята метка.</exception>
+    public static IToolSet AsToolSet(
+        this IReActToolSource source,
+        IEnumerable<ToolSpec> specs,
+        ReActRunContext? run = null,
+        ILogger? log = null)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        return new ReActSourceAsToolSet(source, run, Effects.ToolEffect.ByName(specs, nameof(specs)), log);
+    }
+
     /// <summary>Набор инструментов контракта под старым интерфейсом <see cref="IReActToolSource"/>.</summary>
     /// <param name="set">Набор контракта.</param>
     /// <param name="log">Журнал; <see langword="null"/>: <see cref="Log.Logger"/>.</param>

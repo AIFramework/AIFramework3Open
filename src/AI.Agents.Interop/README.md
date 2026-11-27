@@ -25,6 +25,7 @@
 | `reactTool.AsTool(action: null, log: null)` | `ITool` над старым инструментом |
 | `tool.AsReActTool(log: null)` | `IReActTool` над инструментом контракта |
 | `source.AsToolSet(run: null, actions: null, log: null)` | `IToolSet` над источником старых инструментов |
+| `source.AsToolSet(specs, run: null, log: null)` | то же, но вид действия и «повтор безопасен» берутся из описаний инструментов (`ToolSpec`) одним входом: гейт получает обе оси, хосту не нужно собирать спецификацию второй раз |
 | `set.AsToolSource(log: null)` | `IReActToolSource` над набором контракта |
 
 Значения без адаптера переводит `ReActTranslation`: `outcome.ToResult()`, `result.ToOutcome()`, `citation.ToCitation()`, `citation.ToReActCitation()`, `image.ToFile()`, `file.ToImage()`. Других мест, где одна форма собирается из другой, нет. Тест `OneTranslationPlaceTests` ищет такие места в `src` и `Tools`.
@@ -240,6 +241,7 @@ IToolSet tools = AttributedTools.AsToolSet([new MailTools()], ToolTextResult.Ref
 |---|---|
 | `ModelPort.Fixed(client, capabilities, settings: null, log: null)` | `IModelPort` над `ILLMClient`: одна модель на все роли |
 | `client.AsModelPort(capabilities, settings: null, log: null)` | то же расширением |
+| `ModelPort.Routed(chains, log: null)` | порт по ролям: роль → основная модель и запасные (`ModelSlot(model, port)`). Переход по цепочке — одно правило `ModelFallback`; итог называет ответившую модель (`LlmAnswer.Model`), расход — по всем попыткам. Незнакомая роль — `ArgumentException`, а не модель по умолчанию. Это единственное место, где роль сопоставляется с именем модели |
 | `port.AsLlmClient(role, log: null)` | `ILLMClient` над портом: старые пути (`Agent`, `PlanGenerator`, `ScriptWriter`, модуль `llm`) ходят через порт без изменений в себе |
 | `port.Watched(watch, time: null, log: null)` | сторож потока (`StreamWatch`): нет первого фрагмента за `FirstChunk` или тишина дольше `Idle` посреди ответа — итог `Failed`, `Stalled`, текст причины в `FailureText`, внутренний поток отменяется. Порт без настоящего потока идет без сторожа |
 | `new ModelClassifier(port, role, classes, prompt)` | классификатор поверх порта (замена `ClassifierWithLLM`, см. ниже) |
@@ -279,6 +281,12 @@ ILLMClient legacy = port.AsLlmClient(ModelRole.Decide);   // обратно, д�
 Отмена токеном вызывающего остается исключением, как требует контракт. Текст сбоя для человека едет рядом с кодом в `LlmAnswer.FailureText`: сообщение исключения клиента, текст отказа модели или причина `content_filter`. `RetryAfter` в `LlmAnswer` не помещается, адаптер пишет его в журнал. Расход берется из `Usage`: нули без стоимости означают, что провайдер ничего не сообщил, и дают `null`. Последний кадр потока — итог с расходом.
 
 Обратно итог без ответа становится тем исключением, по которому старые вызывающие его различают: `Empty` — `LlmRequestException.NoResponse(EmptyModelAnswerException)` (`IsEmptyAnswer`, как у `ChatLLMApi`), `Failed` — `LlmRequestException` с условным кодом HTTP (переполнение — 400 с признаком переполнения, частота — 429, доступ — 403, отказ — 400, сеть — без ответа, прочее — 500). Код подобран так, что перевод обратно дает тот же `LlmFailure`, а `FailureText` дописывается к сообщению исключения. Исключения четыре: `Cancelled` и `Stalled` возвращаются как `Network` (ответа нет), незаданный код и `InvalidOutput` — как `Other`, потому что в старой форме их не различить. `TokenizeAsync` клиент над портом не поддерживает: в `IModelPort` такой операции нет.
+
+### Запасные модели и сбой хоста
+
+`ModelFallback.Cures(failure)` решает переход по цепочке: лимит частоты, отказ провайдера, нет доступа, сеть, модель замолчала, ответ не того вида и прочий сбой — следующая модель; переполнение окна и отмена не вызывающим — нет (менять надо запрос). Незнакомый код — `ArgumentOutOfRangeException`. В потоке следующая модель берется, только если прежняя не отдала ни одного кадра: начатый показ чужим ответом не переписывается.
+
+Сбой хоста модели в движке (`react`, `plan`, приемка шага) — итог `Failed` с одним кодом `StopCode.ModelFailure` (`model_failure`); в `Unfinished` — код `LlmFailure` и причина. Собирает его одно место, `ReActRun.ModelFailed`. Ключи, повторы и прокси — ниже, в `AI.LLM` (`ProviderHttpClient`, `ApiKeyPool`, `RetryPolicy`): порт над клиентом получает их готовыми.
 
 ### Что отвергается до отправки
 

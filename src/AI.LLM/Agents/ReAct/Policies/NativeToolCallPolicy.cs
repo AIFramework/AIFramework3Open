@@ -80,7 +80,7 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         {
             throw;
         }
-        catch (AI.LLM.Clients.Base.LlmRequestException ex) when (ex.IsEmptyAnswer)
+        catch (Exception ex) when (ex is AI.LLM.Clients.Base.EmptyModelAnswerException or AI.LLM.Clients.Base.LlmRequestException { IsEmptyAnswer: true })
         {
             // Модель закончила ответ молча (бывает после результата инструмента): это не отказ сервера, а пустое
             // решение — цикл напомнит, что нужен ответ или вызов инструмента, и спросит снова.
@@ -95,8 +95,10 @@ public sealed class NativeToolCallPolicy : IReActPolicy
         }
         catch (Exception ex)
         {
+            // Клиент модели упал не ответом сервера: это тоже сбой хоста модели, а не «неверный формат» —
+            // подсказка формата не поможет, и причина не должна теряться.
             Serilog.Log.Warning(ex, "ReAct: обращение к модели на шаге {Step} не удалось", context.StepNumber);
-            return ReActDecision.Malformed(null);
+            throw AI.LLM.Clients.Base.LlmRequestException.FromClient(ex);
         }
 
         if (response?.Choices is not { Count: > 0 })

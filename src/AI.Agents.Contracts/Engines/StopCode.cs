@@ -64,6 +64,12 @@ public readonly record struct StopCode
     /// <summary>Сбой движка.</summary>
     public static StopCode EngineFailure { get; } = new("engine_failure");
 
+    /// <summary>
+    /// Сбой хоста модели: вызов не удался после повторов и запасных моделей (ключ, баланс, окно, сеть, провайдер).
+    /// Код сбоя модели (<see cref="Models.LlmFailure"/>) и причина — в <see cref="EngineResult.Unfinished"/>.
+    /// </summary>
+    public static StopCode ModelFailure { get; } = new("model_failure");
+
     /// <summary>Запуск отменен.</summary>
     public static StopCode Cancelled { get; } = new("cancelled");
 

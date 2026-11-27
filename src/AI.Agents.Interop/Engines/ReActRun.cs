@@ -287,6 +287,9 @@ internal static class ReActRun
         ILogger logger = log ?? Log.Logger;
         (EngineStatus status, StopCode code) = ReActEngineTranslationTable.StopReasons[result.StopReason];
 
+        if (result.ModelFailed)
+            return ModelFailed(result.Failure!, usage, logger);
+
         if (result.StopReason == ReActStopReason.EngineFailure)
             logger.Error("ReAct → движок контракта: сбой движка: {Error}", result.Error);
 
@@ -300,6 +303,24 @@ internal static class ReActRun
             Unfinished = status == EngineStatus.Incomplete
                 ? [$"прогон остановлен: {code} после {result.TotalSteps} шагов"]
                 : null,
+            Usage = usage,
+        };
+    }
+
+    /// <summary>
+    /// Итог при сбое хоста модели — одно место для всех движков: код <see cref="StopCode.ModelFailure"/>, а в
+    /// <see cref="EngineResult.Unfinished"/> — код сбоя модели (<see cref="ModelTranslation.FailureOf(Exception)"/>) и
+    /// причина. Сбой не выглядит ни успехом, ни поломкой движка.
+    /// </summary>
+    public static EngineResult ModelFailed(Exception error, ModelUsage? usage, ILogger logger)
+    {
+        LlmFailure failure = ModelTranslation.FailureOf(error);
+        logger.Error(error, "Движок контракта: сбой модели {Failure}: {Message}", failure, error.Message);
+        return new EngineResult
+        {
+            Status = EngineStatus.Failed,
+            StopCode = StopCode.ModelFailure,
+            Unfinished = [$"{failure}: {error.Message}"],
             Usage = usage,
         };
     }

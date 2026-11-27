@@ -126,7 +126,7 @@ public sealed partial class ReActEngine
                     Log.Error(failure, "ReAct: прогон прерван необработанной ошибкой");
                     stopwatch.Stop();
                     yield return new ReActEvent.Completed(
-                        BuildResult(run, stopwatch.Elapsed, ReActStopReason.EngineFailure, failure.Message));
+                        BuildResult(run, stopwatch.Elapsed, ReActStopReason.EngineFailure, failure));
                     yield break;
                 }
 
@@ -333,7 +333,7 @@ public sealed partial class ReActEngine
         };
 
     private static ReActResult BuildResult(
-        RunState run, TimeSpan elapsed, ReActStopReason? stopReason = null, string error = null)
+        RunState run, TimeSpan elapsed, ReActStopReason? stopReason = null, Exception failure = null)
     {
         string answer = run.Answer;
         if (string.IsNullOrWhiteSpace(answer))
@@ -348,7 +348,8 @@ public sealed partial class ReActEngine
             Payload = run.Payload,
             Usage = run.Usage,
             Elapsed = elapsed,
-            Error = error,
+            Error = failure?.Message,
+            Failure = failure,
         };
     }
 }

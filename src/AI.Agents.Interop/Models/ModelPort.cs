@@ -49,6 +49,20 @@ public static class ModelPort
         this ILLMClient client, ModelCapabilities capabilities, GenerateSettings? settings = null, ILogger? log = null) =>
         Fixed(client, capabilities, settings, log);
 
+    /// <summary>
+    /// Порт по ролям с запасными моделями: роль → основная модель и запасные по порядку. Переход по цепочке —
+    /// одно правило <see cref="ModelFallback"/>; итог говорит, какая модель ответила (<see cref="LlmAnswer.Model"/>), а
+    /// расход считает по всем попыткам.
+    /// </summary>
+    /// <param name="chains">Цепочки по ролям; первая модель — основная. Пустая роль или цепочка не допускаются.</param>
+    /// <param name="log">Журнал переходов; <see langword="null"/>: <see cref="Log.Logger"/>.</param>
+    /// <returns>
+    /// Порт. Роль вне <paramref name="chains"/> — <see cref="ArgumentException"/> при вызове: незнакомая роль — отказ,
+    /// а не модель по умолчанию. <see cref="IModelPort.Describe(ModelRole)"/> — возможности основной модели роли.
+    /// </returns>
+    public static IModelPort Routed(IReadOnlyDictionary<ModelRole, IReadOnlyList<ModelSlot>> chains, ILogger? log = null) =>
+        new RoutedModelPort(chains, log);
+
     /// <summary>Сторож потока над портом: молчание модели дольше <paramref name="watch"/> — итог сбоя, а не ожидание.</summary>
     /// <param name="port">Порт.</param>
     /// <param name="watch">Сколько ждать первого фрагмента и сколько терпеть простой посреди ответа.</param>

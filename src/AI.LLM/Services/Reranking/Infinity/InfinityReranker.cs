@@ -1,6 +1,6 @@
 ﻿using AI.LLM.Core.Models.Providers.Infinity;
-using AI.LLM.Infrastructure.Extensions;
-using System.Net.Http.Json;
+using AI.LLM.Infrastructure.Http;
+using AI.LLM.Infrastructure.Resilience;
 
 namespace AI.LLM.Services.Reranking.Infinity;
 
@@ -9,7 +9,10 @@ namespace AI.LLM.Services.Reranking.Infinity;
 /// </summary>
 public class InfinityReranker
 {
-    private readonly HttpClient _httpClient;
+    private readonly ProviderHttpClient _http;
+
+    /// <summary>Правило повторов: две попытки, пауза 1 с; повторяется только временный сбой.</summary>
+    public RetryPolicy Retry { get; set; } = RetryPolicy.Default with { MaxAttempts = 2 };
 
     /// <summary>
     /// Имя модели реранкера
@@ -31,11 +34,11 @@ public class InfinityReranker
         _apiUrl = apiUrl;
         RerankerModelName = rerankerModelName;
 
-        _httpClient = new HttpClient
+        _http = new ProviderHttpClient(new ProviderHttpClientOptions
         {
             BaseAddress = new Uri(_apiUrl),
-            Timeout = TimeSpan.FromMinutes(5)
-        };
+            RequestTimeout = TimeSpan.FromMinutes(5),
+        });
     }
 
     /// <summary>
@@ -47,43 +50,19 @@ public class InfinityReranker
     /// <returns>Ответ от сервера с результатами ранжирования</returns>
     public async Task<RerankResponse> RerankAsync(string query, IEnumerable<string> documents, CancellationToken cancellationToken = default)
     {
-        Exception lastException = new Exception();
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+        var request = new RerankRequest { Model = RerankerModelName, Query = query, Documents = documents };
 
-        for (int attempt = 0; attempt < 2; attempt++)
-        {
-            try
-            {
+        // Ранжирование ничего не меняет — повтор безопасен; повторяется только временный сбой.
+        var result = await (Retry ?? RetryPolicy.Default).RunAsync(
+            (_, token) => _http.PostJsonAsync<RerankResponse>("/v1/rerank", request, "Infinity rerank", token),
+            RepeatSafety.Safe,
+            linkedCts.Token);
 
-                using var response = await _httpClient.PostAsJsonAsync("/v1/rerank", new RerankRequest
-                {
-                    Model = RerankerModelName,
-                    Query = query,
-                    Documents = documents
-                }, linkedCts.Token);
-
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception((await response.Content.ReadAsStringAsync(linkedCts.Token) ?? "").TruncateForLogging());
-
-                response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadFromJsonAsync<RerankResponse>(cancellationToken: linkedCts.Token);
-                if (result?.Results == null)
-                    throw new InvalidOperationException("Rerank response or results are null.");
-                result.Results = result.Results.OrderBy(t => t.Index).ToList();
-                return result;
-            }
-            catch (Exception ex)
-            {
-                lastException = ex;
-                if (attempt < 1) 
-                {
-                    try { await Task.Delay(1000, linkedCts.Token); }
-                    catch (OperationCanceledException) { throw lastException; }
-                }
-            }
-        }
-
-        throw lastException;
+        if (result?.Results == null)
+            throw new InvalidOperationException("Rerank response or results are null.");
+        result.Results = result.Results.OrderBy(t => t.Index).ToList();
+        return result;
     }
 }

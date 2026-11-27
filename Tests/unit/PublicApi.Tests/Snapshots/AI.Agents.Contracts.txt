@@ -322,6 +322,7 @@ namespace AI.Agents.Contracts.Engines
         public static AI.Agents.Contracts.Engines.StopCode CostLimit { get; }
         public static AI.Agents.Contracts.Engines.StopCode EngineFailure { get; }
         public static AI.Agents.Contracts.Engines.StopCode FinalAnswer { get; }
+        public static AI.Agents.Contracts.Engines.StopCode ModelFailure { get; }
         public static AI.Agents.Contracts.Engines.StopCode NoProgress { get; }
         public static AI.Agents.Contracts.Engines.StopCode NoTools { get; }
         public static AI.Agents.Contracts.Engines.StopCode PolicyFailure { get; }

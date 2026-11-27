@@ -1,7 +1,8 @@
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using AI.LLM.Clients.Base;
+using AI.LLM.Infrastructure.Http;
+using AI.LLM.Infrastructure.Resilience;
 using AI.LLM.Core.Abstractions;
 using AI.LLM.Core.Models.Common.Messages;
 using AI.LLM.Core.Models.Common.Requests;
@@ -28,9 +29,7 @@ public sealed class ReplicateClient : ILLMClient, IDisposable
     /// <summary>Сколько сервер держит запрос, дожидаясь ответа модели (не больше 60 с по документации Replicate).</summary>
     private const int WaitSeconds = 60;
 
-    private readonly HttpClient _httpClient;
-    private readonly bool _ownsHttpClient;
-    private readonly string _token;
+    private readonly ProviderHttpClient _http;
 
     /// <summary>Модель в виде «владелец/имя», например <c>meta/meta-llama-3-70b-instruct</c>.</summary>
     public string Model { get; }
@@ -52,10 +51,10 @@ public sealed class ReplicateClient : ILLMClient, IDisposable
         if (string.IsNullOrWhiteSpace(model) || !model.Contains('/'))
             throw new ArgumentException("Модель Replicate задаётся как «владелец/имя»", nameof(model));
 
-        _token = token.Trim();
         Model = model.Trim();
-        _ownsHttpClient = httpClient == null;
-        _httpClient = httpClient ?? new HttpClient { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
+        // Создание предсказания необратимо (запускает платную работу), поэтому повторов здесь нет; ключ и
+        // транспорт — общий клиент провайдера.
+        _http = new ProviderHttpClient(new ProviderHttpClientOptions { Keys = ApiKeyPool.Single(token), Client = httpClient });
     }
 
     /// <inheritdoc/>
@@ -73,18 +72,23 @@ public sealed class ReplicateClient : ILLMClient, IDisposable
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
         try
         {
-            using HttpRequestMessage create = Request(HttpMethod.Post, $"{ApiBase}/models/{Model}/predictions");
-            create.Headers.TryAddWithoutValidation("Prefer", "wait=" + WaitSeconds);
-            create.Content = new StringContent(Payload(messages, generateSettings), Encoding.UTF8, "application/json");
-            JsonElement prediction = await SendJsonAsync(create, linked.Token);
+            string payload = Payload(messages, generateSettings);
+            JsonElement prediction = await SendJsonAsync(
+                () =>
+                {
+                    var create = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}/models/{Model}/predictions");
+                    create.Headers.TryAddWithoutValidation("Prefer", "wait=" + WaitSeconds);
+                    create.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+                    return create;
+                },
+                linked.Token);
             while (Status(prediction) is "starting" or "processing")
             {
                 await Task.Delay(PollInterval, linked.Token);
                 string poll = prediction.TryGetProperty("urls", out JsonElement urls) && urls.TryGetProperty("get", out JsonElement get)
                     ? get.GetString()
                     : $"{ApiBase}/predictions/{prediction.GetProperty("id").GetString()}";
-                using HttpRequestMessage request = Request(HttpMethod.Get, poll);
-                prediction = await SendJsonAsync(request, linked.Token);
+                prediction = await SendJsonAsync(() => new HttpRequestMessage(HttpMethod.Get, poll), linked.Token);
             }
 
             if (Status(prediction) != "succeeded")
@@ -99,7 +103,7 @@ public sealed class ReplicateClient : ILLMClient, IDisposable
         {
             throw;
         }
-        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or TimeoutException or JsonException)
         {
             throw LlmRequestException.NoResponse(ex is OperationCanceledException ? new TimeoutException($"Replicate не ответил за {Timeout.TotalSeconds:0} с", ex) : ex);
         }
@@ -110,22 +114,11 @@ public sealed class ReplicateClient : ILLMClient, IDisposable
         Task.FromResult(messages.Sum(m => (m.Content?.ToString()?.Length ?? 0) / 4 + 1));
 
     /// <summary>Освобождает свой HttpClient (общий, переданный снаружи, не трогает).</summary>
-    public void Dispose()
-    {
-        if (_ownsHttpClient)
-            _httpClient.Dispose();
-    }
+    public void Dispose() => _http.Dispose();
 
-    private HttpRequestMessage Request(HttpMethod method, string url)
+    private async Task<JsonElement> SendJsonAsync(Func<HttpRequestMessage> request, CancellationToken cancellationToken)
     {
-        var request = new HttpRequestMessage(method, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
-        return request;
-    }
-
-    private async Task<JsonElement> SendJsonAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
+        using HttpResponseMessage response = await _http.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken);
         string body = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
             throw LlmRequestException.FromResponse(response.StatusCode, body, response.Headers.RetryAfter, $"Replicate {Model}");

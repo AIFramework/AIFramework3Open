@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using AI.LLM.Infrastructure.Resilience;
 
 namespace AI.LLM.Clients.Base;
 
@@ -15,9 +16,6 @@ namespace AI.LLM.Clients.Base;
 /// </remarks>
 public sealed class LlmRequestException : Exception
 {
-    /// <summary>Дольше этого ждать по <c>Retry-After</c> не имеет смысла: проще сказать человеку.</summary>
-    private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromSeconds(60);
-
     /// <summary>Код ответа сервера; <c>null</c> — ответа не было (сеть, обрыв потока).</summary>
     public HttpStatusCode? StatusCode { get; }
 
@@ -60,10 +58,10 @@ public sealed class LlmRequestException : Exception
         string provider = ProviderMessage(body);
         int code = (int)statusCode;
         bool overflow = IsOverflow(provider) || IsOverflow(body);
-        TimeSpan? wait = Wait(retryAfter);
+        TimeSpan? wait = RetryPolicy.RetryAfterOf(retryAfter);
         bool retryable = !overflow
-            && code is 408 or 425 or 429 or >= 500
-            && (wait == null || wait <= MaxRetryAfter);
+            && RetryPolicy.IsTransient(statusCode)
+            && (wait == null || wait <= RetryPolicy.Default.MaxRetryAfter);
 
         string what = overflow ? "Запрос не помещается в окно модели"
             : code is 401 or 403 ? "Сервер модели отклонил ключ"
@@ -135,6 +133,21 @@ public sealed class LlmRequestException : Exception
         return new LlmRequestException(message, null, !overflow, null, overflow, details ?? cause);
     }
 
+    /// <summary>
+    /// Клиент модели бросил то, что не является ответом сервера и не сетью (своя реализация <c>ILLMClient</c>,
+    /// ошибка разбора потока): вызов модели не удался. Повтор не поможет; причина — во внутреннем исключении.
+    /// </summary>
+    /// <param name="cause">Исходная ошибка.</param>
+    public static LlmRequestException FromClient(Exception cause)
+    {
+        ArgumentNullException.ThrowIfNull(cause);
+        if (cause is LlmRequestException already)
+            return already;
+
+        string message = "Вызов модели не удался: " + (cause.GetBaseException().Message ?? "причина неизвестна") + ".";
+        return new LlmRequestException(message, null, false, null, false, cause);
+    }
+
     /// <summary>Текст ошибки от поставщика: <c>error.message</c>, <c>error</c> строкой или <c>message</c>.</summary>
     private static string ProviderMessage(string body)
     {
@@ -180,17 +193,4 @@ public sealed class LlmRequestException : Exception
             || text.Contains("maximum context length", StringComparison.OrdinalIgnoreCase)
             || text.Contains("context window", StringComparison.OrdinalIgnoreCase)
             || text.Contains("Please reduce the length", StringComparison.OrdinalIgnoreCase));
-
-    private static TimeSpan? Wait(RetryConditionHeaderValue retryAfter)
-    {
-        if (retryAfter?.Delta is TimeSpan delta)
-            return delta;
-        if (retryAfter?.Date is DateTimeOffset date)
-        {
-            TimeSpan left = date - DateTimeOffset.UtcNow;
-            return left > TimeSpan.Zero ? left : TimeSpan.Zero;
-        }
-
-        return null;
-    }
 }

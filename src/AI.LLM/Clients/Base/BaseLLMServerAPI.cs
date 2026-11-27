@@ -1,5 +1,6 @@
 ﻿using AI.LLM.Core.Models.Common.Generation;
 using AI.LLM.Core.Models.Providers.LocalServer;
+using AI.LLM.Infrastructure.Http;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -11,7 +12,7 @@ namespace AI.LLM.API.LocalServer;
 [Serializable]
 public class BaseLLMServerAPI : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly ProviderHttpClient _client;
     private int _disposed; // 0 = not disposed, 1 = disposed
 
     /// <summary>
@@ -26,10 +27,7 @@ public class BaseLLMServerAPI : IDisposable
     public BaseLLMServerAPI(string host = "http://127.0.0.1:8080/")
     {
         Host = host;
-        _client = new HttpClient
-        {
-            Timeout = TimeSpan.FromMinutes(7)
-        };
+        _client = new ProviderHttpClient(new ProviderHttpClientOptions { RequestTimeout = TimeSpan.FromMinutes(7) });
     }
 
     /// <summary>
@@ -42,7 +40,9 @@ public class BaseLLMServerAPI : IDisposable
     {
         var uri = $"{Host}load_llm_model/";
         var modelData = new { model_name = modelName, model_type = modelType };
-        using var response = await _client.PostAsJsonAsync(uri, modelData).ConfigureAwait(false);
+        using var response = await _client.SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Post, uri) { Content = JsonContent.Create(modelData) },
+            HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
         return response.StatusCode;
     }
 
@@ -74,17 +74,8 @@ public class BaseLLMServerAPI : IDisposable
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-        using var response = await _client.PostAsJsonAsync(uri, requestData, linkedCts.Token).ConfigureAwait(false);
-
-        if (response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadFromJsonAsync<TextGenerationJSON>(cancellationToken: linkedCts.Token).ConfigureAwait(false);
-            return content?.Answer;
-        }
-        
-        var errorBody = "";
-        try { errorBody = await response.Content.ReadAsStringAsync(linkedCts.Token).ConfigureAwait(false); } catch { }
-        throw new HttpRequestException($"TextGeneration failed with status {response.StatusCode}: {errorBody}");
+        var content = await _client.PostJsonAsync<TextGenerationJSON>(uri, requestData, "TextGeneration", linkedCts.Token).ConfigureAwait(false);
+        return content?.Answer;
     }
 
 

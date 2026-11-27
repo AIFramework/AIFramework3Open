@@ -1,7 +1,8 @@
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using AI.LLM.Clients.Base;
+using AI.LLM.Infrastructure.Http;
+using AI.LLM.Infrastructure.Resilience;
 
 namespace AI.LLM.Clients.Fim;
 
@@ -27,8 +28,7 @@ public sealed class FimClient : IDisposable
     /// <summary>Метки FIM у Qwen2.5-Coder: {0} — текст до курсора, {1} — после.</summary>
     public const string QwenTemplate = "<|fim_prefix|>{0}<|fim_suffix|>{1}<|fim_middle|>";
 
-    private readonly HttpClient _httpClient;
-    private readonly bool _ownsHttpClient;
+    private readonly ProviderHttpClient _http;
 
     /// <summary>Адрес <c>…/v1/completions</c>.</summary>
     public string Endpoint { get; }
@@ -66,8 +66,8 @@ public sealed class FimClient : IDisposable
         Endpoint = endpoint.Trim();
         Model = model.Trim();
         ApiKey = apiKey;
-        _ownsHttpClient = httpClient == null;
-        _httpClient = httpClient ?? new HttpClient { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
+        // Общий клиент провайдера: своего HttpClient и своего заголовка ключа у дополнения нет.
+        _http = new ProviderHttpClient(new ProviderHttpClientOptions { Client = httpClient });
     }
 
     /// <summary>Текст между <paramref name="prefix"/> и <paramref name="suffix"/>; пустая строка — модели нечего добавить.</summary>
@@ -80,16 +80,18 @@ public sealed class FimClient : IDisposable
     {
         using var timeout = new CancellationTokenSource(Timeout);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
-        {
-            Content = new StringContent(Payload(prefix ?? "", suffix ?? "", stop), Encoding.UTF8, "application/json")
-        };
-        if (!string.IsNullOrWhiteSpace(ApiKey))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey.Trim());
+        string payload = Payload(prefix ?? "", suffix ?? "", stop);
+        _http.Authentication = string.IsNullOrWhiteSpace(ApiKey) ? null : ApiKeyPool.Bearer(ApiKey);
 
         try
         {
-            using HttpResponseMessage response = await _httpClient.SendAsync(request, linked.Token);
+            using HttpResponseMessage response = await _http.SendAsync(
+                () => new HttpRequestMessage(HttpMethod.Post, Endpoint)
+                {
+                    Content = new StringContent(payload, Encoding.UTF8, "application/json"),
+                },
+                HttpCompletionOption.ResponseContentRead,
+                linked.Token);
             string body = await response.Content.ReadAsStringAsync(linked.Token);
             if (!response.IsSuccessStatusCode)
                 throw LlmRequestException.FromResponse(response.StatusCode, body, response.Headers.RetryAfter, $"FIM {Model} → {Endpoint}");
@@ -99,18 +101,14 @@ public sealed class FimClient : IDisposable
         {
             throw;
         }
-        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or TimeoutException or JsonException)
         {
             throw LlmRequestException.NoResponse(ex is OperationCanceledException ? new TimeoutException($"нет ответа за {Timeout.TotalSeconds:0.#} с", ex) : ex);
         }
     }
 
     /// <summary>Освобождает свой HttpClient (общий, переданный снаружи, не трогает).</summary>
-    public void Dispose()
-    {
-        if (_ownsHttpClient)
-            _httpClient.Dispose();
-    }
+    public void Dispose() => _http.Dispose();
 
     private string Payload(string prefix, string suffix, IReadOnlyList<string> stop)
     {

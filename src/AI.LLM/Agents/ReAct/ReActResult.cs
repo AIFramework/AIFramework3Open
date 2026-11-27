@@ -37,6 +37,16 @@ public sealed class ReActResult
     /// </summary>
     public string Error { get; init; }
 
+    /// <summary>
+    /// Исключение сбоя при <see cref="ReActStopReason.EngineFailure"/>; <c>null</c> — сбоя нет. Сбой хоста модели —
+    /// <see cref="Clients.Base.LlmRequestException"/>: по нему вызывающий отличает отказ модели (ключ, окно, сеть) от
+    /// поломки самого цикла, не разбирая текст.
+    /// </summary>
+    public Exception Failure { get; init; }
+
+    /// <summary>Прогон прервал сбой хоста модели (<see cref="Failure"/> — <see cref="Clients.Base.LlmRequestException"/>).</summary>
+    public bool ModelFailed => Failure is Clients.Base.LlmRequestException;
+
     /// <summary>Прогон завершился сбоем.</summary>
     public bool Failed => StopReason == ReActStopReason.EngineFailure;
 
