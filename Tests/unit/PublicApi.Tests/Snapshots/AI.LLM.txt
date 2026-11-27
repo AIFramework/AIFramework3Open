@@ -318,6 +318,7 @@ namespace AI.LLM.Agents.Orchestration
         public AI.LLM.Agents.Orchestration.PlanningAgentBuilder WithLLM(AI.LLM.Core.Abstractions.ILLMClient llm) { }
         public AI.LLM.Agents.Orchestration.PlanningAgentBuilder WithLLM(AI.LLM.Services.LLM.LLMBase llm) { }
         public AI.LLM.Agents.Orchestration.PlanningAgentBuilder WithLlmStepValidator(AI.LLM.Core.Models.Common.Requests.GenerateSettings settings = null) { }
+        public AI.LLM.Agents.Orchestration.PlanningAgentBuilder WithLlmStepValidator(AI.LLM.Core.Abstractions.ILLMClient judge, AI.LLM.Core.Models.Common.Requests.GenerateSettings settings = null) { }
         public AI.LLM.Agents.Orchestration.PlanningAgentBuilder WithMaxReplanAttempts(int n) { }
         public AI.LLM.Agents.Orchestration.PlanningAgentBuilder WithMaxStepRetries(int n) { }
         public AI.LLM.Agents.Orchestration.PlanningAgentBuilder WithObserver(AI.LLM.Agents.Multimodal.IObservationProvider observer) { }

@@ -59,6 +59,21 @@ public sealed class ReActEngineAdapter : IEngine
             yield break;
         }
 
+        if (options.Acceptance != null)
+        {
+            // Шагов плана у react нет, принимать нечего: параметр не пропускается молча.
+            yield return new EngineEvent.Finished
+            {
+                Result = new EngineResult
+                {
+                    Status = EngineStatus.Failed,
+                    StopCode = new StopCode(EngineInteropCodes.InvalidOptions),
+                    Unfinished = [$"{EngineOptions.AcceptanceKey}: приемка шага есть только у движка plan"],
+                },
+            };
+            yield break;
+        }
+
         var recorder = new CallRecorder(ReActRun.Gated(input.Tools, _log));
         var tag = new ToolContext { RunId = input.RunId, Path = new StepPath { Tier = 1 } };
         var outcome = new ReActOutcome();

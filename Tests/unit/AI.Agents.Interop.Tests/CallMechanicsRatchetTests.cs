@@ -52,6 +52,11 @@ public sealed class CallMechanicsRatchetTests
         // 7. Вид действия и повторяемость инструмента — два словаря вместо одного описания. Было 2.
         new("split-effects", @"Dictionary<string, ToolIdempotency>", Threshold: 0),
 
+        // 4. Роль вызова движка: роль и клиент порта берутся только в EngineModels (decide — решение хода, judge —
+        // приемка шага). Было 2 (ReActRun и PlanningEngineAdapter брали decide на всё).
+        new("engine-roles", @"ModelRole\.|AsLlmClient\(", Threshold: 0, Home: "src/AI.Agents.Interop/Engines/EngineModels.cs",
+            Scope: ["src/AI.Agents.Interop/Engines"]),
+
         // 4. Выбор модели по имени в слое агентов: движки берут модель по роли через IModelPort.
         new("model-by-name", @"\bModelName\b|new ChatLLMApi\(|ModelApi\(", Threshold: 0,
             Scope: ["src/AI.Agents.Interop", "src/AI.Script.Llm", "src/AI.LLM/Agents"]),

@@ -129,11 +129,16 @@ public sealed class PlanningEngineAdapter : IEngine
             if (input.Budget.Deadline is DateTimeOffset deadline)
                 linked.CancelAfter(deadline - DateTimeOffset.UtcNow);
 
-            PlanningAgent agent = PlanningAgentBuilder.Create()
-                .WithLLM(input.Model.AsLlmClient(ModelRole.Decide, log))
+            PlanningAgentBuilder builder = PlanningAgentBuilder.Create()
+                .WithLLM(EngineModels.Decision(input, log))
                 .WithSystemPrompt(input.Context?.Instructions)
-                .WithStepExecutor((step, query, token) => ExecuteStepAsync(step, query, linked, token))
-                .Build();
+                .WithStepExecutor((step, query, token) => ExecuteStepAsync(step, query, linked, token));
+
+            // Приемка шага моделью — служебный вызов: своя роль (Judge), а не клиент решения хода.
+            if (options.Acceptance == EngineOptions.Model)
+                builder.WithLlmStepValidator(EngineModels.Acceptance(input, log));
+
+            PlanningAgent agent = builder.Build();
 
             agent.OnStepStarted += (_, step) =>
                 _events.Writer.TryWrite(new EngineEvent.Step { Path = PathOf(step), Thought = null });

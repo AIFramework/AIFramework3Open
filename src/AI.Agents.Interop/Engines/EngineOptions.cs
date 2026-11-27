@@ -21,6 +21,15 @@ internal sealed class EngineOptions
     /// <summary>Значение <see cref="DecisionsKey"/>: структурированный текст.</summary>
     public const string Json = "json";
 
+    /// <summary>Ключ: приемка шага плана, <c>model</c> — моделью роли <c>judge</c> по критерию готовности шага.</summary>
+    public const string AcceptanceKey = "acceptance";
+
+    /// <summary>Значение <see cref="AcceptanceKey"/>: приемка моделью.</summary>
+    public const string Model = "model";
+
+    /// <summary>Приемка шага плана; <see langword="null"/>: без модели (пустой ответ и явный отказ).</summary>
+    public string? Acceptance { get; private init; }
+
     /// <summary>Предел шагов; <see langword="null"/>: как у <c>ReActConfig</c> по умолчанию.</summary>
     public int? MaxIterations { get; private init; }
 
@@ -41,6 +50,7 @@ internal sealed class EngineOptions
 
         int? maxIterations = null;
         string? decisions = null;
+        string? acceptance = null;
 
         foreach ((string key, JsonNode? value) in options)
         {
@@ -67,13 +77,23 @@ internal sealed class EngineOptions
                     decisions = name;
                     break;
 
+                case AcceptanceKey:
+                    if (value is not JsonValue mode || !mode.TryGetValue(out string? how) || how is not Model)
+                    {
+                        error = $"{AcceptanceKey}: допустимо «{Model}»";
+                        return false;
+                    }
+
+                    acceptance = how;
+                    break;
+
                 default:
-                    error = $"неизвестный параметр «{key}»; допустимы {MaxIterationsKey} и {DecisionsKey}";
+                    error = $"неизвестный параметр «{key}»; допустимы {MaxIterationsKey}, {DecisionsKey} и {AcceptanceKey}";
                     return false;
             }
         }
 
-        parsed = new EngineOptions { MaxIterations = maxIterations, Decisions = decisions };
+        parsed = new EngineOptions { MaxIterations = maxIterations, Decisions = decisions, Acceptance = acceptance };
         return true;
     }
 }

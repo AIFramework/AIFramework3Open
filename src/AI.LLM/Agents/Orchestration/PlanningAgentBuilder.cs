@@ -36,6 +36,7 @@ public sealed class PlanningAgentBuilder
     private IStepValidator _validator;
     private IAsyncStepValidator _asyncValidator;
     private bool _llmValidator;
+    private ILLMClient _judge;
     private GenerateSettings _llmValidatorSettings;
     private IAgentGuard _guard;
     private IObservationProvider _observer;
@@ -91,6 +92,18 @@ public sealed class PlanningAgentBuilder
         _llmValidator = true;
         _llmValidatorSettings = settings;
         return this;
+    }
+
+    /// <summary>
+    /// Принимать шаги по критерию готовности через модель — своим клиентом, а не клиентом планировщика: приемка —
+    /// служебный вызов, и ее модель выбирается отдельно (например, дешевая модель-судья).
+    /// </summary>
+    /// <param name="judge">Клиент модели приемки.</param>
+    /// <param name="settings">Настройки генерации приёмки; <c>null</c> — умеренные значения.</param>
+    public PlanningAgentBuilder WithLlmStepValidator(ILLMClient judge, GenerateSettings settings = null)
+    {
+        _judge = judge ?? throw new ArgumentNullException(nameof(judge));
+        return WithLlmStepValidator(settings);
     }
 
     /// <summary>Защитный механизм для исполняющего агента.</summary>
@@ -157,7 +170,7 @@ public sealed class PlanningAgentBuilder
         var planner = plannerBuilder.Build();
 
         var asyncValidator = _asyncValidator
-            ?? (_llmValidator ? new LlmStepValidator(_llm, _llmValidatorSettings) : null);
+            ?? (_llmValidator ? new LlmStepValidator(_judge ?? _llm, _llmValidatorSettings) : null);
 
         return new PlanningAgent(
             agent, agentFactory, planner, memory,

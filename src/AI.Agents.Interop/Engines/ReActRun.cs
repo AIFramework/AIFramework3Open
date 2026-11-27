@@ -115,12 +115,12 @@ internal static class ReActRun
     public static ReActEngine Build(
         EngineInput input, IToolSet tools, EngineOptions options, ILogger? log, int? defaultMaxIterations = null)
     {
-        ILLMClient llm = input.Model.AsLlmClient(ModelRole.Decide, log);
+        ILLMClient llm = EngineModels.Decision(input, log);
         bool native = options.Decisions switch
         {
             EngineOptions.Native => true,
             EngineOptions.Json => false,
-            _ => input.Model.Describe(ModelRole.Decide).ToolCalling,
+            _ => EngineModels.DecisionCapabilities(input).ToolCalling,
         };
 
         ReActAgentBuilder builder = ReActAgentBuilder.Create();
