@@ -2,6 +2,19 @@
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
 namespace AI.DataPrepaire.NLPUtils.RegexpNLP
 {
+    public enum AbbreviationClass
+    {
+        NeverEnd = 1,
+        MayEnd = 2,
+        MayEndAfterNumber = 3,
+    }
+    public static class SentenceAbbreviations
+    {
+        [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Abbreviation",
+                "Class"})]
+        public static System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, AI.DataPrepaire.NLPUtils.RegexpNLP.AbbreviationClass>> Entries { get; }
+    }
     [System.Serializable]
     public class SentencesTokenizer
     {
@@ -9,6 +22,9 @@ namespace AI.DataPrepaire.NLPUtils.RegexpNLP
         public SentencesTokenizer(System.Collections.Generic.IEnumerable<string> abbreviations) { }
         public AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.SpecialNers.AbbreviationsNerProcessor AbbreviationsProcessor { get; set; }
         public System.Collections.Generic.List<string> Tokenize(string text, bool withTrim = true) { }
+        public System.Collections.Generic.List<string> Tokenize(string text, [System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Start",
+                "Length"})] System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> entities, bool withTrim = true) { }
         public System.Collections.Generic.List<string> TokenizeWithNer(string text, bool withTrim = true) { }
     }
 }
@@ -36,6 +52,10 @@ namespace AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER
         public RegexNer(string pattern, string nameToken) { }
         public string NameToken { get; set; }
         public string Pattern { get; set; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Start",
+                "Length"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> FindEntities(string text) { }
         public override string RunProcessor(string text) { }
     }
 }
@@ -47,6 +67,10 @@ namespace AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.SpecialNers
         public AbbreviationsNerProcessor(System.Collections.Generic.IEnumerable<string> abbreviations) { }
         public System.Collections.Generic.Dictionary<string, string> NerToNerToken { get; }
         public System.Collections.Generic.Dictionary<string, string> NerTokenToNer { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Start",
+                "Length"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> FindEntities(string text) { }
         public string NerDecoder(string text) { }
         public string RunProcessor(string text) { }
     }
@@ -61,6 +85,10 @@ namespace AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.SpecialNers
         public CombineNerProcessor() { }
         public System.Collections.Generic.Dictionary<string, string> NerToNerToken { get; }
         public System.Collections.Generic.Dictionary<string, string> NerTokenToNer { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Start",
+                "Length"})]
+        public System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> FindEntities(string text) { }
         public string NerDecoder(string text) { }
         public string RunProcessor(string text) { }
     }

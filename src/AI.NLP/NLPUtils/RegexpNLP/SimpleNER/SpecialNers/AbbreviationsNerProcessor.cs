@@ -56,4 +56,9 @@ public class AbbreviationsNerProcessor : INerProcessor
     {
         return _regexNer.NerDecoder(text);
     }
+
+    /// <summary>
+    /// Вхождения аббревиатур в текст (начало, длина).
+    /// </summary>
+    public IEnumerable<(int Start, int Length)> FindEntities(string text) => _regexNer.FindEntities(text);
 }

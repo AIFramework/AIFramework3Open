@@ -1,7 +1,6 @@
 using AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.SpecialNers;
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 // ПЕРЕЕХАЛО из AI.DataPrepaire в AI.NLP: разбиение на предложения понадобилось поиску
 // по документам (чанкер корпуса), а ссылка на AI.DataPrepaire затащила бы в закрытие
@@ -11,40 +10,30 @@ using System.Text.RegularExpressions;
 namespace AI.DataPrepaire.NLPUtils.RegexpNLP;
 
 /// <summary>
-/// Класс для токенизации текста на предложения, учитывая определённый набор сокращений.
+/// Разбивка текста на предложения.
 /// </summary>
+/// <remarks>
+/// Конец предложения решает одно правило (знаки, сокращения из <see cref="SentenceAbbreviations"/>,
+/// следующий токен) для всех путей: без NER, с NER и с собственными сокращениями.
+/// </remarks>
 [Serializable]
 public class SentencesTokenizer
 {
     /// <summary>
-    /// Обработчик аббревиатур 
+    /// Дополнительные сокращения пользователя (шаблоны регулярных выражений) — класс «никогда не конец»:
+    /// точка внутри совпадения и в его конце предложение не завершает. По умолчанию нет.
     /// </summary>
     public AbbreviationsNerProcessor AbbreviationsProcessor { get; set; }
 
     /// <summary>
-    /// Конструктор по умолчанию, инициализирующий класс с предопределённым набором сокращений.
+    /// Разбивка с таблицей сокращений <see cref="SentenceAbbreviations"/>.
     /// </summary>
-    public SentencesTokenizer()
-    {
-        //var abbreviations = new HashSet<string>(StringComparer.Ordinal)
-        //{
-        //    "д.", "кв.", "ул.", "р.", @"т.\s*к.", "тп.", "пр.", "г.", @"н.\s*э.", "гг.", "св.", @"т.\s*ч.",
-        //    "тыс.", "руб.", "коп.", "к.", "в.", "вв.", "пн.", "вт.", "ср.", "чт.", "пт.", "сб.", "вс.", "о.", "т."
-        //};
-
-        var abbreviations = new HashSet<string>(StringComparer.Ordinal)
-        {
-            @"\s+[a-zа-яё]\.", "кв.", "ул.", @"т.\s*к.", "тп.", "пр.", @"н.\s*э.", "гг.", "св.", @"т.\s*ч.",
-            "тыс.", "руб.", "коп.", "вв.", "пн.", "вт.", "ср.", "чт.", "пт.", "сб.", "вс."
-        };
-
-        AbbreviationsProcessor = new AbbreviationsNerProcessor(abbreviations);
-    }
+    public SentencesTokenizer() { }
 
     /// <summary>
-    /// Конструктор, позволяющий задать собственный набор сокращений.
+    /// Разбивка с таблицей сокращений и дополнительными сокращениями пользователя.
     /// </summary>
-    /// <param name="abbreviations">Список сокращений, которые не следует интерпретировать как конец предложения.</param>
+    /// <param name="abbreviations">Сокращения (шаблоны регулярных выражений), после которых предложение не кончается.</param>
     public SentencesTokenizer(IEnumerable<string> abbreviations)
     {
         AbbreviationsProcessor = new AbbreviationsNerProcessor(abbreviations);
@@ -54,56 +43,42 @@ public class SentencesTokenizer
     /// Разделяет входной текст на предложения, учитывая сокращения.
     /// </summary>
     /// <param name="text">Текст для токенизации.</param>
-    /// <param name="withTrim">Обрезание пробельных символов</param>
+    /// <param name="withTrim">Обрезание пробельных символов; без него склейка предложений равна тексту.</param>
     /// <returns>Список предложений, извлечённых из входного текста.</returns>
-    public List<string> Tokenize(string text, bool withTrim = true)
+    public List<string> Tokenize(string text, bool withTrim = true) => Tokenize(text, null, withTrim);
+
+    /// <summary>
+    /// Разделяет текст на предложения, не разрывая заданные сущности.
+    /// </summary>
+    /// <param name="text">Текст для токенизации.</param>
+    /// <param name="entities">Сущности (начало, длина): знак внутри сущности конца не даёт,
+    /// знак последним символом сущности решает общее правило.</param>
+    /// <param name="withTrim">Обрезание пробельных символов; без него склейка предложений равна тексту.</param>
+    public List<string> Tokenize(string text, IEnumerable<(int Start, int Length)> entities, bool withTrim = true)
     {
-
-        var buffer = AbbreviationsProcessor.RunProcessor(text);
         var sentences = new List<string>();
+        if (string.IsNullOrEmpty(text)) return sentences;
 
+        var ends = SentenceBoundaryRule.FindEnds(text, entities, AbbreviationsProcessor?.FindEntities(text));
+        ends.Add(text.Length);
 
-        while (buffer.Length > 0)
+        int start = 0;
+        foreach (int end in ends)
         {
-            var match = Regex.Match(buffer, @"[\.!\?]", RegexOptions.CultureInvariant);
-            if (match.Success)
+            string piece = text[start..end];
+            start = end;
+
+            if (string.IsNullOrWhiteSpace(piece) && (withTrim || sentences.Count > 0))
             {
-                int length;
-                if (withTrim)
-                {
-                    length = match.Index + 1;
-                }
-                else
-                {
-                    length = match.Index + match.Length;
-                    for (; length < buffer.Length; length++)
-                    {
-                        if (buffer[length] != '.' &&
-                            buffer[length] != '!' &&
-                            buffer[length] != '?')
-                        {
-                            break;
-                        }
-                    }
-                }
-                var sentence = buffer.Substring(0, length);
-                sentences.Add(withTrim ? sentence.Trim() : sentence);
-                buffer = buffer.Substring(withTrim ? match.Index + match.Length : length);
+                if (!withTrim) sentences[^1] += piece;
+                continue;
             }
-            else
-            {
-                sentences.Add(withTrim ? buffer.Trim() : buffer);
-                break;
-            }
+
+            sentences.Add(withTrim ? piece.Trim() : piece);
         }
-
-
-        for (int i = 0; i < sentences.Count; i++)
-            sentences[i] = AbbreviationsProcessor.NerDecoder(sentences[i]);
 
         return sentences;
     }
-
 
     /// <summary>
     /// Разделяет входной текст на предложения, учитывая сокращения и именованные сущности.
@@ -111,16 +86,6 @@ public class SentencesTokenizer
     /// <param name="text">Текст для токенизации.</param>
     /// <param name="withTrim">Обрезание пробельных символов</param>
     /// <returns>Список предложений, извлечённых из входного текста.</returns>
-    public List<string> TokenizeWithNer(string text, bool withTrim = true)
-    {
-        CombineNerProcessor nerProcessor = new CombineNerProcessor();
-
-        var textNer = nerProcessor.RunProcessor(text);
-        var sentences = Tokenize(textNer, withTrim);
-
-        for (int i = 0; i < sentences.Count; i++)
-            sentences[i] = nerProcessor.NerDecoder(sentences[i]);
-
-        return sentences;
-    }
+    public List<string> TokenizeWithNer(string text, bool withTrim = true) =>
+        Tokenize(text, string.IsNullOrEmpty(text) ? null : new CombineNerProcessor().FindEntities(text), withTrim);
 }

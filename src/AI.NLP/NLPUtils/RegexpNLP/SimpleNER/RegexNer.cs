@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER;
@@ -52,5 +53,15 @@ public class RegexNer : NerProcessor
         }
 
         return text;
+    }
+
+    /// <summary>
+    /// Границы сущностей в тексте (начало, длина) — без замены на токены.
+    /// </summary>
+    /// <remarks>Конец предложения сущность не решает: это делает общее правило разбивки.</remarks>
+    public IEnumerable<(int Start, int Length)> FindEntities(string text)
+    {
+        foreach (Match match in Regex.Matches(text, Pattern, RegexOptions.CultureInvariant))
+            if (match.Length > 0) yield return (match.Index, match.Length);
     }
 }

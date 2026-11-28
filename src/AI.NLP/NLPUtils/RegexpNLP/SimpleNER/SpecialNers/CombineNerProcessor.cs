@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AI.DataPrepaire.NLPUtils.RegexpNLP.SimpleNER.SpecialNers;
 
@@ -73,6 +74,12 @@ public class CombineNerProcessor : INerProcessor
         return outStr;
     }
 
+
+    /// <summary>
+    /// Границы сущностей всех процессоров в исходном тексте (начало, длина).
+    /// </summary>
+    public IEnumerable<(int Start, int Length)> FindEntities(string text) =>
+        _regexNers.SelectMany(ner => ner.FindEntities(text));
 
     /// <summary>
     /// Запуск декодирования текста
