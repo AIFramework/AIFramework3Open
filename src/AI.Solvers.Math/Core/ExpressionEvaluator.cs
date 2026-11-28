@@ -64,8 +64,8 @@ public static class ExpressionEvaluator
         // -- Спецфункции — делегируем к FunctionsForEachElements ----------
         // Это устраняет дублирование: единая численная реализация erf/erfc.
         // erfc берём готовым, а не как 1 - erf: на хвосте разность вырождается в ноль.
-        Erf  erf  => FunctionsForEachElements.Erf(Evaluate(erf.Argument,  variables)),
-        Erfc erc  => FunctionsForEachElements.Erfc(Evaluate(erc.Argument, variables)),
+        Erf  erf  => SpecialFunctions.Erf(Evaluate(erf.Argument,  variables)),
+        Erfc erc  => SpecialFunctions.Erfc(Evaluate(erc.Argument, variables)),
 
         // -- Прочие специальные функции ------------------------------------
         Sgn      sg => System.Math.Sign(Evaluate(sg.Argument, variables)),

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AI.Econometrics.Numerics;
+using AI.HighLevelFunctions;
 
 using AI.Insights;
 
@@ -161,9 +162,9 @@ public sealed partial class BgNbdModel : ITransactionModel
         double tx = c.Recency;
         double t = c.Age;
 
-        double lnA = EconMath.LogGamma(r + x) - EconMath.LogGamma(r) + (r * Math.Log(alpha));
-        double lnB = EconMath.LogGamma(a + b) + EconMath.LogGamma(b + x)
-                   - EconMath.LogGamma(b) - EconMath.LogGamma(a + b + x);
+        double lnA = SpecialFunctions.LogGamma(r + x) - SpecialFunctions.LogGamma(r) + (r * Math.Log(alpha));
+        double lnB = SpecialFunctions.LogGamma(a + b) + SpecialFunctions.LogGamma(b + x)
+                   - SpecialFunctions.LogGamma(b) - SpecialFunctions.LogGamma(a + b + x);
 
         double logTerm1 = -(r + x) * Math.Log(alpha + t);
 

@@ -211,7 +211,7 @@ public static class Cuped
         double effect = treatment.Average() - control.Average();
         double se = Math.Sqrt((Variance(control) / control.Length) + (Variance(treatment) / treatment.Length));
         double z = se > 0 ? effect / se : 0;
-        double p = 2.0 * (1.0 - EconMath.NormalCdf(Math.Abs(z)));
+        double p = Distributions.NormalPValue(z);
         return (effect, se, p);
     }
 }

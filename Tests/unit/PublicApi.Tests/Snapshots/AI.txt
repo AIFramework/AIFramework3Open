@@ -1037,12 +1037,17 @@ namespace AI.HighLevelFunctions
         public static AI.DataStructs.Algebraic.Vector Cosec(AI.DataStructs.Algebraic.Vector Inp) { }
         public static AI.DataStructs.Algebraic.Matrix Ctan(AI.DataStructs.Algebraic.Matrix Inp) { }
         public static AI.DataStructs.Algebraic.Vector Erf(AI.DataStructs.Algebraic.Vector Inp) { }
+        [System.Obsolete("Используйте SpecialFunctions.Erf — единственную реализацию.")]
         public static double Erf(double x) { }
+        [System.Obsolete("Используйте SpecialFunctions.Erfc — единственную реализацию.")]
         public static double Erfc(double x) { }
         public static AI.DataStructs.Algebraic.Matrix Exp(AI.DataStructs.Algebraic.Matrix Inp) { }
         public static AI.DataStructs.Algebraic.Vector Exp(AI.DataStructs.Algebraic.Vector Inp) { }
         public static AI.DataStructs.Algebraic.Vector Factorial(AI.DataStructs.Algebraic.Vector Inp) { }
+        [System.Obsolete("Используйте SpecialFunctions.Factorial: он возвращает double и не переполняется н" +
+            "а 21!.")]
         public static long Factorial(int x) { }
+        [System.Obsolete("Используйте SpecialFunctions.Gamma — единственную реализацию.")]
         public static double Gamma(double x) { }
         public static AI.DataStructs.Algebraic.Vector GenerateTheSequence(double began, double end) { }
         public static AI.DataStructs.Algebraic.Vector GenerateTheSequence(double began, double step, double end) { }
@@ -1052,6 +1057,7 @@ namespace AI.HighLevelFunctions
         public static AI.DataStructs.Algebraic.Vector Ln(AI.DataStructs.Algebraic.Vector Inp) { }
         public static AI.DataStructs.Algebraic.Matrix Log10(AI.DataStructs.Algebraic.Matrix inp) { }
         public static AI.DataStructs.Algebraic.Vector Log10(AI.DataStructs.Algebraic.Vector Inp) { }
+        [System.Obsolete("Используйте SpecialFunctions.LogGamma — единственную реализацию.")]
         public static double LogGamma(double x) { }
         public static int MinusOnePow(int pow) { }
         public static AI.DataStructs.Algebraic.Vector PeakDel(AI.DataStructs.Algebraic.Vector data) { }
@@ -1079,13 +1085,25 @@ namespace AI.HighLevelFunctions
     }
     public static class SpecialFunctions
     {
+        public const int MaxFactorialArgument = 170;
         public static double BesselJ0(double x) { }
+        public static double Erf(double x) { }
+        public static double Erfc(double x) { }
+        public static double Factorial(int n) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "C",
                 "S"})]
         public static System.ValueTuple<double, double> Fresnel(double x) { }
         public static double FresnelC(double x) { }
         public static double FresnelS(double x) { }
+        public static double Gamma(double x) { }
+        public static double LogBeta(double a, double b) { }
+        public static double LogFactorial(int n) { }
+        public static double LogGamma(double x) { }
+        public static double RegularizedBeta(double a, double b, double x) { }
+        public static double RegularizedBeta(double a, double b, double x, double complement) { }
+        public static double RegularizedGammaP(double a, double x) { }
+        public static double RegularizedGammaQ(double a, double x) { }
     }
 }
 namespace AI.Insights
@@ -1282,8 +1300,9 @@ namespace AI.Statistics
     public static class StatInference
     {
         public static AI.Statistics.StatInference.TestResult AndersonDarlingTest(double[] sortedData, int n, double mean, double std, double alpha = 0.05) { }
-        public static double ChiSquaredCdf(double x, int df) { }
-        public static double ChiSquaredQuantile(double p, int df) { }
+        public static double ChiSquaredCdf(double x, double df) { }
+        public static double ChiSquaredQuantile(double p, double df) { }
+        public static double ChiSquaredSf(double x, double df) { }
         public static AI.Statistics.StatInference.TestResult ChiSquaredVarianceTest(double sampleVariance, int n, double sigma0Sq, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TestResult CochranMantelHaenszelTest(System.ReadOnlySpan<AI.Statistics.StatInference.CmhStratum2x2> strata, double alpha = 0.05, bool continuityCorrection = true) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
@@ -1302,13 +1321,20 @@ namespace AI.Statistics
                 "Lower",
                 "Upper"})]
         public static System.ValueTuple<double, double> ConfidenceIntervalZ(double mean, double sigma, int n, double confidence = 0.95) { }
+        [System.Obsolete("Используйте AI.HighLevelFunctions.SpecialFunctions.Erf — единственную реализацию.")]
         public static double Erf(double x) { }
+        [System.Obsolete("Используйте AI.HighLevelFunctions.SpecialFunctions.Erfc — единственную реализацию" +
+            ".")]
         public static double Erfc(double x) { }
+        public static double FCdf(double f, double df1, double df2) { }
+        public static double FSf(double f, double df1, double df2) { }
         public static AI.Statistics.StatInference.TestResult FisherExactTestGreater(int a, int b, int c, int d, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TestResult FisherExactTestTwoSided(int a, int b, int c, int d, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TestResult JarqueBeraTest(double skewness, double excessKurtosis, int n, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TestResult LikelihoodRatioNestedModels(double logLikelihoodNested, double logLikelihoodGeneral, int parameterDifference, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TestResult LjungBoxTest(int sampleSize, System.ReadOnlySpan<double> autocorrelations, int adjustedChiSquareDf, double alpha = 0.05) { }
+        [System.Obsolete("Используйте AI.HighLevelFunctions.SpecialFunctions.LogGamma — единственную реализ" +
+            "ацию.")]
         public static double LogGamma(double x) { }
         public static double MantelHaenszelOddsRatio(System.ReadOnlySpan<AI.Statistics.StatInference.CmhStratum2x2> strata) { }
         public static AI.Statistics.StatInference.TestResult McNemarNoContinuity(int b, int c, double alpha = 0.05) { }
@@ -1316,14 +1342,16 @@ namespace AI.Statistics
         public static double NormalCdf(double x) { }
         public static double NormalPdf(double x) { }
         public static double NormalQuantile(double p) { }
+        public static double NormalSf(double x) { }
         public static AI.Statistics.StatInference.TestResult PearsonChiSquare2x2(int a, int b, int c, int d, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TestResult PearsonChiSquareContingency(System.ReadOnlySpan<int> observed, int rows, int cols, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TestResult PearsonChiSquareGoodnessOfFit(System.ReadOnlySpan<double> observed, System.ReadOnlySpan<double> expected, int estimatedParameters, double alpha = 0.05) { }
         public static double PoissonLogPmf(int k, double lambda) { }
         public static double StudentizedRangeCriticalValueAlpha05(int numberOfGroups, int degreesOfFreedomError) { }
-        public static double TCdf(double t, int df) { }
+        public static double TCdf(double t, double df) { }
         public static double TPdf(double t, int df) { }
-        public static double TQuantile(double p, int df) { }
+        public static double TQuantile(double p, double df) { }
+        public static double TSf(double t, double df) { }
         public static AI.Statistics.StatInference.TestResult TTest(double mean, double std, int n, double mu0, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TestResult TTestTwoSample(double mean1, double std1, int n1, double mean2, double std2, int n2, double alpha = 0.05) { }
         public static AI.Statistics.StatInference.TukeyHsdSummary TukeyHsdBalanced(System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>> groups) { }
@@ -1836,6 +1864,15 @@ namespace AI.Units
         public AI.Units.Dimension Actual { get; }
         public AI.Units.Dimension Expected { get; }
     }
+    public static class EarthConstants
+    {
+        public const double KrasovskyInverseFlattening = 298.3D;
+        public const double KrasovskySemiMajorAxis = 6378245D;
+        public const double Mass = 5.9722E+24D;
+        public const double MeanRadius = 6371008.8D;
+        public const double Wgs84InverseFlattening = 298.257223563D;
+        public const double Wgs84SemiMajorAxis = 6378137D;
+    }
     [System.Serializable]
     public readonly struct Measurement : System.IEquatable<AI.Units.Measurement>, System.IFormattable
     {
@@ -1899,6 +1936,23 @@ namespace AI.Units
         public static AI.Units.Quantity StefanBoltzmannConstant { get; }
         public static AI.Units.Quantity VacuumPermeability { get; }
         public static AI.Units.Quantity VacuumPermittivity { get; }
+        public static class Values
+        {
+            public const double AvogadroConstant = 6.02214076E+23D;
+            public const double BoltzmannConstant = 1.380649E-23D;
+            public const double ElementaryCharge = 1.602176634E-19D;
+            public const double FaradayConstant = 96485.33212331001D;
+            public const double GasConstant = 8.31446261815324D;
+            public const double GravitationalConstant = 6.6743E-11D;
+            public const double Icepoint = 273.15D;
+            public const double PlanckConstant = 6.62607015E-34D;
+            public const double SpeedOfLight = 299792458D;
+            public const double StandardAtmosphere = 101325D;
+            public const double StandardGravity = 9.80665D;
+            public const double StefanBoltzmannConstant = 5.670374419184431E-08D;
+            public const double VacuumPermeability = 1.25663706127E-06D;
+            public const double VacuumPermittivity = 8.8541878188E-12D;
+        }
         public static class WithUncertainty
         {
             public static AI.Units.Measurement AtomicMassUnit { get; }

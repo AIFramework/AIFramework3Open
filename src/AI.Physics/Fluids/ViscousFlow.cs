@@ -161,7 +161,7 @@ public static class ViscousFlow
         if (y < 0)
             throw new ArgumentOutOfRangeException(nameof(distance), "Расстояние от пластины не может быть отрицательным");
 
-        return new Quantity(u * (1 - StatInference.Erf(y / (2 * Math.Sqrt(nu * t)))), Dimension.Velocity);
+        return new Quantity(u * AI.HighLevelFunctions.SpecialFunctions.Erfc(y / (2 * Math.Sqrt(nu * t))), Dimension.Velocity);
     }
 
     /// <summary>

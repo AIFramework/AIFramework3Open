@@ -41,6 +41,7 @@
 
   <ItemGroup>
     <None Include="Dsp\Golden\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Golden\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

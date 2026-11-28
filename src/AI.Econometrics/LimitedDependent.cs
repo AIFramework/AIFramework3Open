@@ -4,6 +4,7 @@ using System.Linq;
 using AI.DataStructs.Algebraic;
 using AI.Insights;
 using AI.Econometrics.Numerics;
+using AI.HighLevelFunctions;
 
 namespace AI.Econometrics;
 
@@ -605,11 +606,11 @@ public static class LimitedDependent
     private static double CountLogLikelihood(double y, double mu, double alpha)
     {
         if (alpha <= 0)
-            return (y * Math.Log(Math.Max(mu, 1e-300))) - mu - EconMath.LogGamma(y + 1);
+            return (y * Math.Log(Math.Max(mu, 1e-300))) - mu - SpecialFunctions.LogGamma(y + 1);
 
         double theta = 1 / alpha;
 
-        return EconMath.LogGamma(y + theta) - EconMath.LogGamma(theta) - EconMath.LogGamma(y + 1)
+        return SpecialFunctions.LogGamma(y + theta) - SpecialFunctions.LogGamma(theta) - SpecialFunctions.LogGamma(y + 1)
             + (theta * Math.Log(theta / (theta + mu)))
             + (y * Math.Log(Math.Max(mu / (theta + mu), 1e-300)));
     }

@@ -1,6 +1,7 @@
 using AI.DataStructs.Algebraic;
 using AI.MathUtils.ODE;
 using AI.Solvers.Chem.Kinetics;
+using AI.Units;
 
 namespace AI.Solvers.Chem.UnitTests;
 
@@ -186,7 +187,7 @@ public class KineticsTests
         double[] temperatures = { 300, 310, 320, 330, 340 };
 
         double[] rateConstants = temperatures
-            .Select(t => factor * Math.Exp(-ea * 1000 / (ArrheniusAnalysis.GasConstant * t)))
+            .Select(t => factor * Math.Exp(-ea * 1000 / (PhysicalConstants.Values.GasConstant * t)))
             .ToArray();
 
         ArrheniusResult result = ArrheniusAnalysis.Fit(temperatures, rateConstants);
@@ -202,7 +203,7 @@ public class KineticsTests
     {
         double[] temperatures = { 300, 310, 320, 330 };
         double[] rateConstants = temperatures
-            .Select(t => 1e12 * Math.Exp(-80000 / (ArrheniusAnalysis.GasConstant * t)))
+            .Select(t => 1e12 * Math.Exp(-80000 / (PhysicalConstants.Values.GasConstant * t)))
             .ToArray();
 
         ArrheniusResult result = ArrheniusAnalysis.Fit(temperatures, rateConstants);
@@ -214,8 +215,8 @@ public class KineticsTests
     [Fact]
     public void ArrheniusFromTwoPoints_MatchesDefinition()
     {
-        double k1 = 1e12 * Math.Exp(-80000 / (ArrheniusAnalysis.GasConstant * 300));
-        double k2 = 1e12 * Math.Exp(-80000 / (ArrheniusAnalysis.GasConstant * 320));
+        double k1 = 1e12 * Math.Exp(-80000 / (PhysicalConstants.Values.GasConstant * 300));
+        double k2 = 1e12 * Math.Exp(-80000 / (PhysicalConstants.Values.GasConstant * 320));
 
         Assert.Equal(80.0, ArrheniusAnalysis.ActivationEnergyFromTwoPoints(300, k1, 320, k2), 1e-6);
     }
@@ -245,7 +246,7 @@ public class KineticsTests
         RunawayParameters parameters = Runaway();
         double heatRate = parameters.HeatReleaseRate(parameters.InitialTemperature);
 
-        double expected = parameters.HeatCapacity * ArrheniusAnalysis.GasConstant
+        double expected = parameters.HeatCapacity * PhysicalConstants.Values.GasConstant
             * parameters.InitialTemperature * parameters.InitialTemperature
             / (heatRate * parameters.ActivationEnergy * 1000);
 

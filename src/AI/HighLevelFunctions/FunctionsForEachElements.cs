@@ -9,117 +9,15 @@ namespace AI.HighLevelFunctions;
 public static partial class FunctionsForEachElements
 {
 
-    // Коэффициенты для аппроксимации Ланцоша (g=7, n=9).
-    // Источник: Paul Godfrey, "A note on the computation of the convergent Lanczos complex Gamma approximation"
-    private static readonly double[] LanczosCoefficients = {
-    0.99999999999980993,
-    676.5203681218851,
-    -1259.1392167224028,
-    771.32342877765313,
-    -176.61502916214059,
-    12.507343278686905,
-    -0.13857109526572012,
-    9.9843695780195716e-6,
-    1.5056327351493116e-7
-    };
-    private const int LANCZOS_G = 7;
-    private static readonly long[] _factorials = { 1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600, 6227020800 };
-
-
-
-    /// <summary>
-    /// Вычисляет Гамма-функцию Γ(x).
-    /// Использует аппроксимацию Ланцоша.
-    /// </summary>
+    /// <summary>Гамма-функция Γ(x).</summary>
     /// <param name="x">Аргумент функции.</param>
-    /// <returns>Значение Γ(x).</returns>
-    public static double Gamma(double x)
-    {
-        // Обработка специальных значений
-        if (double.IsNaN(x))
-        {
-            return double.NaN;
-        }
-        if (double.IsPositiveInfinity(x))
-        {
-            return double.PositiveInfinity;
-        }
-        if (double.IsNegativeInfinity(x))
-        {
-            return double.NaN; // Неопределенность
-        }
+    [Obsolete("Используйте SpecialFunctions.Gamma — единственную реализацию.")]
+    public static double Gamma(double x) => SpecialFunctions.Gamma(x);
 
-        // Полюсы в целых неположительных числах
-        if (x <= 0)
-        {
-            if (x == Math.Truncate(x)) // Если x - целое неположительное число
-            {
-                return double.PositiveInfinity; // В полюсах функция уходит в бесконечность
-            }
-        }
-
-        // Для отрицательных аргументов используем формулу отражения Эйлера:
-        // Γ(z) * Γ(1-z) = π / sin(πz)  =>  Γ(z) = π / (sin(πz) * Γ(1-z))
-        if (x < 0.5)
-        {
-            return Math.PI / (Math.Sin(Math.PI * x) * Gamma(1 - x));
-        }
-
-        // Прямое вычисление с помощью аппроксимации Ланцоша для x >= 0.5
-        x -= 1;
-        double a = LanczosCoefficients[0];
-        for (int i = 1; i < LanczosCoefficients.Length; i++)
-        {
-            a += LanczosCoefficients[i] / (x + i);
-        }
-
-        double t = x + LANCZOS_G + 0.5;
-
-        // Вычисляем через логарифм, чтобы избежать переполнения для больших x
-        double logGamma = Math.Log(a)
-                        + Math.Log(2 * Math.PI) / 2.0
-                        + (x + 0.5) * Math.Log(t)
-                        - t;
-
-        return Math.Exp(logGamma);
-    }
-
-    /// <summary>
-    /// Вычисляет натуральный логарифм Гамма-функции Log(Γ(x)).
-    /// Этот метод более предпочтителен для больших аргументов, так как позволяет избежать переполнения.
-    /// </summary>
+    /// <summary>Натуральный логарифм гамма-функции.</summary>
     /// <param name="x">Аргумент функции (должен быть > 0).</param>
-    /// <returns>Значение Log(Γ(x)).</returns>
-    public static double LogGamma(double x)
-    {
-        if (double.IsNaN(x) || x <= 0)
-        {
-            return double.NaN;
-        }
-        if (double.IsPositiveInfinity(x))
-        {
-            return double.PositiveInfinity;
-        }
-
-
-        // Для значений < 0.5 используем рекурсию с формулой отражения.
-        // Log(Γ(x)) = Log(π) - Log|sin(πx)| - Log(Γ(1-x))
-        // Этот вариант сложнее из-за знака sin, поэтому для простоты реализуем только для x > 0.
-
-        double a = LanczosCoefficients[0];
-        for (int i = 1; i < LanczosCoefficients.Length; i++)
-        {
-            a += LanczosCoefficients[i] / (x + i - 1);
-        }
-
-        double t = x + LANCZOS_G - 0.5;
-
-        return Math.Log(a)
-             + Math.Log(2 * Math.PI) / 2.0
-             + (x - 0.5) * Math.Log(t)
-             - t;
-    }
-
+    [Obsolete("Используйте SpecialFunctions.LogGamma — единственную реализацию.")]
+    public static double LogGamma(double x) => SpecialFunctions.LogGamma(x);
 
     /// <summary>
     /// Разворачивание арктангенса
@@ -232,95 +130,15 @@ public static partial class FunctionsForEachElements
     {
         return x.Transform(r => Walsh(r, num));
     }
-    /// <summary>
-    /// Функция ошибок erf(x) = 2/√π ∫₀ˣ e^(-t²) dt.
-    /// <para>
-    /// Считается через неполную гамма-функцию: erf(x) = P(½, x²).
-    /// Прежняя версия использовала искажённую формулу Виницки
-    /// (в знаменателе стояло 1 + a·x вместо 1 + a·x²) и ошибалась до 7% —
-    /// на erf(0.5) давала 0.4823 вместо 0.5205.
-    /// </para>
-    /// </summary>
+    /// <summary>Функция ошибок erf(x).</summary>
     /// <param name="x">Аргумент</param>
-    public static double Erf(double x)
-    {
-        if (double.IsNaN(x)) return double.NaN;
+    [Obsolete("Используйте SpecialFunctions.Erf — единственную реализацию.")]
+    public static double Erf(double x) => SpecialFunctions.Erf(x);
 
-        double t = x * x;
-        // x бесконечен или x² переполнился: цепная дробь дала бы 0·∞, а erf там уже ровно ±1
-        if (double.IsInfinity(t)) return Math.Sign(x);
-
-        // При малых x берём ряд для P: 1 - Q дало бы вычитание близких величин
-        double magnitude = t < IncompleteGammaSeriesLimit
-            ? IncompleteGammaP(0.5, t)
-            : 1.0 - IncompleteGammaQ(0.5, t);
-
-        return x < 0 ? -magnitude : magnitude;
-    }
-
-    /// <summary>
-    /// Дополнительная функция ошибок erfc(x) = 1 - erf(x), вычисленная напрямую.
-    /// <para>
-    /// Именно прямое вычисление и важно: разность 1 - erf(x) при x &gt; 5 состоит
-    /// из одних разрядов округления, а erfc(5) = 1.54e-12 — величина, ради
-    /// которой функцию и зовут.
-    /// </para>
-    /// </summary>
+    /// <summary>Дополнительная функция ошибок erfc(x) = 1 - erf(x).</summary>
     /// <param name="x">Аргумент</param>
-    public static double Erfc(double x)
-    {
-        if (double.IsNaN(x)) return double.NaN;
-        if (x < 0) return 2.0 - Erfc(-x);
-
-        double t = x * x;
-        // x бесконечен или x² переполнился: хвост меньше наименьшего double, а цепная дробь дала бы 0·∞
-        if (double.IsInfinity(t)) return 0;
-
-        return t < IncompleteGammaSeriesLimit
-            ? 1.0 - IncompleteGammaP(0.5, t)
-            : IncompleteGammaQ(0.5, t);
-    }
-
-    /// <summary>Граница между рядом для P и цепной дробью для Q: x &lt; a + 1.</summary>
-    private const double IncompleteGammaSeriesLimit = 1.5;
-
-    /// <summary>Регуляризованная нижняя неполная гамма-функция P(a, x) — ряд.</summary>
-    private static double IncompleteGammaP(double a, double x)
-    {
-        if (x <= 0) return 0;
-
-        double ap = a, del = 1.0 / a, sum = del;
-        for (int n = 0; n < 500; n++)
-        {
-            ap += 1;
-            del *= x / ap;
-            sum += del;
-            if (Math.Abs(del) < Math.Abs(sum) * 1e-16) break;
-        }
-        return sum * Math.Exp(-x + (a * Math.Log(x)) - LogGamma(a));
-    }
-
-    /// <summary>Регуляризованная верхняя неполная гамма-функция Q(a, x) — цепная дробь (Лентц).</summary>
-    private static double IncompleteGammaQ(double a, double x)
-    {
-        const double tiny = 1e-300;
-        double b = x + 1.0 - a, c = 1.0 / tiny, d = 1.0 / b, h = d;
-
-        for (int i = 1; i <= 500; i++)
-        {
-            double an = -i * (i - a);
-            b += 2.0;
-            d = (an * d) + b;
-            if (Math.Abs(d) < tiny) d = tiny;
-            c = b + (an / c);
-            if (Math.Abs(c) < tiny) c = tiny;
-            d = 1.0 / d;
-            double del = d * c;
-            h *= del;
-            if (Math.Abs(del - 1.0) < 1e-16) break;
-        }
-        return Math.Exp(-x + (a * Math.Log(x)) - LogGamma(a)) * h;
-    }
+    [Obsolete("Используйте SpecialFunctions.Erfc — единственную реализацию.")]
+    public static double Erfc(double x) => SpecialFunctions.Erfc(x);
 
     /// <summary>
     /// Функция ошибок
@@ -331,7 +149,7 @@ public static partial class FunctionsForEachElements
     {
         Vector A = new Vector(Inp.Count);
         for (int i = 0; i < Inp.Count; i++)
-            A[i] = Erf(Inp[i]);
+            A[i] = SpecialFunctions.Erf(Inp[i]);
 
         return A;
     }
@@ -418,24 +236,19 @@ public static partial class FunctionsForEachElements
         return A;
     }
     /// <summary>
-    /// Вычисление факториала числа
+    /// Факториал целым числом; помещается только до 20!.
     /// </summary>
     /// <param name="x">Число</param>
     /// <returns>Факториал</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Число отрицательно.</exception>
+    /// <exception cref="OverflowException">Число больше 20: результат не помещается в <see cref="long"/>.</exception>
+    [Obsolete("Используйте SpecialFunctions.Factorial: он возвращает double и не переполняется на 21!.")]
     public static long Factorial(int x)
     {
-        if (x < 0)
-            throw new ArgumentException("Факториал не может быть меньше нуля", "x");
-        else if (x < 14)
-            return _factorials[x];
-        else
-        {
-            long outp = _factorials[13];
-            for (int i = 14; i < x + 1; i++)
-                outp *= i;
+        if (x > 20)
+            throw new OverflowException($"{x}! не помещается в long; SpecialFunctions.Factorial возвращает double.");
 
-            return outp;
-        }
+        return (long)SpecialFunctions.Factorial(x);
     }
     /// <summary>
     /// Вычисление факториала векторов поэлементно
@@ -446,7 +259,7 @@ public static partial class FunctionsForEachElements
     {
         Vector A = new Vector(Inp.Count);
         for (int i = 0; i < Inp.Count; i++)
-            A[i] = Factorial((int)Inp[i]);
+            A[i] = SpecialFunctions.Factorial((int)Inp[i]);
 
         return A;
     }

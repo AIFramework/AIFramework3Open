@@ -792,7 +792,7 @@ public static partial class AiDemoRunner
         }
     }
 
-    private static double Erf(double x) => AI.Statistics.StatInference.Erf(x);
+    private static double Erf(double x) => AI.HighLevelFunctions.SpecialFunctions.Erf(x);
 
     private static double GammaPdf(double x, double shape, double scale)
     {
@@ -825,7 +825,7 @@ public static partial class AiDemoRunner
     private static double PoissonPmf(int k, double lam)
         => Math.Exp(k * Math.Log(lam) - lam - LogGamma(k + 1));
 
-    private static double LogGamma(double x) => AI.Statistics.StatInference.LogGamma(x);
+    private static double LogGamma(double x) => AI.HighLevelFunctions.SpecialFunctions.LogGamma(x);
 
     private static double LogBeta(double a, double b)
         => LogGamma(a) + LogGamma(b) - LogGamma(a + b);

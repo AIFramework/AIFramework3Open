@@ -1,4 +1,5 @@
 using System.Numerics;
+using AI.Units;
 
 namespace AI.Microwave.Propagation;
 
@@ -46,7 +47,7 @@ public static class TwoRayGround
         Wave.RequirePositive(rxHeightM, nameof(rxHeightM));
         Wave.RequirePositive(frequencyHz, nameof(frequencyHz));
 
-        double wavelength = Wave.SpeedOfLight / frequencyHz;
+        double wavelength = PhysicalConstants.Values.SpeedOfLight / frequencyHz;
         double direct = Math.Sqrt((distanceM * distanceM) + ((txHeightM - rxHeightM) * (txHeightM - rxHeightM)));
         double reflected = Math.Sqrt((distanceM * distanceM) + ((txHeightM + rxHeightM) * (txHeightM + rxHeightM)));
         double grazing = Math.Atan((txHeightM + rxHeightM) / distanceM);
@@ -56,7 +57,7 @@ public static class TwoRayGround
         double slope = Math.Atan((txHeightM - rxHeightM) / distanceM) * 180 / Math.PI;
         double grazingDeg = grazing * 180 / Math.PI;
 
-        var lineOfSight = new PropagationPath(direct / Wave.SpeedOfLight, Wave.FreeSpaceGain(direct, wavelength), 0, PathKind.LineOfSight)
+        var lineOfSight = new PropagationPath(direct / PhysicalConstants.Values.SpeedOfLight, Wave.FreeSpaceGain(direct, wavelength), 0, PathKind.LineOfSight)
         {
             LengthMetres = direct,
             AzimuthOfDepartureDeg = 0,
@@ -65,7 +66,7 @@ public static class TwoRayGround
             ElevationOfArrivalDeg = slope
         };
 
-        var groundBounce = new PropagationPath(reflected / Wave.SpeedOfLight, gamma * Wave.FreeSpaceGain(reflected, wavelength), 0, PathKind.Reflection)
+        var groundBounce = new PropagationPath(reflected / PhysicalConstants.Values.SpeedOfLight, gamma * Wave.FreeSpaceGain(reflected, wavelength), 0, PathKind.Reflection)
         {
             LengthMetres = reflected,
             Order = 1,
@@ -98,7 +99,7 @@ public static class TwoRayGround
     {
         Wave.RequirePositive(frequencyHz, nameof(frequencyHz));
 
-        return 4 * txHeightM * rxHeightM * frequencyHz / Wave.SpeedOfLight;
+        return 4 * txHeightM * rxHeightM * frequencyHz / PhysicalConstants.Values.SpeedOfLight;
     }
 
     /// <summary>

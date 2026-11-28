@@ -158,7 +158,7 @@ public sealed partial class CoxProportionalHazards
         {
             double se = lastInverse is null ? double.NaN : Math.Sqrt(Math.Max(lastInverse[j, j], 0));
             double z = se > 0 ? beta[j] / se : double.NaN;
-            double pv = double.IsNaN(z) ? double.NaN : 2.0 * (1.0 - EconMath.NormalCdf(Math.Abs(z)));
+            double pv = double.IsNaN(z) ? double.NaN : Distributions.NormalPValue(z);
 
             coefficients.Add(new CoxCoefficient
             {

@@ -2,6 +2,7 @@ using System.Numerics;
 using AI.Insights;
 using AI.Statistics;
 using Vector3 = AI.Geometry.Primitives.Vector3;
+using AI.Units;
 
 namespace AI.Microwave.Propagation;
 
@@ -117,7 +118,7 @@ public sealed class Tr38901ChannelModel
     public double CarrierFrequencyHz { get; }
 
     /// <summary>Длина волны, м</summary>
-    public double WavelengthM => Wave.SpeedOfLight / CarrierFrequencyHz;
+    public double WavelengthM => PhysicalConstants.Values.SpeedOfLight / CarrierFrequencyHz;
 
     /// <summary>Решётка базовой станции; по умолчанию изотропный элемент</summary>
     public AntennaArray BaseStationArray { get; init; } = AntennaArray.Isotropic;
@@ -350,7 +351,7 @@ public sealed class Tr38901Channel : IInterpretable
     public double CarrierFrequencyHz { get; }
 
     /// <summary>Длина волны, м</summary>
-    public double WavelengthM => Wave.SpeedOfLight / CarrierFrequencyHz;
+    public double WavelengthM => PhysicalConstants.Values.SpeedOfLight / CarrierFrequencyHz;
 
     /// <summary>Решётка базовой станции</summary>
     public AntennaArray BaseStationArray { get; }
@@ -452,7 +453,7 @@ public sealed class Tr38901Channel : IInterpretable
             (double zod, double aod) = Spherical.Angles(departure);
 
             paths[r] = new MimoPath(
-                length / Wave.SpeedOfLight,
+                length / PhysicalConstants.Values.SpeedOfLight,
                 arrival.Dot(TerminalVelocity) / wavelength,
                 h,
                 ray.LineOfSight ? PathKind.LineOfSight : PathKind.Scattered)
@@ -736,7 +737,7 @@ public sealed class Tr38901Channel : IInterpretable
                 int[] members = groups[g];
                 int[] aodOrder = Shuffled(members, rng), zoaOrder = Shuffled(members, rng), zodOrder = Shuffled(members, rng);
                 double rayDelay = delay + (split ? SubclusterDelayFactors[g] * clusterDelaySpread : 0);
-                double length = Distance3DM + (Wave.SpeedOfLight * rayDelay);
+                double length = Distance3DM + (PhysicalConstants.Values.SpeedOfLight * rayDelay);
 
                 for (int i = 0; i < members.Length; i++)
                 {

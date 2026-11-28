@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AI.Econometrics.Numerics;
+using AI.HighLevelFunctions;
 
 using AI.Insights;
 
@@ -112,7 +113,7 @@ public sealed partial class ParetoNbdModel : ITransactionModel
             CustomerSummary c = customers[i];
             (_, double logTotal) = LogParts(c, r, alpha, s, beta);
 
-            double ll = EconMath.LogGamma(r + c.Frequency) - EconMath.LogGamma(r)
+            double ll = SpecialFunctions.LogGamma(r + c.Frequency) - SpecialFunctions.LogGamma(r)
                       + (r * Math.Log(alpha)) + (s * Math.Log(beta))
                       + logTotal;
 

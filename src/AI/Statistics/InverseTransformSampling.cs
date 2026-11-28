@@ -40,7 +40,7 @@ public static class InverseTransformSampling
             return 0;
 
         int mode = (int)Math.Floor(lambda);
-        double modeProbability = Math.Exp((mode * Math.Log(lambda)) - lambda - StatInference.LogGamma(mode + 1.0));
+        double modeProbability = Math.Exp((mode * Math.Log(lambda)) - lambda - AI.HighLevelFunctions.SpecialFunctions.LogGamma(mode + 1.0));
 
         double cdf = 0;
         double p = modeProbability;

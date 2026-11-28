@@ -15,17 +15,6 @@ namespace AI.Econometrics.Numerics;
 /// </remarks>
 internal static class EconMath
 {
-    /// <summary>Натуральный логарифм гамма-функции.</summary>
-    /// <remarks>
-    /// Реализация одна на весь репозиторий — <see cref="StatInference.LogGamma"/>.
-    /// Здесь остаётся только имя, привычное вызывающему коду.
-    /// </remarks>
-    /// <param name="x">Аргумент, x &gt; 0.</param>
-    public static double LogGamma(double x) => StatInference.LogGamma(x);
-
-    /// <summary>Логарифм бета-функции <c>ln B(a, b)</c>.</summary>
-    public static double LogBeta(double a, double b) => LogGamma(a) + LogGamma(b) - LogGamma(a + b);
-
     /// <summary>Дигамма-функция (логарифмическая производная гамма-функции).</summary>
     /// <param name="x">Аргумент, <c>x &gt; 0</c>.</param>
     public static double Digamma(double x)
@@ -79,9 +68,6 @@ internal static class EconMath
 
     /// <summary>Функция распределения стандартного нормального закона.</summary>
     public static double NormalCdf(double x) => StatInference.NormalCdf(x);
-
-    /// <summary>Функция ошибок.</summary>
-    public static double Erf(double x) => StatInference.Erf(x);
 
     /// <summary>Квантиль стандартного нормального распределения.</summary>
     /// <remarks>

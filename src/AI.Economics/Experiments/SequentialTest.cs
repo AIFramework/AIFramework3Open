@@ -286,7 +286,7 @@ public static class SequentialTest
             ObservationsSaved = stopping > 0 ? 1.0 - ((double)stopping / n) : 0,
             Alpha = alpha,
             SampleSize = n,
-            FixedHorizonPValue = 2.0 * (1.0 - EconMath.NormalCdf(Math.Abs(fixedZ))),
+            FixedHorizonPValue = Distributions.NormalPValue(fixedZ),
         };
     }
 

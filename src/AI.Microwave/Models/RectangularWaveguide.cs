@@ -1,4 +1,5 @@
 ﻿using AI.Microwave.Physics;
+using AI.Units;
 
 namespace AI.Microwave.Models;
 
@@ -33,15 +34,15 @@ public class RectangularWaveguide
     public double CrossSectionAreaM2 => WidthM * HeightM;
 
     /// <summary>Критическая частота основной моды TE10, Гц: fc = c / (2a).</summary>
-    public double CutoffTE10Hz => MicrowavePhysics.SpeedOfLight / (2.0 * WidthM);
+    public double CutoffTE10Hz => PhysicalConstants.Values.SpeedOfLight / (2.0 * WidthM);
 
     /// <summary>
     /// Критическая частота ближайшей высшей моды (TE20 либо TE01), Гц.
     /// Выше неё волновод перестаёт быть одномодовым.
     /// </summary>
     public double CutoffNextModeHz => Math.Min(
-        MicrowavePhysics.SpeedOfLight / WidthM,
-        MicrowavePhysics.SpeedOfLight / (2.0 * HeightM));
+        PhysicalConstants.Values.SpeedOfLight / WidthM,
+        PhysicalConstants.Values.SpeedOfLight / (2.0 * HeightM));
 
     /// <summary>Нижняя граница рекомендованной полосы, Гц (1.25 fc).</summary>
     public double BandLowHz => 1.25 * CutoffTE10Hz;

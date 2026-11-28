@@ -2,6 +2,7 @@
 using System.Globalization;
 using AI.Solvers.Chem.Models;
 using AI.Solvers.Chem.Parsing;
+using AI.Units;
 
 namespace AI.Solvers.Chem.Processors.Physical;
 
@@ -175,7 +176,7 @@ public class KineticsCalculator
                 double A = cmd.GetDouble("A"); // предэкспоненциальный множитель
                 double Ea = cmd.GetDouble("Ea"); // энергия активации, кДж/моль
                 double T = cmd.GetDouble("T", "temperature"); // температура, K
-                const double R = 8.314; // Дж/(моль·К)
+                const double R = PhysicalConstants.Values.GasConstant; // Дж/(моль·К)
 
                 double k = A * Math.Exp(-Ea * 1000 / (R * T));
 
@@ -189,7 +190,7 @@ public class KineticsCalculator
                     result.Steps.Add($"Pre-exponential factor A = {A:E3}");
                     result.Steps.Add($"Activation energy Ea = {Ea} kJ/mol");
                     result.Steps.Add($"Temperature T = {T} K ({T - 273.15:F1}°C)");
-                    result.Steps.Add($"Gas constant R = 8.314 J/(mol·K)");
+                    result.Steps.Add($"Gas constant R = {R:F3} J/(mol·K)");
                     result.Steps.Add($"\nk = {A:E3}·exp(-{Ea * 1000}/{R}·{T})");
                     result.Steps.Add($"k = {k:E3}");
                 }
@@ -203,7 +204,7 @@ public class KineticsCalculator
                 double T1 = cmd.GetDouble("T1"); // K
                 double k2 = cmd.GetDouble("k2");
                 double T2 = cmd.GetDouble("T2"); // K
-                const double R = 8.314;
+                const double R = PhysicalConstants.Values.GasConstant;
 
                 // ln(k2/k1) = -Ea/R · (1/T2 - 1/T1)
                 // Ea = -R·ln(k2/k1) / (1/T2 - 1/T1)

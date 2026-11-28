@@ -221,7 +221,7 @@ public static class RandomEngine
             double y = alpha - beta * x;
             double t = 1.0 + Math.Exp(y);
             double lhs = y + Math.Log(v / (t * t));
-            double rhs = kConst + n * Math.Log(lambda) - StatInference.LogGamma(n + 1.0);
+            double rhs = kConst + n * Math.Log(lambda) - AI.HighLevelFunctions.SpecialFunctions.LogGamma(n + 1.0);
             if (lhs <= rhs) return n;
         }
     }

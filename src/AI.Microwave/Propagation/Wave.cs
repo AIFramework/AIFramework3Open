@@ -1,5 +1,6 @@
 using System.Numerics;
 using AI.Microwave.Physics;
+using AI.Units;
 
 namespace AI.Microwave.Propagation;
 
@@ -7,7 +8,8 @@ namespace AI.Microwave.Propagation;
 internal static class Wave
 {
     /// <summary>Скорость света, м/с</summary>
-    public const double SpeedOfLight = MicrowavePhysics.SpeedOfLight;
+    [Obsolete("Используйте AI.Units.PhysicalConstants.Values.SpeedOfLight — единственную таблицу констант.")]
+    public const double SpeedOfLight = PhysicalConstants.Values.SpeedOfLight;
 
     /// <summary>
     /// Амплитуда в свободном пространстве на длине пути L: λ/(4πL)·e^(−j2πL/λ).

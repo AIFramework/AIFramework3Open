@@ -12,13 +12,13 @@ namespace AI.Earth.Geodesy;
 public readonly record struct Ellipsoid(string Name, double SemiMajorAxis, double Flattening)
 {
     /// <summary>Эллипсоид WGS 84 — тот, в котором работают спутниковые навигационные системы</summary>
-    public static Ellipsoid Wgs84 => new("WGS 84", 6378137.0, 1.0 / 298.257223563);
+    public static Ellipsoid Wgs84 => new("WGS 84", EarthConstants.Wgs84SemiMajorAxis, 1.0 / EarthConstants.Wgs84InverseFlattening);
 
     /// <summary>Эллипсоид Красовского, положенный в основу системы координат 1942 года</summary>
-    public static Ellipsoid Krasovsky => new("Красовский 1940", 6378245.0, 1.0 / 298.3);
+    public static Ellipsoid Krasovsky => new("Красовский 1940", EarthConstants.KrasovskySemiMajorAxis, 1.0 / EarthConstants.KrasovskyInverseFlattening);
 
     /// <summary>Сфера того же объёма — для быстрых расчётов, где точность эллипсоида избыточна</summary>
-    public static Ellipsoid Sphere => new("Сфера", 6371008.8, 0.0);
+    public static Ellipsoid Sphere => new("Сфера", EarthConstants.MeanRadius, 0.0);
 
     /// <summary>Малая полуось, метры</summary>
     public double SemiMinorAxis => SemiMajorAxis * (1 - Flattening);
@@ -87,7 +87,7 @@ public static class Geodesy
     /// <param name="from">Начальная точка</param>
     /// <param name="to">Конечная точка</param>
     /// <param name="radius">Радиус сферы, метры</param>
-    public static Quantity GreatCircleDistance(GeoPoint from, GeoPoint to, double radius = 6371008.8)
+    public static Quantity GreatCircleDistance(GeoPoint from, GeoPoint to, double radius = EarthConstants.MeanRadius)
     {
         double dLat = (to.Latitude - from.Latitude) * Degree;
         double dLon = (to.Longitude - from.Longitude) * Degree;
@@ -200,7 +200,7 @@ public static class Geodesy
     /// <param name="bearingDegrees">Азимут в градусах</param>
     /// <param name="distance">Расстояние</param>
     /// <param name="radius">Радиус сферы, метры</param>
-    public static GeoPoint Destination(GeoPoint from, double bearingDegrees, Quantity distance, double radius = 6371008.8)
+    public static GeoPoint Destination(GeoPoint from, double bearingDegrees, Quantity distance, double radius = EarthConstants.MeanRadius)
     {
         double angular = distance.RequireSi(Dimension.LengthDim, nameof(distance)) / radius;
         double bearing = bearingDegrees * Degree;

@@ -327,7 +327,7 @@ public sealed class MultinomialLogit
                 Name = design.ParameterNames[a],
                 Utility = beta[a],
                 StandardError = se,
-                PValue = double.IsNaN(z) ? double.NaN : 2.0 * (1.0 - EconMath.NormalCdf(Math.Abs(z))),
+                PValue = double.IsNaN(z) ? double.NaN : Distributions.NormalPValue(z),
                 WillingnessToPay = priceColumn >= 0 && a != priceColumn && Math.Abs(priceCoefficient) > 1e-12
                     ? -beta[a] / priceCoefficient
                     : double.NaN,

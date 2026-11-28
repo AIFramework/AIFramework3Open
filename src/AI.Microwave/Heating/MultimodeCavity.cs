@@ -1,4 +1,5 @@
 ﻿using AI.Microwave.Physics;
+using AI.Units;
 
 namespace AI.Microwave.Heating;
 
@@ -46,7 +47,7 @@ public class MultimodeCavity
         double fm = m / WidthM;
         double fn = n / HeightM;
         double fp = p / DepthM;
-        return MicrowavePhysics.SpeedOfLight / 2.0 * Math.Sqrt(fm * fm + fn * fn + fp * fp);
+        return PhysicalConstants.Values.SpeedOfLight / 2.0 * Math.Sqrt(fm * fm + fn * fn + fp * fp);
     }
 
     /// <summary>
@@ -60,9 +61,9 @@ public class MultimodeCavity
     /// </remarks>
     public IReadOnlyList<CavityMode> Modes(double frequencyMinHz, double frequencyMaxHz)
     {
-        int maxM = (int)Math.Ceiling(2.0 * frequencyMaxHz * WidthM / MicrowavePhysics.SpeedOfLight);
-        int maxN = (int)Math.Ceiling(2.0 * frequencyMaxHz * HeightM / MicrowavePhysics.SpeedOfLight);
-        int maxP = (int)Math.Ceiling(2.0 * frequencyMaxHz * DepthM / MicrowavePhysics.SpeedOfLight);
+        int maxM = (int)Math.Ceiling(2.0 * frequencyMaxHz * WidthM / PhysicalConstants.Values.SpeedOfLight);
+        int maxN = (int)Math.Ceiling(2.0 * frequencyMaxHz * HeightM / PhysicalConstants.Values.SpeedOfLight);
+        int maxP = (int)Math.Ceiling(2.0 * frequencyMaxHz * DepthM / PhysicalConstants.Values.SpeedOfLight);
 
         var modes = new List<CavityMode>();
         for (int m = 0; m <= maxM; m++)
@@ -90,7 +91,7 @@ public class MultimodeCavity
     /// </summary>
     public double ModeDensityPerHz(double frequencyHz)
         => 8.0 * Math.PI * VolumeM3 * frequencyHz * frequencyHz
-           / Math.Pow(MicrowavePhysics.SpeedOfLight, 3);
+           / Math.Pow(PhysicalConstants.Values.SpeedOfLight, 3);
 
     /// <summary>
     /// Число мод, попадающих в полосу источника - основной показатель

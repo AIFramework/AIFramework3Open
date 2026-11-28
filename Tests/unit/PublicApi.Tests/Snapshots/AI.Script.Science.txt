@@ -81,7 +81,7 @@ namespace AI.Script.Science
         [AI.Script.Binding.ScriptFn("drag", "Сила сопротивления воздуха или жидкости при движении тела, Н", Example="phys.drag(30, 0.0038)")]
         public static double Drag([AI.Script.Binding.ScriptParam("скорость, м/с")] double speed, [AI.Script.Binding.ScriptParam("площадь поперечного сечения, м²")] double area, [AI.Script.Binding.ScriptParam("коэффициент сопротивления")] double cd = 0.47, [AI.Script.Binding.ScriptParam("плотность среды, кг/м³")] double density = 1.225) { }
         [AI.Script.Binding.ScriptFn("escape_speed", "Вторая космическая скорость на расстоянии от центра тела, м/с", Example="phys.escape_speed()")]
-        public static double EscapeSpeed([AI.Script.Binding.ScriptParam("расстояние от центра тела, м; по умолчанию радиус Земли")] double radius = 6371000, [AI.Script.Binding.ScriptParam("масса тела, кг; по умолчанию Земля")] double mass = 5.9722E+24) { }
+        public static double EscapeSpeed([AI.Script.Binding.ScriptParam("расстояние от центра тела, м; по умолчанию радиус Земли")] double radius = 6371008.8, [AI.Script.Binding.ScriptParam("масса тела, кг; по умолчанию Земля")] double mass = 5.9722E+24) { }
         [AI.Script.Binding.ScriptFn("fall_time", "Время свободного падения с высоты без начальной скорости, с", Example="phys.fall_time(20)")]
         public static double FallTime([AI.Script.Binding.ScriptParam("высота, м")] double height, [AI.Script.Binding.ScriptParam("ускорение свободного падения, м/с²")] double gravity = 9.80665) { }
         [AI.Script.Binding.ScriptFn("heat_conduction", "Тепловой поток через стенку по закону Фурье, Вт", Example="phys.heat_conduction(0.8, 20, 0.25, area: 10)")]

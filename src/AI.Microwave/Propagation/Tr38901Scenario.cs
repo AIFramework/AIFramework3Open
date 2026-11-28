@@ -1,5 +1,6 @@
 using AI.ClassicMath.MatrixUtils;
 using Matrix = AI.DataStructs.Algebraic.Matrix;
+using AI.Units;
 
 namespace AI.Microwave.Propagation;
 
@@ -402,9 +403,9 @@ public sealed class Tr38901Scenario : IPropagationModel
     public double BreakpointDistanceM(double baseStationHeightM, double terminalHeightM, double carrierFrequencyHz, double environmentHeightM = 1)
         => Environment switch
         {
-            Tr38901Environment.UrbanMacro => 4 * (baseStationHeightM - environmentHeightM) * (terminalHeightM - environmentHeightM) * carrierFrequencyHz / Wave.SpeedOfLight,
-            Tr38901Environment.UrbanMicro => 4 * (baseStationHeightM - 1) * (terminalHeightM - 1) * carrierFrequencyHz / Wave.SpeedOfLight,
-            Tr38901Environment.RuralMacro => 2 * Math.PI * baseStationHeightM * terminalHeightM * carrierFrequencyHz / Wave.SpeedOfLight,
+            Tr38901Environment.UrbanMacro => 4 * (baseStationHeightM - environmentHeightM) * (terminalHeightM - environmentHeightM) * carrierFrequencyHz / PhysicalConstants.Values.SpeedOfLight,
+            Tr38901Environment.UrbanMicro => 4 * (baseStationHeightM - 1) * (terminalHeightM - 1) * carrierFrequencyHz / PhysicalConstants.Values.SpeedOfLight,
+            Tr38901Environment.RuralMacro => 2 * Math.PI * baseStationHeightM * terminalHeightM * carrierFrequencyHz / PhysicalConstants.Values.SpeedOfLight,
             _ => double.NaN,
         };
 

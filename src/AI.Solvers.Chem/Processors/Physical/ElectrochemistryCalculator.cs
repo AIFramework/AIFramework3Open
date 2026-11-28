@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using AI.Solvers.Chem.Models;
 using AI.Solvers.Chem.Parsing;
+using AI.Units;
 
 namespace AI.Solvers.Chem.Processors.Physical;
 
@@ -15,8 +16,8 @@ public class ElectrochemistryCalculator
 {
     private readonly ChemDatabase _database;
     private readonly VerbosityLevel _verbosity;
-    private const double F = 96485; // Фарадея, Кл/моль
-    private const double R = 8.314; // Дж/(моль·К)
+    private const double F = PhysicalConstants.Values.FaradayConstant; // Фарадея, Кл/моль
+    private const double R = PhysicalConstants.Values.GasConstant; // Дж/(моль·К)
 
     public ElectrochemistryCalculator(ChemDatabase database, VerbosityLevel verbosity)
     {

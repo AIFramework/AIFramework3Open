@@ -29,7 +29,7 @@ public static class CombinatoricsBaseFunction
     public static double NumberOfCombinations(int k, int n)
     {
         double Akn = PlacingWithoutRepetition(k, n);
-        return Akn / FunctionsForEachElements.Factorial(k);
+        return Akn / SpecialFunctions.Factorial(k);
     }
 
 

@@ -1,4 +1,6 @@
-﻿namespace AI.Microwave.Heating;
+﻿using AI.Units;
+
+namespace AI.Microwave.Heating;
 
 /// <summary>
 /// Диэлектрический нагрев: превращение поля в объёмное тепловыделение,
@@ -7,7 +9,8 @@
 public static class DielectricHeating
 {
     /// <summary>Электрическая постоянная, Ф/м.</summary>
-    public const double VacuumPermittivity = 8.8541878128e-12;
+    [Obsolete("Используйте AI.Units.PhysicalConstants.Values.VacuumPermittivity — единственную таблицу констант.")]
+    public const double VacuumPermittivity = PhysicalConstants.Values.VacuumPermittivity;
 
     /// <summary>
     /// Объёмная плотность тепловыделения, Вт/м^3:
@@ -15,7 +18,7 @@ public static class DielectricHeating
     /// </summary>
     public static double VolumetricPowerWPerM3(double frequencyHz, double lossFactor,
         double fieldRmsVPerM)
-        => 2.0 * Math.PI * frequencyHz * VacuumPermittivity * lossFactor
+        => 2.0 * Math.PI * frequencyHz * PhysicalConstants.Values.VacuumPermittivity * lossFactor
            * fieldRmsVPerM * fieldRmsVPerM;
 
     /// <summary>
@@ -24,7 +27,7 @@ public static class DielectricHeating
     public static double FieldForVolumetricPower(double frequencyHz, double lossFactor,
         double powerWPerM3)
     {
-        double k = 2.0 * Math.PI * frequencyHz * VacuumPermittivity * lossFactor;
+        double k = 2.0 * Math.PI * frequencyHz * PhysicalConstants.Values.VacuumPermittivity * lossFactor;
         return k <= 0 ? double.PositiveInfinity : Math.Sqrt(powerWPerM3 / k);
     }
 
@@ -124,7 +127,7 @@ public static class DielectricHeating
         ArgumentNullException.ThrowIfNull(material);
         if (material.LossFactorPerKelvin <= 0) return double.PositiveInfinity;
 
-        double generationSlope = 2.0 * Math.PI * frequencyHz * VacuumPermittivity
+        double generationSlope = 2.0 * Math.PI * frequencyHz * PhysicalConstants.Values.VacuumPermittivity
                                * material.LossFactorPerKelvin * fieldRmsVPerM * fieldRmsVPerM;
         double removalSlope = heatTransferCoefficient * surfaceToVolumeRatio;
 

@@ -5,6 +5,7 @@ using AI.DataStructs.Algebraic;
 using AI.Insights;
 using AI.Econometrics.Numerics;
 using AI.Statistics;
+using AI.HighLevelFunctions;
 
 namespace AI.Economics.Risk;
 
@@ -422,14 +423,14 @@ public static class Copulas
 
             case CopulaFamily.StudentT:
             {
-                double x = StudentQuantile(u, df), y = StudentQuantile(v, df);
+                double x = StatInference.TQuantile(u, df), y = StatInference.TQuantile(v, df);
                 double r2 = theta * theta;
                 if (r2 >= 1) return 0;
 
                 double quadratic = ((x * x) - (2 * theta * x * y) + (y * y)) / (1 - r2);
-                double numerator = Math.Exp(EconMath.LogGamma((df + 2) / 2) + EconMath.LogGamma(df / 2))
+                double numerator = Math.Exp(SpecialFunctions.LogGamma((df + 2) / 2) + SpecialFunctions.LogGamma(df / 2))
                     * Math.Pow(1 + (quadratic / df), -(df + 2) / 2);
-                double denominator = Math.Sqrt(1 - r2) * Math.Exp(2 * EconMath.LogGamma((df + 1) / 2))
+                double denominator = Math.Sqrt(1 - r2) * Math.Exp(2 * SpecialFunctions.LogGamma((df + 1) / 2))
                     * Math.Pow(1 + (x * x / df), -(df + 1) / 2)
                     * Math.Pow(1 + (y * y / df), -(df + 1) / 2);
 
@@ -480,18 +481,10 @@ public static class Copulas
         if (!double.IsFinite(df) || df <= 0) return (0, 0);
 
         double argument = -Math.Sqrt((df + 1) * (1 - theta) / (1 + theta));
-        double lambda = 2 * StudentCdf(argument, df + 1);
+        double lambda = 2 * StatInference.TCdf(argument, df + 1);
 
         return (lambda, lambda);
     }
-
-    /// <summary>Функция распределения Стьюдента.</summary>
-    private static double StudentCdf(double x, double df) =>
-        StatInference.TCdf(x, Math.Max(1, (int)Math.Round(df)));
-
-    /// <summary>Квантиль распределения Стьюдента.</summary>
-    private static double StudentQuantile(double p, double df) =>
-        StatInference.TQuantile(Math.Clamp(p, 1e-9, 1 - 1e-9), Math.Max(1, (int)Math.Round(df)));
 
     /// <summary>Пара из гауссовой копулы.</summary>
     private static (double U, double V) SimulateGaussian(Random rng, double rho)

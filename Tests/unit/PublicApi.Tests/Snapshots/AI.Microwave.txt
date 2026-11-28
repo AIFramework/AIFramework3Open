@@ -281,7 +281,9 @@ namespace AI.Microwave.Heating
     }
     public static class DielectricHeating
     {
-        public const double VacuumPermittivity = 8.8541878128E-12D;
+        [System.Obsolete("Используйте AI.Units.PhysicalConstants.Values.VacuumPermittivity — единственную т" +
+            "аблицу констант.")]
+        public const double VacuumPermittivity = 8.8541878188E-12D;
         public static double EnergyRequiredJ(double massKg, AI.Microwave.Heating.DielectricMaterial material, double deltaTemperatureK, double latentHeatJPerKg = 0) { }
         public static double FieldForVolumetricPower(double frequencyHz, double lossFactor, double powerWPerM3) { }
         public static double HeatingRateKPerS(double volumetricPowerWPerM3, AI.Microwave.Heating.DielectricMaterial material) { }
@@ -470,6 +472,8 @@ namespace AI.Microwave.Physics
     {
         public const double FreeSpaceImpedance = 376.730313412D;
         public const double NeperToDb = 8.685889638065035D;
+        [System.Obsolete("Используйте AI.Units.PhysicalConstants.Values.SpeedOfLight — единственную таблицу" +
+            " констант.")]
         public const double SpeedOfLight = 299792458D;
         public const double VacuumPermeability = 1.2566370614359173E-06D;
         public static double ApertureGain(double physicalAreaM2, double efficiency, double lambdaM) { }

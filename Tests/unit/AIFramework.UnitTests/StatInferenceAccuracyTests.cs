@@ -1,5 +1,6 @@
 using AI.Statistics;
 using Xunit;
+using AI.HighLevelFunctions;
 
 namespace AIFramework.UnitTests;
 
@@ -78,7 +79,7 @@ public class StatInferenceAccuracyTests
     public void Erf_MatchesReferenceValues(double x, double expected)
     {
         // Прежняя формула Абрамовица - Стиган 7.1.26 ошибалась здесь до 1.5e-7
-        Assert.Equal(expected, StatInference.Erf(x), tolerance: 1e-15);
+        Assert.Equal(expected, SpecialFunctions.Erf(x), tolerance: 1e-15);
     }
 
     [Theory]
@@ -96,15 +97,15 @@ public class StatInferenceAccuracyTests
     [Fact]
     public void Erfc_KeepsTheTail_AndLimitsAreExact()
     {
-        Assert.Equal(1.5374597944280351e-12, StatInference.Erfc(5), tolerance: 1e-13 * 1.5374597944280351e-12);
-        Assert.Equal(2.0884875837625447e-45, StatInference.Erfc(10), tolerance: 1e-12 * 2.0884875837625447e-45);
-        Assert.Equal(1.9999779095030014, StatInference.Erfc(-3), tolerance: 1e-15);
+        Assert.Equal(1.5374597944280351e-12, SpecialFunctions.Erfc(5), tolerance: 1e-13 * 1.5374597944280351e-12);
+        Assert.Equal(2.0884875837625447e-45, SpecialFunctions.Erfc(10), tolerance: 1e-12 * 2.0884875837625447e-45);
+        Assert.Equal(1.9999779095030014, SpecialFunctions.Erfc(-3), tolerance: 1e-15);
 
-        Assert.Equal(1, StatInference.Erf(double.PositiveInfinity));
-        Assert.Equal(-1, StatInference.Erf(double.NegativeInfinity));
+        Assert.Equal(1, SpecialFunctions.Erf(double.PositiveInfinity));
+        Assert.Equal(-1, SpecialFunctions.Erf(double.NegativeInfinity));
         Assert.Equal(0, StatInference.NormalCdf(double.NegativeInfinity));
         Assert.Equal(1, StatInference.NormalCdf(double.PositiveInfinity));
-        Assert.Equal(1, StatInference.Erf(1e200));
+        Assert.Equal(1, SpecialFunctions.Erf(1e200));
         Assert.True(double.IsNaN(StatInference.NormalCdf(double.NaN)));
 
         foreach (double x in new[] { 0.3, 1.7, 4.0 })
@@ -118,15 +119,15 @@ public class StatInferenceAccuracyTests
     [InlineData(10.5, 13.940625219404433)]
     public void LogGamma_MatchesReferenceValues(double x, double expected)
     {
-        Assert.Equal(expected, StatInference.LogGamma(x), tolerance: 1e-10);
+        Assert.Equal(expected, SpecialFunctions.LogGamma(x), tolerance: 1e-10);
     }
 
     [Fact]
     public void LogGamma_UsesReflectionBelowOneHalf()
     {
         // Ветка отражения: прежняя реализация ядра для x < 0.5 была неточна
-        Assert.Equal(2.2527126517342055, StatInference.LogGamma(0.1), tolerance: 1e-10);
-        Assert.Equal(1.2880225246980774, StatInference.LogGamma(0.25), tolerance: 1e-10);
+        Assert.Equal(2.2527126517342055, SpecialFunctions.LogGamma(0.1), tolerance: 1e-10);
+        Assert.Equal(1.2880225246980774, SpecialFunctions.LogGamma(0.25), tolerance: 1e-10);
     }
 
     [Fact]
@@ -134,7 +135,7 @@ public class StatInferenceAccuracyTests
     {
         // ln Г(x+1) = ln x + ln Г(x)
         foreach (double x in new[] { 0.3, 1.7, 4.2, 12.0 })
-            Assert.Equal(Math.Log(x) + StatInference.LogGamma(x), StatInference.LogGamma(x + 1), tolerance: 1e-10);
+            Assert.Equal(Math.Log(x) + SpecialFunctions.LogGamma(x), SpecialFunctions.LogGamma(x + 1), tolerance: 1e-10);
     }
 
     [Fact]

@@ -49,7 +49,7 @@ internal sealed class OlsFit
     public double PValue(int index)
     {
         double t = TStatistic(index);
-        return double.IsNaN(t) ? double.NaN : 2.0 * (1.0 - EconMath.NormalCdf(Math.Abs(t)));
+        return double.IsNaN(t) ? double.NaN : Distributions.NormalPValue(t);
     }
 
     /// <summary>Нижняя граница 95-процентного доверительного интервала.</summary>

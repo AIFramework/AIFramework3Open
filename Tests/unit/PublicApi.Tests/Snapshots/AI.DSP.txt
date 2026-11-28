@@ -1474,6 +1474,8 @@ namespace AI.BackEnds.DSP.NWaves.Utils
         public static void Diff(float[] samples, float[] diff) { }
         public static System.Numerics.Complex[][] DividePolynomial(System.Numerics.Complex[] dividend, System.Numerics.Complex[] divisor) { }
         public static System.Numerics.Complex EvaluatePolynomial(double[] a, System.Numerics.Complex x) { }
+        [System.Obsolete("Используйте AI.HighLevelFunctions.SpecialFunctions.Factorial — единственную реали" +
+            "зацию.")]
         public static double Factorial(int n) { }
         public static float FindNth(float[] a, int n, int start, int end) { }
         public static int Gcd(int n, int m) { }

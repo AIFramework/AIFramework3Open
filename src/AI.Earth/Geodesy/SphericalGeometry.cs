@@ -52,7 +52,7 @@ public static class SphericalGeometry
     /// tg(E/2) = det(a, b, c) / (1 + a·b + b·c + c·a). Она устойчива и для малых, и для больших треугольников, а знак
     /// определителя дает вычитание треугольников, лежащих вне невыпуклого многоугольника.
     /// </remarks>
-    public static Quantity PolygonArea(IReadOnlyList<GeoPoint> vertices, double radius = 6371008.8)
+    public static Quantity PolygonArea(IReadOnlyList<GeoPoint> vertices, double radius = EarthConstants.MeanRadius)
     {
         ArgumentNullException.ThrowIfNull(vertices);
         if (vertices.Count < 3)

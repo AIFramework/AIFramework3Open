@@ -68,12 +68,11 @@ public static class LaplaceTable
                     pow.Exponent is Constant cp && cp.Value > 0 && cp.Value == System.Math.Floor(cp.Value))
                 {
                     int n = (int)cp.Value;
-                    // Factorial возвращает long и с 21! молча переполняется в отрицательное
-                    // число. За границей точного представления пишем «n!» и рядом
-                    // порядок величины через Gamma(n+1) = n!.
+                    // Пока факториал точно записывается целым, пишется число; дальше — «n!»
+                    // и рядом порядок величины.
                     string numerator = n <= MaxExactFactorial
-                        ? FunctionsForEachElements.Factorial(n).ToString()
-                        : $"{n}! (≈{FunctionsForEachElements.Gamma(n + 1):G6})";
+                        ? SpecialFunctions.Factorial(n).ToString("F0", System.Globalization.CultureInfo.InvariantCulture)
+                        : $"{n}! (≈{SpecialFunctions.Factorial(n):G6})";
                     return (true, $"{numerator}/s^{n + 1}");
                 }
                 return (false, "");

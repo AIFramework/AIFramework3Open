@@ -1,6 +1,7 @@
 using System.Numerics;
 using AI.Microwave.Safety;
 using Vector3 = AI.Geometry.Primitives.Vector3;
+using AI.Units;
 
 namespace AI.Microwave.Propagation;
 
@@ -189,7 +190,7 @@ public sealed class RayTracingScene
     public double FrequencyHz { get; }
 
     /// <summary>Длина волны, м</summary>
-    public double WavelengthM => Wave.SpeedOfLight / FrequencyHz;
+    public double WavelengthM => PhysicalConstants.Values.SpeedOfLight / FrequencyHz;
 
     /// <summary>Отражатели</summary>
     public IReadOnlyList<PlanarReflector> Reflectors => _reflectors;
@@ -313,7 +314,7 @@ public sealed class RayTracingScene
         double doppler = (transmitter.Velocity.Dot(departure) - receiver.Velocity.Dot(arrival)) / WavelengthM;
         Vector3 from = -arrival;
 
-        path = new PropagationPath(length / Wave.SpeedOfLight, gain, doppler, order == 0 ? PathKind.LineOfSight : PathKind.Reflection)
+        path = new PropagationPath(length / PhysicalConstants.Values.SpeedOfLight, gain, doppler, order == 0 ? PathKind.LineOfSight : PathKind.Reflection)
         {
             Order = order,
             LengthMetres = length,

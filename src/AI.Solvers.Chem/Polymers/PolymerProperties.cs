@@ -1,3 +1,5 @@
+using AI.Units;
+
 namespace AI.Solvers.Chem.Polymers;
 
 /// <summary>
@@ -143,6 +145,6 @@ public static class PolymerProperties
             throw new ArgumentException("Модуль должен быть положительным", nameof(modulus));
 
         // E = 3·rho·R·T/Mc, масса выражается в г/моль
-        return 3 * density * 8.314462618 * temperature / modulus * 1000;
+        return 3 * density * PhysicalConstants.Values.GasConstant * temperature / modulus * 1000;
     }
 }

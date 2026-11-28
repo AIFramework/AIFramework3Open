@@ -217,7 +217,7 @@ public partial class BaseMathLib
         {
             Name = name,
             ArgumentCount = 1,
-            Delegate = args => (Complex)FunctionsForEachElements.Factorial((int)CastsVar.CastToDouble(args[0], name)),
+            Delegate = args => (Complex)SpecialFunctions.Factorial((int)CastsVar.CastToDouble(args[0], name)),
             Description = new DescriptionFunction
             {
                 AreaList = ["Комбинаторика", "Статистика"],
@@ -235,7 +235,7 @@ public partial class BaseMathLib
         {
             Name = name,
             ArgumentCount = 1,
-            Delegate = args => (Complex)FunctionsForEachElements.Gamma(CastsVar.CastToDouble(args[0], name)),
+            Delegate = args => (Complex)SpecialFunctions.Gamma(CastsVar.CastToDouble(args[0], name)),
             Description = new DescriptionFunction
             {
                 AreaList = ["Математический анализ", "Статистика"],
@@ -275,7 +275,7 @@ public partial class BaseMathLib
             {
                 var n = (int)CastsVar.CastToDouble(args[0], name);
                 var k = (int)CastsVar.CastToDouble(args[1], name);
-                return (Complex)(FunctionsForEachElements.Factorial(n) / FunctionsForEachElements.Factorial(n - k));
+                return (Complex)(SpecialFunctions.Factorial(n) / SpecialFunctions.Factorial(n - k));
             },
             Description = new DescriptionFunction
             {

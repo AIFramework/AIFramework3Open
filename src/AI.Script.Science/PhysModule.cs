@@ -26,13 +26,13 @@ namespace AI.Script.Science;
 public static partial class PhysModule
 {
     /// <summary>Стандартное ускорение свободного падения, м/с².</summary>
-    private const double StandardGravity = 9.80665;
+    private const double StandardGravity = PhysicalConstants.Values.StandardGravity;
 
     /// <summary>Масса Земли, кг: центральное тело орбит по умолчанию.</summary>
-    private const double EarthMass = 5.9722e24;
+    private const double EarthMass = EarthConstants.Mass;
 
     /// <summary>Средний радиус Земли, м.</summary>
-    private const double EarthRadius = 6.371e6;
+    private const double EarthRadius = EarthConstants.MeanRadius;
 
     /// <summary>Плотность воздуха у земли по стандартной атмосфере, кг/м³.</summary>
     private const double AirDensity = 1.225;

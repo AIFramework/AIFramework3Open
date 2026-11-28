@@ -1,4 +1,6 @@
-﻿namespace AI.Microwave.Physics;
+﻿using AI.Units;
+
+namespace AI.Microwave.Physics;
 
 /// <summary>
 /// Физические константы и базовые соотношения СВЧ-техники.
@@ -9,7 +11,8 @@
 public static class MicrowavePhysics
 {
     /// <summary>Скорость света в вакууме, м/с.</summary>
-    public const double SpeedOfLight = 299792458.0;
+    [Obsolete("Используйте AI.Units.PhysicalConstants.Values.SpeedOfLight — единственную таблицу констант.")]
+    public const double SpeedOfLight = PhysicalConstants.Values.SpeedOfLight;
 
     /// <summary>Магнитная постоянная, Гн/м.</summary>
     public const double VacuumPermeability = 4e-7 * Math.PI;
@@ -21,7 +24,7 @@ public static class MicrowavePhysics
     public const double NeperToDb = 8.685889638065035;
 
     /// <summary>Длина волны в свободном пространстве, м.</summary>
-    public static double Wavelength(double frequencyHz) => SpeedOfLight / frequencyHz;
+    public static double Wavelength(double frequencyHz) => PhysicalConstants.Values.SpeedOfLight / frequencyHz;
 
     /// <summary>Глубина скин-слоя, м: d = sqrt(1 / (pi f mu0 sigma)).</summary>
     public static double SkinDepth(double frequencyHz, double conductivity)

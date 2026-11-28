@@ -1,5 +1,6 @@
 using System.Numerics;
 using AI.HighLevelFunctions;
+using AI.Units;
 
 namespace AI.Microwave.Propagation;
 
@@ -34,7 +35,7 @@ public static class KnifeEdgeDiffraction
         Wave.RequirePositive(d2, nameof(d2));
         Wave.RequirePositive(frequencyHz, nameof(frequencyHz));
 
-        double wavelength = Wave.SpeedOfLight / frequencyHz;
+        double wavelength = PhysicalConstants.Values.SpeedOfLight / frequencyHz;
 
         return clearanceM * Math.Sqrt(2 * (d1 + d2) / (wavelength * d1 * d2));
     }
@@ -77,14 +78,14 @@ public static class KnifeEdgeDiffraction
         Wave.RequirePositive(d2, nameof(d2));
         Wave.RequirePositive(frequencyHz, nameof(frequencyHz));
 
-        double wavelength = Wave.SpeedOfLight / frequencyHz;
+        double wavelength = PhysicalConstants.Values.SpeedOfLight / frequencyHz;
         double lineHeight = txHeightM + ((rxHeightM - txHeightM) * d1 / (d1 + d2));
         double nu = FresnelParameter(edgeHeightM - lineHeight, d1, d2, frequencyHz);
         double direct = Math.Sqrt(((d1 + d2) * (d1 + d2)) + ((rxHeightM - txHeightM) * (rxHeightM - txHeightM)));
         double viaEdge = Math.Sqrt((d1 * d1) + ((edgeHeightM - txHeightM) * (edgeHeightM - txHeightM)))
             + Math.Sqrt((d2 * d2) + ((edgeHeightM - rxHeightM) * (edgeHeightM - rxHeightM)));
 
-        return new PropagationPath(viaEdge / Wave.SpeedOfLight, Coefficient(nu) * Wave.FreeSpaceGain(direct, wavelength), 0, PathKind.Diffraction)
+        return new PropagationPath(viaEdge / PhysicalConstants.Values.SpeedOfLight, Coefficient(nu) * Wave.FreeSpaceGain(direct, wavelength), 0, PathKind.Diffraction)
         {
             LengthMetres = viaEdge,
             Order = 1,

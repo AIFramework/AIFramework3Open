@@ -43,7 +43,7 @@ public class EllipticIntegral
             for (int i = 3; i < 6; i++)
             {
                 int i2 = 2 * i;
-                outp += Math.Pow(FunctionsForEachElements.Factorial(i2) / (Math.Pow(FunctionsForEachElements.Factorial(i), 2) * Math.Pow(2, i2)), 2) * Math.Pow(k, i2);
+                outp += Math.Pow(SpecialFunctions.Factorial(i2) / (Math.Pow(SpecialFunctions.Factorial(i), 2) * Math.Pow(2, i2)), 2) * Math.Pow(k, i2);
             }
 
             return outp * pi2;

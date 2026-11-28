@@ -1,4 +1,5 @@
 using System;
+using AI.HighLevelFunctions;
 
 namespace AI.Statistics;
 
@@ -300,7 +301,7 @@ public static partial class StatInference
 
     static TestResult ChiSquareUpperTailTest(double chi2Statistic, int df, double alpha)
     {
-        double p = Math.Clamp(1.0 - ChiSquaredCdf(chi2Statistic, df), 0.0, 1.0);
+        double p = ChiSquaredSf(chi2Statistic, df);
         double crit = ChiSquaredQuantile(1.0 - alpha, df);
         return new TestResult
         {
@@ -348,7 +349,7 @@ public static partial class StatInference
     {
         if (k < 0 || k > n) return double.NegativeInfinity;
         if (k == 0 || k == n) return 0.0;
-        return LogGamma(n + 1) - LogGamma(k + 1) - LogGamma(n - k + 1);
+        return SpecialFunctions.LogGamma(n + 1) - SpecialFunctions.LogGamma(k + 1) - SpecialFunctions.LogGamma(n - k + 1);
     }
 
     #endregion

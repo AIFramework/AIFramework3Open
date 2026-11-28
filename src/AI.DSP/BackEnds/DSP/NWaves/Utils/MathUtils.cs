@@ -66,17 +66,9 @@ namespace AI.BackEnds.DSP.NWaves.Utils
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static double Factorial(int n)
-        {
-            double f = 1.0;
+        [System.Obsolete("Используйте AI.HighLevelFunctions.SpecialFunctions.Factorial — единственную реализацию.")]
+        public static double Factorial(int n) => n < 2 ? 1.0 : AI.HighLevelFunctions.SpecialFunctions.Factorial(n);
 
-            for (int i = 2; i <= n; f *= i++)
-            {
-                ;
-            }
-
-            return f;
-        }
 
         /// <summary>
         /// Binomial coefficient

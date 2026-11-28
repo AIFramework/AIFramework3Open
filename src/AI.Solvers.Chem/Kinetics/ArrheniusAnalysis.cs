@@ -1,6 +1,7 @@
 using AI.Solvers.Chem.Metrology;
 using System.Globalization;
 using System.Text;
+using AI.Units;
 
 namespace AI.Solvers.Chem.Kinetics;
 
@@ -36,7 +37,7 @@ public sealed class ArrheniusResult
     /// <summary>Константа скорости при заданной температуре</summary>
     /// <param name="temperature">Температура, K</param>
     public double RateConstantAt(double temperature)
-        => PreExponentialFactor * Math.Exp(-ActivationEnergy * 1000 / (ArrheniusAnalysis.GasConstant * temperature));
+        => PreExponentialFactor * Math.Exp(-ActivationEnergy * 1000 / (PhysicalConstants.Values.GasConstant * temperature));
 
     /// <summary>
     /// Во сколько раз ускорится реакция при нагреве на заданный интервал
@@ -77,7 +78,8 @@ public sealed class ArrheniusResult
 public static class ArrheniusAnalysis
 {
     /// <summary>Универсальная газовая постоянная, Дж/(моль·K)</summary>
-    public const double GasConstant = 8.314462618;
+    [Obsolete("Используйте AI.Units.PhysicalConstants.Values.GasConstant — единственную таблицу констант.")]
+    public const double GasConstant = PhysicalConstants.Values.GasConstant;
 
     /// <summary>
     /// Определяет Ea и A по набору измерений k(T)
@@ -117,8 +119,8 @@ public static class ArrheniusAnalysis
         LinearFit fit = LinearFit.Fit(inverseTemperature, logRate);
 
         // Наклон равен -Ea/R, свободный член - ln A
-        double activationEnergy = -fit.Slope * GasConstant / 1000.0;
-        double activationError = fit.SlopeStdError * GasConstant / 1000.0;
+        double activationEnergy = -fit.Slope * PhysicalConstants.Values.GasConstant / 1000.0;
+        double activationError = fit.SlopeStdError * PhysicalConstants.Values.GasConstant / 1000.0;
         var (slopeLow, slopeHigh) = fit.SlopeInterval(confidence);
         var (interceptLow, interceptHigh) = fit.InterceptInterval(confidence);
 
@@ -126,7 +128,7 @@ public static class ArrheniusAnalysis
         {
             ActivationEnergy = activationEnergy,
             ActivationEnergyError = activationError,
-            ActivationEnergyInterval = (-slopeHigh * GasConstant / 1000.0, -slopeLow * GasConstant / 1000.0),
+            ActivationEnergyInterval = (-slopeHigh * PhysicalConstants.Values.GasConstant / 1000.0, -slopeLow * PhysicalConstants.Values.GasConstant / 1000.0),
             PreExponentialFactor = Math.Exp(fit.Intercept),
             PreExponentialInterval = (Math.Exp(interceptLow), Math.Exp(interceptHigh)),
             R2 = fit.R2,
@@ -153,6 +155,6 @@ public static class ArrheniusAnalysis
 
         double slope = Math.Log(rateConstant2 / rateConstant1) / ((1 / temperature2) - (1 / temperature1));
 
-        return -slope * GasConstant / 1000.0;
+        return -slope * PhysicalConstants.Values.GasConstant / 1000.0;
     }
 }

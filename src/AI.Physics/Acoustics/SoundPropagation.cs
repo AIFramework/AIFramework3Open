@@ -13,7 +13,7 @@ public static class SoundPropagation
     private const double ReferenceTemperature = 293.15;
 
     /// <summary>Опорное давление ISO 9613-1, Па</summary>
-    private const double ReferencePressure = 101_325.0;
+    private const double ReferencePressure = PhysicalConstants.Values.StandardAtmosphere;
 
     /// <summary>Температура тройной точки воды, К</summary>
     private const double TriplePoint = 273.16;

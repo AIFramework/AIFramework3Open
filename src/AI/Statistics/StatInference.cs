@@ -1,4 +1,5 @@
 using System;
+using AI.HighLevelFunctions;
 
 namespace AI.Statistics;
 
@@ -84,7 +85,7 @@ public static partial class StatInference
     public static TestResult ZTest(double mean, double sigma, int n, double mu0, double alpha = 0.05)
     {
         double z = (mean - mu0) / (sigma / Math.Sqrt(n));
-        double pValue = 2.0 * (1.0 - NormalCdf(Math.Abs(z)));
+        double pValue = 2.0 * NormalSf(Math.Abs(z));
         double zCrit = NormalQuantile(1.0 - alpha / 2.0);
         return new TestResult
         {
@@ -103,7 +104,7 @@ public static partial class StatInference
     {
         int df = n - 1;
         double t = (mean - mu0) / (std / Math.Sqrt(n));
-        double pValue = 2.0 * (1.0 - TCdf(Math.Abs(t), df));
+        double pValue = 2.0 * TSf(Math.Abs(t), df);
         double tCrit = TQuantile(1.0 - alpha / 2.0, df);
         return new TestResult
         {
@@ -152,7 +153,7 @@ public static partial class StatInference
         double v1 = std1 * std1 / n1, v2 = std2 * std2 / n2;
         double df = (v1 + v2) * (v1 + v2) / (v1 * v1 / (n1 - 1) + v2 * v2 / (n2 - 1));
         int dfi = Math.Max(1, (int)Math.Round(df));
-        double pValue = 2.0 * (1.0 - TCdf(Math.Abs(t), dfi));
+        double pValue = 2.0 * TSf(Math.Abs(t), dfi);
         double tCrit = TQuantile(1.0 - alpha / 2.0, dfi);
         return new TestResult
         {
@@ -173,7 +174,7 @@ public static partial class StatInference
     public static TestResult JarqueBeraTest(double skewness, double excessKurtosis, int n, double alpha = 0.05)
     {
         double jb = n / 6.0 * (skewness * skewness + excessKurtosis * excessKurtosis / 4.0);
-        double pValue = 1.0 - ChiSquaredCdf(jb, 2);
+        double pValue = ChiSquaredSf(jb, 2);
         double critVal = ChiSquaredQuantile(1.0 - alpha, 2);
         return new TestResult
         {
@@ -300,98 +301,154 @@ public static partial class StatInference
     /// Через дополнительную функцию ошибок, а не ½·(1 + erf): в левом хвосте разность 1 − erf состоит из одних
     /// разрядов округления, а erfc считается напрямую, поэтому Φ(−10) = 7,6e-24 верна и в относительном смысле.
     /// </remarks>
-    public static double NormalCdf(double x) => 0.5 * Erfc(-x / Math.Sqrt(2.0));
+    public static double NormalCdf(double x) => 0.5 * SpecialFunctions.Erfc(-x / Math.Sqrt(2.0));
+
+    /// <summary>Правый хвост стандартного нормального: P(Z &gt; x) = ½·erfc(x/√2).</summary>
+    /// <remarks>
+    /// Для p-значений: разность <c>1 − Φ(x)</c> обращается в ноль уже при <c>x ≈ 8.3</c>, а хвост,
+    /// посчитанный напрямую, верен до <c>x ≈ 37</c>.
+    /// </remarks>
+    public static double NormalSf(double x) => 0.5 * SpecialFunctions.Erfc(x / Math.Sqrt(2.0));
+
+    /// <summary>Дополнительная функция ошибок.</summary>
+    [Obsolete("Используйте AI.HighLevelFunctions.SpecialFunctions.Erfc — единственную реализацию.")]
+    public static double Erfc(double x) => SpecialFunctions.Erfc(x);
 
     /// <summary>
-    /// Дополнительная функция ошибок erfc(x) = 1 − erf(x), вычисленная напрямую, без вычитания, — точна и в хвостах.
-    /// Реализация общая с <see cref="AI.HighLevelFunctions.FunctionsForEachElements.Erfc(double)"/>.
+    /// Квантиль t-распределения с вещественным числом степеней свободы.
     /// </summary>
-    public static double Erfc(double x) => AI.HighLevelFunctions.FunctionsForEachElements.Erfc(x);
-
-    /// <summary>
-    /// Квантиль t-распределения. Для df = 1 и df = 2 — точные замкнутые формулы;
-    /// для df ≥ 3 вычисляется точно через обращение CDF (<see cref="TCdf"/>) бисекцией,
-    /// разложение Корниша-Фишера используется только как начальное приближение.
-    /// </summary>
-    public static double TQuantile(double p, int df)
+    /// <remarks>
+    /// Для df = 1 и df = 2 — замкнутые формулы, иначе — обращение правого хвоста
+    /// (<see cref="TSf"/>) делением пополам с относительным критерием. Хвост обращается напрямую,
+    /// без перехода к <c>1 − p</c>, поэтому квантиль верен и при <c>p = 1e-300</c>.
+    /// </remarks>
+    /// <param name="p">Вероятность.</param>
+    /// <param name="df">Число степеней свободы, <c>df &gt; 0</c>; иначе результат <c>NaN</c>.</param>
+    public static double TQuantile(double p, double df)
     {
-        if (df <= 0) df = 1;
+        if (double.IsNaN(p) || !(df > 0)) return double.NaN;
         if (p <= 0) return double.NegativeInfinity;
         if (p >= 1) return double.PositiveInfinity;
-        if (Math.Abs(p - 0.5) < 1e-15) return 0;
-        if (df == 1) return Math.Tan(Math.PI * (p - 0.5));
-        if (df == 2) return (2.0 * p - 1.0) / Math.Sqrt(2.0 * p * (1.0 - p));
+        if (p == 0.5) return 0;
 
-        // Симметрия распределения: достаточно правого хвоста
-        if (p < 0.5) return -TQuantile(1.0 - p, df);
+        // Распределение симметрично: ищется модуль квантиля по вероятности хвоста
+        double tail = p < 0.5 ? p : 1 - p;
+        double magnitude;
 
-        // Начальное приближение — двухчленное разложение Корниша-Фишера
-        double z = NormalQuantile(p);
-        double g1 = (z * z * z + z) / (4.0 * df);
-        double g2 = (5.0 * z * z * z * z * z + 16.0 * z * z * z + 3.0 * z) / (96.0 * df * df);
-        double guess = z + g1 + g2;
+        if (df == 1) magnitude = 1 / Math.Tan(Math.PI * tail);
+        else if (df == 2) magnitude = (1 - (2 * tail)) / Math.Sqrt(2 * tail * (1 - tail));
+        else magnitude = Bisect(t => TSf(t, df) > tail, start: 1);
 
-        // Скобка [0, hi]: расширяем hi, пока CDF(hi) не накроет p
-        double lo = 0.0;
-        double hi = Math.Max(guess * 2.0, 2.0);
-        for (int i = 0; i < 200 && TCdf(hi, df) < p; i++) hi *= 2.0;
-
-        // Уточнение бисекцией по точной CDF
-        for (int i = 0; i < 200; i++)
-        {
-            double mid = 0.5 * (lo + hi);
-            if (TCdf(mid, df) < p) lo = mid; else hi = mid;
-            if (hi - lo <= 1e-12 * Math.Max(1.0, hi)) break;
-        }
-        return 0.5 * (lo + hi);
+        return p < 0.5 ? -magnitude : magnitude;
     }
 
-    /// <summary>CDF t-распределения (приближение через бета-неполную).</summary>
-    public static double TCdf(double t, int df)
+    /// <summary>CDF t-распределения с вещественным числом степеней свободы.</summary>
+    /// <param name="t">Значение.</param>
+    /// <param name="df">Число степеней свободы, <c>df &gt; 0</c>; иначе результат <c>NaN</c>.</param>
+    public static double TCdf(double t, double df) => TSf(-t, df);
+
+    /// <summary>Правый хвост t-распределения P(T &gt; t) — через неполную бета-функцию, без вычитания из единицы.</summary>
+    /// <param name="t">Значение.</param>
+    /// <param name="df">Число степеней свободы, <c>df &gt; 0</c>; иначе результат <c>NaN</c>.</param>
+    public static double TSf(double t, double df)
     {
-        double x = df / (df + t * t);
-        double beta = RegularizedIncompleteBeta(df / 2.0, 0.5, x);
-        return t >= 0 ? 1.0 - 0.5 * beta : 0.5 * beta;
+        if (double.IsNaN(t) || !(df > 0)) return double.NaN;
+        if (double.IsInfinity(t)) return t > 0 ? 0 : 1;
+
+        double magnitude = Math.Abs(t);
+
+        // x = df/(df + t²) и его дополнение t²/(df + t²) известны оба без вычитания; при огромном t
+        // квадрат переполняется, и отношения берутся делением по очереди
+        double x, complement;
+
+        if (magnitude > 1e150)
+        {
+            x = df / magnitude / magnitude;
+            complement = 1;
+        }
+        else
+        {
+            double square = magnitude * magnitude;
+
+            x = df / (df + square);
+            complement = square / (df + square);
+        }
+
+        double tail = 0.5 * SpecialFunctions.RegularizedBeta(df / 2, 0.5, x, complement);
+
+        return t >= 0 ? tail : 1 - tail;
     }
 
     /// <summary>
-    /// Квантиль χ²-распределения. Вычисляется точно через обращение CDF
-    /// (<see cref="ChiSquaredCdf"/>) бисекцией; преобразование Wilson-Hilferty
-    /// используется только как начальное приближение для выбора скобки.
+    /// Квантиль χ²-распределения с вещественным числом степеней свободы.
     /// </summary>
-    public static double ChiSquaredQuantile(double p, int df)
+    /// <remarks>
+    /// Обращение функции распределения делением пополам с относительным критерием: при
+    /// <c>p &lt; ½</c> обращается левый хвост, иначе правый. Абсолютный критерий остановки давал
+    /// при df = 1, p = 1e-10 ответ, завышенный в двадцать миллионов раз.
+    /// </remarks>
+    /// <param name="p">Вероятность.</param>
+    /// <param name="df">Число степеней свободы, <c>df &gt; 0</c>; иначе результат <c>NaN</c>.</param>
+    public static double ChiSquaredQuantile(double p, double df)
     {
-        if (df <= 0) df = 1;
+        if (double.IsNaN(p) || !(df > 0)) return double.NaN;
         if (p <= 0) return 0;
         if (p >= 1) return double.PositiveInfinity;
 
-        // Начальное приближение — преобразование Wilson-Hilferty:
-        // χ²_p ≈ df * (1 - 2/(9df) + z*sqrt(2/(9df)))^3
-        double z = NormalQuantile(p);
-        double a = 2.0 / (9.0 * df);
-        double cube = 1.0 - a + z * Math.Sqrt(a);
-        double guess = Math.Max(0, df * cube * cube * cube);
+        // Каждый хвост обращается сам: малое p сравнивается с P(x), малое 1 − p — с Q(x)
+        double upper = 1 - p;
 
-        // Скобка [0, hi]: расширяем hi, пока CDF(hi) не накроет p
-        double lo = 0.0;
-        double hi = Math.Max(guess * 4.0, df * 4.0 + 40.0);
-        for (int i = 0; i < 200 && ChiSquaredCdf(hi, df) < p; i++) hi *= 2.0;
-
-        // Уточнение бисекцией по точной CDF
-        for (int i = 0; i < 200; i++)
-        {
-            double mid = 0.5 * (lo + hi);
-            if (ChiSquaredCdf(mid, df) < p) lo = mid; else hi = mid;
-            if (hi - lo <= 1e-12 * Math.Max(1.0, hi)) break;
-        }
-        return 0.5 * (lo + hi);
+        return p < 0.5
+            ? Bisect(x => ChiSquaredCdf(x, df) < p, start: df)
+            : Bisect(x => ChiSquaredSf(x, df) > upper, start: df);
     }
 
     /// <summary>CDF χ²-распределения (через регуляризованную неполную гамма-функцию).</summary>
-    public static double ChiSquaredCdf(double x, int df)
+    /// <param name="x">Значение.</param>
+    /// <param name="df">Число степеней свободы, <c>df &gt; 0</c>; иначе результат <c>NaN</c>.</param>
+    public static double ChiSquaredCdf(double x, double df)
     {
-        if (x <= 0) return 0;
-        return RegularizedGammaP(df / 2.0, x / 2.0);
+        if (x <= 0) return df > 0 ? 0 : double.NaN;
+
+        return SpecialFunctions.RegularizedGammaP(df / 2.0, x / 2.0);
+    }
+
+    /// <summary>Правый хвост χ²-распределения P(X &gt; x) — цепной дробью, без вычитания из единицы.</summary>
+    /// <param name="x">Значение.</param>
+    /// <param name="df">Число степеней свободы, <c>df &gt; 0</c>; иначе результат <c>NaN</c>.</param>
+    public static double ChiSquaredSf(double x, double df)
+    {
+        if (x <= 0) return df > 0 ? 1 : double.NaN;
+
+        return SpecialFunctions.RegularizedGammaQ(df / 2.0, x / 2.0);
+    }
+
+    /// <summary>CDF распределения Фишера.</summary>
+    /// <param name="f">Значение.</param>
+    /// <param name="df1">Степени свободы числителя.</param>
+    /// <param name="df2">Степени свободы знаменателя.</param>
+    public static double FCdf(double f, double df1, double df2)
+    {
+        if (double.IsNaN(f) || !(df1 > 0) || !(df2 > 0)) return double.NaN;
+        if (f <= 0) return 0;
+
+        double scaled = df1 * f;
+
+        return SpecialFunctions.RegularizedBeta(df1 / 2, df2 / 2, scaled / (scaled + df2), df2 / (scaled + df2));
+    }
+
+    /// <summary>Правый хвост распределения Фишера P(F &gt; f) — без вычитания из единицы.</summary>
+    /// <param name="f">Значение.</param>
+    /// <param name="df1">Степени свободы числителя.</param>
+    /// <param name="df2">Степени свободы знаменателя.</param>
+    public static double FSf(double f, double df1, double df2)
+    {
+        if (double.IsNaN(f) || !(df1 > 0) || !(df2 > 0)) return double.NaN;
+        if (f <= 0) return 1;
+
+        double scaled = df1 * f;
+
+        return SpecialFunctions.RegularizedBeta(df2 / 2, df1 / 2, df2 / (df2 + scaled), scaled / (df2 + scaled));
     }
 
     /// <summary>PDF стандартного нормального.</summary>
@@ -402,7 +459,7 @@ public static partial class StatInference
     public static double TPdf(double t, int df)
     {
         double halfDfPlus1 = (df + 1.0) / 2.0;
-        return Math.Exp(LogGamma(halfDfPlus1) - LogGamma(df / 2.0)
+        return Math.Exp(SpecialFunctions.LogGamma(halfDfPlus1) - SpecialFunctions.LogGamma(df / 2.0)
             - 0.5 * Math.Log(df * Math.PI)
             - halfDfPlus1 * Math.Log(1.0 + t * t / df));
     }
@@ -423,137 +480,60 @@ public static partial class StatInference
         if (lambda == 0)
             return k == 0 ? 0.0 : double.NegativeInfinity;
 
-        return (k * Math.Log(lambda)) - lambda - LogGamma(k + 1.0);
+        return (k * Math.Log(lambda)) - lambda - SpecialFunctions.LogFactorial(k);
     }
 
     #endregion
 
     #region Математические утилиты
 
-    /// <summary>
-    /// Функция ошибок через неполную гамма-функцию, erf(x) = P(½, x²), — почти двойная точность.
-    /// Реализация общая с <see cref="AI.HighLevelFunctions.FunctionsForEachElements.Erf(double)"/>: прежняя формула
-    /// Абрамовица - Стиган 7.1.26 ошибалась до 1.5e-7, и эта погрешность доходила до всех потребителей Φ.
-    /// </summary>
-    public static double Erf(double x) => AI.HighLevelFunctions.FunctionsForEachElements.Erf(x);
+    /// <summary>Функция ошибок.</summary>
+    [Obsolete("Используйте AI.HighLevelFunctions.SpecialFunctions.Erf — единственную реализацию.")]
+    public static double Erf(double x) => SpecialFunctions.Erf(x);
 
-    /// <summary>
-    /// Логарифм гамма-функции, аппроксимация Ланцоша (g = 7, n = 9).
-    /// </summary>
-    /// <remarks>
-    /// Для аргументов меньше 1/2 применяется формула отражения, поэтому функция
-    /// определена на всей положительной полуоси, а не только при x больше 1/2.
-    /// </remarks>
+    /// <summary>Логарифм гамма-функции.</summary>
     /// <param name="x">Аргумент, x &gt; 0.</param>
-    public static double LogGamma(double x)
-    {
-        if (x <= 0 || double.IsNaN(x)) return double.NaN;
-
-        if (x < 0.5)
-        {
-            // Формула отражения: Г(x)Г(1-x) = pi / sin(pi x)
-            return Math.Log(Math.PI / Math.Abs(Math.Sin(Math.PI * x))) - LogGamma(1.0 - x);
-        }
-
-        double[] lanczos = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-                            771.32342877765313, -176.61502916214059, 12.507343278686905,
-                            -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
-
-        double z = x - 1.0;
-        double a = lanczos[0];
-        for (int i = 1; i < lanczos.Length; i++) a += lanczos[i] / (z + i);
-
-        double t = z + 7.5;
-        return (0.5 * Math.Log(2 * Math.PI)) + ((z + 0.5) * Math.Log(t)) - t + Math.Log(a);
-    }
+    [Obsolete("Используйте AI.HighLevelFunctions.SpecialFunctions.LogGamma — единственную реализацию.")]
+    public static double LogGamma(double x) => SpecialFunctions.LogGamma(x);
 
     #endregion
 
     #region Внутренние
 
-    // Regularized lower incomplete gamma P(a, x) = γ(a,x)/Γ(a)
-    private static double RegularizedGammaP(double a, double x)
+    /// <summary>
+    /// Точка на x &gt; 0, где признак «левее корня» сменяется на «правее».
+    /// </summary>
+    /// <remarks>
+    /// Скобка расширяется удвоением и сужается делением пополам до относительной ширины в
+    /// единицу младшего разряда. Критерий относительный, поэтому корень порядка 1e-20 находится
+    /// так же точно, как корень порядка 1.
+    /// </remarks>
+    private static double Bisect(Func<double, bool> isLeftOfRoot, double start)
     {
-        if (x <= 0) return 0;
-        if (x < a + 1.0)
+        double lo = 0, hi = start;
+
+        while (isLeftOfRoot(hi))
         {
-            // Series expansion
-            double sum = 1.0 / a, term = 1.0 / a;
-            for (int n = 1; n < 200; n++)
-            {
-                term *= x / (a + n);
-                sum += term;
-                if (Math.Abs(term) < 1e-12 * Math.Abs(sum)) break;
-            }
-            return sum * Math.Exp(-x + a * Math.Log(x) - LogGamma(a));
+            lo = hi;
+            hi *= 2;
+
+            if (double.IsInfinity(hi)) return double.PositiveInfinity;
         }
-        else
+
+        // 2200 шагов хватает, чтобы пройти все двоичные порядки double от start до нуля
+        for (int i = 0; i < 2200; i++)
         {
-            // Continued fraction (upper gamma), P = 1 - Q
-            return 1.0 - RegularizedGammaQ(a, x);
+            double mid = lo + ((hi - lo) / 2);
+
+            if (mid <= lo || mid >= hi) break;
+
+            if (isLeftOfRoot(mid)) lo = mid;
+            else hi = mid;
+
+            if (hi - lo <= 4.5e-16 * hi) break;
         }
-    }
 
-    private static double RegularizedGammaQ(double a, double x)
-    {
-        // Lentz continued fraction for Q(a,x)
-        double b = x + 1.0 - a;
-        double c = 1e30, d = 1.0 / b;
-        double h = d;
-        for (int i = 1; i < 200; i++)
-        {
-            double an = -i * (i - a);
-            b += 2.0;
-            d = an * d + b; if (Math.Abs(d) < 1e-30) d = 1e-30;
-            c = b + an / c; if (Math.Abs(c) < 1e-30) c = 1e-30;
-            d = 1.0 / d;
-            double del = d * c;
-            h *= del;
-            if (Math.Abs(del - 1.0) < 1e-12) break;
-        }
-        return h * Math.Exp(-x + a * Math.Log(x) - LogGamma(a));
-    }
-
-    // Regularized incomplete beta I_x(a,b) via continued fraction
-    private static double RegularizedIncompleteBeta(double a, double b, double x)
-    {
-        if (x <= 0) return 0;
-        if (x >= 1) return 1;
-
-        double logBeta = LogGamma(a) + LogGamma(b) - LogGamma(a + b);
-        double front = Math.Exp(Math.Log(x) * a + Math.Log(1.0 - x) * b - logBeta);
-
-        // Use continued fraction (Lentz's method)
-        if (x < (a + 1.0) / (a + b + 2.0))
-            return front * BetaCF(a, b, x) / a;
-        else
-            return 1.0 - front * BetaCF(b, a, 1.0 - x) / b;
-    }
-
-    private static double BetaCF(double a, double b, double x)
-    {
-        const int maxIter = 200;
-        const double eps = 1e-10;
-        double qab = a + b, qap = a + 1, qam = a - 1;
-        double c = 1, d = 1.0 - qab * x / qap;
-        if (Math.Abs(d) < eps) d = eps;
-        d = 1.0 / d;
-        double h = d;
-        for (int m = 1; m <= maxIter; m++)
-        {
-            int m2 = 2 * m;
-            double aa = m * (b - m) * x / ((qam + m2) * (a + m2));
-            d = 1.0 + aa * d; if (Math.Abs(d) < eps) d = eps;
-            c = 1.0 + aa / c; if (Math.Abs(c) < eps) c = eps;
-            d = 1.0 / d; h *= d * c;
-            aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
-            d = 1.0 + aa * d; if (Math.Abs(d) < eps) d = eps;
-            c = 1.0 + aa / c; if (Math.Abs(c) < eps) c = eps;
-            d = 1.0 / d;
-            double del = d * c; h *= del;
-            if (Math.Abs(del - 1.0) < eps) break;
-        }
-        return h;
+        return lo + ((hi - lo) / 2);
     }
 
     #endregion

@@ -1,4 +1,5 @@
 using AI.Earth.Geodesy;
+using AI.Units;
 
 namespace AI.Earth.Projections;
 
@@ -34,7 +35,7 @@ public static class WebMercator
     public const double MaxLatitude = 85.05112877980659;
 
     /// <summary>Радиус сферы, принятый в проекции</summary>
-    public const double Radius = 6378137.0;
+    public const double Radius = EarthConstants.Wgs84SemiMajorAxis;
 
     /// <summary>Прямое преобразование в метры проекции</summary>
     /// <param name="point">Географическая точка</param>

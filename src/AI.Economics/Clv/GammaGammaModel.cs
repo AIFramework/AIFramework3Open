@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AI.Econometrics.Numerics;
+using AI.HighLevelFunctions;
 
 using AI.Insights;
 
@@ -107,7 +108,7 @@ public sealed partial class GammaGammaModel
             double m = customers[i].MonetaryValue;
             double px = p * x;
 
-            double ll = EconMath.LogGamma(px + q) - EconMath.LogGamma(px) - EconMath.LogGamma(q)
+            double ll = SpecialFunctions.LogGamma(px + q) - SpecialFunctions.LogGamma(px) - SpecialFunctions.LogGamma(q)
                       + (q * Math.Log(gamma))
                       + ((px - 1.0) * Math.Log(m))
                       + (px * Math.Log(x))

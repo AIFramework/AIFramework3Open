@@ -273,7 +273,9 @@ namespace AI.Solvers.Chem.Kinetics
 {
     public static class ArrheniusAnalysis
     {
-        public const double GasConstant = 8.314462618D;
+        [System.Obsolete("Используйте AI.Units.PhysicalConstants.Values.GasConstant — единственную таблицу " +
+            "констант.")]
+        public const double GasConstant = 8.31446261815324D;
         public static double ActivationEnergyFromTwoPoints(double temperature1, double rateConstant1, double temperature2, double rateConstant2) { }
         public static AI.Solvers.Chem.Kinetics.ArrheniusResult Fit(System.Collections.Generic.IReadOnlyList<double> temperatures, System.Collections.Generic.IReadOnlyList<double> rateConstants, double confidence = 0.95) { }
     }

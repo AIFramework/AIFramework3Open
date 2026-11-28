@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using AI.Units;
 
 namespace AI.Solvers.Chem.Kinetics;
 
@@ -35,7 +36,7 @@ public sealed class RunawayParameters
     /// <summary>Константа скорости при температуре, 1/с</summary>
     /// <param name="temperature">Температура, K</param>
     public double RateConstantAt(double temperature)
-        => PreExponentialFactor * Math.Exp(-ActivationEnergy * 1000 / (ArrheniusAnalysis.GasConstant * temperature));
+        => PreExponentialFactor * Math.Exp(-ActivationEnergy * 1000 / (PhysicalConstants.Values.GasConstant * temperature));
 
     /// <summary>Удельная скорость тепловыделения при температуре, Вт/кг</summary>
     /// <param name="temperature">Температура, K</param>
@@ -258,7 +259,7 @@ public static class ThermalRunaway
         if (heatRate <= 0)
             return double.PositiveInfinity;
 
-        return parameters.HeatCapacity * ArrheniusAnalysis.GasConstant * t * t
+        return parameters.HeatCapacity * PhysicalConstants.Values.GasConstant * t * t
             / (heatRate * parameters.ActivationEnergy * 1000);
     }
 

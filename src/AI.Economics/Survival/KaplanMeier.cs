@@ -194,7 +194,7 @@ public sealed partial class KaplanMeier
         double chi = (observedA - expectedA) * (observedA - expectedA) / variance;
 
         // Для одной степени свободы p = 2 (1 - Ф(sqrt(chi))) — точное выражение
-        double p = 2.0 * (1.0 - EconMath.NormalCdf(Math.Sqrt(chi)));
+        double p = Distributions.NormalPValue(Math.Sqrt(chi));
         return (chi, EconMath.Clamp(p, 0, 1));
     }
 }

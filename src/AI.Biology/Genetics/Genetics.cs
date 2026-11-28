@@ -84,7 +84,7 @@ public static class HardyWeinberg
             + Contribution(homozygousRecessive, expectedRecessive);
 
         // Одна степень свободы: три генотипа минус одна оценённая частота минус связь долей
-        double pValue = 1 - StatInference.ChiSquaredCdf(chi, 1);
+        double pValue = StatInference.ChiSquaredSf(chi, 1);
 
         return new HardyWeinbergResult(
             p, expectedDominant, expectedHeterozygous, expectedRecessive, chi, pValue, pValue > alpha);
@@ -153,7 +153,7 @@ public static class Mendel
         }
 
         int degrees = observed.Count - 1;
-        double pValue = 1 - StatInference.ChiSquaredCdf(chi, degrees);
+        double pValue = StatInference.ChiSquaredSf(chi, degrees);
 
         return (chi, pValue, pValue > alpha);
     }
