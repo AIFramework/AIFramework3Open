@@ -17,8 +17,12 @@ namespace AI.Script.Std;
 /// числам верить нельзя, и потерять их по дороге в скрипт значило бы отдать автору ровно ту
 /// часть ответа, которая выглядит убедительно.
 /// </remarks>
-internal static class ScriptData
+internal static partial class ScriptData
 {
+    /// <summary>Запись вида 01.01.2025, 2025-01-31, 1/2/25 — с временем или без.</summary>
+    [System.Text.RegularExpressions.GeneratedRegex(@"^\d{1,4}([./-])\d{1,2}\1\d{1,4}([ T]\d{1,2}:\d{2}.*)?$")]
+    private static partial System.Text.RegularExpressions.Regex DateLike();
+
     /// <summary>Колонки таблицы матрицей объект × признак, в указанном порядке.</summary>
     public static Matrix Columns(ScriptTable data, IReadOnlyList<string> names, string function)
     {
@@ -227,7 +231,13 @@ internal static class ScriptData
 
             if (text.Length == 0) continue;
 
-            // Не разбор числа, а только признак: в ячейке нет ничего, кроме цифр и знаков записи числа
+            // Не разбор, а только признак по виду записи. Сначала дата: «01.01.2025» состоит из тех же
+            // знаков, что и число, но совет про десятичную запятую для неё неверен
+            if (DateLike().IsMatch(text))
+            {
+                return $"текст, похожий на даты («{text}»): это не ряд; table.clean(...) прочитает их датами";
+            }
+
             bool numberLike = text.Any(char.IsAsciiDigit)
                 && text.All(c => char.IsAsciiDigit(c) || char.IsWhiteSpace(c) || "., +-−%₽$€'\u00A0\u202F".Contains(c, StringComparison.Ordinal));
 

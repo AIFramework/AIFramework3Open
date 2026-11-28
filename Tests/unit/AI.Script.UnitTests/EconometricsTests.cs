@@ -568,6 +568,7 @@ public sealed class EconometricsTests
             emit variables = v.variables
             emit skipped = v.skipped["column"]
             emit reason = lost[0].reason
+            emit date_reason = (v.skipped |> table.filter(c => c.column == "дата"))[0].reason
             emit warnings = v.warnings
             """, RussianExport());
 
@@ -579,6 +580,12 @@ public sealed class EconometricsTests
 
         Assert.Contains("десятичной запятой", reason, StringComparison.Ordinal);
         Assert.Contains("table.clean", reason, StringComparison.Ordinal);
+
+        // Дата записью «01.01.2020» состоит из цифр и точек, но причина у неё своя, без совета про запятую
+        string dateReason = (string)result.Emitted["date_reason"]!;
+
+        Assert.Contains("даты", dateReason, StringComparison.Ordinal);
+        Assert.DoesNotContain("запятой", dateReason, StringComparison.Ordinal);
         Assert.Contains(((IEnumerable<object?>)result.Emitted["warnings"]!).Cast<string>(),
             warning => warning.Contains("'выручка' не вошла в модель", StringComparison.Ordinal));
     }
