@@ -136,6 +136,9 @@ public static class PhysicalConstants
 
         /// <summary>Магнитная постоянная μ₀, Гн/м; CODATA 2022</summary>
         public const double VacuumPermeability = 1.25663706127e-6;
+
+        /// <summary>Волновое сопротивление свободного пространства Z₀ = μ₀c, Ом; CODATA 2022</summary>
+        public const double FreeSpaceImpedance = 376.730313412;
     }
 
     /// <summary>

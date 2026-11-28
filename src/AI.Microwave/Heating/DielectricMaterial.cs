@@ -1,4 +1,5 @@
 ﻿using AI.Microwave.Physics;
+using AI.Units;
 
 namespace AI.Microwave.Heating;
 
@@ -79,7 +80,7 @@ public class DielectricMaterial
 
     /// <summary>Волновое сопротивление среды, Ом.</summary>
     public double IntrinsicImpedance
-        => MicrowavePhysics.FreeSpaceImpedance / Math.Sqrt(RelativePermittivity);
+        => PhysicalConstants.Values.FreeSpaceImpedance / Math.Sqrt(RelativePermittivity);
 
     /// <summary>
     /// Доля мощности, отражённая от плоской границы с воздухом при

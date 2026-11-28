@@ -78,7 +78,7 @@ public class RectangularWaveguide
     /// компенсировались, на любом другом волноводе - нет.
     /// </remarks>
     public double WaveImpedanceTE10(double frequencyHz)
-        => MicrowavePhysics.FreeSpaceImpedance / Dispersion(frequencyHz);
+        => PhysicalConstants.Values.FreeSpaceImpedance / Dispersion(frequencyHz);
 
     /// <summary>
     /// Эквивалентное сопротивление линии в определении напряжение-мощность:
@@ -105,7 +105,7 @@ public class RectangularWaveguide
         double rs = MicrowavePhysics.SurfaceResistance(frequencyHz, conductivity);
         double d = Dispersion(frequencyHz);
         double fcOverF = CutoffTE10Hz / frequencyHz;
-        return rs / (HeightM * MicrowavePhysics.FreeSpaceImpedance * d)
+        return rs / (HeightM * PhysicalConstants.Values.FreeSpaceImpedance * d)
              * (1.0 + 2.0 * (HeightM / WidthM) * fcOverF * fcOverF);
     }
 

@@ -1,5 +1,6 @@
 ﻿using AI.Microwave.Physics;
 using AI.Solvers.Math.Core.Solvers;
+using AI.Units;
 
 namespace AI.Microwave.Safety;
 
@@ -90,7 +91,7 @@ public class ExposureScene
         return new ExposureAssessment(
             point,
             s,
-            Math.Sqrt(s * MicrowavePhysics.FreeSpaceImpedance),
+            Math.Sqrt(s * PhysicalConstants.Values.FreeSpaceImpedance),
             ExposureRatioAt(point));
     }
 

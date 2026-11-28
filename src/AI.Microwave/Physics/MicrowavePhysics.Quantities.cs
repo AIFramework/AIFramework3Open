@@ -79,7 +79,7 @@ public static class MicrowaveQuantities
         double s = powerDensity.RequireSi(PowerDensity, nameof(powerDensity));
 
         double z = impedance.Dimension.IsDimensionless && impedance.SiValue == 0.0
-            ? MicrowavePhysics.FreeSpaceImpedance
+            ? PhysicalConstants.Values.FreeSpaceImpedance
             : impedance.RequireSi(Dimension.Resistance, nameof(impedance));
 
         return new Quantity(MicrowavePhysics.PeakFieldFromPowerDensity(s, z), ElectricField);

@@ -57,7 +57,7 @@ public readonly record struct ExposureLimit(
 /// </remarks>
 public static class ExposureLimits
 {
-    private const double Eta0 = Physics.MicrowavePhysics.FreeSpaceImpedance;
+    private const double Eta0 = AI.Units.PhysicalConstants.Values.FreeSpaceImpedance;
 
     /// <summary>Пользовательская таблица; если непуста, используется вместо встроенных.</summary>
     public static List<ExposureLimit> Custom { get; } = [];

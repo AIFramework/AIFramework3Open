@@ -10,7 +10,8 @@ namespace AI.Solvers.Chem.Processors.Physical;
 public class GasLawCalculator
 {
     private readonly VerbosityLevel _verbosity;
-    private const double R = 0.0821; // L·atm/(mol·K)
+    // Газовая постоянная в л·атм/(моль·К): R в Дж/(моль·К), делённая на атмосферу в паскалях, на 1000 л в м³
+    private const double R = AI.Units.PhysicalConstants.Values.GasConstant * 1000 / AI.Units.PhysicalConstants.Values.StandardAtmosphere;
 
     public GasLawCalculator(VerbosityLevel verbosity)
     {

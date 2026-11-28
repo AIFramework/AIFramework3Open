@@ -1993,6 +1993,7 @@ namespace AI.Units
             public const double BoltzmannConstant = 1.380649E-23D;
             public const double ElementaryCharge = 1.602176634E-19D;
             public const double FaradayConstant = 96485.33212331001D;
+            public const double FreeSpaceImpedance = 376.730313412D;
             public const double GasConstant = 8.31446261815324D;
             public const double GravitationalConstant = 6.6743E-11D;
             public const double Icepoint = 273.15D;

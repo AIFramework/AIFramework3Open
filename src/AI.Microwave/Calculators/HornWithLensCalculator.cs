@@ -1,6 +1,7 @@
 ﻿using AI.Microwave.Geometry;
 using AI.Microwave.Models;
 using AI.Microwave.Physics;
+using AI.Units;
 
 namespace AI.Microwave.Calculators;
 
@@ -103,7 +104,7 @@ public class HornWithLensCalculator : AntennaCalculatorBase
         // случай. Потери на это отражение уже сидят в slabTransmittance,
         // поэтому отдельно на MismatchEfficiency КИП не умножается.
         double vswr = Math.Max(1.05, material.WorstCaseVswr);
-        ApplyMatching(result, vswr, MicrowavePhysics.FreeSpaceImpedance);
+        ApplyMatching(result, vswr, PhysicalConstants.Values.FreeSpaceImpedance);
 
         // -- КИП и усиление ---------------------------------------------------------
         double sigma = param.Material.Conductivity;
@@ -148,7 +149,7 @@ public class HornWithLensCalculator : AntennaCalculatorBase
 
         result.PowerDensityPeak = param.PowerWatts / apertureArea / taperEfficiency;
         double lensBulkField = MicrowavePhysics.PeakFieldFromPowerDensity(
-            result.PowerDensityPeak, MicrowavePhysics.FreeSpaceImpedance / material.RefractiveIndex);
+            result.PowerDensityPeak, PhysicalConstants.Values.FreeSpaceImpedance / material.RefractiveIndex);
         double voidField = lensBulkField * material.RelativePermittivity;
 
         ApplyBreakdown(result,

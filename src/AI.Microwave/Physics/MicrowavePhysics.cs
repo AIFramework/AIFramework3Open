@@ -15,10 +15,12 @@ public static class MicrowavePhysics
     public const double SpeedOfLight = PhysicalConstants.Values.SpeedOfLight;
 
     /// <summary>Магнитная постоянная, Гн/м.</summary>
-    public const double VacuumPermeability = 4e-7 * Math.PI;
+    [Obsolete("Используйте AI.Units.PhysicalConstants.Values.VacuumPermeability — единственную таблицу констант.")]
+    public const double VacuumPermeability = PhysicalConstants.Values.VacuumPermeability;
 
     /// <summary>Волновое сопротивление свободного пространства, Ом.</summary>
-    public const double FreeSpaceImpedance = 376.730313412;
+    [Obsolete("Используйте AI.Units.PhysicalConstants.Values.FreeSpaceImpedance — единственную таблицу констант.")]
+    public const double FreeSpaceImpedance = PhysicalConstants.Values.FreeSpaceImpedance;
 
     /// <summary>Множитель перевода неперов в децибелы.</summary>
     public const double NeperToDb = 8.685889638065035;
@@ -28,7 +30,7 @@ public static class MicrowavePhysics
 
     /// <summary>Глубина скин-слоя, м: d = sqrt(1 / (pi f mu0 sigma)).</summary>
     public static double SkinDepth(double frequencyHz, double conductivity)
-        => Math.Sqrt(1.0 / (Math.PI * frequencyHz * VacuumPermeability * conductivity));
+        => Math.Sqrt(1.0 / (Math.PI * frequencyHz * PhysicalConstants.Values.VacuumPermeability * conductivity));
 
     /// <summary>Поверхностное сопротивление проводника, Ом на квадрат: Rs = 1 / (sigma d).</summary>
     public static double SurfaceResistance(double frequencyHz, double conductivity)
@@ -39,7 +41,7 @@ public static class MicrowavePhysics
     /// падении: A = 4 Rs / eta0. Для меди на 2.45 ГГц это 1.4e-4, а не 1 %.
     /// </summary>
     public static double MetalAbsorptance(double frequencyHz, double conductivity)
-        => 4.0 * SurfaceResistance(frequencyHz, conductivity) / FreeSpaceImpedance;
+        => 4.0 * SurfaceResistance(frequencyHz, conductivity) / PhysicalConstants.Values.FreeSpaceImpedance;
 
     /// <summary>Модуль коэффициента отражения по напряжению из КСВ.</summary>
     public static double ReflectionCoefficient(double vswr)
@@ -75,7 +77,7 @@ public static class MicrowavePhysics
 
     /// <summary>Амплитуда поля бегущей плоской волны: E = sqrt(2 S Z).</summary>
     public static double PeakFieldFromPowerDensity(double powerDensityWPerM2,
-        double impedanceOhm = FreeSpaceImpedance)
+        double impedanceOhm = PhysicalConstants.Values.FreeSpaceImpedance)
         => Math.Sqrt(2.0 * powerDensityWPerM2 * impedanceOhm);
 
     /// <summary>Перевод разов в децибелы по мощности.</summary>

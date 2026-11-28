@@ -68,7 +68,7 @@ public sealed partial class MathOneHomeRatchetTests
     private static readonly Dictionary<string, int> s_constantLiterals = new(StringComparer.Ordinal)
     {
         // Таблицы: PhysicalConstants (Values и неопределённости), EarthConstants, определения единиц в Si
-        ["src/AI/Units/PhysicalConstants.cs"] = 12,
+        ["src/AI/Units/PhysicalConstants.cs"] = 13,
         ["src/AI/Units/EarthConstants.cs"] = 5,
         ["src/AI/Units/Si.cs"] = 2,
         // Стандартная атмосфера 1976 года: R* = 8.31432 — число стандарта, а не CODATA;
@@ -337,6 +337,6 @@ public sealed partial class MathOneHomeRatchetTests
     private static partial Regex HandRolledApproximation();
 
     // c, h, e, k, N_A, R, F, σ, g, атмосфера, G, ε₀, μ₀; радиусы и масса Земли, сжатие WGS 84
-    [GeneratedRegex(@"(?<![\w.])(?:299_?792_?458|6\.626\d*e-34|1\.602\d*e-19|1\.380\d*e-23|6\.022\d*e\+?23|8\.314\d*|96_?485(?:\.\d+)?|5\.670\d*e-0?8|9\.80665|101_?325(?:\.0)?|6\.67\d*e-11|8\.854\d*e-12|1\.2566\d*e-0?6|6_?371(?:_?\d{3})?(?:\.\d+)?(?:e\d)?|6\.371e6|6_?378_?137(?:\.0)?|6_?378_?245(?:\.0)?|298\.257\d*|5\.972\d*e24)(?![\w.]*\d)")]
+    [GeneratedRegex(@"(?<![\w.])(?:299_?792_?458|6\.626\d*e-34|1\.602\d*e-19|1\.380\d*e-23|6\.022\d*e\+?23|8\.314\d*|96_?485(?:\.\d+)?|5\.670\d*e-0?8|9\.80665|101_?325(?:\.0)?|6\.67\d*e-11|8\.854\d*e-12|1\.2566\d*e-0?6|6_?371(?:_?\d{3})?(?:\.\d+)?(?:e\d)?|6\.371e6|6_?378_?137(?:\.0)?|6_?378_?245(?:\.0)?|298\.257\d*|5\.972\d*e24|0\.0821\d*|0\.08206\d*|376\.73\d*|4e-7 \* Math\.PI)(?![\w.]*\d)")]
     private static partial Regex ConstantLiteral();
 }

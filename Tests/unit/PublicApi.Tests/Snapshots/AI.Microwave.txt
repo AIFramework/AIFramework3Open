@@ -470,12 +470,16 @@ namespace AI.Microwave.Physics
     }
     public static class MicrowavePhysics
     {
+        [System.Obsolete("Используйте AI.Units.PhysicalConstants.Values.FreeSpaceImpedance — единственную т" +
+            "аблицу констант.")]
         public const double FreeSpaceImpedance = 376.730313412D;
         public const double NeperToDb = 8.685889638065035D;
         [System.Obsolete("Используйте AI.Units.PhysicalConstants.Values.SpeedOfLight — единственную таблицу" +
             " констант.")]
         public const double SpeedOfLight = 299792458D;
-        public const double VacuumPermeability = 1.2566370614359173E-06D;
+        [System.Obsolete("Используйте AI.Units.PhysicalConstants.Values.VacuumPermeability — единственную т" +
+            "аблицу констант.")]
+        public const double VacuumPermeability = 1.25663706127E-06D;
         public static double ApertureGain(double physicalAreaM2, double efficiency, double lambdaM) { }
         public static double FarFieldDistance(double maxApertureM, double lambdaM) { }
         public static double FromDb(double db) { }

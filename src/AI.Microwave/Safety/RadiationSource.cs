@@ -1,4 +1,5 @@
 ﻿using AI.Microwave.Physics;
+using AI.Units;
 
 namespace AI.Microwave.Safety;
 
@@ -191,5 +192,5 @@ public class RadiationSource
     /// <summary>Напряжённость электрического поля в точке, В/м (плоская волна).</summary>
     public double ElectricFieldAt(SitePoint target,
         FieldDecayModel model = FieldDecayModel.ApertureThreeRegion)
-        => Math.Sqrt(PowerDensityAt(target, model) * MicrowavePhysics.FreeSpaceImpedance);
+        => Math.Sqrt(PowerDensityAt(target, model) * PhysicalConstants.Values.FreeSpaceImpedance);
 }
