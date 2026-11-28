@@ -10,6 +10,7 @@ namespace AI.BackEnds.DSP.NWaves.Operations
     /// Class responsible for Частота дискретизации conversion
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.Multirate: PolyphaseResampler, ResamplerDesign.Standard (окно Кайзера по ТЗ), FarrowResampler.")]
     public class Resampler
     {
         /// <summary>

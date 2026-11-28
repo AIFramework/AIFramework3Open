@@ -824,6 +824,8 @@ namespace AI.BackEnds.DSP.NWaves.Filters.OnePole
 }
 namespace AI.BackEnds.DSP.NWaves.Filters.Polyphase
 {
+    [System.Obsolete("Используйте AI.DSP.Multirate.PolyphaseResampler: P/Q, потоковая обработка, double" +
+        " и Q16.")]
     [System.Serializable]
     public class PolyphaseSystem : AI.BackEnds.DSP.NWaves.Filters.Base.IFilter, AI.BackEnds.DSP.NWaves.Filters.Base.IOnlineFilter
     {
@@ -969,6 +971,8 @@ namespace AI.BackEnds.DSP.NWaves.Operations
         public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal TimeStretch(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, double stretch, AI.BackEnds.DSP.NWaves.Operations.Tsm.TsmAlgorithm algorithm = 1) { }
         public static AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal TimeStretch(AI.BackEnds.DSP.NWaves.Signals.DiscreteSignal signal, double stretch, int windowSize, int hopSize, AI.BackEnds.DSP.NWaves.Operations.Tsm.TsmAlgorithm algorithm = 1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.Multirate: PolyphaseResampler, ResamplerDesign.Standard (окно " +
+        "Кайзера по ТЗ), FarrowResampler.")]
     [System.Serializable]
     public class Resampler
     {
@@ -1941,6 +1945,218 @@ namespace AI.DSP.Modulation
         AI.DSP.DSPCore.Channel Modulate(AI.DSP.DSPCore.Channel channel);
     }
 }
+namespace AI.DSP.Multirate
+{
+    public sealed class AkimaKernel : AI.DSP.Multirate.InterpolationKernel
+    {
+        public AkimaKernel() { }
+        public override int FirstNode { get; }
+        public override int LastNode { get; }
+        public override AI.DSP.Multirate.OperationCount Operations(AI.DSP.Multirate.Arithmetic arithmetic, AI.DSP.Multirate.Q16Options options) { }
+    }
+    public enum Arithmetic
+    {
+        Double = 0,
+        Q16 = 1,
+    }
+    public sealed class CicDecimator : AI.DSP.Multirate.MultirateBlock
+    {
+        public CicDecimator(int factor, int stages, int? offset = default, bool normalize = true, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public override double Delay { get; }
+        public int Factor { get; }
+        public System.Numerics.BigInteger Gain { get; }
+        public int Offset { get; }
+        public override AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        public override double RateFactor { get; }
+        public int Stages { get; }
+    }
+    public static class CicDesign
+    {
+        public static AI.DataStructs.Algebraic.Vector CorrectionFilter(int length, int stages, int factor, int taps, double band, double beta = 5, int gridSize = 32768) { }
+        public static int MaximumStages(int length, double bandEdge, double droopDb) { }
+        public static int MinimumStages(int factor, double bandRatio, double aliasAttenuationDb) { }
+        public static double StageAliasAttenuation(int factor, double bandRatio) { }
+        public static double StageAmplitude(double omega, int length) { }
+    }
+    public sealed class CicInterpolator : AI.DSP.Multirate.MultirateBlock
+    {
+        public CicInterpolator(int factor, int stages, int? skip = default, bool normalize = true, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public override double Delay { get; }
+        public int Factor { get; }
+        public System.Numerics.BigInteger Gain { get; }
+        public override AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        public override double RateFactor { get; }
+        public int Skip { get; }
+        public int Stages { get; }
+    }
+    public sealed class FarrowResampler : AI.DSP.Multirate.MultirateBlock
+    {
+        public FarrowResampler(double step, AI.DSP.Multirate.InterpolationKernel kernel = null, double? startPosition = default, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public FarrowResampler(long stepNumerator, long stepDenominator, AI.DSP.Multirate.InterpolationKernel kernel = null, double? startPosition = default, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public override double Delay { get; }
+        public long Denominator { get; }
+        public long Increment { get; }
+        public long IncrementRemainder { get; }
+        public AI.DSP.Multirate.InterpolationKernel Kernel { get; }
+        public override AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        public override double RateFactor { get; }
+        public double StartPosition { get; }
+        public double Step { get; }
+        public static double FirstPosition(double step, double delay, AI.DSP.Multirate.InterpolationKernel kernel = null) { }
+    }
+    public interface IMultirateBlock
+    {
+        AI.DSP.Multirate.Arithmetic Arithmetic { get; }
+        double Delay { get; }
+        AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        double RateFactor { get; }
+        AI.DataStructs.Algebraic.Vector Flush();
+        AI.DataStructs.Algebraic.Vector Process(AI.DataStructs.Algebraic.Vector input);
+        AI.DataStructs.Algebraic.Vector Process(double sample);
+        AI.DataStructs.Algebraic.Vector ProcessBlock(AI.DataStructs.Algebraic.Vector input);
+        void Reset();
+    }
+    public abstract class InterpolationKernel
+    {
+        protected InterpolationKernel() { }
+        public abstract int FirstNode { get; }
+        public abstract int LastNode { get; }
+        public int NodeCount { get; }
+        public double Interpolate(AI.DataStructs.Algebraic.Vector nodes, double mu) { }
+        public abstract AI.DSP.Multirate.OperationCount Operations(AI.DSP.Multirate.Arithmetic arithmetic, AI.DSP.Multirate.Q16Options options);
+    }
+    public static class KaiserFir
+    {
+        public static double BesselI0(double x) { }
+        public static double Beta(double attenuationDb) { }
+        public static int Length(double attenuationDb, double transitionWidth) { }
+        public static AI.DataStructs.Algebraic.Vector LowPass(int length, double cutoff, double beta, double gain = 1) { }
+        public static AI.DataStructs.Algebraic.Vector LowPass(double sampleRate, double passEdge, double stopEdge, double attenuationDb, double gain = 1) { }
+        public static AI.DataStructs.Algebraic.Vector Window(int length, double beta) { }
+    }
+    public sealed class LagrangeKernel : AI.DSP.Multirate.InterpolationKernel
+    {
+        public LagrangeKernel(int order = 3) { }
+        public AI.DataStructs.Algebraic.Matrix Coefficients { get; }
+        public override int FirstNode { get; }
+        public override int LastNode { get; }
+        public int Order { get; }
+        public override AI.DSP.Multirate.OperationCount Operations(AI.DSP.Multirate.Arithmetic arithmetic, AI.DSP.Multirate.Q16Options options) { }
+        public static double MaxRelativeFrequency(int order, double requiredSnrDb) { }
+    }
+    public sealed class MovingSourceResampler : AI.DSP.Multirate.MultirateBlock
+    {
+        public MovingSourceResampler(AI.DataStructs.Algebraic.Vector trajectory, double propagationSpeed, double sampleRate, int fractionBits = 32, int rebindPeriod = 256, AI.DSP.Multirate.InterpolationKernel kernel = null, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public override double Delay { get; }
+        public int FractionBits { get; }
+        public AI.DSP.Multirate.InterpolationKernel Kernel { get; }
+        public override AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        public double PropagationSpeed { get; }
+        public override double RateFactor { get; }
+        public int RebindPeriod { get; }
+        public double SampleRate { get; }
+        public double Position(long n) { }
+    }
+    public abstract class MultirateBlock : AI.DSP.Multirate.IMultirateBlock
+    {
+        public AI.DSP.Multirate.Arithmetic Arithmetic { get; }
+        public abstract double Delay { get; }
+        public abstract AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        public AI.DSP.Multirate.Q16Options Options { get; }
+        public abstract double RateFactor { get; }
+        public AI.DataStructs.Algebraic.Vector Flush() { }
+        public AI.DataStructs.Algebraic.Vector Process(AI.DataStructs.Algebraic.Vector input) { }
+        public AI.DataStructs.Algebraic.Vector Process(double sample) { }
+        public AI.DataStructs.Algebraic.Vector ProcessBlock(AI.DataStructs.Algebraic.Vector input) { }
+        public void Reset() { }
+    }
+    public sealed class MultirateChain : AI.DSP.Multirate.IMultirateBlock
+    {
+        public MultirateChain(params AI.DSP.Multirate.IMultirateBlock[] blocks) { }
+        public AI.DSP.Multirate.Arithmetic Arithmetic { get; }
+        public System.Collections.Generic.IReadOnlyList<AI.DSP.Multirate.IMultirateBlock> Blocks { get; }
+        public double Delay { get; }
+        public AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        public double RateFactor { get; }
+        public AI.DataStructs.Algebraic.Vector Flush() { }
+        public AI.DataStructs.Algebraic.Vector Process(AI.DataStructs.Algebraic.Vector input) { }
+        public AI.DataStructs.Algebraic.Vector Process(double sample) { }
+        public AI.DataStructs.Algebraic.Vector ProcessBlock(AI.DataStructs.Algebraic.Vector input) { }
+        public void Reset() { }
+    }
+    public readonly struct OperationCount : System.IEquatable<AI.DSP.Multirate.OperationCount>
+    {
+        public OperationCount(double Additions, double Multiplications, double Shifts, double Divisions) { }
+        public double Additions { get; init; }
+        public double Divisions { get; init; }
+        public double Multiplications { get; init; }
+        public double Shifts { get; init; }
+        public double Total { get; }
+        public static AI.DSP.Multirate.OperationCount operator *(AI.DSP.Multirate.OperationCount a, double scale) { }
+        public static AI.DSP.Multirate.OperationCount operator +(AI.DSP.Multirate.OperationCount a, AI.DSP.Multirate.OperationCount b) { }
+    }
+    public sealed class PolyphaseResampler : AI.DSP.Multirate.MultirateBlock
+    {
+        public PolyphaseResampler(int interpolation, int decimation, AI.DataStructs.Algebraic.Vector coefficients, int? offset = default, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public int Decimation { get; }
+        public override double Delay { get; }
+        public int Interpolation { get; }
+        public int Length { get; }
+        public int Offset { get; }
+        public override AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        public override double RateFactor { get; }
+        public int Taps { get; }
+    }
+    public readonly struct Q16 : System.IEquatable<AI.DSP.Multirate.Q16>
+    {
+        public const int FractionBits = 16;
+        public const int One = 65536;
+        public Q16(int raw) { }
+        public int Raw { get; }
+        public bool Equals(AI.DSP.Multirate.Q16 other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+        public double ToDouble() { }
+        public override string ToString() { }
+        public static AI.DSP.Multirate.Q16 Add(AI.DSP.Multirate.Q16 a, AI.DSP.Multirate.Q16 b, bool saturate = false) { }
+        public static AI.DSP.Multirate.Q16 FromDouble(double value, AI.DSP.Multirate.Q16Rounding rounding = 2, bool saturate = true) { }
+        public static AI.DSP.Multirate.Q16 Multiply(AI.DSP.Multirate.Q16 a, AI.DSP.Multirate.Q16 b, AI.DSP.Multirate.Q16Rounding rounding = 2, bool saturate = false) { }
+        public static AI.DSP.Multirate.Q16 Subtract(AI.DSP.Multirate.Q16 a, AI.DSP.Multirate.Q16 b, bool saturate = false) { }
+        public static bool operator !=(AI.DSP.Multirate.Q16 a, AI.DSP.Multirate.Q16 b) { }
+        public static AI.DSP.Multirate.Q16 operator *(AI.DSP.Multirate.Q16 a, AI.DSP.Multirate.Q16 b) { }
+        public static AI.DSP.Multirate.Q16 operator +(AI.DSP.Multirate.Q16 a, AI.DSP.Multirate.Q16 b) { }
+        public static AI.DSP.Multirate.Q16 operator -(AI.DSP.Multirate.Q16 a, AI.DSP.Multirate.Q16 b) { }
+        public static bool operator ==(AI.DSP.Multirate.Q16 a, AI.DSP.Multirate.Q16 b) { }
+    }
+    public sealed record Q16Options : System.IEquatable<AI.DSP.Multirate.Q16Options>
+    {
+        public Q16Options(AI.DSP.Multirate.Q16Rounding Convert, AI.DSP.Multirate.Q16Rounding Multiply, bool WideAccumulator, bool Saturate) { }
+        public AI.DSP.Multirate.Q16Rounding Convert { get; init; }
+        public AI.DSP.Multirate.Q16Rounding Multiply { get; init; }
+        public bool Saturate { get; init; }
+        public bool WideAccumulator { get; init; }
+        public static AI.DSP.Multirate.Q16Options Author { get; }
+        public static AI.DSP.Multirate.Q16Options Recommended { get; }
+    }
+    public enum Q16Rounding
+    {
+        TowardZero = 0,
+        Floor = 1,
+        Nearest = 2,
+    }
+    public static class ResamplerDesign
+    {
+        public static AI.DSP.Multirate.MultirateChain CicCorrectorFarrow(int sourceRate, int targetRate, double band, int stages = 4, int correctorTaps = 31, double beta = 5, AI.DSP.Multirate.InterpolationKernel kernel = null, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public static AI.DSP.Multirate.PolyphaseResampler Standard(int sourceRate, int targetRate, double band, double attenuationDb = 80, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+    }
+    public static class ResamplingMetrics
+    {
+        public static double MaxNormalizedCrossCorrelation(AI.DataStructs.Algebraic.Vector reference, AI.DataStructs.Algebraic.Vector test, int maxShift = 32) { }
+        public static double QuantizationNoiseVariance(AI.DataStructs.Algebraic.Vector fixedPoint, AI.DataStructs.Algebraic.Vector floatingPoint) { }
+        public static double QuantizationSnr(AI.DataStructs.Algebraic.Vector fixedPoint, AI.DataStructs.Algebraic.Vector floatingPoint) { }
+        public static double SnrFromCorrelation(double q) { }
+    }
+}
 namespace AI.DSP.Multiray
 {
     public class Detector : AI.DSP.Multiray.GeometrySignalObject
@@ -2035,6 +2251,8 @@ namespace AI.DSP.MusicUtils
 }
 namespace AI.DSP.Oversampling
 {
+    [System.Obsolete("Используйте AI.DSP.Multirate: PolyphaseResampler (P/1), ResamplerDesign.Standard " +
+        "или FarrowResampler.")]
     public static class UpSampling
     {
         public static AI.DataStructs.Algebraic.Vector UpSamplingButterworthFilter(AI.DataStructs.Algebraic.Vector signal, int fd, int factor, int order = 7) { }

@@ -133,7 +133,9 @@ namespace AI.BackEnds.DSP.NWaves.Operations
         /// <returns></returns>
         public static DiscreteSignal Interpolate(DiscreteSignal signal, int factor, FirFilter filter = null)
         {
+#pragma warning disable CS0618 // фасад NWaves сохраняется; новый путь — AI.DSP.Multirate
             return new Resampler().Interpolate(signal, factor, filter);
+#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -145,7 +147,9 @@ namespace AI.BackEnds.DSP.NWaves.Operations
         /// <returns></returns>
         public static DiscreteSignal Decimate(DiscreteSignal signal, int factor, FirFilter filter = null)
         {
+#pragma warning disable CS0618 // фасад NWaves сохраняется; новый путь — AI.DSP.Multirate
             return new Resampler().Decimate(signal, factor, filter);
+#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -157,7 +161,9 @@ namespace AI.BackEnds.DSP.NWaves.Operations
         /// <returns></returns>
         public static DiscreteSignal Resample(DiscreteSignal signal, int newSamplingRate, FirFilter filter = null)
         {
+#pragma warning disable CS0618 // фасад NWaves сохраняется; новый путь — AI.DSP.Multirate
             return new Resampler().Resample(signal, newSamplingRate, filter);
+#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -169,7 +175,9 @@ namespace AI.BackEnds.DSP.NWaves.Operations
         /// <returns></returns>
         public static DiscreteSignal ResampleUpDown(DiscreteSignal signal, int up, int down)
         {
+#pragma warning disable CS0618 // фасад NWaves сохраняется; новый путь — AI.DSP.Multirate
             return new Resampler().ResampleUpDown(signal, up, down);
+#pragma warning restore CS0618
         }
 
         /// <summary>

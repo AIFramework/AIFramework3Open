@@ -36,6 +36,11 @@
     <ProjectReference Include="..\..\..\src\AI.DataPrepaire\AI.DataPrepaire.csproj" />
     <ProjectReference Include="..\..\..\src\AI.ControlSystems\AI.ControlSystems.csproj" />
     <ProjectReference Include="..\..\..\src\AI.Psychology\AI.Psychology.csproj" />
+    <ProjectReference Include="..\..\..\src\AI.DSP\AI.DSP.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Dsp\Golden\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

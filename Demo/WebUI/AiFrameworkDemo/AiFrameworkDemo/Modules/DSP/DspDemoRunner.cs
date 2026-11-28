@@ -4,6 +4,7 @@ using AI.DataStructs.WithComplexElements;
 using AI.DSP.Analyse;
 using AI.DSP.DSPCore;
 using AI.DSP.FIR;
+using AI.DSP.Multirate;
 using AI.Charts.JS;
 using AiFrameworkDemo.Core;
 using static AiFrameworkDemo.Core.DemoRunnerBase;
@@ -136,6 +137,43 @@ public static class DspDemoRunner
                 cv.LabelX = "Время, с"; cv.LabelY = "Амплитуда";
                 PlotFirst(cv, t, raw,      "Вход",        new SKColor(100, 140, 255, 180));
                 PlotFirst(cv, t, filtered, "КИХ-фильтр", new SKColor(255, 200, 80));
+                break;
+            }
+
+            // -- МНОГОСКОРОСТНАЯ ОБРАБОТКА ------------------------------------
+            case "mr_cic_farrow":
+            {
+                (int fs, int ft) = Clamp((int)N("scenario", 2), 1, 4) switch
+                {
+                    1 => (384000, 48000),
+                    2 => (384000, 44100),
+                    3 => (48000, 44100),
+                    _ => (44100, 48000),
+                };
+                int stages = Clamp((int)N("K", 4), 1, 5);
+                int taps = Clamp((int)N("O", 31), 7, 63) | 1;
+                var arithmetic = N("q16", 1) > 0.5 ? Arithmetic.Q16 : Arithmetic.Double;
+                double f1 = N("f1", 3000);
+                int len = fs / 20;
+                var x = new Vector(len);
+                for (int i = 0; i < len; i++)
+                {
+                    x[i] = (0.3 * Math.Cos(2 * Math.PI * f1 * i / fs)) + (0.2 * Math.Cos(2 * Math.PI * 1.37 * f1 * i / fs));
+                }
+
+                Vector reference = ResamplerDesign.Standard(fs, ft, 20000).ProcessBlock(x);
+                MultirateChain chain = ResamplerDesign.CicCorrectorFarrow(fs, ft, 20000, stages, taps,
+                    arithmetic: arithmetic, options: Q16Options.Recommended);
+                Vector y = chain.ProcessBlock(x);
+                double snr = ResamplingMetrics.SnrFromCorrelation(ResamplingMetrics.MaxNormalizedCrossCorrelation(reference, y));
+                int m = Math.Min(200, Math.Min(reference.Count, y.Count));
+                var tm = new Vector(Enumerable.Range(0, m).Select(i => i / (double)ft));
+
+                cv.ChartName = $"{fs / 1000.0} → {ft / 1000.0} кГц: ОСШ {snr:F1} дБ, " +
+                               $"{chain.OperationsPerOutput.Multiplications:F1} умн./отсчёт ({arithmetic})";
+                cv.LabelX = "Время, с"; cv.LabelY = "Амплитуда";
+                cv.AddPlot(tm, new Vector(reference.Take(m)), "Стандартная схема (Кайзер 80 дБ)", new SKColor(100, 140, 255, 180));
+                cv.AddPlot(tm, new Vector(y.Take(m)), "ИГФ + корректор + Фэрроу", new SKColor(255, 200, 80));
                 break;
             }
 

@@ -10,6 +10,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Polyphase
     /// </summary>
     [Serializable]
 
+    [System.Obsolete("Используйте AI.DSP.Multirate.PolyphaseResampler: P/Q, потоковая обработка, double и Q16.")]
     public class PolyphaseSystem : IFilter, IOnlineFilter
     {
         /// <summary>

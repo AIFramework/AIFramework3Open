@@ -263,26 +263,11 @@ namespace AI.BackEnds.DSP.NWaves.Utils
         }
 
         /// <summary>
-        /// Modified Bessel function of the 1st kind (Taylor series, not very precise method)
+        /// Modified Bessel function of the 1st kind (ряд (2.9), одна реализация — AI.DSP.Multirate.KaiserFir.BesselI0)
         /// </summary>
         /// <param name="x">x</param>
         /// <returns>I0(x)</returns>
-        public static double I0(double x)
-        {
-            double y = 1.0;
-            double prev = 1.0;
-            int i = 1;
-
-            while (Math.Abs(prev) > 1e-20)
-            {
-                double summand = prev * x * x / (4 * i * i);
-                y += summand;
-                prev = summand;
-                i++;
-            }
-
-            return y;
-        }
+        public static double I0(double x) => AI.DSP.Multirate.KaiserFir.BesselI0(x);
 
 
         #region polynomials

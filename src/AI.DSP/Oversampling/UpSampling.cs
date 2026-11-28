@@ -7,6 +7,11 @@ namespace AI.DSP.Oversampling;
 /// <summary>
 /// Увеличение частоты дискретизации (upsampling)
 /// </summary>
+/// <remarks>
+/// Повышение частоты с ФНЧ через БПФ всего сигнала не является потоковым и не компенсирует спектр корректно;
+/// новый путь — <see cref="AI.DSP.Multirate.PolyphaseResampler"/> и <see cref="AI.DSP.Multirate.ResamplerDesign"/>.
+/// </remarks>
+[Obsolete("Используйте AI.DSP.Multirate: PolyphaseResampler (P/1), ResamplerDesign.Standard или FarrowResampler.")]
 public static class UpSampling
 {
     /// <summary>
