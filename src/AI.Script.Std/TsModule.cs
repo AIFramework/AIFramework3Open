@@ -119,15 +119,15 @@ public static partial class TsModule
         ScriptData.Require(order >= 0, $"{function}: порядок не может быть отрицательным");
         ScriptData.Require(horizon >= 1, $"{function}: горизонт — хотя бы один шаг");
 
-        string[] names = ScriptData.SeriesNames(data, columns);
+        ScriptData.SeriesChoice choice = ScriptData.Series(data, columns, function);
+        string[] names = choice.Names;
         Matrix series = ScriptData.Columns(data, names, function);
 
         VarResult result = order == 0
             ? VectorAutoregression.SelectOrder(series, names: names)
             : VectorAutoregression.Fit(series, order, names);
 
-        return ScriptData.Record(result,
-            ("variables", names),
+        return ScriptData.Record(result, choice, function,
             ("order", result.Order),
             ("stable", result.IsStable),
             ("spectral_radius", result.SpectralRadius),
@@ -166,11 +166,11 @@ public static partial class TsModule
 
         ScriptData.Require(lags >= 1, $"{function}: лагов — хотя бы один");
 
-        string[] names = ScriptData.SeriesNames(data, columns);
+        ScriptData.SeriesChoice choice = ScriptData.Series(data, columns, function);
+        string[] names = choice.Names;
         JohansenResult result = Cointegration.Johansen(ScriptData.Columns(data, names, function), lags, names);
 
-        return ScriptData.Record(result,
-            ("variables", names),
+        return ScriptData.Record(result, choice, function,
             ("rank", result.Rank),
             ("tests", ScriptData.Table(result.Rows,
                 ("rank", r => r.Rank),
@@ -197,12 +197,12 @@ public static partial class TsModule
         ScriptData.Require(rank >= 0, $"{function}: ранг не может быть отрицательным");
         ScriptData.Require(lags >= 1, $"{function}: лагов — хотя бы один");
 
-        string[] names = ScriptData.SeriesNames(data, columns);
+        ScriptData.SeriesChoice choice = ScriptData.Series(data, columns, function);
+        string[] names = choice.Names;
         VecmResult result = Cointegration.ErrorCorrection(
             ScriptData.Columns(data, names, function), rank, lags, names);
 
-        return ScriptData.Record(result,
-            ("variables", names),
+        return ScriptData.Record(result, choice, function,
             ("rank", result.Rank),
             ("adjustment", result.Adjustment),
             ("cointegrating", result.Cointegrating),

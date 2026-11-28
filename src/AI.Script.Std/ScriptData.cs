@@ -154,28 +154,89 @@ internal static class ScriptData
         Names = x,
     };
 
+    /// <summary>Колонка, не вошедшая в модель, и причина.</summary>
+    public sealed record SkippedColumn(string Column, string Type, string Reason);
+
+    /// <summary>Выбор рядов модели: что вошло и что пропущено.</summary>
+    public sealed record SeriesChoice(string[] Names, IReadOnlyList<SkippedColumn> Skipped)
+    {
+        /// <summary>Строки для <c>warnings</c>: по одной на пропущенную колонку.</summary>
+        public IEnumerable<string> Notes(string function) => Skipped.Select(column =>
+            $"{function}: колонка '{column.Column}' не вошла в модель — {column.Reason}");
+    }
+
     /// <summary>
     /// Ряды многомерной модели: указанные колонки либо все числовые.
     /// </summary>
     /// <remarks>
     /// По умолчанию берутся только числовые колонки: у таблицы с рядами почти всегда есть колонка
     /// даты, и требовать её явно исключать — значит заставлять каждого автора сделать одно и то же.
+    /// Но пропуск не молчит: каждая не взятая колонка возвращается с причиной. Иначе выгрузка с
+    /// десятичной запятой, где «выручка» прочиталась текстом, давала бы модель без выручки — и
+    /// ни одного признака, что её там нет.
     /// </remarks>
-    public static string[] SeriesNames(ScriptTable data, string[]? columns)
+    public static SeriesChoice Series(ScriptTable data, string[]? columns, string function)
     {
-        string[] names = columns is { Length: > 0 }
-            ? columns
-            : [.. data.Columns.Where(column => column.Type == ScriptType.Num).Select(column => column.Name)];
+        var skipped = new List<SkippedColumn>();
+        string[] names;
+
+        if (columns is { Length: > 0 })
+        {
+            names = columns;
+        }
+        else
+        {
+            var numeric = new List<string>();
+
+            foreach (ScriptColumn column in data.Columns)
+            {
+                if (column.Type == ScriptType.Num) numeric.Add(column.Name);
+                else skipped.Add(new SkippedColumn(column.Name, column.Type.ToName(), SkipReason(column)));
+            }
+
+            names = [.. numeric];
+        }
 
         if (names.Length < 2)
         {
+            string left = skipped.Count == 0
+                ? string.Empty
+                : "; не взяты: " + string.Join("; ", skipped.Select(column => $"'{column.Column}' — {column.Reason}"));
+
             throw new ScriptError(
                 DiagnosticCodes.BadOperand,
-                $"многомерной модели нужны хотя бы два ряда, а найдено {names.Length}",
+                $"{function}: многомерной модели нужны хотя бы два ряда, а найдено {names.Length}{left}",
                 "ряды — числовые колонки таблицы; перечислите их в columns: [...]");
         }
 
-        return names;
+        return new SeriesChoice(names, skipped);
+    }
+
+    /// <summary>Почему колонка не числовая — словами, с подсказкой, если это поправимо.</summary>
+    private static string SkipReason(ScriptColumn column)
+    {
+        if (column.Type == ScriptType.Date) return "это даты, а не ряд";
+
+        if (column.Type != ScriptType.Str) return $"тип {column.Type.ToName()}, а ряд — числа";
+
+        for (int i = 0; i < column.Count; i++)
+        {
+            if (column[i].IsNone) continue;
+
+            string text = column[i].AsString().Trim();
+
+            if (text.Length == 0) continue;
+
+            // Не разбор числа, а только признак: в ячейке нет ничего, кроме цифр и знаков записи числа
+            bool numberLike = text.Any(char.IsAsciiDigit)
+                && text.All(c => char.IsAsciiDigit(c) || char.IsWhiteSpace(c) || "., +-−%₽$€'\u00A0\u202F".Contains(c, StringComparison.Ordinal));
+
+            return numberLike
+                ? $"текст, похожий на числа («{text}»): так читается выгрузка с десятичной запятой или пробелами в разрядах; table.clean(...) сделает колонку числовой"
+                : $"текст («{text}»), а ряд — числа";
+        }
+
+        return "в колонке нет значений";
     }
 
     /// <summary>Строка таблицы ограничений: имя, коэффициенты по переменным, знак и правая часть.</summary>
@@ -306,6 +367,27 @@ internal static class ScriptData
         Interpretation verdict = result.Interpret();
 
         return Plain([.. fields, ("summary", verdict.Summary), ("warnings", verdict.Warnings)]);
+    }
+
+    /// <summary>
+    /// Запись результата модели по рядам таблицы: кроме разбора библиотеки — что вошло и что пропущено.
+    /// </summary>
+    /// <remarks>
+    /// Пропущенные колонки отдаются дважды: таблицей <c>skipped</c> (колонка, тип, причина) для
+    /// проверки в скрипте и строками в начале <c>warnings</c> — их видит тот, кто просто печатает результат.
+    /// </remarks>
+    public static ScriptRecord Record(
+        IInterpretable result, SeriesChoice series, string function, params (string Name, object Value)[] fields)
+    {
+        Interpretation verdict = result.Interpret();
+        IReadOnlyList<string> warnings = [.. series.Notes(function), .. verdict.Warnings];
+
+        return Plain([
+            ("variables", series.Names),
+            ("skipped", Table(series.Skipped, ("column", c => c.Column), ("type", c => c.Type), ("reason", c => c.Reason))),
+            .. fields,
+            ("summary", verdict.Summary),
+            ("warnings", warnings)]);
     }
 
     /// <summary>Запись из пар «имя — значение».</summary>

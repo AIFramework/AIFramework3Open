@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AI.ClassicMath.MatrixUtils;
 using AI.DataStructs.Algebraic;
 using AI.Insights;
 using AI.Econometrics.Numerics;
@@ -221,7 +222,7 @@ public static class VectorAutoregression
             LogLikelihood = logLikelihood,
             Aic = (-2 * logLikelihood) + (2 * parameters),
             Bic = (-2 * logLikelihood) + (parameters * Math.Log(rows)),
-            SpectralRadius = SpectralRadius(coefficients, k, order),
+            SpectralRadius = Eigen.SpectralRadius(Companion(coefficients, order)),
             Granger = GrangerTests(data, order, labels),
             Observations = rows,
         };
@@ -438,44 +439,42 @@ public static class VectorAutoregression
     }
 
     /// <summary>
-    /// Максимальный модуль корня характеристического уравнения.
+    /// Сопровождающая матрица модели: её собственные числа — корни характеристического уравнения.
     /// </summary>
     /// <remarks>
-    /// Оценивается скоростью роста степеней сопровождающей матрицы: предел
-    /// нормы её степени в корне даёт спектральный радиус независимо от того,
-    /// вещественный доминирующий корень или комплексный.
+    /// Модель порядка <c>p</c> по <c>k</c> переменным записывается как модель первого порядка
+    /// по вектору из <c>k·p</c> значений: верхние <c>k</c> строк — коэффициенты при лагах,
+    /// ниже — единичный сдвиг. Система устойчива, когда все собственные числа этой матрицы
+    /// по модулю меньше единицы; считает их <see cref="Eigen.General"/>.
     /// </remarks>
-    private static double SpectralRadius(Matrix coefficients, int k, int order)
+    /// <param name="coefficients">
+    /// Коэффициенты в раскладке <see cref="VarResult.Coefficients"/>: строка — уравнение,
+    /// первый столбец — константа, дальше лаги подряд.
+    /// </param>
+    /// <param name="order">Порядок модели.</param>
+    /// <returns>Квадратная матрица размера <c>k·p</c>.</returns>
+    /// <exception cref="ArgumentNullException">Коэффициенты не заданы.</exception>
+    /// <exception cref="ArgumentException">Число столбцов не равно <c>1 + k·p</c>.</exception>
+    public static Matrix Companion(Matrix coefficients, int order)
     {
+        ArgumentNullException.ThrowIfNull(coefficients);
+        ArgumentOutOfRangeException.ThrowIfLessThan(order, 1);
+
+        int k = coefficients.Height;
         int size = k * order;
-        var companion = new double[size, size];
+
+        if (coefficients.Width != 1 + size)
+            throw new ArgumentException("Ожидается константа и k столбцов на каждый лаг.", nameof(coefficients));
+
+        var companion = new Matrix(size, size);
 
         for (int i = 0; i < k; i++)
-            for (int j = 0; j < k * order; j++)
+            for (int j = 0; j < size; j++)
                 companion[i, j] = coefficients[i, 1 + j];
 
         for (int i = k; i < size; i++) companion[i, i - k] = 1;
 
-        var vector = new double[size];
-        for (int i = 0; i < size; i++) vector[i] = 1.0 / size;
-
-        double radius = 0;
-        const int steps = 200;
-
-        for (int step = 0; step < steps; step++)
-        {
-            double[] next = LinearAlgebra.Multiply(companion, vector);
-            double norm = Math.Sqrt(next.Sum(v => v * v));
-
-            if (norm < 1e-300) return 0;
-
-            for (int i = 0; i < size; i++) next[i] /= norm;
-            vector = next;
-
-            if (step >= steps / 2) radius += Math.Log(norm);
-        }
-
-        return Math.Exp(radius / (steps - (steps / 2)));
+        return companion;
     }
 
     /// <summary>Определитель матрицы через разложение Холецкого.</summary>

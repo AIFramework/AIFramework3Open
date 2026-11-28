@@ -21,4 +21,8 @@
     <ProjectReference Include="..\..\..\src\AI.Economics\AI.Economics.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Golden\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

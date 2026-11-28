@@ -71,6 +71,19 @@ $$
 **Проверка.** Ошибки предсказания $v_t/\sqrt{F_t}$ должны быть белым шумом —
 проверяется тестом Люнга — Бокса.
 
+**Интервал прогноза.** Дисперсия прогноза на $h$ шагов — это дисперсия
+состояния, протянутая вперёд той же рекурсией фильтра, плюс шум наблюдения:
+
+$$
+P_{n+h|n} = T\,P_{n+h-1|n}\,T^{\top} + Q,\qquad
+\operatorname{Var}(y_{n+h}) = \bigl[P_{n+h|n}\bigr]_{11} + \sigma_\varepsilon^2 .
+$$
+
+Для локального уровня получается $P_{n|n} + h\,\sigma_\eta^2 + \sigma_\varepsilon^2$.
+Первое слагаемое — неопределённость последнего состояния: уровень на последнюю
+дату оценён, а не известен, и без $P_{n|n}$ интервал выходит заметно уже
+правильного. Значения сверены со `statsmodels.tsa.UnobservedComponents`.
+
 ## Сложность
 
 | Ресурс | Оценка | Комментарий |
@@ -83,6 +96,7 @@ $$
 | Метод | Описание |
 |-------|----------|
 | `StateSpace.Fit(series, model, horizon)` | Оценка дисперсий, сглаживание, прогноз |
+| `StateSpace.Smooth(series, model, observationVariance, levelVariance, slopeVariance, horizon)` | То же при заданных дисперсиях, без оценивания |
 | `StateSpaceModel` | `LocalLevel`, `LocalLinearTrend` |
 | `StateSpaceResult.Level` / `FilteredLevel` | Сглаженный и фильтрованный уровень |
 | `StateSpaceResult.Slope` | Оценка наклона для модели с трендом |

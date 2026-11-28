@@ -498,6 +498,7 @@ namespace AI.Econometrics
     public static class StateSpace
     {
         public static AI.Econometrics.StateSpaceResult Fit(AI.DataStructs.Algebraic.Vector series, AI.Econometrics.StateSpaceModel model = 0, int horizon = 12) { }
+        public static AI.Econometrics.StateSpaceResult Smooth(AI.DataStructs.Algebraic.Vector series, AI.Econometrics.StateSpaceModel model, double observationVariance, double levelVariance, double slopeVariance = 0, int horizon = 12) { }
     }
     public enum StateSpaceModel
     {
@@ -623,6 +624,7 @@ namespace AI.Econometrics
     }
     public static class VectorAutoregression
     {
+        public static AI.DataStructs.Algebraic.Matrix Companion(AI.DataStructs.Algebraic.Matrix coefficients, int order) { }
         public static AI.Econometrics.VarResult Fit(AI.DataStructs.Algebraic.Matrix data, int order = 1, System.Collections.Generic.IReadOnlyList<string>? names = null) { }
         public static double[][][] ImpulseResponse(AI.Econometrics.VarResult result, int horizon = 20) { }
         public static AI.Econometrics.VarResult SelectOrder(AI.DataStructs.Algebraic.Matrix data, int maxOrder = 6, System.Collections.Generic.IReadOnlyList<string>? names = null, bool useBic = false) { }

@@ -199,11 +199,9 @@ public static class StateSpace
         ArgumentNullException.ThrowIfNull(series);
         if (series.Count < 10) throw new ArgumentException("Нужно минимум десять наблюдений.", nameof(series));
 
-        int n = series.Count;
         double scale = Variance(series);
 
         bool trend = model == StateSpaceModel.LocalLinearTrend;
-        int parameters = trend ? 3 : 2;
 
         double Negative(double[] p)
         {
@@ -211,7 +209,7 @@ public static class StateSpace
             double level = Math.Exp(Math.Clamp(p[1], -30, 20)) * scale;
             double slope = trend ? Math.Exp(Math.Clamp(p[2], -40, 20)) * scale : 0;
 
-            return -Filter(series, observation, level, slope, trend, out _, out _, out _, out _);
+            return -Filter(series, observation, level, slope, trend, out _, out _, out _, out _, out _);
         }
 
         double[] start = trend ? [Math.Log(0.5), Math.Log(0.05), Math.Log(0.005)] : [Math.Log(0.5), Math.Log(0.05)];
@@ -221,29 +219,74 @@ public static class StateSpace
         double levelVariance = Math.Exp(Math.Clamp(estimate[1], -30, 20)) * scale;
         double slopeVariance = trend ? Math.Exp(Math.Clamp(estimate[2], -40, 20)) * scale : 0;
 
+        return Smooth(series, model, observationVariance, levelVariance, slopeVariance, horizon);
+    }
+
+    /// <summary>Фильтрует, сглаживает и строит прогноз при заданных дисперсиях шумов.</summary>
+    /// <remarks>
+    /// <para>
+    /// Вторая половина <see cref="Fit"/>: дисперсии не оцениваются, а берутся готовыми — из
+    /// прошлой оценки, из другой программы или из предметных соображений.
+    /// </para>
+    /// <para>
+    /// Дисперсия прогноза на шаг <c>h</c> — это <c>P[n+h|n] + sigma_eps^2</c>, где ковариация
+    /// состояния идёт от последнего шага фильтра по той же рекурсии <c>P = T P T' + Q</c>.
+    /// В ней два источника: шум состояния, который накопится за горизонт, и неопределённость
+    /// самого последнего состояния. Второй не исчезает и при коротком горизонте: уровень на
+    /// последнюю дату оценён, а не известен.
+    /// </para>
+    /// </remarks>
+    /// <param name="series">Временной ряд.</param>
+    /// <param name="model">Спецификация модели.</param>
+    /// <param name="observationVariance">Дисперсия шума наблюдения.</param>
+    /// <param name="levelVariance">Дисперсия шума уровня.</param>
+    /// <param name="slopeVariance">Дисперсия шума наклона; для локального уровня не используется.</param>
+    /// <param name="horizon">Горизонт прогноза.</param>
+    /// <returns>Сглаженные компоненты, прогноз и диагностика.</returns>
+    /// <exception cref="ArgumentNullException">Ряд не задан.</exception>
+    /// <exception cref="ArgumentException">Наблюдений недостаточно.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Дисперсия отрицательна или не число.</exception>
+    public static StateSpaceResult Smooth(
+        Vector series, StateSpaceModel model, double observationVariance, double levelVariance,
+        double slopeVariance = 0, int horizon = 12)
+    {
+        ArgumentNullException.ThrowIfNull(series);
+        if (series.Count < 10) throw new ArgumentException("Нужно минимум десять наблюдений.", nameof(series));
+
+        RequireVariance(observationVariance, nameof(observationVariance));
+        RequireVariance(levelVariance, nameof(levelVariance));
+        RequireVariance(slopeVariance, nameof(slopeVariance));
+
+        int n = series.Count;
+        bool trend = model == StateSpaceModel.LocalLinearTrend;
+
+        if (!trend) slopeVariance = 0;
+
         double logLikelihood = Filter(
             series, observationVariance, levelVariance, slopeVariance, trend,
             out double[] filteredLevel, out double[] smoothedLevel,
-            out double[] smoothedSlope, out double[] innovations);
+            out double[] smoothedSlope, out double[] innovations, out double[] next);
 
         var forecast = new Vector(Math.Max(1, horizon));
         var lower = new Vector(forecast.Count);
         var upper = new Vector(forecast.Count);
 
-        double lastLevel = smoothedLevel[n - 1];
-        double lastSlope = trend ? smoothedSlope[n - 1] : 0;
+        // Состояние и его ковариация на шаг n+1 по наблюдениям до n: отсюда идёт прогноз
+        double level = next[0], slope = next[1];
+        double p00 = next[2], p01 = next[3], p11 = next[4];
 
         for (int h = 0; h < forecast.Count; h++)
         {
-            forecast[h] = lastLevel + (lastSlope * (h + 1));
+            forecast[h] = level + (slope * h);
 
-            // Дисперсия прогноза растёт с горизонтом: накапливается шум состояния
-            double variance = observationVariance + ((h + 1) * levelVariance)
-                + (trend ? slopeVariance * (h + 1) * (h + 2) * ((2 * h) + 3) / 6.0 : 0);
-
-            double band = 1.96 * Math.Sqrt(Math.Max(variance, 0));
+            double band = 1.96 * Math.Sqrt(Math.Max(p00 + observationVariance, 0));
             lower[h] = forecast[h] - band;
             upper[h] = forecast[h] + band;
+
+            // P = T P T' + Q для T = [[1, 1], [0, 1]]
+            p00 = p00 + (2 * p01) + p11 + levelVariance;
+            p01 += p11;
+            p11 += slopeVariance;
         }
 
         double ljung = LjungBox(innovations, Math.Min(10, n / 5), out double ljungP);
@@ -262,7 +305,7 @@ public static class StateSpace
             LevelVariance = levelVariance,
             SlopeVariance = slopeVariance,
             LogLikelihood = logLikelihood,
-            Aic = (-2 * logLikelihood) + (2 * parameters),
+            Aic = (-2 * logLikelihood) + (2 * (trend ? 3 : 2)),
             Observations = n,
             LjungBox = ljung,
             LjungBoxPValue = ljungP,
@@ -280,7 +323,7 @@ public static class StateSpace
     private static double Filter(
         Vector series, double observationVariance, double levelVariance, double slopeVariance,
         bool trend, out double[] filteredLevel, out double[] smoothedLevel,
-        out double[] smoothedSlope, out double[] innovations)
+        out double[] smoothedSlope, out double[] innovations, out double[] next)
     {
         int n = series.Count;
 
@@ -288,6 +331,7 @@ public static class StateSpace
         smoothedLevel = new double[n];
         smoothedSlope = new double[n];
         innovations = new double[n];
+        next = new double[5];
 
         // Априорное состояние и его ковариация на каждом шаге: нужны при сглаживании
         var priorLevel = new double[n];
@@ -313,7 +357,13 @@ public static class StateSpace
             priorP[t] = [p00, p01, p11];
 
             double f = p00 + observationVariance;
-            if (f <= 0 || !double.IsFinite(f)) return double.NegativeInfinity;
+            if (f <= 0 || !double.IsFinite(f))
+            {
+                // Прогноз из сломанного фильтра не строится: границы интервала выйдут NaN, а не правдоподобными числами
+                Array.Fill(next, double.NaN);
+
+                return double.NegativeInfinity;
+            }
 
             double v = series[t] - a0;
             rawInnovation[t] = v;
@@ -343,6 +393,13 @@ public static class StateSpace
                 logLikelihood += -0.5 * (Math.Log(2 * Math.PI) + Math.Log(f) + (v * v / f));
         }
 
+        // Уровень, наклон и ковариация [p00, p01, p11] на шаг n+1 по наблюдениям до n
+        next[0] = a0;
+        next[1] = a1;
+        next[2] = p00;
+        next[3] = p01;
+        next[4] = p11;
+
         // Обратный ход: r_{t-1} = Z' v_t / F_t + L_t' r_t, L_t = T - K_t Z
         double r0 = 0, r1 = 0;
 
@@ -364,6 +421,12 @@ public static class StateSpace
         }
 
         return double.IsFinite(logLikelihood) ? logLikelihood : double.NegativeInfinity;
+    }
+
+    private static void RequireVariance(double value, string name)
+    {
+        if (!(value >= 0) || double.IsInfinity(value))
+            throw new ArgumentOutOfRangeException(name, value, "Дисперсия должна быть конечным неотрицательным числом.");
     }
 
     /// <summary>Статистика Люнга — Бокса на автокорреляцию ошибок прогноза.</summary>

@@ -536,6 +536,98 @@ public sealed class EconometricsTests
         Assert.Contains("два ряда", error.Message, StringComparison.Ordinal);
     }
 
+    // --- пропущенные колонки видны в результате ---
+
+    /// <summary>Выгрузка русского Excel: разделитель «;», десятичная запятая в одной колонке.</summary>
+    private static RunOptions RussianExport()
+    {
+        var csv = new System.Text.StringBuilder("дата;выручка;затраты;штат\n");
+        var random = new Random(5);
+        double costs = 50, staff = 11;
+
+        for (int i = 0; i < 60; i++)
+        {
+            costs += random.Next(-2, 4);
+            staff += random.Next(-1, 2);
+
+            string revenue = (100 + (i * 0.7) + random.NextDouble()).ToString("0.0", System.Globalization.CultureInfo.GetCultureInfo("ru-RU"));
+
+            _ = csv.Append(System.Globalization.CultureInfo.InvariantCulture, $"{new DateTime(2020, 1, 1).AddMonths(i):dd.MM.yyyy};{revenue};{costs};{staff}\n");
+        }
+
+        return new RunOptions { Sandbox = new MemorySandbox().Put("econ_ru.csv", csv.ToString()) };
+    }
+
+    [Fact]
+    public void Var_ReportsSkippedColumns_WithReason()
+    {
+        RunResult result = Script.RunOk("""
+            let v = ts.var(io.read_csv("econ_ru.csv"), order: 1)
+            let lost = v.skipped |> table.filter(c => c.column == "выручка")
+
+            emit variables = v.variables
+            emit skipped = v.skipped["column"]
+            emit reason = lost[0].reason
+            emit warnings = v.warnings
+            """, RussianExport());
+
+        Assert.Equal(["затраты", "штат"], ((IEnumerable<object?>)result.Emitted["variables"]!).Cast<string>());
+        Assert.Contains("выручка", ((IEnumerable<object?>)result.Emitted["skipped"]!).Cast<string>());
+        Assert.Contains("дата", ((IEnumerable<object?>)result.Emitted["skipped"]!).Cast<string>());
+
+        string reason = (string)result.Emitted["reason"]!;
+
+        Assert.Contains("десятичной запятой", reason, StringComparison.Ordinal);
+        Assert.Contains("table.clean", reason, StringComparison.Ordinal);
+        Assert.Contains(((IEnumerable<object?>)result.Emitted["warnings"]!).Cast<string>(),
+            warning => warning.Contains("'выручка' не вошла в модель", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Var_NothingSkipped_GivesEmptyTable()
+    {
+        RunResult result = Run(Lagged + """
+
+            let v = ts.var(series, order: 1)
+
+            emit skipped = len(v.skipped)
+            emit explicit = len(ts.var(series, order: 1, columns: ["a", "b"]).skipped)
+            """);
+
+        Assert.Equal(0.0, result.Emitted["skipped"]);
+        Assert.Equal(0.0, result.Emitted["explicit"]);
+    }
+
+    [Fact]
+    public void Var_TooFewSeries_NamesWhatWasSkipped()
+    {
+        Diagnostic error = Script.FailsWith(
+            "emit v = ts.var(io.read_csv(\"econ_ru.csv\") |> table.select([\"дата\", \"выручка\", \"штат\"]))", RussianExport());
+
+        Assert.Equal(DiagnosticCodes.BadOperand, error.Code);
+        Assert.Contains("'выручка'", error.Message, StringComparison.Ordinal);
+        Assert.Contains("table.clean", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JohansenAndVecm_ReportSkippedColumns()
+    {
+        RunResult result = Run("""
+            options { seed: 13 }
+
+            let n = 300
+            let trend = vec.cumsum(signal.noise(n, sigma: 1))
+            let label = range(n) |> core.map(i => "день")
+            let prices = table.of({ x: trend, y: trend + signal.noise(n, sigma: 0.5), label: label })
+
+            emit johansen = ts.johansen(prices).skipped["column"]
+            emit vecm = ts.vecm(prices).skipped[0].reason
+            """);
+
+        Assert.Equal(["label"], ((IEnumerable<object?>)result.Emitted["johansen"]!).Cast<string>());
+        Assert.Contains("текст", (string)result.Emitted["vecm"]!, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Johansen_FindsOneCommonTrend()
     {
