@@ -125,6 +125,57 @@ public sealed class StatCanonTests
         Assert.Equal(0.0, Number(result, "flat"));
     }
 
+    // --- метрики ---
+
+    /// <summary>
+    /// R² — доля объяснённого разброса, а не квадрат корреляции: прогноз 2y + 10 коррелирует с фактом
+    /// идеально и при этом никуда не годится.
+    /// </summary>
+    [Fact]
+    public void R2_IsOneMinusResidualOverTotal()
+    {
+        RunResult result = Script.RunOk("""
+            let y = <1, 2, 3, 4>
+
+            emit exact = stat.r2(y, y)
+            emit mean = stat.r2(y, <2.5, 2.5, 2.5, 2.5>)
+            emit reversed = stat.r2(y, <4, 3, 2, 1>)
+            emit shifted = stat.r2(y, 2 * y + 10)
+            emit corr = stat.corr(y, 2 * y + 10)
+            """);
+
+        // sklearn.metrics.r2_score: 1, 0, -3, -125
+        Assert.Equal(1.0, Number(result, "exact"));
+        Assert.Equal(0.0, Number(result, "mean"), 12);
+        Assert.Equal(-3.0, Number(result, "reversed"), 12);
+        Assert.Equal(-125.0, Number(result, "shifted"), 10);
+        Assert.Equal(1.0, Number(result, "corr"), 12);
+    }
+
+    [Fact]
+    public void ErrorMetrics_MatchSklearn()
+    {
+        RunResult result = Script.RunOk("""
+            let y = <0, 1, 2, 4>
+            let p = <0.5, 1, 1.5, 5>
+
+            emit mae = stat.mae(y, p)
+            emit rmse = stat.rmse(y, p)
+            emit mse = stat.mse(y, p)
+            emit mape = stat.mape(<1, 2, 4>, <1, 1.5, 5>)
+            emit constant = stat.r2(<3, 3, 3>, <3, 3, 3>)
+            """);
+
+        // sklearn: MAE 0.5, MSE 0.375, RMSE 0.6123724356957945; MAPE (0 + 0.25 + 0.25) / 3
+        Assert.Equal(0.5, Number(result, "mae"), 12);
+        Assert.Equal(0.375, Number(result, "mse"), 12);
+        Assert.Equal(0.6123724356957945, Number(result, "rmse"), 12);
+        Assert.Equal(0.5 / 3, Number(result, "mape"), 12);
+
+        // Постоянный факт и точный прогноз: 1, как в sklearn (раньше 0)
+        Assert.Equal(1.0, Number(result, "constant"));
+    }
+
     /// <summary>Один генератор на <c>math.gauss</c> и <c>signal.noise</c>: при одном зерне первые числа совпадают.</summary>
     [Fact]
     public void Gauss_AndNoise_ShareOneGenerator_AndFollowSeed()

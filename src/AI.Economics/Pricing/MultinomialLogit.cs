@@ -46,7 +46,7 @@ public sealed record ConjointResult : IInterpretable
     public double NullLogLikelihood { get; init; }
 
     /// <summary>Псевдо-R2 Макфаддена. Значения 0,2–0,4 считаются хорошими.</summary>
-    public double McFaddenR2 => NullLogLikelihood < 0 ? 1.0 - (LogLikelihood / NullLogLikelihood) : 0;
+    public double McFaddenR2 => AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.McFaddenRSquared(LogLikelihood, NullLogLikelihood);
 
     /// <summary>Доля заданий, в которых модель угадала выбор респондента.</summary>
     public double HitRate { get; init; }

@@ -30,7 +30,7 @@ public static class MathDemoRunner
             "mae" => Metric(T("_vector"), T("_vector2"), MetricsForRegression.MAE),
             "mse" => Metric(T("_vector"), T("_vector2"), MetricsForRegression.MSE),
             "rmse" => Metric(T("_vector"), T("_vector2"), MetricsForRegression.RMSE),
-            "r2" => Metric(T("_vector"), T("_vector2"), MetricsForRegression.R2),
+            "r2" => Metric(T("_vector"), T("_vector2"), MetricsForRegression.RSquared),
             "qr_q" => RunQrQ(T("_matrix")),
             "qr_r" => RunQrR(T("_matrix")),
             "eigen_val" => RunEigenVal(T("_matrix"), (int)N("eigenIter", 80)),

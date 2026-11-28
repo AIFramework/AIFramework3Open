@@ -148,7 +148,7 @@ public sealed partial class QsarModel
         MultipleRegression regression = Fit(features, targets, options);
         var predicted = new Vector(features.Select(regression.Predict).ToArray());
 
-        double r2 = MetricsForRegression.R2(targets, predicted);
+        double r2 = MetricsForRegression.RSquared(targets, predicted);
         double rmse = MetricsForRegression.RMSE(targets, predicted);
         double mae = MetricsForRegression.MAE(targets, predicted);
         var (q2, rmseCv) = CrossValidate(features, targets, options);
@@ -282,7 +282,7 @@ public sealed partial class QsarModel
 
         var predictions = new Vector(predicted);
 
-        return (MetricsForRegression.R2(targets, predictions), MetricsForRegression.RMSE(targets, predictions));
+        return (MetricsForRegression.RSquared(targets, predictions), MetricsForRegression.RMSE(targets, predictions));
     }
 
     private static int[] SelectColumns(IReadOnlyList<DescriptorSet> descriptors, QsarOptions options)

@@ -223,7 +223,7 @@ public static class IntermittentDemand
             ServiceLevel = serviceLevel,
             ReorderPoint = leadDemand + safety,
             LeadTime = leadTime,
-            InSampleMase = Mase(y, fitted),
+            InSampleMase = y.Length > 1 ? AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.MASE(y.AsSpan(1), fitted.AsSpan(1, y.Length - 1), y) : double.NaN,
             Observations = n,
         };
     }
@@ -317,20 +317,5 @@ public static class IntermittentDemand
         if (interval < 1.32 && cv2 < 0.49) return IntermittentMethod.Croston;
         if (interval > 2.5) return IntermittentMethod.TeunterSyntetosBabai;
         return IntermittentMethod.SyntetosBoylan;
-    }
-
-    private static double Mase(double[] y, double[] fitted)
-    {
-        if (y.Length < 2) return double.NaN;
-
-        double scale = 0;
-        for (int t = 1; t < y.Length; t++) scale += Math.Abs(y[t] - y[t - 1]);
-        scale /= y.Length - 1;
-
-        double mae = 0;
-        for (int t = 1; t < y.Length; t++) mae += Math.Abs(y[t] - fitted[t]);
-        mae /= y.Length - 1;
-
-        return scale > 1e-12 ? mae / scale : double.NaN;
     }
 }

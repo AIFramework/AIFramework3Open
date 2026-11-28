@@ -73,7 +73,7 @@ public static class FitModule
         int rank = result.JacobianRank();
         int freedom = x.Count - names.Count;
         double rmse = Math.Sqrt(result.Cost / x.Count);
-        double r2 = 1 - (result.Cost / TotalSquares(y));
+        double r2 = AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.RSquared(y, fitted);
         Vector errors = StandardErrors(result.Jacobian, result.Cost, freedom, rank == names.Count);
 
         return ScriptData.Plain(
@@ -92,16 +92,6 @@ public static class FitModule
     }
 
     // --- внутреннее ---
-
-    private static double TotalSquares(Vector y)
-    {
-        double mean = y.Mean();
-        double total = 0;
-
-        for (int i = 0; i < y.Count; i++) total += (y[i] - mean) * (y[i] - mean);
-
-        return total;
-    }
 
     /// <summary>Стандартные ошибки параметров: корни диагонали <c>s²·(JᵀJ)⁻¹</c>.</summary>
     private static Vector StandardErrors(Matrix jacobian, double cost, int freedom, bool fullRank)

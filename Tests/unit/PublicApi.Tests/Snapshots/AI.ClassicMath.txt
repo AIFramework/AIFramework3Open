@@ -38,19 +38,33 @@ namespace AI.ClassicMath.AlgorithmAnalysis
         public static double Bias(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
         public static double MAE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
         public static double MAE(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double MAE(System.ReadOnlySpan<double> target, System.ReadOnlySpan<double> output) { }
         public static double MAEPercent(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
         public static double MAEPercent(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
         public static double MAPE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
         public static double MAPE(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double MAPE(System.ReadOnlySpan<double> target, System.ReadOnlySpan<double> output) { }
+        public static double MASE(System.ReadOnlySpan<double> actual, System.ReadOnlySpan<double> forecast, System.ReadOnlySpan<double> training, int seasonalPeriod = 1) { }
         public static double MSE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
         public static double MSE(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double MSE(System.ReadOnlySpan<double> target, System.ReadOnlySpan<double> output) { }
+        public static double McFaddenRSquared(double logLikelihood, double nullLogLikelihood) { }
+        public static double PearsonSquared(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double PearsonSquared(System.ReadOnlySpan<double> target, System.ReadOnlySpan<double> output) { }
+        [System.Obsolete("Это квадрат корреляции Пирсона, а не R². Коэффициент детерминации — RSquared (1 −" +
+            " SSres/SStot), квадрат корреляции — PearsonSquared.")]
         public static double R2(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        [System.Obsolete("Это средний квадрат корреляции Пирсона, а не R². Используйте RSquared либо Pearso" +
+            "nSquared по каждой паре.")]
         public static double R2(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
         public static double RMSE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
         public static double RMSE(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
+        public static double RMSE(System.ReadOnlySpan<double> target, System.ReadOnlySpan<double> output) { }
         public static double RMSEPercent(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
         public static double RMSEPercent(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> target, System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.IAlgebraicStructure<double>> output) { }
         public static double RMSLE(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double RSquared(AI.DataStructs.Algebraic.IAlgebraicStructure<double> target, AI.DataStructs.Algebraic.IAlgebraicStructure<double> output) { }
+        public static double RSquared(System.ReadOnlySpan<double> target, System.ReadOnlySpan<double> output) { }
     }
     [System.Serializable]
     public class SimilarityOfBases

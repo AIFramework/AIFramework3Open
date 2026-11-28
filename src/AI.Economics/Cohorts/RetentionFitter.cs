@@ -75,7 +75,8 @@ public static class RetentionFitter
         double[] survival = RetentionCurves.Survival(model, p, horizon);
 
         double ll = LogLikelihood(counts, model, p);
-        double rmse = Rmse(observed, survival);
+        // Кривая продлена до горизонта прогноза; с наблюдениями сравнивается только её начало
+        double rmse = AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.RMSE(observed, survival.AsSpan(0, observed.Length));
         double lifetime = survival.Sum();
 
         (double[] lower, double[] upper, double lifeLo, double lifeHi) =
@@ -254,17 +255,6 @@ public static class RetentionFitter
             else hi = mid;
         }
         return lo;
-    }
-
-    private static double Rmse(double[] observed, double[] fitted)
-    {
-        double sum = 0;
-        for (int t = 0; t < observed.Length; t++)
-        {
-            double d = observed[t] - fitted[t];
-            sum += d * d;
-        }
-        return Math.Sqrt(sum / observed.Length);
     }
 
     /// <summary>Приводит наблюдения к невозрастающей кривой с <c>S(0) = 1</c>.</summary>

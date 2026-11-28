@@ -167,7 +167,9 @@ public sealed class ExponentialSmoothing
             Sigma = sigma,
             Aic = counted > 0 ? (counted * Math.Log(rss / counted)) + (2 * (parameters + 1)) : double.NaN,
             SeasonalPeriod = season,
-            InSampleMase = Mase(y, fitted, warmup, season),
+            InSampleMase = warmup < y.Length
+                ? AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.MASE(y.AsSpan(warmup), fitted.AsSpan(warmup, y.Length - warmup), y, season)
+                : double.NaN,
             ResidualAutocorrelation = Autocorrelation(errors, warmup),
         };
     }
@@ -328,26 +330,6 @@ public sealed class ExponentialSmoothing
         }
 
         return (fitted, errors, level, trend, seasonal);
-    }
-
-    private static double Mase(double[] y, double[] fitted, int warmup, int season)
-    {
-        int lag = Math.Max(season, 1);
-        if (y.Length <= lag) return double.NaN;
-
-        double scale = 0;
-        for (int i = lag; i < y.Length; i++) scale += Math.Abs(y[i] - y[i - lag]);
-        scale /= y.Length - lag;
-
-        double mae = 0;
-        int counted = 0;
-        for (int t = warmup; t < y.Length; t++)
-        {
-            mae += Math.Abs(y[t] - fitted[t]);
-            counted++;
-        }
-
-        return counted > 0 && scale > 1e-12 ? mae / counted / scale : double.NaN;
     }
 
     private static double Autocorrelation(double[] values, int from)

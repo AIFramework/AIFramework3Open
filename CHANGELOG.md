@@ -6,6 +6,37 @@
 
 ## 2026-11-28
 
+### Метрики: одна R² и метрики ошибок
+
+Коэффициент детерминации, MAE, MSE, RMSE, MAPE, MASE, accuracy и псевдо-R² Макфаддена считаются
+в `AI.ClassicMath.AlgorithmAnalysis` (`MetricsForRegression`, `MetricsForClassification`);
+значения сверены со scikit-learn и statsmodels.
+
+**R².** `MetricsForRegression.RSquared` = 1 − SSres/SStot. Прежний `MetricsForRegression.R2`
+возвращал квадрат корреляции Пирсона; под честным именем это `PearsonSquared`, старое имя
+помечено `[Obsolete]` и по-прежнему возвращает квадрат корреляции.
+
+| Вызов | Было | Стало |
+|---|---|---|
+| оценка прогноза `2y + 10` через `MetricsForRegression.R2` | 1.0 («идеально») | `RSquared` = −78.1; `PearsonSquared` = 1.0 |
+| `QsarModel`: R² обучения и Q² перекрёстной проверки | квадрат корреляции факта и прогноза | 1 − SSres/SStot; Q² теперь может быть отрицательным, если модель хуже среднего |
+| `ObjectRegressionPipeline.Score` | квадрат корреляции | 1 − SSres/SStot |
+| `stat.r2`, `nn.score`, `BassDiffusion.RSquared` при постоянном факте и точном прогнозе | 0 | 1 (правило sklearn; при неточном прогнозе — 0) |
+
+**Ошибки прогноза.** `stat.rmse`, `stat.mae`, `ForecastMetrics.Mae/Rmse/Mase`, RMSE в
+`RetentionFitter`, MASE в `ExponentialSmoothing`, `IntermittentDemand`, `ThetaMethod` считают
+`MetricsForRegression`. Значения прежние; изменились края.
+
+| Вызов | Было | Стало |
+|---|---|---|
+| `MetricsForRegression.MAE/MSE/RMSE/MAPE` для рядов разной длины | считалось по длине прогноза либо выход за границу массива | `ArgumentException` |
+| `MetricsForRegression.MAPE` при нулевом факте | делитель 1e-100: значение порядка 1e99 | делитель — машинный эпсилон 2.2e-16, как в sklearn: значение порядка 1e15 |
+| `MetricsForRegression.MAPE`: описание | «в процентах» | доля (так и считалось); описание исправлено |
+
+**Accuracy.** `ml.score` и `nn.score` (классификация) считают `MetricsForClassification.Accuracy`.
+В `nn.score` ответ сети и метка округляются до целого (раньше — сравнение `|ответ − метка| < 0.5`;
+отличие только на ответе ровно посередине между классами).
+
 ### Ядро: одна описательная статистика, ГСЧ и расстояния
 
 Дисперсия, квантиль, ковариация, корреляция, асимметрия и эксцесс, z-нормировка, min-max,

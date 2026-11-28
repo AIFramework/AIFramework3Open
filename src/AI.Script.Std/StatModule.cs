@@ -80,10 +80,7 @@ public static partial class StatModule
     {
         RequirePair(y, pred, "rmse");
 
-        double sum = 0;
-        for (int i = 0; i < y.Count; i++) sum += (y[i] - pred[i]) * (y[i] - pred[i]);
-
-        return Math.Sqrt(sum / y.Count);
+        return MetricsForRegression.RMSE(y, pred);
     }
 
     [ScriptFn("mae", "Средняя абсолютная ошибка", Example = "stat.mae(y, pred)")]
@@ -93,10 +90,7 @@ public static partial class StatModule
     {
         RequirePair(y, pred, "mae");
 
-        double sum = 0;
-        for (int i = 0; i < y.Count; i++) sum += Math.Abs(y[i] - pred[i]);
-
-        return sum / y.Count;
+        return MetricsForRegression.MAE(y, pred);
     }
 
     [ScriptFn("r2", "Коэффициент детерминации", Example = "stat.r2(y, pred)")]
@@ -106,16 +100,7 @@ public static partial class StatModule
     {
         RequirePair(y, pred, "r2");
 
-        double mean = y.Mean();
-        double residual = 0, total = 0;
-
-        for (int i = 0; i < y.Count; i++)
-        {
-            residual += (y[i] - pred[i]) * (y[i] - pred[i]);
-            total += (y[i] - mean) * (y[i] - mean);
-        }
-
-        return total == 0 ? 0 : 1 - (residual / total);
+        return MetricsForRegression.RSquared(y, pred);
     }
 
     [ScriptFn("hist", "Гистограмма: границы и счётчики (либо плотность)", Example = "stat.hist(v, bins: 20)")]

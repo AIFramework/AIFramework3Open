@@ -46,8 +46,7 @@ public sealed record LimitedDependentResult : IInterpretable
     public double NullLogLikelihood { get; init; }
 
     /// <summary>Псевдо-R² Макфаддена.</summary>
-    public double McFaddenRSquared =>
-        NullLogLikelihood < 0 ? 1 - (LogLikelihood / NullLogLikelihood) : 0;
+    public double McFaddenRSquared => AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.McFaddenRSquared(LogLikelihood, NullLogLikelihood);
 
     /// <summary>Информационный критерий Акаике.</summary>
     public double Aic { get; init; }

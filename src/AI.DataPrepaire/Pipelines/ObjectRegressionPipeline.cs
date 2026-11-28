@@ -181,7 +181,7 @@ public abstract class ObjectRegressionPipeline<T>
 
         Train(trainX, trainY, yNormal);
 
-        return MetricsForRegression.R2(Predict(testX), (Vector)testY.ToArray());
+        return MetricsForRegression.RSquared((Vector)testY.ToArray(), Predict(testX));
 
 
     }

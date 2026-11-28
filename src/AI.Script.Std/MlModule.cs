@@ -249,16 +249,13 @@ public static class MlModule
 
         var classifier = (IClassifier)model.Target;
         int[] expected = Datasets.Labels(labels, "ml.score");
-        int correct = 0;
-
         Vector[] rows = Datasets.Rows(data);
 
-        for (int i = 0; i < rows.Length; i++)
-        {
-            if (classifier.Classify(rows[i]) == expected[i]) correct++;
-        }
+        if (rows.Length == 0) return 0;
 
-        return rows.Length == 0 ? 0 : (double)correct / rows.Length;
+        int[] answered = [.. rows.Select(classifier.Classify)];
+
+        return AI.ClassicMath.AlgorithmAnalysis.MetricsForClassification.Accuracy(expected, answered);
     }
 
     // --- регрессия ---

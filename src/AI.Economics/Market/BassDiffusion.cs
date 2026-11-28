@@ -149,19 +149,11 @@ public sealed partial class BassDiffusion
 
     private double ComputeRSquared(double[] observed)
     {
-        double mean = 0;
-        for (int i = 0; i < observed.Length; i++) mean += observed[i];
-        mean /= observed.Length;
+        var fitted = new double[observed.Length];
 
-        double ssTotal = 0, ssResidual = 0;
-        for (int i = 0; i < observed.Length; i++)
-        {
-            double fitted = CumulativeAt(i + 1, MarketPotential, Innovation, Imitation);
-            ssResidual += Math.Pow(observed[i] - fitted, 2);
-            ssTotal += Math.Pow(observed[i] - mean, 2);
-        }
+        for (int i = 0; i < observed.Length; i++) fitted[i] = CumulativeAt(i + 1, MarketPotential, Innovation, Imitation);
 
-        return ssTotal > 0 ? 1.0 - (ssResidual / ssTotal) : 0;
+        return AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.RSquared(observed, fitted);
     }
 
     /// <summary>

@@ -114,7 +114,7 @@ public static class ThetaMethod
             },
             Sigma = sigma,
             SeasonalPeriod = seasonal ? season : 1,
-            InSampleMase = Mase(y, fitted, season),
+            InSampleMase = y.Length > 1 ? AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.MASE(y.AsSpan(1), fitted.ToArray().AsSpan(1, y.Length - 1), y, season) : double.NaN,
             ResidualAutocorrelation = Autocorrelation(residuals),
         };
     }
@@ -240,22 +240,6 @@ public static class ThetaMethod
 
         double acf = denominator > 1e-12 ? numerator / denominator : 0;
         return acf > 1.645 / Math.Sqrt(n);
-    }
-
-    private static double Mase(double[] y, Vector fitted, int season)
-    {
-        int lag = Math.Max(season, 1);
-        if (y.Length <= lag) return double.NaN;
-
-        double scale = 0;
-        for (int i = lag; i < y.Length; i++) scale += Math.Abs(y[i] - y[i - lag]);
-        scale /= y.Length - lag;
-
-        double mae = 0;
-        for (int t = 1; t < y.Length; t++) mae += Math.Abs(y[t] - fitted[t]);
-        mae /= y.Length - 1;
-
-        return scale > 1e-12 ? mae / scale : double.NaN;
     }
 
     private static double Autocorrelation(Vector values)

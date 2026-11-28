@@ -249,32 +249,14 @@ public sealed class NeuralNetwork
 
         if (Task == NetworkTask.Classification)
         {
-            int correct = 0;
+            // Ответ сети — номер класса числом; метка угадана, если ответ округляется к ней
+            int[] expected = [.. y.ToArray().Select(value => (int)Math.Round(value))];
+            int[] answered = [.. predicted.ToArray().Select(value => (int)Math.Round(value))];
 
-            for (int i = 0; i < y.Count; i++)
-            {
-                if (Math.Abs(predicted[i] - y[i]) < 0.5) correct++;
-            }
-
-            return (double)correct / y.Count;
+            return AI.ClassicMath.AlgorithmAnalysis.MetricsForClassification.Accuracy(expected, answered);
         }
 
-        double mean = 0;
-
-        for (int i = 0; i < y.Count; i++) mean += y[i];
-
-        mean /= y.Count;
-
-        double residual = 0;
-        double variance = 0;
-
-        for (int i = 0; i < y.Count; i++)
-        {
-            residual += (y[i] - predicted[i]) * (y[i] - predicted[i]);
-            variance += (y[i] - mean) * (y[i] - mean);
-        }
-
-        return variance == 0 ? 0 : 1 - (residual / variance);
+        return AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.RSquared(y, predicted);
     }
 
     // --- внутреннее ---

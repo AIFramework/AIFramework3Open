@@ -136,9 +136,8 @@ public static class ForecastMetrics
     public static double Mae(Vector actual, Vector forecast)
     {
         Check(actual, forecast);
-        double sum = 0;
-        for (int i = 0; i < actual.Count; i++) sum += Math.Abs(actual[i] - forecast[i]);
-        return sum / actual.Count;
+
+        return AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.MAE(actual, forecast);
     }
 
     /// <summary>Корень из среднего квадрата ошибки.</summary>
@@ -147,13 +146,8 @@ public static class ForecastMetrics
     public static double Rmse(Vector actual, Vector forecast)
     {
         Check(actual, forecast);
-        double sum = 0;
-        for (int i = 0; i < actual.Count; i++)
-        {
-            double d = actual[i] - forecast[i];
-            sum += d * d;
-        }
-        return Math.Sqrt(sum / actual.Count);
+
+        return AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.RMSE(actual, forecast);
     }
 
     /// <summary>Симметричная средняя абсолютная процентная ошибка.</summary>
@@ -190,15 +184,7 @@ public static class ForecastMetrics
         Check(actual, forecast);
         ArgumentNullException.ThrowIfNull(trainingSeries);
 
-        int lag = Math.Max(seasonalPeriod, 1);
-        if (trainingSeries.Count <= lag) return double.NaN;
-
-        double scale = 0;
-        for (int i = lag; i < trainingSeries.Count; i++)
-            scale += Math.Abs(trainingSeries[i] - trainingSeries[i - lag]);
-        scale /= trainingSeries.Count - lag;
-
-        return scale > 1e-12 ? Mae(actual, forecast) / scale : double.NaN;
+        return AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression.MASE(actual.ToArray(), forecast.ToArray(), trainingSeries.ToArray(), seasonalPeriod);
     }
 
     /// <summary>

@@ -256,6 +256,31 @@ public sealed partial class MathOneHomeRatchetTests
         new Regex(Definition + "Histogram|Histogramm|HistogramCounts)\\s*\\("),
         s_histogram);
 
+    // --- метрики качества ---
+
+    /// <summary>R², MAE, MSE, RMSE, MAPE, MASE, accuracy, псевдо-R² Макфаддена.</summary>
+    private static readonly Dictionary<string, int> s_metrics = new(StringComparer.Ordinal)
+    {
+        // Дом: MAE, MAPE, MSE, RMSE, RSquared, PearsonSquared (по две перегрузки), MASE, McFaddenRSquared,
+        // усреднение по набору (MAE, MAPE, MSE, RMSE) и [Obsolete] R2 ×2
+        ["src/AI.ClassicMath/AlgorithmAnalysis/MetricsForRegression.cs"] = 20,
+        ["src/AI.ClassicMath/AlgorithmAnalysis/MetricsForClassification.cs"] = 1,
+        // Привязки stat.rmse, stat.mae, stat.r2, stat.accuracy, stat.mse, stat.mape — вызывают канон
+        ["src/AI.Script.Std/StatModule.cs"] = 6,
+        // Фасад прогнозных метрик: проверка рядов и вызов канона
+        ["src/AI.Economics/Forecasting/ForecastResult.cs"] = 3,
+        // Строит подогнанную кривую Басса и отдаёт её в канон
+        ["src/AI.Economics/Market/BassDiffusion.cs"] = 1,
+        // Тензорная функция потерь с автоградом — другая вычислительная цель
+        ["src/AI.NeuralNetworks/V2/Losses/RegressionLosses.cs"] = 1,
+    };
+
+    [Fact]
+    public void Metrics_AreDefinedInOneHome() => AssertRatchet(
+        "метрики качества — AI.ClassicMath.AlgorithmAnalysis.MetricsForRegression / MetricsForClassification",
+        new Regex(Definition + "R2|RSquared|PearsonSquared|Rmse|RMSE|Mae|MAE|Mse|MSE|Mape|MAPE|Mase|MASE|Accuracy|McFaddenRSquared|McFaddenR2|ComputeRSquared|TotalSquares)\\s*\\("),
+        s_metrics);
+
     // --- механика храповика ---
 
     private static void AssertRatchet(string concept, Regex pattern, IReadOnlyDictionary<string, int> allowed)

@@ -68,7 +68,7 @@ public sealed class ClassicMathModule : ILibraryModule
                     new("_vector","target",0,0,0,0,Hint:"Истинные значения, через пробел",TextDefault:"1 2 3 4 5 6 7 8 9 10"),
                     new("_vector2","output",0,0,0,0,Hint:"Предсказанные значения, через пробел",TextDefault:"1.1 2.3 2.8 4.2 5.1 5.9 7.2 8.0 9.3 9.8"),
                 ]),
-            new("r2", "R²", "MetricsForRegression.R2", "MetricsForRegression", "Metrics.md",
+            new("r2", "R²", "MetricsForRegression.RSquared", "MetricsForRegression", "Metrics.md",
                 [
                     new("_vector","target",0,0,0,0,Hint:"Истинные значения, через пробел",TextDefault:"1 2 3 4 5 6 7 8 9 10"),
                     new("_vector2","output",0,0,0,0,Hint:"Предсказанные значения, через пробел",TextDefault:"1.1 2.3 2.8 4.2 5.1 5.9 7.2 8.0 9.3 9.8"),
