@@ -340,11 +340,17 @@ public sealed class GaussianDistFullCov : SimpleDistNDBase
     public override int Dim => Mean.Count;
 
     // Нижнетреугольная матрица Холецкого (L: Σ = L·Lᵀ)
-    private readonly double[,] _chol;
+    private readonly Matrix _chol;
     // log|Σ| = 2·Σ log(L_ii)
     private readonly double _logDet;
     // Обратная ковариационная (для logprob) — кэшируется
-    private readonly double[,] _invCov;
+    private readonly Matrix _invCov;
+
+    /// <summary>
+    /// Сдвиг диагонали, без которого ковариационная матрица не раскладывалась по Холецкому;
+    /// 0 — матрица положительно определена и использована как есть.
+    /// </summary>
+    public double CovarianceShift { get; }
 
     public GaussianDistFullCov(Vector mean, double[,] covariance)
     {
@@ -353,24 +359,14 @@ public sealed class GaussianDistFullCov : SimpleDistNDBase
             throw new ArgumentException("cov matrix dim mismatch");
         Mean = mean.Clone();
 
-        // Разложение Холецкого с регуляризацией диагонали
-        _chol = new double[dim, dim];
-        for (int i = 0; i < dim; i++)
-            for (int j = 0; j < dim; j++)
-                _chol[i, j] = covariance[i, j];
+        // Сдвиг диагонали — только если матрица вырождена, и его величина видна вызывающему
+        AI.HighLevelFunctions.RegularizedCholesky factor =
+            AI.HighLevelFunctions.CholeskyDecomposition.DecomposeRegularized(new Matrix(covariance));
 
-        // Малая добавка для числовой устойчивости
-        for (int i = 0; i < dim; i++)
-            _chol[i, i] += 1e-6;
-
-        CholeskyInPlace(_chol, dim);
-
-        _logDet = 0;
-        for (int i = 0; i < dim; i++)
-            _logDet += Math.Log(_chol[i, i]);
-        _logDet *= 2;
-
-        _invCov = InvertFromCholesky(_chol, dim);
+        _chol = factor.Lower;
+        CovarianceShift = factor.Shift;
+        _logDet = AI.HighLevelFunctions.CholeskyDecomposition.LogDeterminantFromFactor(_chol);
+        _invCov = AI.HighLevelFunctions.CholeskyDecomposition.InverseFromFactor(_chol);
     }
 
     public override double CulcLogProb(Vector x)
@@ -429,61 +425,4 @@ public sealed class GaussianDistFullCov : SimpleDistNDBase
 
         return new GaussianDistFullCov(mean, cov);
     }
-
-    #region Линейная алгебра (Cholesky)
-
-    /// <summary>In-place Cholesky L: A = L·Lᵀ. Нижнетреугольная часть перезаписывается.</summary>
-    private static void CholeskyInPlace(double[,] a, int n)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j <= i; j++)
-            {
-                double sum = 0;
-                for (int k = 0; k < j; k++) sum += a[i, k] * a[j, k];
-                if (i == j)
-                {
-                    double diag = a[i, i] - sum;
-                    a[i, j] = Math.Sqrt(Math.Max(diag, 1e-12));
-                }
-                else
-                {
-                    a[i, j] = (a[i, j] - sum) / a[j, j];
-                }
-            }
-            // Обнуляем верхнюю часть
-            for (int j = i + 1; j < n; j++) a[i, j] = 0;
-        }
-    }
-
-    /// <summary>Вычисляет Σ⁻¹ из L (Cholesky): Σ⁻¹ = (L⁻¹)ᵀ · L⁻¹.</summary>
-    private static double[,] InvertFromCholesky(double[,] L, int n)
-    {
-        // Обратная нижнетреугольная
-        var Linv = new double[n, n];
-        for (int i = 0; i < n; i++)
-        {
-            Linv[i, i] = 1.0 / L[i, i];
-            for (int j = i + 1; j < n; j++)
-            {
-                double sum = 0;
-                for (int k = i; k < j; k++) sum += L[j, k] * Linv[k, i];
-                Linv[j, i] = -sum / L[j, j];
-            }
-        }
-
-        // Σ⁻¹ = Linv^T * Linv
-        var inv = new double[n, n];
-        for (int i = 0; i < n; i++)
-            for (int j = i; j < n; j++)
-            {
-                double sum = 0;
-                for (int k = j; k < n; k++) sum += Linv[k, i] * Linv[k, j];
-                inv[i, j] = sum;
-                inv[j, i] = sum;
-            }
-        return inv;
-    }
-
-    #endregion
 }

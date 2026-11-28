@@ -211,7 +211,7 @@ public static class MatModule
     public static Matrix CholeskyDecompose([ScriptParam("матрица")] Matrix m)
     {
         RequireSquare(m, "mat.cholesky");
-        return Cholesky.Decompose(m);
+        return AI.HighLevelFunctions.CholeskyDecomposition.Decompose(m);
     }
 
     [ScriptFn("svd", "Сингулярное разложение", Example = "mat.svd(m).sigma")]

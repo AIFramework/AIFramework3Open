@@ -281,6 +281,114 @@ public sealed partial class MathOneHomeRatchetTests
         new Regex(Definition + "R2|RSquared|PearsonSquared|Rmse|RMSE|Mae|MAE|Mse|MSE|Mape|MAPE|Mase|MASE|Accuracy|McFaddenRSquared|McFaddenR2|ComputeRSquared|TotalSquares)\\s*\\("),
         s_metrics);
 
+    /// <summary>
+    /// Деление отрезка пополам: середина, присвоенная переменной. Поиск корня и порога — только
+    /// <c>AI.HighLevelFunctions.RootFinder</c>; остальные строки списка — не поиск корня.
+    /// </summary>
+    private static readonly Dictionary<string, int> s_bisection = new(StringComparer.Ordinal)
+    {
+        ["src/AI/HighLevelFunctions/RootFinder.cs"] = 1,
+        // деление отрезка интегрирования
+        ["src/AI.Solvers.Math/Core/Numerics/Quadrature.cs"] = 2,
+        // минимум по Бренту шаг в шаг как scipy.optimize.fminbound — другое понятие
+        ["src/AI.DSP/IIR/Brent.cs"] = 2,
+        // двоичный поиск по упорядоченному массиву
+        ["src/AI.Economics/Cohorts/RetentionFitter.cs"] = 1,
+        ["src/AI.Script/Syntax/SourceText.cs"] = 1,
+        // середина между двумя проекциями классов, не итерация
+        ["src/AI.ML/Classification/LinearModelTools/NonIterative.cs"] = 1,
+        ["src/AI.ClassicMath/Calculator/Libs/Algebra/EquationLib.cs"] = 1,
+    };
+
+    [Fact]
+    public void RootSearch_IsDefinedInOneHome() => AssertRatchet(
+        "деление пополам для корня или порога — AI.HighLevelFunctions.RootFinder (Brent, Boundary)",
+        new Regex(@"(?:mid|middle|center|centre|m)\s*=\s*(?:0\.5\s*\*\s*\(\s*\w+\s*\+\s*\w+\s*\)|\(\s*\w+\s*\+\s*\w+\s*\)\s*(?:/\s*2(?:\.0)?|\*\s*0\.5)|\w+\s*\+\s*\(?\s*\(\s*\w+\s*-\s*\w+\s*\)\s*(?:/\s*2(?:\.0)?|\*\s*0\.5)\s*\)?)\s*;"),
+        s_bisection);
+
+    /// <summary>Шаг Рунге — Кутты 4-го порядка: четвёртый коэффициент встречается только в формуле шага.</summary>
+    private static readonly Dictionary<string, int> s_rungeKutta = new(StringComparer.Ordinal)
+    {
+        // скалярный и векторный шаг
+        ["src/AI.ClassicMath/MathUtils/ODE/RungeKutta.cs"] = 2,
+        // метод Дормана — Принса: другой метод, свои коэффициенты
+        ["src/AI.ClassicMath/MathUtils/ODE/DormandPrince.cs"] = 1,
+        // переменная с тем же именем в расчёте банка фильтров
+        ["src/AI.DSP/BackEnds/DSP/NWaves/Filters/Fda/FilterBanks.Specific.cs"] = 1,
+    };
+
+    [Fact]
+    public void RungeKuttaStep_IsWrittenOnce() => AssertRatchet(
+        "шаг РК4 — AI.MathUtils.ODE.RungeKutta.Step", new Regex(@"\bk4\s*="), s_rungeKutta);
+
+    /// <summary>Разложение Холецкого узнаётся по внутреннему произведению строк множителя.</summary>
+    private static readonly Dictionary<string, int> s_cholesky = new(StringComparer.Ordinal)
+    {
+        ["src/AI/HighLevelFunctions/CholeskyDecomposition.cs"] = 1,
+        // проверка L·Lᵀ против исходной матрицы, не разложение
+        ["src/AI.Microwave/Propagation/Tr38901Scenario.cs"] = 1,
+        // сборка матрицы из собственных векторов
+        ["src/AI.ClassicMath/MatrixUtils/Eigen.cs"] = 1,
+    };
+
+    [Fact]
+    public void Cholesky_IsDefinedInOneHome() => AssertRatchet(
+        "разложение Холецкого — AI.HighLevelFunctions.CholeskyDecomposition",
+        new Regex(@"(\w+)\[i, k\]\s*\*\s*\1\[j, k\]"), s_cholesky);
+
+    /// <summary>Центральная разность, записанная руками: деление на удвоенный шаг.</summary>
+    private static readonly Dictionary<string, int> s_finiteDifference = new(StringComparer.Ordinal)
+    {
+        // производные поля по узлам сетки — разностная схема, а не производная функции
+        ["src/AI.Solvers.Pde/FiniteDifference/LidDrivenCavity.cs"] = 6,
+        // проверка автоградиента нейросетей — вне этого шага
+        ["src/AI.NeuralNetworks/V2/Autograd/GradCheck.cs"] = 1,
+    };
+
+    [Fact]
+    public void FiniteDifferences_AreDefinedInOneHome() => AssertRatchet(
+        "численная производная — AI.HighLevelFunctions.NumericalDifferentiation",
+        new Regex(@"/\s*\(\s*2(?:\.0)?\s*\*\s*(?:h|step|delta|eps|epsilon|dx|width)\s*\)"), s_finiteDifference);
+
+    /// <summary>Численный якобиан и гессиан: определения с такими именами.</summary>
+    private static readonly Dictionary<string, int> s_jacobian = new(StringComparer.Ordinal)
+    {
+        ["src/AI/HighLevelFunctions/NumericalDifferentiation.cs"] = 2,
+        // ранг якобиана в результате, не дифференцирование
+        ["src/AI.ClassicMath/MathUtils/Nonlinear/LeastSquaresResult.cs"] = 1,
+        // сборка якобиана эскиза из блоков ограничений; численный блок зовёт канон
+        ["src/AI.Geometry/Constraints/GeometricSketch.Solve.cs"] = 3,
+        // ковариация из гессиана: гессиан считает канон
+        ["src/AI.Econometrics/LimitedDependent.cs"] = 1,
+        // [Obsolete]-адаптер NumericalDerivative
+        ["src/AI.Solvers.Math/Core/Solvers/NumericalEquationSolver.cs"] = 1,
+        // численные значения символьных выражений (EvaluateNumerical…), не производные
+        ["src/AI.Solvers.Math/Core/ExpressionEvaluator.cs"] = 7,
+    };
+
+    [Fact]
+    public void JacobianAndHessian_AreDefinedInOneHome() => AssertRatchet(
+        "численный якобиан и гессиан — AI.HighLevelFunctions.NumericalDifferentiation",
+        new Regex(Definition + @"Numerical\w*|\w*Jacobian\w*|\w*Hessian\w*)\s*\("), s_jacobian);
+
+    /// <summary>Левенберг — Марквардт, прогонка и матричная экспонента: по одному дому.</summary>
+    private static readonly Dictionary<string, int> s_solvers = new(StringComparer.Ordinal)
+    {
+        // класс и шаг с демпфированием
+        ["src/AI.ClassicMath/MathUtils/Nonlinear/LevenbergMarquardt.cs"] = 2,
+        ["src/AI.ClassicMath/MatrixUtils/Tridiagonal.cs"] = 1,
+        // [Obsolete]-адаптер SolveTridiagonal
+        ["src/AI.Solvers.Pde/Numerics/IterativeSolvers.cs"] = 1,
+        ["src/AI.ClassicMath/MatrixUtils/MatrixExponential.cs"] = 1,
+    };
+
+    [Fact]
+    public void LevenbergMarquardtTridiagonalMatrixExponential_AreDefinedInOneHome() => AssertRatchet(
+        "Левенберг — Марквардт, прогонка, матричная экспонента — AI.ClassicMath",
+        new Regex(Definition + @"TrySolveStep|DampedStep|LevenbergMarquardt\w*|\w*Tridiagonal\w*|\w*Thomas\w*|MatrixExp\w*|Expm\w*)\s*\("
+            + @"|class (?:LevenbergMarquardt|Tridiagonal|MatrixExponential)\b"),
+        s_solvers);
+
     // --- механика храповика ---
 
     private static void AssertRatchet(string concept, Regex pattern, IReadOnlyDictionary<string, int> allowed)

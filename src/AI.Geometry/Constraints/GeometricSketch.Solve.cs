@@ -227,7 +227,7 @@ public sealed partial class GeometricSketch
             SketchConstraint constraint = _constraints[c];
             int[] map = maps[c];
             double[] local = Local(all, map);
-            double[,] block = constraint.Derivatives(local) ?? NumericalBlock(constraint, local, map, column);
+            double[,] block = constraint.Derivatives(local) ?? NumericalBlock(constraint, local);
 
             for (int i = 0; i < constraint.Count; i++)
             {
@@ -263,29 +263,9 @@ public sealed partial class GeometricSketch
 
     internal bool IsFixed(int index) => _fixed[index];
 
-    private static double[,] NumericalBlock(SketchConstraint constraint, double[] local, int[] map, int[] column)
-    {
-        var block = new double[constraint.Count, local.Length];
-
-        for (int j = 0; j < local.Length; j++)
-        {
-            if (column[map[j]] < 0)
-                continue;
-
-            double value = local[j];
-            double step = 1e-6 * Math.Max(1, Math.Abs(value));
-            local[j] = value + step;
-            double[] plus = constraint.Residuals(local);
-            local[j] = value - step;
-            double[] minus = constraint.Residuals(local);
-            local[j] = value;
-
-            for (int i = 0; i < constraint.Count; i++)
-                block[i, j] = (plus[i] - minus[i]) / (2 * step);
-        }
-
-        return block;
-    }
+    // Производные блока по всем его неизвестным; закреплённые отсеиваются при сборке якобиана
+    private static double[,] NumericalBlock(SketchConstraint constraint, double[] local)
+        => AI.HighLevelFunctions.NumericalDifferentiation.Jacobian(constraint.Residuals, local, constraint.Count);
 
     private static double[] Local(double[] all, int[] map)
     {

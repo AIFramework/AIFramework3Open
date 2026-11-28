@@ -232,6 +232,6 @@ public static class HeatEquation1D
             right[i] = explicitPart + forcing;
         }
 
-        return IterativeSolvers.SolveTridiagonal(lower, diagonal, upper, right);
+        return AI.ClassicMath.MatrixUtils.Tridiagonal.Solve(lower, diagonal, upper, right);
     }
 }

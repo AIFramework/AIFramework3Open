@@ -1,5 +1,4 @@
 using AI.DataStructs.Algebraic;
-using AI.MathUtils.Algebra;
 using System;
 
 namespace AI.MathUtils.ODE;
@@ -55,24 +54,26 @@ public class CubicSplineInterpolator
             intervalLengths[i] = xAxis[i + 1] - xAxis[i];
         }
 
-        double[,] matrixA = new double[n + 1, n + 1];
+        // Система на вторые производные трёхдиагональна — решается прогонкой, а не общим методом Гаусса
+        double[] lower = new double[n + 1];
+        double[] diagonal = new double[n + 1];
+        double[] upper = new double[n + 1];
         double[] vectorB = new double[n + 1];
 
         for (int i = 1; i < n; i++)
         {
-            matrixA[i, i - 1] = intervalLengths[i - 1];
-            matrixA[i, i] = 2 * (intervalLengths[i - 1] + intervalLengths[i]);
-            matrixA[i, i + 1] = intervalLengths[i];
+            lower[i] = intervalLengths[i - 1];
+            diagonal[i] = 2 * (intervalLengths[i - 1] + intervalLengths[i]);
+            upper[i] = intervalLengths[i];
             vectorB[i] = 3 * ((yAxis[i + 1] - yAxis[i]) / intervalLengths[i] - (yAxis[i] - yAxis[i - 1]) / intervalLengths[i - 1]);
         }
 
         // Natural spline boundary conditions
-        matrixA[0, 0] = 1;
-        matrixA[n, n] = 1;
-        vectorB[0] = 0;
-        vectorB[n] = 0;
+        diagonal[0] = 1;
+        diagonal[n] = 1;
 
-        coefficientsC = Gauss.SolvingEquations(new Matrix(matrixA), vectorB);
+        coefficientsC = (double[])AI.ClassicMath.MatrixUtils.Tridiagonal.Solve(
+            new Vector(lower), new Vector(diagonal), new Vector(upper), new Vector(vectorB));
 
         for (int i = 0; i < n; i++)
         {
@@ -99,6 +100,12 @@ public class CubicSplineInterpolator
         if (i < 0)
         {
             i = ~i - 1;
+        }
+
+        // Последний узел принадлежит последнему отрезку: своего отрезка правее него нет
+        if (i >= coefficientsA.Length)
+        {
+            i = coefficientsA.Length - 1;
         }
 
         double deltaX = x - xAxis[i];

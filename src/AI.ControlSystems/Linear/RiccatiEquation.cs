@@ -49,7 +49,7 @@ public static class RiccatiEquation
 
         try
         {
-            _ = Cholesky.Decompose(ControlLinAlg.Symmetrize(r));
+            _ = AI.HighLevelFunctions.CholeskyDecomposition.Decompose(ControlLinAlg.Symmetrize(r));
         }
         catch (InvalidOperationException)
         {

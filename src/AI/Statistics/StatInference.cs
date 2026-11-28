@@ -520,20 +520,7 @@ public static partial class StatInference
             if (double.IsInfinity(hi)) return double.PositiveInfinity;
         }
 
-        // 2200 шагов хватает, чтобы пройти все двоичные порядки double от start до нуля
-        for (int i = 0; i < 2200; i++)
-        {
-            double mid = lo + ((hi - lo) / 2);
-
-            if (mid <= lo || mid >= hi) break;
-
-            if (isLeftOfRoot(mid)) lo = mid;
-            else hi = mid;
-
-            if (hi - lo <= 4.5e-16 * hi) break;
-        }
-
-        return lo + ((hi - lo) / 2);
+        return RootFinder.Boundary(isLeftOfRoot, lo, hi, xTolerance: 0, relativeTolerance: 4.5e-16);
     }
 
     #endregion

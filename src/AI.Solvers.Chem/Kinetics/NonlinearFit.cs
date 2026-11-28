@@ -1,4 +1,5 @@
 using AI.ClassicMath.MatrixUtils;
+using AI.MathUtils.Nonlinear;
 using AI.DataStructs.Algebraic;
 using AI.Statistics;
 using AI.Statistics.MonteCarlo;
@@ -108,56 +109,27 @@ public static class NonlinearFit
         if (options.AnnealingIterations > 0)
             (parameters, current, cost) = Anneal(residuals, parameters, cost, options);
 
-        int iteration = 0;
-        bool converged = false;
-        double lambda = 1e-3;
+        // Локальное уточнение — общий Левенберг — Марквардт; глобальный этап выше остаётся здесь,
+        // потому что отжиг перед спуском — приём этой задачи, а не метода наименьших квадратов
+        LeastSquaresResult local = LevenbergMarquardt.Solve(
+            point => new Vector(residuals(point.ToArray())),
+            new Vector(parameters),
+            options: new LevenbergMarquardtOptions
+            {
+                MaxIterations = options.MaxIterations,
+                CostTolerance = options.Tolerance,
+                DerivativeStep = options.DerivativeStep
+            });
 
-        for (; iteration < options.MaxIterations; iteration++)
+        // Если спуск не улучшил точку отжига (не число в невязках), остаётся она
+        if (local.Cost <= cost)
         {
-            var jacobian = Jacobian(residuals, parameters, current, options.DerivativeStep);
-            var step = TrySolveStep(jacobian, current, lambda);
-
-            if (step == null)
-                break;
-
-            var candidate = new double[parameters.Length];
-
-            for (int i = 0; i < parameters.Length; i++)
-                candidate[i] = parameters[i] + step[i];
-
-            double[] candidateResiduals = residuals(candidate);
-            double candidateCost = SumOfSquares(candidateResiduals);
-
-            if (candidateCost < cost)
-            {
-                double improvement = (cost - candidateCost) / Math.Max(cost, 1e-300);
-
-                parameters = candidate;
-                current = candidateResiduals;
-                cost = candidateCost;
-                lambda = Math.Max(lambda / 3, 1e-12);
-
-                if (improvement < options.Tolerance)
-                {
-                    converged = true;
-                    iteration++;
-                    break;
-                }
-            }
-            else
-            {
-                lambda *= 5;
-
-                if (lambda > 1e12)
-                {
-                    converged = true;
-                    iteration++;
-                    break;
-                }
-            }
+            parameters = local.Solution.ToArray();
+            current = local.Residuals.ToArray();
+            cost = local.Cost;
         }
 
-        return Summarize(residuals, parameters, current, cost, observedVariance, iteration, converged, options);
+        return Summarize(residuals, parameters, current, cost, observedVariance, local.Iterations, local.Converged, options);
     }
 
     // Глобальный этап: случайное блуждание с приёмкой по критерию отжига
@@ -227,7 +199,7 @@ public static class NonlinearFit
         double variance = cost / degreesOfFreedom;
         double residualStd = Math.Sqrt(variance);
 
-        var jacobian = Jacobian(residuals, parameters, current, options.DerivativeStep);
+        double[,] jacobian = AI.HighLevelFunctions.NumericalDifferentiation.Jacobian(residuals, parameters, n, options.DerivativeStep);
         var errors = new double[p];
         var intervals = new (double, double)[p];
 
@@ -269,83 +241,6 @@ public static class NonlinearFit
             Converged = converged,
             Confidence = options.Confidence
         };
-    }
-
-    // Численный якобиан центральными разностями
-    private static Matrix Jacobian(Func<double[], double[]> residuals, double[] parameters, double[] current, double step)
-    {
-        int n = current.Length;
-        int p = parameters.Length;
-        var jacobian = new Matrix(n, p);
-
-        for (int j = 0; j < p; j++)
-        {
-            double delta = step * Math.Max(Math.Abs(parameters[j]), 1.0);
-
-            var forward = (double[])parameters.Clone();
-            var backward = (double[])parameters.Clone();
-            forward[j] += delta;
-            backward[j] -= delta;
-
-            double[] plus = residuals(forward);
-            double[] minus = residuals(backward);
-
-            for (int i = 0; i < n; i++)
-                jacobian[i, j] = (plus[i] - minus[i]) / (2 * delta);
-        }
-
-        return jacobian;
-    }
-
-    // Шаг Левенберга-Марквардта: (JᵀJ + λ·diag(JᵀJ))·δ = -Jᵀr
-    private static double[] TrySolveStep(Matrix jacobian, double[] residuals, double lambda)
-    {
-        int n = jacobian.Height;
-        int p = jacobian.Width;
-
-        var normal = new Matrix(p, p);
-        var gradient = new double[p];
-
-        for (int i = 0; i < p; i++)
-        {
-            for (int j = 0; j < p; j++)
-            {
-                double sum = 0;
-
-                for (int row = 0; row < n; row++)
-                    sum += jacobian[row, i] * jacobian[row, j];
-
-                normal[i, j] = sum;
-            }
-
-            double gradientSum = 0;
-
-            for (int row = 0; row < n; row++)
-                gradientSum += jacobian[row, i] * residuals[row];
-
-            gradient[i] = -gradientSum;
-        }
-
-        for (int i = 0; i < p; i++)
-            normal[i, i] += lambda * Math.Max(normal[i, i], 1e-12);
-
-        Matrix inverse = Pseudoinverse.Compute(normal);
-        var step = new double[p];
-
-        for (int i = 0; i < p; i++)
-        {
-            double sum = 0;
-
-            for (int j = 0; j < p; j++)
-                sum += inverse[i, j] * gradient[j];
-
-            if (double.IsNaN(sum) || double.IsInfinity(sum))
-                return null;
-
-            step[i] = sum;
-        }
-
-        return step;
     }
 
     private static double SumOfSquares(double[] values)

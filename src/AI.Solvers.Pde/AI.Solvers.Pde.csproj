@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AI\AI.csproj" />
+    <ProjectReference Include="..\AI.ClassicMath\AI.ClassicMath.csproj" />
   </ItemGroup>
 
 </Project>

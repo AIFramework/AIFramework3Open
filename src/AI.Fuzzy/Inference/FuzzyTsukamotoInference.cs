@@ -64,30 +64,12 @@ public static class FuzzyTsukamotoInference
                 return zMax;
         }
 
-        double lo = zMin;
-        double hi = zMax;
-        for (int it = 0; it < bisectionIterations; it++)
-        {
-            double mid = 0.5 * (lo + hi);
-            double muMid = membership(mid);
+        // Число делений задаёт точность, как прежде: отрезок сужается в 2^bisectionIterations раз
+        double precision = (zMax - zMin) * Math.Pow(2, -bisectionIterations);
+        bool increasing = monotonicity == TsukamotoOutputMonotonicity.Increasing;
 
-            if (monotonicity == TsukamotoOutputMonotonicity.Increasing)
-            {
-                if (muMid < a)
-                    lo = mid;
-                else
-                    hi = mid;
-            }
-            else
-            {
-                if (muMid > a)
-                    lo = mid;
-                else
-                    hi = mid;
-            }
-        }
-
-        return 0.5 * (lo + hi);
+        return AI.HighLevelFunctions.RootFinder.Boundary(
+            z => increasing ? membership(z) < a : membership(z) > a, zMin, zMax, xTolerance: precision, relativeTolerance: 0);
     }
 
     /// <summary>

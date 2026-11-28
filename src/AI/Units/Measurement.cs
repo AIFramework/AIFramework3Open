@@ -200,8 +200,7 @@ public readonly struct Measurement : IEquatable<Measurement>, IFormattable
         ArgumentNullException.ThrowIfNull(function);
 
         double x = Value.SiValue;
-        double step = Math.Max(Math.Abs(x), 1.0) * 1e-6;
-        double derivative = (function(x + step) - function(x - step)) / (2.0 * step);
+        double derivative = AI.HighLevelFunctions.NumericalDifferentiation.Derivative(function, x);
 
         return new Measurement(new Quantity(function(x), resultDimension), Math.Abs(derivative) * SiUncertainty);
     }

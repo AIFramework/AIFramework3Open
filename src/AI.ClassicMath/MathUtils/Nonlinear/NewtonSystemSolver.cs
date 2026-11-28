@@ -49,7 +49,7 @@ public static class NewtonSystemSolver
 
         double[,] Jacobian(double[] point) => jacobian != null
             ? NumericalJacobian.FromMatrix(jacobian(new Vector(point)), n, n)
-            : NumericalJacobian.Central(Evaluate, point, n, options.DerivativeStep);
+            : AI.HighLevelFunctions.NumericalDifferentiation.Jacobian(Evaluate, point, n, options.DerivativeStep);
 
         double[] x = start.ToArray();
         double[] f = Evaluate(x);

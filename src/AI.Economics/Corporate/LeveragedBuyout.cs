@@ -347,19 +347,10 @@ public static class LeveragedBuyout
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        double low = 0.5, high = maxMultiple;
-
-        // Доходность монотонно убывает по цене входа: решается делением отрезка
-        for (int i = 0; i < 60; i++)
-        {
-            double mid = (low + high) / 2;
-            double irr = Run(input with { EntryMultiple = mid }).Irr;
-
-            if (irr > targetIrr) low = mid;
-            else high = mid;
-        }
-
-        return (low + high) / 2;
+        // Доходность монотонно убывает по цене входа: ищется граница «доходность ещё выше целевой».
+        // Если цель недостижима даже при самой низкой цене, граница стягивается к 0.5; если достигается
+        // на всём отрезке — к maxMultiple
+        return AI.HighLevelFunctions.RootFinder.Boundary(multiple => Run(input with { EntryMultiple = multiple }).Irr > targetIrr, 0.5, maxMultiple, xTolerance: 0);
     }
 
     /// <summary>Строит сетку доходности по мультипликаторам входа и выхода.</summary>

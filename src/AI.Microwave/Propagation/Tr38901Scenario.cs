@@ -218,7 +218,7 @@ public sealed class Tr38901Parameters
 
             try
             {
-                Matrix lower = Cholesky.Decompose(matrix);
+                Matrix lower = AI.HighLevelFunctions.CholeskyDecomposition.Decompose(matrix);
                 var result = new double[7, 7];
 
                 for (int i = 0; i < 7; i++)

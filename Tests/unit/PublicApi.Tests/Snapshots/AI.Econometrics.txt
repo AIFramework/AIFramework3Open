@@ -588,6 +588,7 @@ namespace AI.Econometrics
         public double Aic { get; init; }
         public double Bic { get; init; }
         public AI.DataStructs.Algebraic.Matrix Coefficients { get; init; }
+        public double CovarianceShift { get; init; }
         public System.Collections.Generic.IReadOnlyList<AI.Econometrics.GrangerTest> Granger { get; init; }
         public bool IsStable { get; }
         public double LogLikelihood { get; init; }

@@ -53,40 +53,6 @@ internal static class ControlLinAlg
         return best;
     }
 
-    /// <summary>
-    /// Матричная экспонента масштабированием и возведением в квадрат: exp(A) = (exp(A/2^s))^(2^s).
-    /// </summary>
-    /// <remarks>
-    /// Степень s подбирается по бесконечной норме так, чтобы ‖A/2^s‖ ≤ 1/2; тогда ряд Тейлора
-    /// сходится за два десятка членов без сокращения больших слагаемых. Прежде масштаб считался по
-    /// наибольшему элементу, а не по норме.
-    /// </remarks>
-    internal static Matrix MatrixExp(Matrix a, double tol = 1e-16, int maxTaylor = 60)
-    {
-        if (!a.IsSquared)
-            throw new ArgumentException("Ожидается квадратная матрица.", nameof(a));
-        int n = a.Height;
-        double norm = InfinityNorm(a);
-        if (!double.IsFinite(norm))
-            throw new ArgumentException("Матрица содержит бесконечные элементы.", nameof(a));
-
-        int s = norm > 0.5 ? (int)Math.Ceiling(Math.Log2(norm / 0.5)) : 0;
-        Matrix x = a * Math.Pow(2, -s);
-        Matrix e = Eye(n);
-        Matrix term = Eye(n);
-        for (int k = 1; k <= maxTaylor; k++)
-        {
-            term = term * x * (1.0 / k);
-            e = e + term;
-            if (MaxAbs(term) <= tol * Math.Max(1, MaxAbs(e)))
-                break;
-        }
-
-        for (int i = 0; i < s; i++)
-            e = e * e;
-        return e;
-    }
-
     /// <summary>Подматрица: строки [row, row + rows), столбцы [col, col + cols)</summary>
     internal static Matrix Block(Matrix m, int row, int col, int rows, int cols)
     {

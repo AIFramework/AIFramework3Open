@@ -617,28 +617,7 @@ public static class LimitedDependent
     /// <summary>Ковариационная матрица из численного гессиана.</summary>
     private static double[,] NumericalCovariance(Func<double[], double> negativeLogLikelihood, double[] point, int k)
     {
-        var hessian = new double[k, k];
-        double step = 1e-4;
-
-        for (int a = 0; a < k; a++)
-        {
-            for (int b = a; b < k; b++)
-            {
-                double ha = step * Math.Max(1, Math.Abs(point[a]));
-                double hb = step * Math.Max(1, Math.Abs(point[b]));
-
-                double[] pp = (double[])point.Clone(); pp[a] += ha; pp[b] += hb;
-                double[] pm = (double[])point.Clone(); pm[a] += ha; pm[b] -= hb;
-                double[] mp = (double[])point.Clone(); mp[a] -= ha; mp[b] += hb;
-                double[] mm = (double[])point.Clone(); mm[a] -= ha; mm[b] -= hb;
-
-                double value = (negativeLogLikelihood(pp) - negativeLogLikelihood(pm)
-                    - negativeLogLikelihood(mp) + negativeLogLikelihood(mm)) / (4 * ha * hb);
-
-                hessian[a, b] = value;
-                hessian[b, a] = value;
-            }
-        }
+        double[,] hessian = AI.HighLevelFunctions.NumericalDifferentiation.Hessian(negativeLogLikelihood, point);
 
         for (int a = 0; a < k; a++) hessian[a, a] += 1e-10;
 

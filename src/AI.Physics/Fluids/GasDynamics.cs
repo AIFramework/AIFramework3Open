@@ -131,18 +131,8 @@ public static class GasDynamics
         }
 
         // На каждой ветви A/A* монотонна: убывает к M = 1 слева и растёт справа
-        for (int i = 0; i < 200; i++)
-        {
-            double middle = (low + high) / 2;
-            bool above = Isentropic(middle, gamma).Area > areaRatio;
-
-            if (above == supersonic)
-                high = middle;
-            else
-                low = middle;
-        }
-
-        return (low + high) / 2;
+        return AI.HighLevelFunctions.RootFinder.Boundary(
+            mach => (Isentropic(mach, gamma).Area > areaRatio) != supersonic, low, high, xTolerance: 0);
     }
 
     /// <summary>
@@ -208,17 +198,7 @@ public static class GasDynamics
         while (PrandtlMeyerAngle(high, gamma) < angleDegrees)
             high *= 2;
 
-        for (int i = 0; i < 200; i++)
-        {
-            double middle = (low + high) / 2;
-
-            if (PrandtlMeyerAngle(middle, gamma) < angleDegrees)
-                low = middle;
-            else
-                high = middle;
-        }
-
-        return (low + high) / 2;
+        return AI.HighLevelFunctions.RootFinder.Boundary(mach => PrandtlMeyerAngle(mach, gamma) < angleDegrees, low, high, xTolerance: 0);
     }
 
     /// <summary>

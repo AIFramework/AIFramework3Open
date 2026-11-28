@@ -1082,7 +1082,7 @@ namespace AI.Script.Std
         [AI.Script.Binding.ScriptFn("root", "Численный корень уравнения f(x) = 0 на отрезке", Example="solve.root(x => x * x - 2, from: 0, to: 2)")]
         public static double Root(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("функция")] AI.Script.Runtime.ScriptCallable f, [AI.Script.Binding.ScriptParam("левая граница отрезка")] double from, [AI.Script.Binding.ScriptParam("правая граница отрезка")] double to, [AI.Script.Binding.ScriptParam("точность")] double tolerance = 1E-10) { }
         [AI.Script.Binding.ScriptFn("roots", "Все корни функции на отрезке", Example="solve.roots(x => math.sin(x), from: 0, to: 10)")]
-        public static AI.DataStructs.Algebraic.Vector Roots(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("функция")] AI.Script.Runtime.ScriptCallable f, [AI.Script.Binding.ScriptParam("левая граница отрезка")] double from, [AI.Script.Binding.ScriptParam("правая граница отрезка")] double to, [AI.Script.Binding.ScriptParam("число проб для локализации корней")] int samples = 100) { }
+        public static AI.DataStructs.Algebraic.Vector Roots(AI.Script.Binding.IScriptContext context, [AI.Script.Binding.ScriptParam("функция")] AI.Script.Runtime.ScriptCallable f, [AI.Script.Binding.ScriptParam("левая граница отрезка")] double from, [AI.Script.Binding.ScriptParam("правая граница отрезка")] double to, [AI.Script.Binding.ScriptParam("число проб для локализации корней")] int samples = 100, [AI.Script.Binding.ScriptParam("точность")] double tolerance = 1E-10) { }
     }
     public static class StandardLibrary
     {

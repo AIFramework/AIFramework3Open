@@ -263,6 +263,19 @@ public sealed class LibraryBindingTests
     }
 
     [Fact]
+    public void Solve_Root_OfTinyScaleFunction_IsRootNotMidpoint()
+    {
+        // Прежний критерий «|f(x)| меньше точности» останавливался в первой же середине отрезка — 0.5
+        RunResult result = Script.RunOk("""
+            emit r = solve.root(x => 1e-12 * (x - 0.3), from: 0, to: 1)
+            emit all = solve.roots(x => 1e-12 * (x - 0.3), from: 0, to: 1)
+            """);
+
+        Assert.Equal(0.3, (double)result.Emitted["r"]!, 9);
+        Assert.Equal(0.3, Assert.Single((AI.DataStructs.Algebraic.Vector)result.Emitted["all"]!), 9);
+    }
+
+    [Fact]
     public void Solve_Root_ReportsMissingSignChange()
     {
         Diagnostic error = Script.FailsWith("emit r = solve.root(x => x * x + 1, from: 0, to: 2)");

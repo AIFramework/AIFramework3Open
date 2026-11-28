@@ -512,18 +512,7 @@ public static class Copulas
         double u = rng.NextDouble();
         double target = rng.NextDouble();
 
-        double low = 1e-9, high = 1 - 1e-9;
-
-        for (int i = 0; i < 60; i++)
-        {
-            double mid = (low + high) / 2;
-            double conditional = ConditionalGumbel(u, mid, theta);
-
-            if (conditional < target) low = mid;
-            else high = mid;
-        }
-
-        return (u, (low + high) / 2);
+        return (u, AI.HighLevelFunctions.RootFinder.Boundary(v => ConditionalGumbel(u, v, theta) < target, 1e-9, 1 - 1e-9, xTolerance: 0));
     }
 
     /// <summary>Условная функция копулы Гумбеля.</summary>

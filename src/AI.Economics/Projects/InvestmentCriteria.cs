@@ -235,22 +235,7 @@ public static class InvestmentCriteria
     {
         ArgumentNullException.ThrowIfNull(cashFlows);
 
-        double low = -0.9, high = 10.0;
-        double valueLow = NetPresentValue(cashFlows, low);
-        double valueHigh = NetPresentValue(cashFlows, high);
-
-        if (valueLow * valueHigh > 0) return double.NaN;
-
-        for (int i = 0; i < 200; i++)
-        {
-            double mid = (low + high) / 2;
-            double value = NetPresentValue(cashFlows, mid);
-
-            if (value * valueLow <= 0) { high = mid; valueHigh = value; }
-            else { low = mid; valueLow = value; }
-        }
-
-        return (low + high) / 2;
+        return SolveRate(rate => NetPresentValue(cashFlows, rate));
     }
 
     /// <summary>Модифицированная внутренняя норма доходности.</summary>
@@ -311,21 +296,48 @@ public static class InvestmentCriteria
     {
         ArgumentNullException.ThrowIfNull(flows);
 
-        double low = -0.9, high = 10.0;
-        double valueLow = ExtendedNetPresentValue(flows, low);
+        return SolveRate(rate => ExtendedNetPresentValue(flows, rate));
+    }
 
-        if (valueLow * ExtendedNetPresentValue(flows, high) > 0) return double.NaN;
+    /// <summary>Сетка ставок, между соседними узлами которой ищется смена знака приведённой стоимости.</summary>
+    private static readonly double[] s_rateGrid =
+        [-0.99, -0.9, -0.75, -0.5, -0.25, -0.1, 0, 0.05, 0.1, 0.15, 0.25, 0.5, 1, 2, 5, 10, 100, 1e3, 1e4, 1e6];
 
-        for (int i = 0; i < 200; i++)
+    /// <summary>
+    /// Ставка, обнуляющая приведённую стоимость.
+    /// </summary>
+    /// <remarks>
+    /// Скобка не зашита: смена знака ищется по сетке ставок от −99 % до 10⁸ %, корень уточняет
+    /// <see cref="AI.HighLevelFunctions.RootFinder.Brent"/>. У потока с несколькими сменами знака ставок
+    /// несколько; берётся ближайшая к 10 % — как делает Excel с начальным приближением по умолчанию.
+    /// Если смены знака нет на всей сетке (поток одного знака), ставки не существует — <c>NaN</c>.
+    /// </remarks>
+    private static double SolveRate(Func<double, double> presentValue)
+    {
+        double best = double.NaN, distance = double.PositiveInfinity;
+        double left = s_rateGrid[0], valueLeft = presentValue(left);
+
+        for (int i = 1; i < s_rateGrid.Length; i++)
         {
-            double mid = (low + high) / 2;
-            double value = ExtendedNetPresentValue(flows, mid);
+            double right = s_rateGrid[i], valueRight = presentValue(right);
 
-            if (value * valueLow <= 0) high = mid;
-            else { low = mid; valueLow = value; }
+            if (double.IsFinite(valueLeft) && double.IsFinite(valueRight)
+                && (valueLeft == 0 || valueRight == 0 || Math.Sign(valueLeft) != Math.Sign(valueRight)))
+            {
+                AI.HighLevelFunctions.RootResult result = AI.HighLevelFunctions.RootFinder.Brent(presentValue, left, right);
+
+                if (result.Converged && Math.Abs(result.Root - 0.1) < distance)
+                {
+                    best = result.Root;
+                    distance = Math.Abs(result.Root - 0.1);
+                }
+            }
+
+            left = right;
+            valueLeft = valueRight;
         }
 
-        return (low + high) / 2;
+        return best;
     }
 
     /// <summary>Срок окупаемости с линейной интерполяцией внутри периода.</summary>

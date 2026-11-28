@@ -6,16 +6,11 @@ using System;
 namespace AI.MathUtils.Nonlinear;
 
 /// <summary>
-/// Общие приемы нелинейных решателей: вычисление функции на массиве и численный якобиан.
+/// Общие приемы нелинейных решателей: вычисление функции на массиве и проверка якобиана.
+/// Сам численный якобиан считает <see cref="AI.HighLevelFunctions.NumericalDifferentiation.Jacobian"/>.
 /// </summary>
 internal static class NumericalJacobian
 {
-    /// <summary>
-    /// Относительный шаг центральной разности по умолчанию: кубический корень машинного эпсилон.
-    /// Ошибка складывается из округления (порядка eps/h) и отбрасывания (порядка h²), минимум дает ∛eps.
-    /// </summary>
-    internal const double DefaultStep = 6.055454e-6;
-
     /// <summary>
     /// Вычисляет функцию векторного аргумента на массиве и проверяет размер результата.
     /// </summary>
@@ -27,38 +22,6 @@ internal static class NumericalJacobian
             throw new InvalidOperationException($"Функция вернула {value.Count} значений вместо {expectedLength}.");
 
         return value.ToArray();
-    }
-
-    /// <summary>
-    /// Якобиан центральными разностями: J[i, j] = ∂fᵢ/∂xⱼ.
-    /// </summary>
-    internal static double[,] Central(Func<double[], double[]> function, double[] point, int outputs, double relativeStep)
-    {
-        double step = relativeStep > 0 ? relativeStep : DefaultStep;
-        int n = point.Length;
-        var jacobian = new double[outputs, n];
-        var probe = (double[])point.Clone();
-
-        for (int j = 0; j < n; j++)
-        {
-            double delta = step * Math.Max(Math.Abs(point[j]), 1.0);
-            double forward = point[j] + delta;
-            double backward = point[j] - delta;
-
-            probe[j] = forward;
-            double[] plus = function(probe);
-            probe[j] = backward;
-            double[] minus = function(probe);
-            probe[j] = point[j];
-
-            // Делим на фактическую разность аргументов, а не на 2·delta: так учитывается округление
-            double width = forward - backward;
-
-            for (int i = 0; i < outputs; i++)
-                jacobian[i, j] = (plus[i] - minus[i]) / width;
-        }
-
-        return jacobian;
     }
 
     /// <summary>

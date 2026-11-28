@@ -315,13 +315,6 @@ public static class MertonModel
         for (int i = 0; i < 100 && Equity(high) < equityValue; i++)
             high += defaultPoint > 0 ? defaultPoint : equityValue;
 
-        for (int i = 0; i < 200; i++)
-        {
-            double mid = (low + high) / 2;
-            if (Equity(mid) < equityValue) low = mid;
-            else high = mid;
-        }
-
-        return (low + high) / 2;
+        return AI.HighLevelFunctions.RootFinder.Boundary(v => Equity(v) < equityValue, low, high, xTolerance: 0);
     }
 }

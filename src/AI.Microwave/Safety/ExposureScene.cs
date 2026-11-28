@@ -109,7 +109,7 @@ public class ExposureScene
     /// <paramref name="maxRangeM"/>.
     /// </returns>
     /// <remarks>
-    /// Корень ищется бисекцией из AI.Solvers.Math: доля от ПДУ монотонно
+    /// Корень ищет RootFinder (метод Брента): доля от ПДУ монотонно
     /// убывает с расстоянием, поэтому граница единственна.
     /// </remarks>
     public double BoundaryDistance(double azimuthDeg, double heightM,
@@ -125,10 +125,9 @@ public class ExposureScene
         if (Excess(minRange) <= 0) return 0.0;
         if (Excess(maxRangeM) > 0) return double.NaN;
 
-        var (success, root, _) = NumericalEquationSolver.Bisection(
-            Excess, minRange, maxRangeM, 1e-9, 200);
+        AI.HighLevelFunctions.RootResult result = AI.HighLevelFunctions.RootFinder.Brent(Excess, minRange, maxRangeM, xTolerance: 1e-9);
 
-        return success ? root : double.NaN;
+        return result.Converged ? result.Root : double.NaN;
     }
 
     /// <summary>

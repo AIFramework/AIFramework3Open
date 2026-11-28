@@ -181,20 +181,9 @@ public static class IirOrder
         for (int n = 1; n <= 40; n++)
         {
             ZeroPoleGain prototype = AnalogPrototype.Bessel(n, BesselNormalization.Magnitude);
-            double lo = 1e-6 * fs, hi = fs / 2 * (1 - 1e-9);
-            for (int i = 0; i < 80; i++)
-            {
-                double mid = (lo + hi) / 2;
-                double loss = -20 * Math.Log10(DigitalMagnitude(prototype, low, mid, fp, fs));
-                if (low == loss > spec.PassbandRippleDb)
-                {
-                    lo = mid;
-                }
-                else
-                {
-                    hi = mid;
-                }
-            }
+            (double lo, double hi) = AI.HighLevelFunctions.RootFinder.BoundaryBracket(
+                cut => low == (-20 * Math.Log10(DigitalMagnitude(prototype, low, cut, fp, fs)) > spec.PassbandRippleDb),
+                1e-6 * fs, fs / 2 * (1 - 1e-9), xTolerance: 0, relativeTolerance: 0);
 
             // Срез с той стороны интервала, где требование к полосе пропускания ещё выполнено
             double cutoff = low ? hi : lo;

@@ -17,7 +17,7 @@ namespace AI.Microwave.Geometry;
 /// то есть привязывал её к фокусному расстоянию, а не к реальному диаметру:
 /// линза диаметром 0.65 м получалась толщиной 0.53 м. Здесь толщина
 /// выводится из геометрии профиля, а объём берётся интегрированием -
-/// квадратурой и бисекцией из AI.Solvers.Math.
+/// квадратурой из AI.Solvers.Math и решателем корней ядра (RootFinder).
 /// </para>
 /// </remarks>
 public sealed class DielectricLens
@@ -126,9 +126,11 @@ public sealed class DielectricLens
     private double ThetaForRadius(double rho)
     {
         if (rho <= 0) return 0.0;
-        var (_, root, _) = NumericalEquationSolver.Bisection(
-            th => RadialAt(th) - rho, 0.0, _thetaLimit, 1e-12, 200);
-        return root;
+
+        // Радиус на самом краю профиля из-за округления может оказаться на волос больше предельного
+        if (rho >= RadialAt(_thetaLimit)) return _thetaLimit;
+
+        return AI.HighLevelFunctions.RootFinder.Solve(th => RadialAt(th) - rho, 0.0, _thetaLimit, xTolerance: 1e-12);
     }
 
     /// <summary>Толщина линзы на радиусе rho, м.</summary>
@@ -147,8 +149,6 @@ public sealed class DielectricLens
     {
         if (excess <= 0) return maxRadius;
         if (excess >= sag) return 0.0;
-        var (_, root, _) = NumericalEquationSolver.Bisection(
-            rho => ThicknessAt(rho) - EdgeThicknessM - excess, 0.0, maxRadius, 1e-12, 200);
-        return root;
+        return AI.HighLevelFunctions.RootFinder.Solve(rho => ThicknessAt(rho) - EdgeThicknessM - excess, 0.0, maxRadius, xTolerance: 1e-12);
     }
 }

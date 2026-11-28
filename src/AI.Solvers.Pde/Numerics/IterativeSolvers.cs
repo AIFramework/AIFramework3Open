@@ -120,54 +120,14 @@ public static class IterativeSolvers
         return new IterativeResult(solution, iteration, finalResidual, finalResidual <= threshold);
     }
 
-    /// <summary>
-    /// Прогонка для трёхдиагональной системы (алгоритм Томаса)
-    /// </summary>
-    /// <remarks>
-    /// Одномерные схемы дают именно такие системы, и решаются они за один проход вперёд
-    /// и один назад — привлекать общий решатель здесь незачем.
-    /// </remarks>
+    /// <summary>Прогонка для трёхдиагональной системы.</summary>
     /// <param name="lower">Поддиагональ, первый элемент не используется</param>
     /// <param name="diagonal">Главная диагональ</param>
     /// <param name="upper">Наддиагональ, последний элемент не используется</param>
     /// <param name="rightHandSide">Правая часть</param>
+    [Obsolete("Используйте AI.ClassicMath.MatrixUtils.Tridiagonal.Solve — единственную прогонку.")]
     public static Vector SolveTridiagonal(Vector lower, Vector diagonal, Vector upper, Vector rightHandSide)
-    {
-        ArgumentNullException.ThrowIfNull(lower);
-        ArgumentNullException.ThrowIfNull(diagonal);
-        ArgumentNullException.ThrowIfNull(upper);
-        ArgumentNullException.ThrowIfNull(rightHandSide);
-
-        int size = diagonal.Count;
-
-        var modifiedUpper = new double[size];
-        var modifiedRight = new double[size];
-
-        if (Math.Abs(diagonal[0]) < 1e-300)
-            throw new ArgumentException("Нулевой ведущий элемент: система вырождена", nameof(diagonal));
-
-        modifiedUpper[0] = upper[0] / diagonal[0];
-        modifiedRight[0] = rightHandSide[0] / diagonal[0];
-
-        for (int i = 1; i < size; i++)
-        {
-            double denominator = diagonal[i] - (lower[i] * modifiedUpper[i - 1]);
-
-            if (Math.Abs(denominator) < 1e-300)
-                throw new ArgumentException("Прогонка неустойчива: нулевой знаменатель", nameof(diagonal));
-
-            modifiedUpper[i] = i < size - 1 ? upper[i] / denominator : 0.0;
-            modifiedRight[i] = (rightHandSide[i] - (lower[i] * modifiedRight[i - 1])) / denominator;
-        }
-
-        var solution = new Vector(size);
-        solution[size - 1] = modifiedRight[size - 1];
-
-        for (int i = size - 2; i >= 0; i--)
-            solution[i] = modifiedRight[i] - (modifiedUpper[i] * solution[i + 1]);
-
-        return solution;
-    }
+        => AI.ClassicMath.MatrixUtils.Tridiagonal.Solve(lower, diagonal, upper, rightHandSide);
 
     private static Vector ApplyPreconditioner(Vector diagonal, Vector residual)
     {

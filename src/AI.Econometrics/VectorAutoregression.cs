@@ -5,6 +5,7 @@ using AI.ClassicMath.MatrixUtils;
 using AI.DataStructs.Algebraic;
 using AI.Insights;
 using AI.Econometrics.Numerics;
+using AI.HighLevelFunctions;
 
 namespace AI.Econometrics;
 
@@ -48,6 +49,16 @@ public sealed record VarResult : IInterpretable
 
     /// <summary>Максимальный модуль корня характеристического уравнения.</summary>
     public double SpectralRadius { get; init; }
+
+    /// <summary>
+    /// Сдвиг диагонали, без которого ковариационная матрица остатков не раскладывалась по Холецкому;
+    /// 0 — матрица положительно определена и сдвиг не понадобился.
+    /// </summary>
+    /// <remarks>
+    /// При ненулевом сдвиге правдоподобие, критерии и импульсные отклики посчитаны для матрицы
+    /// «ковариация + сдвиг·I», а не для исходной.
+    /// </remarks>
+    public double CovarianceShift { get; init; }
 
     /// <summary>Тесты причинности по Гренджеру для всех пар переменных.</summary>
     public IReadOnlyList<GrangerTest> Granger { get; init; } = [];
@@ -101,6 +112,10 @@ public sealed record VarResult : IInterpretable
                 $"Максимальный корень {Fmt.Num(SpectralRadius, 3)} не меньше единицы. " +
                 "Импульсные отклики не затухают, а система, скорее всего, содержит " +
                 "нестационарные ряды — проверьте порядок интегрирования и коинтеграцию.")
+            .WarningIf(CovarianceShift > 0,
+                "Ковариационная матрица остатков вырождена: остатки уравнений линейно зависимы. " +
+                $"К её диагонали добавлено {CovarianceShift.ToString("0.#E+0", System.Globalization.CultureInfo.InvariantCulture)}, иначе правдоподобие и импульсные " +
+                "отклики не считаются. Проверьте, нет ли среди рядов тождественно связанных.")
             .WarningIf(Observations < 10 * Variables.Count * Order,
                 $"Параметров в системе {Variables.Count * ((Variables.Count * Order) + 1)} " +
                 $"при {Observations} наблюдениях. VAR быстро переопределяется: " +
@@ -208,8 +223,10 @@ public static class VectorAutoregression
                 covariance[a, b] = sum / rows;
             }
 
-        double determinant = Determinant(covariance);
-        double logLikelihood = -0.5 * rows * ((k * Math.Log(2 * Math.PI)) + Math.Log(Math.Max(determinant, 1e-300)) + k);
+        // Ковариация остатков бывает вырождена на волос; сдвиг применяется только тогда и попадает в результат
+        RegularizedCholesky factor = CholeskyDecomposition.DecomposeRegularized(covariance);
+        double logLikelihood = -0.5 * rows
+            * ((k * Math.Log(2 * Math.PI)) + CholeskyDecomposition.LogDeterminantFromFactor(factor.Lower) + k);
         int parameters = k * regressors;
 
         return new VarResult
@@ -223,6 +240,7 @@ public static class VectorAutoregression
             Aic = (-2 * logLikelihood) + (2 * parameters),
             Bic = (-2 * logLikelihood) + (parameters * Math.Log(rows)),
             SpectralRadius = Eigen.SpectralRadius(Companion(coefficients, order)),
+            CovarianceShift = factor.Shift,
             Granger = GrangerTests(data, order, labels),
             Observations = rows,
         };
@@ -268,7 +286,8 @@ public static class VectorAutoregression
         ArgumentOutOfRangeException.ThrowIfLessThan(horizon, 1);
 
         int k = result.Variables.Count, p = result.Order;
-        double[,] chol = LinearAlgebra.Cholesky(LinearRegression.ToArray(result.ResidualCovariance));
+        // Тот же множитель, что при оценке: о сдвиге, если он понадобился, сообщает result.CovarianceShift
+        double[,] chol = LinearRegression.ToArray(CholeskyDecomposition.DecomposeRegularized(result.ResidualCovariance).Lower);
 
         // Матрицы psi рекуррентно: psi_0 = I, psi_h = sum_i A_i psi_{h-i}
         var psi = new List<double[,]> { LinearAlgebra.Identity(k) };
@@ -475,17 +494,5 @@ public static class VectorAutoregression
         for (int i = k; i < size; i++) companion[i, i - k] = 1;
 
         return companion;
-    }
-
-    /// <summary>Определитель матрицы через разложение Холецкого.</summary>
-    private static double Determinant(Matrix matrix)
-    {
-        double[,] chol = LinearAlgebra.Cholesky(LinearRegression.ToArray(matrix));
-        double logDeterminant = 0;
-
-        for (int i = 0; i < chol.GetLength(0); i++)
-            logDeterminant += 2 * Math.Log(Math.Max(chol[i, i], 1e-150));
-
-        return Math.Exp(logDeterminant);
     }
 }

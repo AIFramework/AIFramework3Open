@@ -49,7 +49,7 @@ public static class Discretization
                 augmented[i, n + j] = bc[i, j] * dt;
         }
 
-        Matrix exponential = ControlLinAlg.MatrixExp(augmented);
+        Matrix exponential = AI.ClassicMath.MatrixUtils.MatrixExponential.Compute(augmented);
         ad = ControlLinAlg.Block(exponential, 0, 0, n, n);
         bd = ControlLinAlg.Block(exponential, 0, n, n, m);
     }
@@ -92,7 +92,7 @@ public static class Discretization
             }
         }
 
-        Matrix exponential = ControlLinAlg.MatrixExp(augmented);
+        Matrix exponential = AI.ClassicMath.MatrixUtils.MatrixExponential.Compute(augmented);
         Matrix f12 = ControlLinAlg.Block(exponential, 0, n, n, n);
         Matrix f22 = ControlLinAlg.Block(exponential, n, n, n, n);
 

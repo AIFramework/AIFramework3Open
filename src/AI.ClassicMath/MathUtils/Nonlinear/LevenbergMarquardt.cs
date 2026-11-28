@@ -55,7 +55,7 @@ public static class LevenbergMarquardt
 
         double[,] Jacobian(double[] point) => jacobian != null
             ? NumericalJacobian.FromMatrix(jacobian(new Vector(point)), m, n)
-            : NumericalJacobian.Central(Residual, point, m, options.DerivativeStep);
+            : AI.HighLevelFunctions.NumericalDifferentiation.Jacobian(Residual, point, m, options.DerivativeStep);
 
         double cost = NumericalJacobian.SumOfSquares(r);
         double[,] j = Jacobian(x);
@@ -197,7 +197,7 @@ public static class LevenbergMarquardt
 
         try
         {
-            solution = Cholesky.Solve(system, right);
+            solution = AI.HighLevelFunctions.CholeskyDecomposition.Solve(system, right);
         }
         catch (InvalidOperationException)
         {

@@ -328,19 +328,7 @@ public sealed class MultipathChannel : IInterpretable
                 continue;
             }
 
-            double low = previous, high = x;
-
-            for (int i = 0; i < 60; i++)
-            {
-                double middle = (low + high) / 2;
-
-                if (correlation(middle) > level)
-                    low = middle;
-                else
-                    high = middle;
-            }
-
-            return (low + high) / 2;
+            return AI.HighLevelFunctions.RootFinder.Boundary(lag => correlation(lag) > level, previous, x, xTolerance: 0);
         }
 
         return double.PositiveInfinity;

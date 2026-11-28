@@ -102,41 +102,6 @@ internal static class LinearAlgebra
     public static double[,] Copy(double[,] matrix) => (double[,])matrix.Clone();
 
     /// <summary>
-    /// Разложение Холецкого положительно определённой матрицы.
-    /// </summary>
-    /// <remarks>
-    /// К диагонали добавляется малая величина, если матрица оказалась вырожденной:
-    /// выборочные ковариационные матрицы почти всегда слегка не положительно
-    /// определены из-за ошибок округления, и падать на этом нельзя.
-    /// </remarks>
-    public static double[,] Cholesky(double[,] matrix, double ridge = 1e-10)
-    {
-        int n = matrix.GetLength(0);
-        var lower = new double[n, n];
-
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j <= i; j++)
-            {
-                double sum = matrix[i, j];
-                for (int k = 0; k < j; k++) sum -= lower[i, k] * lower[j, k];
-
-                if (i == j)
-                {
-                    double diagonal = Math.Max(sum, ridge);
-                    lower[i, j] = Math.Sqrt(diagonal);
-                }
-                else
-                {
-                    lower[i, j] = lower[j, j] > 0 ? sum / lower[j, j] : 0;
-                }
-            }
-        }
-
-        return lower;
-    }
-
-    /// <summary>
     /// Собственные числа и векторы симметричной матрицы методом Якоби.
     /// </summary>
     /// <param name="matrix">Симметричная матрица.</param>

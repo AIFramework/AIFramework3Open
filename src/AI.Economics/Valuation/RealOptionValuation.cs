@@ -167,16 +167,9 @@ public static class RealOptionValuation
     /// </summary>
     private static double ThresholdValue(double k, double t, double sigma, double r, double q, int steps)
     {
-        double lo = k, hi = k * 20;
-
-        for (int i = 0; i < 60; i++)
-        {
-            double mid = 0.5 * (lo + hi);
-            double option = Binomial(mid, k, t, sigma, r, q, Math.Min(steps, 80));
-            if (option > mid - k + 1e-9) lo = mid;
-            else hi = mid;
-        }
-
-        return 0.5 * (lo + hi);
+        // Признак «опцион ещё дороже немедленного исполнения» ступенчат (биномиальное дерево), поэтому
+        // ищется его граница, а не корень гладкой функции
+        return AI.HighLevelFunctions.RootFinder.Boundary(
+            value => Binomial(value, k, t, sigma, r, q, Math.Min(steps, 80)) > value - k + 1e-9, k, k * 20, xTolerance: 0);
     }
 }

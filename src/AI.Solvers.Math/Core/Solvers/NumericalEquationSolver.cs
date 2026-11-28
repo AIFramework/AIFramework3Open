@@ -49,9 +49,13 @@ public static class NumericalEquationSolver
         return (false, x, maxIterations);
     }
 
-    /// <summary>
-    /// Метод бисекции для поиска корня на отрезке [a, b]
-    /// </summary>
+    /// <summary>Корень на отрезке со сменой знака.</summary>
+    /// <remarks>
+    /// Считает <see cref="AI.HighLevelFunctions.RootFinder.Brent"/>; <paramref name="tolerance"/> — точность
+    /// по аргументу. Прежний критерий «|f(x)| меньше точности» убран: у функции малого масштаба он
+    /// выполнялся в первой же точке.
+    /// </remarks>
+    [Obsolete("Используйте AI.HighLevelFunctions.RootFinder.Brent / Solve / TrySolve — единственный решатель корней.")]
     public static (bool success, double root, int iterations) Bisection(
         Func<double, double> f,
         double a,
@@ -59,33 +63,14 @@ public static class NumericalEquationSolver
         double tolerance = 1e-6,
         int maxIterations = 100)
     {
-        double fa = f(a);
-        double fb = f(b);
+        double fa = f(a), fb = f(b);
 
-        if (fa * fb > 0)
+        if (double.IsNaN(fa) || double.IsNaN(fb) || fa * fb > 0)
             return (false, (a + b) / 2, 0);
 
-        for (int i = 0; i < maxIterations; i++)
-        {
-            double c = (a + b) / 2;
-            double fc = f(c);
+        AI.HighLevelFunctions.RootResult result = AI.HighLevelFunctions.RootFinder.Brent(f, a, b, tolerance, maxIterations: maxIterations);
 
-            if (System.Math.Abs(fc) < tolerance || System.Math.Abs(b - a) < tolerance)
-                return (true, c, i + 1);
-
-            if (fa * fc < 0)
-            {
-                b = c;
-                fb = fc;
-            }
-            else
-            {
-                a = c;
-                fa = fc;
-            }
-        }
-
-        return (false, (a + b) / 2, maxIterations);
+        return (result.Converged, result.Root, result.Iterations);
     }
 
     /// <summary>
@@ -126,75 +111,21 @@ public static class NumericalEquationSolver
         return (false, x1, maxIterations);
     }
 
-    /// <summary>
-    /// Поиск всех корней на отрезке [a, b] методом деления на подынтервалы
-    /// </summary>
+    /// <summary>Все корни на отрезке по сетке проб.</summary>
+    [Obsolete("Используйте AI.HighLevelFunctions.RootFinder.FindAll — единственный решатель корней.")]
     public static List<double> FindAllRoots(
         Func<double, double> f,
         double a,
         double b,
         int intervals = 100,
         double tolerance = 1e-6)
-    {
-        var roots = new List<double>();
-        double step = (b - a) / intervals;
+        => [.. AI.HighLevelFunctions.RootFinder.FindAll(f, a, b, intervals, tolerance)];
 
-        for (int i = 0; i < intervals; i++)
-        {
-            double x1 = a + i * step;
-            double x2 = a + (i + 1) * step;
-
-            double f1 = f(x1);
-            double f2 = f(x2);
-
-            if (f1 * f2 < 0)
-            {
-                var (success, root, _) = Bisection(f, x1, x2, tolerance);
-                if (success)
-                {
-                    bool isDuplicate = roots.Any(r => System.Math.Abs(r - root) < tolerance * 10);
-                    if (!isDuplicate)
-                        roots.Add(root);
-                }
-            }
-            else if (System.Math.Abs(f1) < tolerance)
-            {
-                bool isDuplicate = roots.Any(r => System.Math.Abs(r - x1) < tolerance * 10);
-                if (!isDuplicate)
-                    roots.Add(x1);
-            }
-        }
-
-        if (System.Math.Abs(f(b)) < tolerance)
-        {
-            bool isDuplicate = roots.Any(r => System.Math.Abs(r - b) < tolerance * 10);
-            if (!isDuplicate)
-                roots.Add(b);
-        }
-
-        return roots.OrderBy(r => r).ToList();
-    }
-
-    /// <summary>
-    /// Оптимальный шаг центральной разности: ∛eps ≈ 6.06e-6.
-    /// Ошибка складывается из округления (~eps/h) и обрезания (~h²), минимум даёт ∛eps;
-    /// прежний шаг 1e-8 хорош для односторонней разности, а для центральной
-    /// увеличивает ошибку с ~1e-11 до ~1e-8.
-    /// </summary>
-    private const double CentralDifferenceStep = 6.055454e-6;
-
-    /// <summary>
-    /// Вычисление численной производной центральной разностью.
-    /// </summary>
+    /// <summary>Численная производная центральной разностью.</summary>
     /// <param name="h">Шаг; при h ≤ 0 подбирается автоматически по масштабу точки.</param>
+    [Obsolete("Используйте AI.HighLevelFunctions.NumericalDifferentiation.Derivative — единственную разностную производную.")]
     public static Func<double, double> NumericalDerivative(Func<double, double> f, double h = 0)
-    {
-        return x =>
-        {
-            double step = h > 0 ? h : CentralDifferenceStep * System.Math.Max(1.0, System.Math.Abs(x));
-            return (f(x + step) - f(x - step)) / (2 * step);
-        };
-    }
+        => x => AI.HighLevelFunctions.NumericalDifferentiation.Derivative(f, x, h);
 
     /// <summary>
     /// Решение уравнения с автоматическим выбором метода и начального приближения
@@ -232,7 +163,7 @@ public static class NumericalEquationSolver
             };
 
             // Создаем численную производную
-            var df = NumericalDerivative(f);
+            Func<double, double> df = x => AI.HighLevelFunctions.NumericalDifferentiation.Derivative(f, x);
 
             // Ищем корни на нескольких интервалах
             var searchIntervals = new List<(double a, double b)>
@@ -246,7 +177,7 @@ public static class NumericalEquationSolver
 
             foreach (var (a, b) in searchIntervals)
             {
-                var roots = FindAllRoots(f, a, b, intervals: 200, tolerance: 1e-7);
+                var roots = AI.HighLevelFunctions.RootFinder.FindAll(f, a, b, samples: 200, xTolerance: 1e-7);
                 allRoots.AddRange(roots);
             }
 

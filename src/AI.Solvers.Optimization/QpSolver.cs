@@ -59,7 +59,7 @@ public static class QpSolver
 
         try
         {
-            _ = Cholesky.Decompose(new Matrix((double[,])h.Clone()));
+            _ = AI.HighLevelFunctions.CholeskyDecomposition.Decompose(new Matrix((double[,])h.Clone()));
         }
         catch (InvalidOperationException)
         {
@@ -91,7 +91,7 @@ public static class QpSolver
 
         if (x is null)
         {
-            double[] free = Cholesky.Solve(new Matrix((double[,])h.Clone()), new Vector(g.Select(v => -v).ToArray())).ToArray();
+            double[] free = AI.HighLevelFunctions.CholeskyDecomposition.Solve(new Matrix((double[,])h.Clone()), new Vector(g.Select(v => -v).ToArray())).ToArray();
 
             if (Feasible(free))
                 x = free;

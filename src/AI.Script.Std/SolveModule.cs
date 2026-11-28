@@ -123,17 +123,16 @@ public static class SolveModule
     {
         Func<double, double> function = ScriptCallbacks.AsFunction(context, f, "solve.root: значение функции");
 
-        (bool success, double root, _) = NumericalEquationSolver.Bisection(function, from, to, tolerance);
-
-        if (!success)
+        // Отсутствие смены знака — штатный отказ с подсказкой; остальные сбои (функция не число) идут как есть
+        return Guarded("solve.root", () =>
         {
+            if (AI.HighLevelFunctions.RootFinder.TrySolve(function, from, to, out double root, tolerance)) return root;
+
             throw new ScriptError(
                 DiagnosticCodes.FunctionFailed,
                 $"solve.root: корень не найден на отрезке [{ScriptFormatter.Number(from)}, {ScriptFormatter.Number(to)}]",
-                "метод деления пополам требует, чтобы функция меняла знак на концах отрезка");
-        }
-
-        return root;
+                "решатель требует, чтобы функция меняла знак на концах отрезка");
+        });
     }
 
     [ScriptFn("roots", "Все корни функции на отрезке", Example = "solve.roots(x => math.sin(x), from: 0, to: 10)")]
@@ -142,14 +141,15 @@ public static class SolveModule
         [ScriptParam("функция")] ScriptCallable f,
         [ScriptParam("левая граница отрезка")] double from,
         [ScriptParam("правая граница отрезка")] double to,
-        [ScriptParam("число проб для локализации корней")] int samples = 100)
+        [ScriptParam("число проб для локализации корней")] int samples = 100,
+        [ScriptParam("точность")] double tolerance = 1e-10)
     {
         Func<double, double> function = ScriptCallbacks.AsFunction(context, f, "solve.roots: значение функции");
 
-        List<double> found = Guarded("solve.roots",
-            () => NumericalEquationSolver.FindAllRoots(function, from, to, samples));
+        IReadOnlyList<double> found = Guarded("solve.roots",
+            () => AI.HighLevelFunctions.RootFinder.FindAll(function, from, to, samples, tolerance));
 
-        return new Vector(found);
+        return new Vector([.. found]);
     }
 
     [ScriptFn("derivative_fn", "Численная производная функции в точке",
@@ -162,7 +162,7 @@ public static class SolveModule
     {
         Func<double, double> function = ScriptCallbacks.AsFunction(context, f, "solve.derivative_fn: значение функции");
 
-        return NumericalEquationSolver.NumericalDerivative(function, step)(at);
+        return AI.HighLevelFunctions.NumericalDifferentiation.Derivative(function, at, step);
     }
 
     private static void RequireExpression(string expression, string what)

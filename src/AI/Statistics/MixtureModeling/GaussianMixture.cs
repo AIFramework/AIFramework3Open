@@ -249,15 +249,7 @@ public sealed class GaussianMixture : IDistributionWithoutParams, ISamplableDist
             widest = Math.Max(widest, std);
         }
 
-        double limit = tolerance * widest;
-        for (int step = 0; step < 200 && high - low > limit; step++)
-        {
-            double middle = 0.5 * (low + high);
-            if (Cdf(middle) < p) low = middle;
-            else high = middle;
-        }
-
-        return 0.5 * (low + high);
+        return AI.HighLevelFunctions.RootFinder.Boundary(x => Cdf(x) < p, low, high, xTolerance: tolerance * widest, relativeTolerance: 0);
     }
 
     /// <summary>

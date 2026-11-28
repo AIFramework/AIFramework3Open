@@ -277,10 +277,8 @@ public static class BudgetOptimizer
     }
 
     /// <summary>Производная отклика по затратам, посчитанная численно.</summary>
+    /// <remarks>Производная берётся справа: при нулевых затратах слева отклика нет.</remarks>
     private static double Marginal(ChannelEffect effect, double spendPerPeriod)
-    {
-        double delta = Math.Max(spendPerPeriod * 0.001, 1e-6);
-        return (Response(effect, spendPerPeriod + delta) - Response(effect, spendPerPeriod)) / delta;
-    }
+        => AI.HighLevelFunctions.NumericalDifferentiation.ForwardDerivative(spend => Response(effect, spend), spendPerPeriod);
 
 }

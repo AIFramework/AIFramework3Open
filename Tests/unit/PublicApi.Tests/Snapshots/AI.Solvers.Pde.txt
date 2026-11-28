@@ -260,6 +260,7 @@ namespace AI.Solvers.Pde.Numerics
     public static class IterativeSolvers
     {
         public static AI.Solvers.Pde.Numerics.IterativeResult ConjugateGradient(AI.Solvers.Pde.Numerics.SparseMatrix matrix, AI.DataStructs.Algebraic.Vector rightHandSide, double tolerance = 1E-10, int maxIterations = 0, AI.DataStructs.Algebraic.Vector? initialGuess = null) { }
+        [System.Obsolete("Используйте AI.ClassicMath.MatrixUtils.Tridiagonal.Solve — единственную прогонку.")]
         public static AI.DataStructs.Algebraic.Vector SolveTridiagonal(AI.DataStructs.Algebraic.Vector lower, AI.DataStructs.Algebraic.Vector diagonal, AI.DataStructs.Algebraic.Vector upper, AI.DataStructs.Algebraic.Vector rightHandSide) { }
     }
     public sealed class SparseMatrix

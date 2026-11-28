@@ -510,17 +510,23 @@ namespace AI.Solvers.Math.Core.Solvers
     }
     public static class NumericalEquationSolver
     {
+        [System.Obsolete("Используйте AI.HighLevelFunctions.RootFinder.Brent / Solve / TrySolve — единствен" +
+            "ный решатель корней.")]
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "success",
                 "root",
                 "iterations"})]
         public static System.ValueTuple<bool, double, int> Bisection(System.Func<double, double> f, double a, double b, double tolerance = 1E-06, int maxIterations = 100) { }
+        [System.Obsolete("Используйте AI.HighLevelFunctions.RootFinder.FindAll — единственный решатель корн" +
+            "ей.")]
         public static System.Collections.Generic.List<double> FindAllRoots(System.Func<double, double> f, double a, double b, int intervals = 100, double tolerance = 1E-06) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "success",
                 "root",
                 "iterations"})]
         public static System.ValueTuple<bool, double, int> Newton(System.Func<double, double> f, System.Func<double, double> df, double x0, double tolerance = 1E-06, int maxIterations = 100) { }
+        [System.Obsolete("Используйте AI.HighLevelFunctions.NumericalDifferentiation.Derivative — единствен" +
+            "ную разностную производную.")]
         public static System.Func<double, double> NumericalDerivative(System.Func<double, double> f, double h = 0) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "success",

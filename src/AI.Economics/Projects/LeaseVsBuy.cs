@@ -336,16 +336,7 @@ public static class LeaseVsBuy
     private static double BreakEvenMarkup(LeaseVsBuyInput input)
     {
         double target = Credit(input).PresentValueOfCost;
-        double low = 0, high = 0.6;
-
-        // Затраты по лизингу монотонно растут с удорожанием
-        for (int i = 0; i < 60; i++)
-        {
-            double mid = (low + high) / 2;
-            if (Lease(input, mid).PresentValueOfCost < target) low = mid;
-            else high = mid;
-        }
-
-        return (low + high) / 2;
+        // Затраты по лизингу монотонно растут с удорожанием: ищется граница «лизинг ещё дешевле кредита»
+        return AI.HighLevelFunctions.RootFinder.Boundary(markup => Lease(input, markup).PresentValueOfCost < target, 0, 0.6, xTolerance: 0);
     }
 }

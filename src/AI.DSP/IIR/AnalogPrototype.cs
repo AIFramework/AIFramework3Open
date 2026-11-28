@@ -400,20 +400,10 @@ public static class AnalogPrototype
     {
         double Gain(double w) => k / p.Aggregate(Complex.One, (acc, x) => acc * ((Complex.ImaginaryOne * w) - x)).Magnitude;
 
-        double lo = 1e-3, hi = 1e3;
-        for (int i = 0; i < 200; i++)
-        {
-            double mid = Math.Sqrt(lo * hi);
-            if (Gain(mid) > 1 / Math.Sqrt(2))
-            {
-                lo = mid;
-            }
-            else
-            {
-                hi = mid;
-            }
-        }
+        // Частота ищется в логарифмической шкале: отрезок [1e-3; 1e3] делится по среднему геометрическому
+        double logFrequency = AI.HighLevelFunctions.RootFinder.Boundary(
+            s => Gain(Math.Exp(s)) > 1 / Math.Sqrt(2), Math.Log(1e-3), Math.Log(1e3), xTolerance: 0, relativeTolerance: 0);
 
-        return Math.Sqrt(lo * hi);
+        return Math.Exp(logFrequency);
     }
 }

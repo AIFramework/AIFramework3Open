@@ -139,13 +139,11 @@ public static class ThermalRunaway
     private static (double Conversion, double Temperature) Advance(
         RunawayParameters parameters, double rise, double conversion, double temperature, double step)
     {
-        double k1 = Rate(parameters, temperature, conversion);
-        double k2 = Rate(parameters, temperature + (rise * k1 * step / 2), conversion + (k1 * step / 2));
-        double k3 = Rate(parameters, temperature + (rise * k2 * step / 2), conversion + (k2 * step / 2));
-        double k4 = Rate(parameters, temperature + (rise * k3 * step), conversion + (k3 * step));
-
-        double delta = step * (k1 + (2 * k2) + (2 * k3) + k4) / 6;
-        double next = Math.Clamp(conversion + delta, 0, 1);
+        // Температура жёстко связана с превращением (адиабата), поэтому уравнение одно — по превращению;
+        // шаг делает общий метод Рунге — Кутты
+        double advanced = AI.MathUtils.ODE.RungeKutta.Step(
+            (_, value) => Rate(parameters, temperature + (rise * (value - conversion)), value), 0, conversion, step);
+        double next = Math.Clamp(advanced, 0, 1);
 
         return (next, parameters.InitialTemperature + (rise * (next - parameters.InitialConversion)));
     }
@@ -287,16 +285,7 @@ public static class ThermalRunaway
         if (TimeToMaximumRateEstimate(parameters, low) < target)
             return double.NaN;
 
-        for (int i = 0; i < 200; i++)
-        {
-            double middle = 0.5 * (low + high);
-
-            if (TimeToMaximumRateEstimate(parameters, middle) > target)
-                low = middle;
-            else
-                high = middle;
-        }
-
-        return 0.5 * (low + high);
+        return AI.HighLevelFunctions.RootFinder.Boundary(
+            temperature => TimeToMaximumRateEstimate(parameters, temperature) > target, low, high, xTolerance: 0);
     }
 }

@@ -65,7 +65,7 @@ public static class UnscentedTransform
         if (covariance.Height != n || covariance.Width != n)
             throw new ArgumentException("Ковариация должна быть квадратной матрицей размера входа.", nameof(covariance));
 
-        Matrix root = Cholesky.Decompose(covariance);
+        Matrix root = AI.HighLevelFunctions.CholeskyDecomposition.Decompose(covariance);
         return Points(mean, column => Column(root, column, n), alpha, beta, kappa);
     }
 
@@ -225,7 +225,7 @@ public static class UnscentedTransform
     // P⁻¹·B для положительно определенной P через разложение Холецкого
     private static Matrix Solve(Matrix covariance, Matrix right)
     {
-        Matrix lower = Cholesky.Decompose(covariance);
+        Matrix lower = AI.HighLevelFunctions.CholeskyDecomposition.Decompose(covariance);
         int n = covariance.Height;
         var result = new Matrix(n, right.Width);
 

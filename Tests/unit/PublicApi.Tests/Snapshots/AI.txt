@@ -1032,6 +1032,16 @@ namespace AI.HighLevelFunctions
         public static AI.DataStructs.Algebraic.Vector VectorFromAToB(AI.DataStructs.Algebraic.Vector pointA, AI.DataStructs.Algebraic.Vector pointB) { }
         public static AI.DataStructs.Algebraic.Vector VectorRotate(AI.DataStructs.Algebraic.Vector inp, double angl, int indAx1, int indAx2) { }
     }
+    public static class CholeskyDecomposition
+    {
+        public static AI.DataStructs.Algebraic.Matrix Decompose(AI.DataStructs.Algebraic.Matrix matrix) { }
+        public static AI.HighLevelFunctions.RegularizedCholesky DecomposeRegularized(AI.DataStructs.Algebraic.Matrix matrix, double initialRelativeShift = 1E-12, int maxAttempts = 12) { }
+        public static AI.DataStructs.Algebraic.Matrix InverseFromFactor(AI.DataStructs.Algebraic.Matrix lower) { }
+        public static double LogDeterminantFromFactor(AI.DataStructs.Algebraic.Matrix lower) { }
+        public static AI.DataStructs.Algebraic.Vector Solve(AI.DataStructs.Algebraic.Matrix matrix, AI.DataStructs.Algebraic.Vector rightHandSide) { }
+        public static AI.DataStructs.Algebraic.Vector SolveFactored(AI.DataStructs.Algebraic.Matrix lower, AI.DataStructs.Algebraic.Vector rightHandSide) { }
+        public static bool TryDecompose(AI.DataStructs.Algebraic.Matrix matrix, out AI.DataStructs.Algebraic.Matrix lower) { }
+    }
     public static class FunctionsForEachElements
     {
         public static AI.DataStructs.Algebraic.Matrix Abs(AI.DataStructs.Algebraic.Matrix inp) { }
@@ -1093,6 +1103,46 @@ namespace AI.HighLevelFunctions
         public static AI.DataStructs.Algebraic.Vector Walsh(AI.DataStructs.Algebraic.Vector x, int num) { }
         public static double Walsh(double x, int num) { }
         public static AI.DataStructs.Algebraic.Vector ctg(AI.DataStructs.Algebraic.Vector Inp) { }
+    }
+    public static class NumericalDifferentiation
+    {
+        public const double CentralStep = 6.055454452393343E-06D;
+        public const double ForwardStep = 1.4901161193847656E-08D;
+        public const double SecondOrderStep = 0.0001220703125D;
+        public static double Derivative(System.Func<double, double> function, double x, double step = 0) { }
+        public static double ForwardDerivative(System.Func<double, double> function, double x, double step = 0) { }
+        public static double[] Gradient(System.Func<double[], double> function, double[] point, double relativeStep = 0) { }
+        public static double[] Hessian(System.Func<double[], double> function, double[] point, double relativeStep = 0) { }
+        public static double[] Jacobian(System.Func<double[], double[]> function, double[] point, int outputs, double relativeStep = 0) { }
+    }
+    public readonly struct RegularizedCholesky : System.IEquatable<AI.HighLevelFunctions.RegularizedCholesky>
+    {
+        public RegularizedCholesky(AI.DataStructs.Algebraic.Matrix Lower, bool Regularized, double Shift) { }
+        public AI.DataStructs.Algebraic.Matrix Lower { get; init; }
+        public bool Regularized { get; init; }
+        public double Shift { get; init; }
+    }
+    public static class RootFinder
+    {
+        public const double DefaultRelativeTolerance = 8.881784197001252E-16D;
+        public const double DefaultXTolerance = 2E-12D;
+        public static double Boundary(System.Func<double, bool> isLeft, double low, double high, double xTolerance = 2E-12, double relativeTolerance = 8.881784197001252E-16) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Low",
+                "High"})]
+        public static System.ValueTuple<double, double> BoundaryBracket(System.Func<double, bool> isLeft, double low, double high, double xTolerance = 2E-12, double relativeTolerance = 8.881784197001252E-16) { }
+        public static AI.HighLevelFunctions.RootResult Brent(System.Func<double, double> function, double a, double b, double xTolerance = 2E-12, double relativeTolerance = 8.881784197001252E-16, int maxIterations = 200) { }
+        public static System.Collections.Generic.IReadOnlyList<double> FindAll(System.Func<double, double> function, double a, double b, int samples = 200, double xTolerance = 2E-12, double relativeTolerance = 8.881784197001252E-16) { }
+        public static double Solve(System.Func<double, double> function, double a, double b, double xTolerance = 2E-12, double relativeTolerance = 8.881784197001252E-16) { }
+        public static bool TrySolve(System.Func<double, double> function, double a, double b, out double root, double xTolerance = 2E-12, double relativeTolerance = 8.881784197001252E-16) { }
+    }
+    public readonly struct RootResult : System.IEquatable<AI.HighLevelFunctions.RootResult>
+    {
+        public RootResult(double Root, bool Converged, int Iterations, double Residual) { }
+        public bool Converged { get; init; }
+        public int Iterations { get; init; }
+        public double Residual { get; init; }
+        public double Root { get; init; }
     }
     public static class SpecialFunctions
     {
@@ -1583,6 +1633,7 @@ namespace AI.Statistics.Distributions
     public sealed class GaussianDistFullCov : AI.Statistics.Distributions.SimpleDistNDBase
     {
         public GaussianDistFullCov(AI.DataStructs.Algebraic.Vector mean, double[] covariance) { }
+        public double CovarianceShift { get; }
         public override int Dim { get; }
         public AI.DataStructs.Algebraic.Vector Mean { get; }
         public override double CulcLogProb(AI.DataStructs.Algebraic.Vector x) { }

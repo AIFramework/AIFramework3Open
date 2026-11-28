@@ -213,17 +213,7 @@ public sealed class ElasticMaterial
 
         double Rayleigh(double eta) => (eta * eta * eta) - (8 * eta * eta) + ((24 - (16 * inverseKappa)) * eta) - (16 * (1 - inverseKappa));
 
-        double low = 0, high = 1;
-
-        for (int i = 0; i < 200; i++)
-        {
-            double middle = (low + high) / 2;
-
-            if (Rayleigh(middle) < 0)
-                low = middle;
-            else
-                high = middle;
-        }
+        (double low, double high) = AI.HighLevelFunctions.RootFinder.BoundaryBracket(eta => Rayleigh(eta) < 0, 0, 1, xTolerance: 0);
 
         return new ElasticWaveSpeeds(
             new Quantity(longitudinal, Dimension.Velocity),

@@ -246,6 +246,8 @@ namespace AI.ClassicMath.Calculator.ProcessorLogic
 }
 namespace AI.ClassicMath.MatrixUtils
 {
+    [System.Obsolete("Используйте AI.HighLevelFunctions.CholeskyDecomposition — единственное разложение" +
+        " Холецкого.")]
     [System.Serializable]
     public static class Cholesky
     {
@@ -331,6 +333,10 @@ namespace AI.ClassicMath.MatrixUtils
         public AI.DataStructs.Algebraic.Matrix CreateMap(AI.DataStructs.Algebraic.Matrix img, int sizeH = 10, int sizeW = 10) { }
         public double[] CreateMap1D(AI.DataStructs.Algebraic.Matrix img, int sizeH = 10, int sizeW = 10) { }
     }
+    public static class MatrixExponential
+    {
+        public static AI.DataStructs.Algebraic.Matrix Compute(AI.DataStructs.Algebraic.Matrix matrix, double tolerance = 1E-16, int maxTerms = 60) { }
+    }
     [System.Serializable]
     public static class Pseudoinverse
     {
@@ -355,6 +361,10 @@ namespace AI.ClassicMath.MatrixUtils
                 "Sigma",
                 "V"})]
         public static System.ValueTuple<AI.DataStructs.Algebraic.Matrix, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Matrix> DecomposeVector(AI.DataStructs.Algebraic.Matrix A, int maxSweeps = 200, double eps = 1E-12) { }
+    }
+    public static class Tridiagonal
+    {
+        public static AI.DataStructs.Algebraic.Vector Solve(AI.DataStructs.Algebraic.Vector lower, AI.DataStructs.Algebraic.Vector diagonal, AI.DataStructs.Algebraic.Vector upper, AI.DataStructs.Algebraic.Vector rightHandSide) { }
     }
 }
 namespace AI.ClassicMath.MatrixUtils.FindFraction
@@ -550,6 +560,8 @@ namespace AI.MathUtils.ODE
         public static AI.MathUtils.ODE.RungeKutta RungeKutta4(System.Func<double, double, double> function, double initialX, double initialY, double finalX, double stepSize, bool isHalfStep = false) { }
         public static AI.MathUtils.ODE.RungeKutta RungeRombergRK4(System.Func<double, double, double> function, double initialX, double initialY, double finalX, double stepSize) { }
         public static AI.DataStructs.Algebraic.Vector[] SolveSystem(System.Func<double, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, double initialX, AI.DataStructs.Algebraic.Vector initialY, System.Collections.Generic.IReadOnlyList<double> outputPoints, int stepsPerInterval = 20) { }
+        public static AI.DataStructs.Algebraic.Vector Step(System.Func<double, AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> function, double x, AI.DataStructs.Algebraic.Vector y, double step) { }
+        public static double Step(System.Func<double, double, double> function, double x, double y, double step) { }
     }
     public static class VelocityVerlet
     {
