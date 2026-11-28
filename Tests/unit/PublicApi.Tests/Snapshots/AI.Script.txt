@@ -656,6 +656,13 @@ namespace AI.Script.Hosting
         public AI.Script.Hosting.RunOptions Options() { }
         public System.Collections.Generic.IReadOnlyList<AI.Script.Semantics.Diagnostic> Violations(string source) { }
     }
+    public static class ScriptRealPath
+    {
+        public static bool IsInside(string realPath, string realRoot) { }
+        public static string Of(string path) { }
+        public static string? OfHandle(Microsoft.Win32.SafeHandles.SafeFileHandle handle) { }
+        public static string Walk(string fullPath) { }
+    }
     public sealed record ScriptRecognition : System.IEquatable<AI.Script.Hosting.ScriptRecognition>
     {
         public ScriptRecognition(System.Collections.Generic.IReadOnlyList<AI.Script.Hosting.RecognizedText> Lines, long Tokens = 0, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal Cost) { }

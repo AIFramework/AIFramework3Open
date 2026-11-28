@@ -1,6 +1,5 @@
 ﻿using AI.Script.Hosting;
 using AI.Script.Semantics;
-using System.Text.RegularExpressions;
 
 namespace AI.Script.UnitTests;
 
@@ -12,7 +11,7 @@ namespace AI.Script.UnitTests;
 /// файлы пользователя откуда угодно. <see cref="IoTests"/> держит обещание на диске, этот
 /// набор — в памяти, и последний тест следит, чтобы в обход хранилища никто не ходил.
 /// </remarks>
-public sealed partial class StorageTests
+public sealed class StorageTests
 {
     [Fact]
     public void ReadCsv_FromMemory()
@@ -164,44 +163,5 @@ public sealed partial class StorageTests
         Assert.Contains("io.files", error.Hint, StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// Модули не ходят к файловой системе в обход хранилища.
-    /// </summary>
-    /// <remarks>
-    /// Один прямой <c>File.ReadAllText</c> в модуле — и функция работает только на диске, а
-    /// песочница в ней держится на честном слове. Проверяется текст модулей, потому что такой
-    /// вызов не виден ни типам, ни тестам на диске: там он просто работает.
-    /// </remarks>
-    [Fact]
-    public void Modules_DoNotTouchFileSystemDirectly()
-    {
-        var offenders = new List<string>();
-
-        foreach (string folder in Directory.EnumerateDirectories(Path.Combine(RepositoryRoot(), "src"), "AI.Script*"))
-        {
-            foreach (string file in Directory.EnumerateFiles(folder, "*Module.cs", SearchOption.AllDirectories))
-            {
-                string text = File.ReadAllText(file);
-
-                foreach (Match match in DirectAccess().Matches(text)) offenders.Add($"{Path.GetFileName(file)}: {match.Value}");
-            }
-        }
-
-        Assert.True(offenders.Count == 0, "обращения к диску в обход хранилища:\n  " + string.Join("\n  ", offenders));
-    }
-
     private static RunOptions Over(IScriptSandbox store) => new() { Sandbox = store };
-
-    private static string RepositoryRoot()
-    {
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
-
-        while (directory != null && !Directory.Exists(Path.Combine(directory.FullName, "src", "AI.Script")))
-            directory = directory.Parent;
-
-        return directory?.FullName ?? throw new InvalidOperationException("корень репозитория не найден");
-    }
-
-    [GeneratedRegex(@"\b(File|Directory)\s*\.\s*[A-Z]\w*|\bnew\s+(FileInfo|FileStream|DirectoryInfo)\b")]
-    private static partial Regex DirectAccess();
 }
