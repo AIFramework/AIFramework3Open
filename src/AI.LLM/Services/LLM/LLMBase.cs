@@ -47,12 +47,11 @@ public class LLMBase : ILLMClient
         // Создаем ReasoningSettings если reasoning включен
         if (_llmOptions.EnableReasoning)
         {
-            settings.ReasoningSettings = new ReasoningSettings(
+            ReasoningSettings.ApplyObject(settings, new ReasoningSettings(
                 effort: _llmOptions.ReasoningEffort,
                 maxTokens: _llmOptions.ReasoningMaxTokens,
                 exclude: _llmOptions.ReasoningExclude,
-                enabled: true
-            );
+                enabled: true));
         }
 
         return settings;

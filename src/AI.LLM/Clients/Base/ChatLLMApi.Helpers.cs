@@ -81,22 +81,8 @@ public partial class ChatLLMApi
         settings.Temperature = ValidateTemperature(settings.Temperature);
         settings.MaxTokens = ValidateMaxTokens(settings.MaxTokens);
 
-        // ReasoningSettings копия делит с оригиналом: правим не по месту, а заменяя целиком.
-        // Собираем через инициализатор, а не через конструктор: тот запрещает Effort вместе с
-        // MaxTokens, и уже существующая пара уронила бы валидацию вместо того, чтобы её пройти.
-        if (settings.ReasoningSettings?.MaxTokens is { } reasoningMaxTokens)
-        {
-            var clamped = ValidateMaxTokens(reasoningMaxTokens);
-            if (clamped != reasoningMaxTokens)
-                settings.ReasoningSettings = new ReasoningSettings
-                {
-                    Effort = settings.ReasoningSettings.Effort,
-                    MaxTokens = clamped,
-                    Exclude = settings.ReasoningSettings.Exclude,
-                    Enabled = settings.ReasoningSettings.Enabled,
-                };
-        }
-
+        // Бюджет рассуждения не правится: неположительный ReasoningSettings не примет, а какие поля
+        // рассуждения уйдут, решает ReasoningSettings.ForRequest при сборке запроса.
         return settings;
     }
 

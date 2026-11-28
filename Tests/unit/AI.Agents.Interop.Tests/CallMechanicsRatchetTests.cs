@@ -60,6 +60,15 @@ public sealed class CallMechanicsRatchetTests
         // 4. Выбор модели по имени в слое агентов: движки берут модель по роли через IModelPort.
         new("model-by-name", @"\bModelName\b|new ChatLLMApi\(|ModelApi\(", Threshold: 0,
             Scope: ["src/AI.Agents.Interop", "src/AI.Script.Llm", "src/AI.LLM/Agents"]),
+
+        // Поля рассуждения запроса выставляются только в сборке ReasoningSettings (ForRequest, ApplyLevel, ApplyObject,
+        // Assign): копия полей рядом поставила бы effort вместе с max_tokens (400 у провайдера). Было 5 (ChatLLMApi.Validate,
+        // ModelTranslation.SetReasoning, SendDataLLM, адаптер Semantic Kernel, LLMBase). Присваивание параметра конструктора
+        // GenerateSettings — вход, а не сборка, и в счет не входит.
+        new("reasoning-fields",
+            @"\b(ReasoningSettings|ReasoningEffort|MaxReasoningTokens|Effort|Exclude)\s*=(?![=>])(?!\s*reasoningEffort;)|new ReasoningSettings\s*\{",
+            Threshold: 0, Home: "src/AI.LLM/Core/Models/Common/Requests/ReasoningSendData.cs",
+            Scope: ["src/AI.LLM", "src/AI.Agents.Interop"]),
     ];
 
     public static TheoryData<Mechanism> All()

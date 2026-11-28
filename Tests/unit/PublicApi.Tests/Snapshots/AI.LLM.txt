@@ -2074,6 +2074,7 @@ namespace AI.LLM.Core.Models.Common.Requests
         public System.Collections.Generic.List<string> Modalities { get; set; }
         public string ReasoningEffort { get; set; }
         public AI.LLM.Core.Models.Common.Requests.ReasoningSettings ReasoningSettings { get; set; }
+        public AI.LLM.Core.Models.Common.Requests.ReasoningSupport? ReasoningSupport { get; set; }
         public double? RepetitionPenalty { get; set; }
         public AI.LLM.Core.Models.Common.Requests.ResponseFormat ResponseFormat { get; set; }
         public bool Stream { get; }
@@ -2252,6 +2253,14 @@ namespace AI.LLM.Core.Models.Common.Requests
             public const string Medium = "medium";
             public const string None = "none";
         }
+    }
+    [System.Flags]
+    public enum ReasoningSupport
+    {
+        None = 0,
+        Effort = 1,
+        MaxTokens = 2,
+        TopLevelEffort = 4,
     }
     public class RerankDocument
     {

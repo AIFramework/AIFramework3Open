@@ -26,7 +26,8 @@ public static class ModelTranslationTable
         ["ModelAsk.Temperature"] = "GenerateSettings.Temperature; null → значение начальных настроек порта",
         ["ModelAsk.Reasoning"] =
             "ReasoningSettings.Effort, если в начальных настройках порта есть ReasoningSettings (OpenRouter), иначе " +
-            "GenerateSettings.ReasoningEffort; значение строчными: none, minimal, low, medium, high; null → начальные настройки",
+            "GenerateSettings.ReasoningEffort; значение строчными: none, minimal, low, medium, high; бюджет MaxTokens начальных " +
+            "настроек уровень заменяет; null → начальные настройки",
 
         // ModelMessage → LLMMessage
         ["ModelMessage.Role"] = "LLMMessage.Role: system, user, assistant, tool; Unknown — ArgumentException",
@@ -203,6 +204,8 @@ public static class ModelTranslationTable
         ["GenerateSettings.ReasoningSettings"] =
             "обратно переводится только Effort (ModelAsk.Reasoning); MaxTokens, Exclude, Enabled и незнакомый Effort — " +
             "потеря в списке lost",
+        ["GenerateSettings.ReasoningSupport"] =
+            "возможность модели, а не просьба запроса: задается в начальных настройках порта и выбирает поле рассуждения",
         ["GenerateSettings.Modalities"] = "то же, что TopP",
         ["GenerateSettings.IncludeUsage"] = "то же, что TopP; для стоимости у OpenRouter задается в начальных настройках порта",
         ["GenerateSettings.IncludeReasoning"] = "то же, что TopP",

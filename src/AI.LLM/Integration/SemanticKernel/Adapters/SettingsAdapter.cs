@@ -61,10 +61,13 @@ public static class SettingsAdapter
             extra["min_tokens"] = gs.MinTokens.Value;
         if (gs.RepetitionPenalty.HasValue)
             extra["repetition_penalty"] = gs.RepetitionPenalty.Value;
-        if (gs.ReasoningSettings != null)
-            extra["reasoning"] = gs.ReasoningSettings;
-        if (!string.IsNullOrEmpty(gs.ReasoningEffort))
-            extra["reasoning_effort"] = gs.ReasoningEffort;
+
+        // Поля рассуждения — в том виде, в каком уйдут провайдеру: взаимоисключающие не попадают вместе.
+        var (reasoning, reasoningEffort, _) = ReasoningSettings.ForRequest(gs);
+        if (reasoning != null)
+            extra["reasoning"] = reasoning;
+        if (reasoningEffort != null)
+            extra["reasoning_effort"] = reasoningEffort;
 
         if (extra.Count > 0)
             settings.ExtensionData = extra;
@@ -88,8 +91,9 @@ public static class SettingsAdapter
         {
             if (s.ExtensionData.TryGetValue("repetition_penalty", out var rp) && rp is double rpVal)
                 gs.RepetitionPenalty = rpVal;
-            if (s.ExtensionData.TryGetValue("reasoning_effort", out var re) && re is string reStr)
-                gs.ReasoningEffort = reStr;
+            ReasoningSettings.Assign(gs,
+                s.ExtensionData.TryGetValue("reasoning", out var r) ? r as ReasoningSettings : null,
+                s.ExtensionData.TryGetValue("reasoning_effort", out var re) ? re as string : null);
             if (s.ExtensionData.TryGetValue("tools", out var tools) && tools is List<ToolDefinition> toolsList)
                 gs.Tools = toolsList;
         }

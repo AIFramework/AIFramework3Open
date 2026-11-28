@@ -82,6 +82,15 @@ public class GenerateSettings
     public string ReasoningEffort { get; set; }
 
     /// <summary>
+    /// Какие поля рассуждения принимает модель; <c>null</c> — неизвестно.
+    /// </summary>
+    /// <remarks>
+    /// Поле <c>reasoning.effort</c>, <c>reasoning.max_tokens</c> или <c>reasoning_effort</c> в запросе выбирает
+    /// <see cref="ReasoningSettings.ForRequest"/>: при известных возможностях — то, что модель примет.
+    /// </remarks>
+    public ReasoningSupport? ReasoningSupport { get; set; }
+
+    /// <summary>
     /// Формат ответа (Structured Output). Если задан — LLM гарантированно вернёт JSON по указанной схеме.
     /// Поддерживается OpenAI, Gemini, OpenRouter.
     /// </summary>

@@ -32,10 +32,9 @@ public partial class SendDataLLM
         MaxTokens = generateSettings.MaxTokens;
         MinTokens = generateSettings.MinTokens;
         Stream = generateSettings.Stream;
-        ReasoningSettings = generateSettings.ReasoningSettings;
         LogProbs = generateSettings.LogProbs;
         TopLogprobs = generateSettings.TopLogprobs;
-        ReasoningEffort = generateSettings.ReasoningEffort;
+        (ReasoningSettings, ReasoningEffort, MaxReasoningTokens) = ReasoningSettings.ForRequest(generateSettings);
         ResponseFormat = generateSettings.ResponseFormat;
         Tools = generateSettings.Tools;
         ToolChoice = generateSettings.ToolChoice;
@@ -47,10 +46,6 @@ public partial class SendDataLLM
         // на лишнее поле в теле отвечают ошибкой.
         if (generateSettings.IncludeUsage == true)
             Usage = new UsageRequest();
-
-        // VLLM совместимость: пробрасываем max_reasoning_tokens на верхний уровень JSON
-        if (generateSettings.ReasoningSettings?.MaxTokens != null)
-            MaxReasoningTokens = generateSettings.ReasoningSettings.MaxTokens;
     }
 
     /// <summary>

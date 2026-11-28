@@ -1,5 +1,7 @@
 using AI.Agents.Contracts.Models;
+using System.Text.Json;
 using AI.Agents.Interop.Models;
+using AI.LLM.API.LLMAPI;
 using AI.LLM.Clients.Base;
 using AI.LLM.Core.Models.Common.Requests;
 using AI.LLM.Core.Models.Common.Responses;
@@ -25,17 +27,43 @@ public sealed class ModelAskSettingsTests
         Assert.Null(settings.ReasoningSettings);
     }
 
+    // Заменил Reasoning_GoesToReasoningObject_WhenPortSpeaksItsForm_WithoutTouchingPortSettings: тот закреплял ошибку —
+    // уровень запроса вставал рядом с бюджетом начальных настроек, и пара effort + max_tokens уходила провайдеру (400).
     [Fact]
-    public void Reasoning_GoesToReasoningObject_WhenPortSpeaksItsForm_WithoutTouchingPortSettings()
+    public void Reasoning_GoesToReasoningObject_ReplacingPortBudget_WithoutTouchingPortSettings()
     {
-        var portSettings = new GenerateSettings { ReasoningSettings = new ReasoningSettings { Effort = "high", MaxTokens = 2000 } };
+        var portSettings = new GenerateSettings { ReasoningSettings = new ReasoningSettings { MaxTokens = 2000, Exclude = true } };
 
         GenerateSettings settings = (Ask() with { Reasoning = ReasoningLevel.Minimal }).ToSettings(portSettings);
 
         Assert.Equal("minimal", settings.ReasoningSettings!.Effort);
-        Assert.Equal(2000, settings.ReasoningSettings.MaxTokens);
+        Assert.Null(settings.ReasoningSettings.MaxTokens);
+        Assert.True(settings.ReasoningSettings.Exclude);
         Assert.Null(settings.ReasoningEffort);
-        Assert.Equal("high", portSettings.ReasoningSettings.Effort);
+        Assert.Equal(2000, portSettings.ReasoningSettings.MaxTokens);
+    }
+
+    /// <summary>Как у потребителя: бюджет в начальных настройках порта, уровень в запросе — провайдеру уходит одно поле.</summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData(ReasoningSupport.Effort | ReasoningSupport.MaxTokens)]
+    [InlineData(ReasoningSupport.MaxTokens)]
+    public void PortBudget_And_RequestLevel_NeverReachProviderTogether(ReasoningSupport? supported)
+    {
+        var portSettings = new GenerateSettings
+        {
+            ReasoningSettings = new ReasoningSettings { MaxTokens = 2000 }, ReasoningSupport = supported,
+        };
+
+        var data = new SendDataLLM("model", (Ask() with { Reasoning = ReasoningLevel.High }).ToSettings(portSettings));
+        JsonElement reasoning = JsonDocument.Parse(data.GetJson()).RootElement.GetProperty("reasoning");
+
+        Assert.False(reasoning.TryGetProperty("effort", out _) && reasoning.TryGetProperty("max_tokens", out _));
+        // Уровень запроса явнее бюджета порта; модель, которая уровня не принимает, остается при бюджете порта.
+        if (supported == ReasoningSupport.MaxTokens)
+            Assert.Equal(2000, reasoning.GetProperty("max_tokens").GetInt32());
+        else
+            Assert.Equal("high", reasoning.GetProperty("effort").GetString());
     }
 
     [Fact]

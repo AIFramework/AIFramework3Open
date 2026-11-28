@@ -120,9 +120,9 @@ public static partial class ModelTranslation
         answer.FailureText is { Length: > 0 } text ? reason + ": " + text : reason;
 
     /// <summary>
-    /// Уровень размышления в настройки: в <c>ReasoningSettings.Effort</c>, если начальные настройки порта говорят с
-    /// провайдером объектом рассуждения (OpenRouter), иначе в <c>ReasoningEffort</c> (поле OpenAI). Объект начальных
-    /// настроек не меняется: он общий для всех запросов порта.
+    /// Уровень размышления в настройки по правилу <c>ReasoningSettings.ApplyLevel</c>: в объект рассуждения, если
+    /// начальные настройки порта говорят им (OpenRouter), иначе в <c>ReasoningEffort</c> (поле OpenAI); бюджет начальных
+    /// настроек уровень заменяет. Объект начальных настроек не меняется: он общий для всех запросов порта.
     /// </summary>
     private static void SetReasoning(GenerateSettings settings, ReasoningLevel level)
     {
@@ -136,20 +136,7 @@ public static partial class ModelTranslation
             _ => throw new ArgumentOutOfRangeException(nameof(level), level, "Уровень размышления не задан."),
         };
 
-        if (settings.ReasoningSettings is { } current)
-        {
-            settings.ReasoningSettings = new ReasoningSettings
-            {
-                Effort = effort,
-                MaxTokens = current.MaxTokens,
-                Exclude = current.Exclude,
-                Enabled = current.Enabled,
-            };
-        }
-        else
-        {
-            settings.ReasoningEffort = effort;
-        }
+        ReasoningSettings.ApplyLevel(settings, effort);
     }
 
     /// <summary>Уровень размышления из настроек старой формы; <see langword="null"/>: не задан или не выражается.</summary>
