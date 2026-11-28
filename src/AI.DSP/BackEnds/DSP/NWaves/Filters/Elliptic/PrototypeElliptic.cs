@@ -10,6 +10,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Elliptic
     /// </summary>
     [Serializable]
 
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Elliptic); здесь при чётном порядке АЧХ поднята на неравномерность над 0 дБ.")]
     public static class PrototypeElliptic
     {
         /// <summary>

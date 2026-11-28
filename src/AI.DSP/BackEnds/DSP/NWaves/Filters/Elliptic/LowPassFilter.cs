@@ -9,6 +9,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Elliptic
     /// Фильтр нижних частот
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Elliptic); здесь при чётном порядке АЧХ поднята на неравномерность над 0 дБ.")]
     public class LowPassFilter : IirFilter64
     {
         /// <summary>

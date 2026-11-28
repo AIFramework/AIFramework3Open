@@ -162,7 +162,7 @@ public static class MathDemoRunner
     {
         if (ellipticK < 0 || ellipticK >= 1)
             throw new InvalidOperationException("Параметр k должен быть в [0, 1).");
-        var v = EllipticIntegral.CompleteEllipticIntegral_I(ellipticK);
+        var v = EllipticFunctions.CompleteK(ellipticK * ellipticK);
         return "K(" + ellipticK.ToString("G10", CultureInfo.InvariantCulture) + ") = " + v.ToString("G14", CultureInfo.InvariantCulture);
     }
 }

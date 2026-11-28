@@ -124,8 +124,10 @@ public class IIRFilter : IFilter
     {
         inps = new Vector(bL2);
         outps = new Vector(aL2);
-        ofA = aLen;
-        ofB = bLen;
+
+        // Текущий отсчёт пишется в последнюю ячейку окна: при смещении bLen первый вход терялся
+        ofA = aLen - 1;
+        ofB = bLen - 1;
     }
 
     /// <summary>

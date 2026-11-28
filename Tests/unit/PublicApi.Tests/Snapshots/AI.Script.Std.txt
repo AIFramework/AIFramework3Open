@@ -250,6 +250,8 @@ namespace AI.Script.Std
         [AI.Script.Binding.ScriptFn("bandstop", "Режекторный фильтр", Example="signal |> dsp.bandstop(low: 45, high: 55, fs: 8000)")]
         public static AI.DataStructs.Algebraic.Vector BandStop([AI.Script.Binding.ScriptParam("сигнал")] AI.DataStructs.Algebraic.Vector signal, [AI.Script.Binding.ScriptParam("нижняя частота полосы")] double low, [AI.Script.Binding.ScriptParam("верхняя частота полосы")] double high, [AI.Script.Binding.ScriptParam("частота дискретизации")] int fs) { }
         [AI.Script.Binding.ScriptFn("butterworth", "Фильтр Баттерворта нижних частот", Example="signal |> dsp.butterworth(cutoff: 800, fs: 8000, order: 3)")]
+        [System.Obsolete("АЧХ аналогового Баттерворта через БПФ; цифровой фильтр по ТЗ — AI.DSP.IIR.IirDesi" +
+            "gn.")]
         public static AI.DataStructs.Algebraic.Vector Butterworth([AI.Script.Binding.ScriptParam("сигнал")] AI.DataStructs.Algebraic.Vector signal, [AI.Script.Binding.ScriptParam("частота среза")] double cutoff, [AI.Script.Binding.ScriptParam("частота дискретизации")] int fs, [AI.Script.Binding.ScriptParam("порядок фильтра")] int order = 3) { }
         [AI.Script.Binding.ScriptFn("convolve", "Свёртка сигнала с ядром", Example="dsp.convolve(signal, kernel)")]
         public static AI.DataStructs.Algebraic.Vector Convolve([AI.Script.Binding.ScriptParam("сигнал")] AI.DataStructs.Algebraic.Vector signal, [AI.Script.Binding.ScriptParam("ядро")] AI.DataStructs.Algebraic.Vector kernel) { }

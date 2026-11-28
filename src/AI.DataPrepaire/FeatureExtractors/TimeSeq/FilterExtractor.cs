@@ -1,4 +1,3 @@
-using AI.BackEnds.DSP.NWaves.Filters.Butterworth;
 using AI.DataStructs.Algebraic;
 using AI.DSP.IIR;
 using AI.Statistics;
@@ -39,14 +38,8 @@ public class FilterExtractor : TSExtractor
         for (int i = 0; i < fCutDown.Length; i++)
         {
             // Расчет фильтров
-            double fCNormD = fCutDown[i] / sr;
-            double fCNormU = fCutUp[i] / sr;
-            var filter = new BandPassFilter(fCNormD, fCNormU, order);
-            Vector a1 = new Vector(filter._a);
-            Vector b1 = new Vector(filter._b);
-            Vector b = b1.CutAndZero(b1.Count / 2);
-            Vector a = a1.CutAndZero(a1.Count / 2);
-            IIRs[i] = new IIRFilter(a, b);
+            IIRs[i] = IirDesign.Design(IirFamily.Butterworth, IirBandType.BandPass, order, sr, new Vector(fCutDown[i], fCutUp[i]))
+                .Sections.ToIirFilter();
         }
     }
 

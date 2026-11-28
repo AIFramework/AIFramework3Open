@@ -9,6 +9,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Bessel
     /// Фильтр верхних частот Бесселя
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Bessel): дизайн по ТЗ, звенья второго порядка.")]
     public class HighPassFilter : IirFilter64
     {
         /// <summary>

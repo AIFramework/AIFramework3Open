@@ -408,26 +408,36 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Base64
 }
 namespace AI.BackEnds.DSP.NWaves.Filters.Bessel
 {
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Bessel): дизайн по ТЗ, звенья второго" +
+        " порядка.")]
     [System.Serializable]
     public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandPassFilter(double f1, double f2, int order) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Bessel): дизайн по ТЗ, звенья второго" +
+        " порядка.")]
     [System.Serializable]
     public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandStopFilter(double f1, double f2, int order) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Bessel): дизайн по ТЗ, звенья второго" +
+        " порядка.")]
     [System.Serializable]
     public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public HighPassFilter(double freq, int order) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Bessel): дизайн по ТЗ, звенья второго" +
+        " порядка.")]
     [System.Serializable]
     public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public LowPassFilter(double freq, int order) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Bessel): дизайн по ТЗ, звенья второго" +
+        " порядка.")]
     [System.Serializable]
     public static class PrototypeBessel
     {
@@ -437,6 +447,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Bessel
 }
 namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
 {
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class AllPassFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
     {
@@ -445,6 +456,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
         public double Q { get; protected set; }
         public void Change(double freq, double q = 1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
     {
@@ -453,6 +465,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
         public double Q { get; protected set; }
         public void Change(double freq, double q = 1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class BiQuadFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
@@ -461,6 +474,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
         public override double Process(double sample) { }
         public override void Reset() { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
     {
@@ -469,6 +483,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
         public double Q { get; protected set; }
         public void Change(double freq, double q = 1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class HighShelfFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
     {
@@ -478,6 +493,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
         public double Q { get; protected set; }
         public void Change(double freq, double q = 1, double gain = 1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
     {
@@ -486,6 +502,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
         public double Q { get; protected set; }
         public void Change(double freq, double q = 1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class LowShelfFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
     {
@@ -495,6 +512,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
         public double Q { get; protected set; }
         public void Change(double freq, double q = 1, double gain = 1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class NotchFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
     {
@@ -503,6 +521,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
         public double Q { get; protected set; }
         public void Change(double freq, double q = 1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     [System.Serializable]
     public class PeakFilter : AI.BackEnds.DSP.NWaves.Filters.BiQuad.BiQuadFilter
     {
@@ -515,26 +534,36 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
 }
 namespace AI.BackEnds.DSP.NWaves.Filters.Butterworth
 {
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья вт" +
+        "орого порядка.")]
     [System.Serializable]
     public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandPassFilter(double f1, double f2, int order) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья вт" +
+        "орого порядка.")]
     [System.Serializable]
     public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandStopFilter(double f1, double f2, int order) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья вт" +
+        "орого порядка.")]
     [System.Serializable]
     public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public HighPassFilter(double freq, int order) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья вт" +
+        "орого порядка.")]
     [System.Serializable]
     public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public LowPassFilter(double freq, int order) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья вт" +
+        "орого порядка.")]
     public static class PrototypeButterworth
     {
         public static System.Numerics.Complex[] Poles(int order) { }
@@ -542,26 +571,36 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Butterworth
 }
 namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevI
 {
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevI); здесь при чётном порядке" +
+        " АЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandPassFilter(double f1, double f2, int order, double ripple = 0.1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevI); здесь при чётном порядке" +
+        " АЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandStopFilter(double f1, double f2, int order, double ripple = 0.1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevI); здесь при чётном порядке" +
+        " АЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public HighPassFilter(double freq, int order, double ripple = 0.1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevI); здесь при чётном порядке" +
+        " АЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public LowPassFilter(double freq, int order, double ripple = 0.1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevI); здесь при чётном порядке" +
+        " АЧХ поднята на неравномерность над 0 дБ.")]
     public static class PrototypeChebyshevI
     {
         public static System.Numerics.Complex[] Poles(int order, double ripple = 0.1) { }
@@ -569,26 +608,36 @@ namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevI
 }
 namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevII
 {
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevII); здесь коэффициенты не с" +
+        "овпадают с эталоном scipy.")]
     [System.Serializable]
     public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandPassFilter(double f1, double f2, int order, double ripple = 0.1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevII); здесь коэффициенты не с" +
+        "овпадают с эталоном scipy.")]
     [System.Serializable]
     public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandStopFilter(double f1, double f2, int order, double ripple = 0.1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevII); здесь коэффициенты не с" +
+        "овпадают с эталоном scipy.")]
     [System.Serializable]
     public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public HighPassFilter(double freq, int order, double ripple = 0.1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevII); здесь коэффициенты не с" +
+        "овпадают с эталоном scipy.")]
     [System.Serializable]
     public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public LowPassFilter(double freq, int order, double ripple = 0.1) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevII); здесь коэффициенты не с" +
+        "овпадают с эталоном scipy.")]
     public static class PrototypeChebyshevII
     {
         public static System.Numerics.Complex[] Poles(int order, double ripple = 0.1) { }
@@ -691,26 +740,36 @@ namespace AI.BackEnds.DSP.NWaves.Filters
 }
 namespace AI.BackEnds.DSP.NWaves.Filters.Elliptic
 {
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Elliptic); здесь при чётном порядке А" +
+        "ЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public class BandPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base.IirFilter
     {
         public BandPassFilter(double freq1, double freq2, int order, double ripplePass = 1, double rippleStop = 20) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Elliptic); здесь при чётном порядке А" +
+        "ЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public class BandStopFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public BandStopFilter(double freq1, double freq2, int order, double ripplePass = 10, double rippleStop = 20) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Elliptic); здесь при чётном порядке А" +
+        "ЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public class HighPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public HighPassFilter(double freq, int order, double ripplePass = 1, double rippleStop = 20) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Elliptic); здесь при чётном порядке А" +
+        "ЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public class LowPassFilter : AI.BackEnds.DSP.NWaves.Filters.Base64.IirFilter64
     {
         public LowPassFilter(double freq, int order, double ripplePass = 0.1, double rippleStop = 20) { }
     }
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Elliptic); здесь при чётном порядке А" +
+        "ЧХ поднята на неравномерность над 0 дБ.")]
     [System.Serializable]
     public static class PrototypeElliptic
     {
@@ -1715,7 +1774,13 @@ namespace AI.DSP.DSPCore
     }
     public static class Filters
     {
+        [System.Obsolete("АЧХ аналогового Баттерворта, наложенная через БПФ всего сигнала (без предыскажени" +
+            "я, не потоково); используйте AI.DSP.IIR.IirDesign и SecondOrderSections.FilterZe" +
+            "roPhase.")]
         public static AI.DataStructs.Algebraic.Vector ButterworthLowAFH(int Count, double sr, int fd, int order) { }
+        [System.Obsolete("АЧХ аналогового Баттерворта, наложенная через БПФ всего сигнала (без предыскажени" +
+            "я, не потоково); используйте AI.DSP.IIR.IirDesign и SecondOrderSections.FilterZe" +
+            "roPhase.")]
         public static AI.DataStructs.WithComplexElements.ComplexVector ButterworthLowCFH(int Count, double sr, int fd, int order) { }
         public static AI.DataStructs.Algebraic.Vector CreatAFH(AI.DataStructs.Algebraic.Vector f, string[] param) { }
         public static AI.DataStructs.Algebraic.Vector ExpAv(AI.DataStructs.Algebraic.Vector inp, double oldPart = 0.99) { }
@@ -1725,7 +1790,13 @@ namespace AI.DSP.DSPCore
         public static AI.DataStructs.Algebraic.Vector FilterHigh(AI.DataStructs.Algebraic.Vector signal, double sr, int fd) { }
         public static AI.DataStructs.Algebraic.Vector FilterKontur(AI.DataStructs.Algebraic.Vector st, double Q, double f0, int fd) { }
         public static AI.DataStructs.Algebraic.Vector FilterLow(AI.DataStructs.Algebraic.Vector signal, double sr, int fd) { }
+        [System.Obsolete("АЧХ аналогового Баттерворта, наложенная через БПФ всего сигнала (без предыскажени" +
+            "я, не потоково); используйте AI.DSP.IIR.IirDesign и SecondOrderSections.FilterZe" +
+            "roPhase.")]
         public static AI.DataStructs.Algebraic.Vector FilterLowButterworthAFH(AI.DataStructs.Algebraic.Vector signal, double sr, int fd, int order = 3) { }
+        [System.Obsolete("АЧХ аналогового Баттерворта, наложенная через БПФ всего сигнала (без предыскажени" +
+            "я, не потоково); используйте AI.DSP.IIR.IirDesign и SecondOrderSections.FilterZe" +
+            "roPhase.")]
         public static AI.DataStructs.Algebraic.Vector FilterLowButterworthCFH(AI.DataStructs.Algebraic.Vector signal, double sr, int fd, int order = 3) { }
         public static AI.DataStructs.Algebraic.Vector FilterRezector(AI.DataStructs.Algebraic.Vector signal, double sr1, double sr2, int fd) { }
         public static AI.DataStructs.Algebraic.Vector GetAFH(AI.DataStructs.Algebraic.Vector f, double[] param, AI.DSP.DSPCore.AFHType afh) { }
@@ -1911,6 +1982,40 @@ namespace AI.DSP.FIR
 }
 namespace AI.DSP.IIR
 {
+    public static class AnalogPrototype
+    {
+        public static AI.DSP.IIR.ZeroPoleGain Bessel(int order, AI.DSP.IIR.BesselNormalization normalization = 0) { }
+        public static AI.DSP.IIR.ZeroPoleGain Butterworth(int order) { }
+        public static AI.DSP.IIR.ZeroPoleGain ChebyshevI(int order, double rippleDb) { }
+        public static AI.DSP.IIR.ZeroPoleGain ChebyshevII(int order, double attenuationDb) { }
+        public static AI.DSP.IIR.ZeroPoleGain Elliptic(int order, double rippleDb, double attenuationDb) { }
+    }
+    public enum BesselNormalization
+    {
+        Phase = 0,
+        Delay = 1,
+        Magnitude = 2,
+    }
+    public static class Biquad
+    {
+        public static AI.DSP.IIR.SecondOrderSections AllPass(double sampleRate, double frequency, double q) { }
+        public static AI.DSP.IIR.SecondOrderSections BandPass(double sampleRate, double frequency, double q) { }
+        public static AI.DSP.IIR.SecondOrderSections HighPass(double sampleRate, double frequency, double q = 0.7071067811865476) { }
+        public static AI.DSP.IIR.SecondOrderSections HighShelf(double sampleRate, double frequency, double gainDb, double q = 0.7071067811865476) { }
+        public static AI.DSP.IIR.SecondOrderSections LowPass(double sampleRate, double frequency, double q = 0.7071067811865476) { }
+        public static AI.DSP.IIR.SecondOrderSections LowShelf(double sampleRate, double frequency, double gainDb, double q = 0.7071067811865476) { }
+        public static AI.DSP.IIR.SecondOrderSections Notch(double sampleRate, double frequency, double q) { }
+        public static AI.DSP.IIR.SecondOrderSections Peaking(double sampleRate, double frequency, double q, double gainDb) { }
+    }
+    public static class FrequencyTransform
+    {
+        public static AI.DSP.IIR.ZeroPoleGain Bilinear(AI.DSP.IIR.ZeroPoleGain analog, double sampleRate) { }
+        public static AI.DSP.IIR.ZeroPoleGain LowPassToBandPass(AI.DSP.IIR.ZeroPoleGain prototype, double center, double bandwidth) { }
+        public static AI.DSP.IIR.ZeroPoleGain LowPassToBandStop(AI.DSP.IIR.ZeroPoleGain prototype, double center, double bandwidth) { }
+        public static AI.DSP.IIR.ZeroPoleGain LowPassToHighPass(AI.DSP.IIR.ZeroPoleGain prototype, double cutoff) { }
+        public static AI.DSP.IIR.ZeroPoleGain LowPassToLowPass(AI.DSP.IIR.ZeroPoleGain prototype, double cutoff) { }
+        public static double Prewarp(double frequency, double sampleRate) { }
+    }
     [System.Serializable]
     public class IIRFilter : AI.DSP.DSPCore.IFilter
     {
@@ -1928,6 +2033,114 @@ namespace AI.DSP.IIR
         public void Save(string path) { }
         public static AI.DSP.IIR.IIRFilter Load(byte[] data) { }
         public static AI.DSP.IIR.IIRFilter Load(string path) { }
+    }
+    public enum IirBandType
+    {
+        LowPass = 0,
+        HighPass = 1,
+        BandPass = 2,
+        BandStop = 3,
+    }
+    public static class IirDesign
+    {
+        public static AI.DSP.IIR.IirFilterDesign Design(AI.DSP.IIR.IirFamily family, AI.DSP.IIR.IirSpecification specification) { }
+        public static AI.DSP.IIR.IirFilterDesign Design(AI.DSP.IIR.IirFamily family, AI.DSP.IIR.IirBandType bandType, int order, double sampleRate, AI.DataStructs.Algebraic.Vector cutoff, double rippleDb = 1, double attenuationDb = 40, AI.DSP.IIR.BesselNormalization normalization = 0) { }
+    }
+    public enum IirFamily
+    {
+        Butterworth = 0,
+        ChebyshevI = 1,
+        ChebyshevII = 2,
+        Elliptic = 3,
+        Bessel = 4,
+    }
+    public sealed record IirFilterDesign : System.IEquatable<AI.DSP.IIR.IirFilterDesign>
+    {
+        public IirFilterDesign(AI.DSP.IIR.IirFamily Family, AI.DSP.IIR.IirBandType BandType, int Order, double SampleRate, AI.DataStructs.Algebraic.Vector Cutoff, AI.DSP.IIR.ZeroPoleGain ZeroPoleGain, AI.DSP.IIR.SecondOrderSections Sections) { }
+        public AI.DSP.IIR.IirBandType BandType { get; init; }
+        public AI.DataStructs.Algebraic.Vector Cutoff { get; init; }
+        public AI.DSP.IIR.IirFamily Family { get; init; }
+        public int Order { get; init; }
+        public double SampleRate { get; init; }
+        public AI.DSP.IIR.SecondOrderSections Sections { get; init; }
+        public AI.DSP.IIR.ZeroPoleGain ZeroPoleGain { get; init; }
+        public AI.DSP.IIR.IirSpecificationReport Verify(AI.DSP.IIR.IirSpecification specification) { }
+    }
+    public static class IirOrder
+    {
+        public static AI.DSP.IIR.IirOrderEstimate Estimate(AI.DSP.IIR.IirFamily family, AI.DSP.IIR.IirSpecification specification) { }
+    }
+    public sealed record IirOrderEstimate : System.IEquatable<AI.DSP.IIR.IirOrderEstimate>
+    {
+        public IirOrderEstimate(int Order, AI.DataStructs.Algebraic.Vector Cutoff) { }
+        public AI.DataStructs.Algebraic.Vector Cutoff { get; init; }
+        public int Order { get; init; }
+    }
+    public sealed class IirSpecification
+    {
+        public IirSpecification(AI.DSP.IIR.IirBandType bandType, double sampleRate, AI.DataStructs.Algebraic.Vector passbandEdges, AI.DataStructs.Algebraic.Vector stopbandEdges, double passbandRippleDb, double stopbandAttenuationDb) { }
+        public AI.DSP.IIR.IirBandType BandType { get; }
+        public AI.DataStructs.Algebraic.Vector PassbandEdges { get; }
+        public double PassbandRippleDb { get; }
+        public double SampleRate { get; }
+        public double StopbandAttenuationDb { get; }
+        public AI.DataStructs.Algebraic.Vector StopbandEdges { get; }
+        public static double AttenuationFromLinear(double stopbandLevel) { }
+        public static AI.DSP.IIR.IirSpecification BandPass(double sampleRate, double passLow, double passHigh, double stopLow, double stopHigh, double rippleDb, double attenuationDb) { }
+        public static AI.DSP.IIR.IirSpecification BandStop(double sampleRate, double passLow, double passHigh, double stopLow, double stopHigh, double rippleDb, double attenuationDb) { }
+        public static AI.DSP.IIR.IirSpecification FromLinear(AI.DSP.IIR.IirBandType bandType, double sampleRate, AI.DataStructs.Algebraic.Vector passbandEdges, AI.DataStructs.Algebraic.Vector stopbandEdges, double passbandDeviation, double stopbandLevel) { }
+        public static AI.DSP.IIR.IirSpecification HighPass(double sampleRate, double passEdge, double stopEdge, double rippleDb, double attenuationDb) { }
+        public static AI.DSP.IIR.IirSpecification LowPass(double sampleRate, double passEdge, double stopEdge, double rippleDb, double attenuationDb) { }
+        public static double RippleFromLinear(double passbandDeviation) { }
+    }
+    public sealed record IirSpecificationReport : System.IEquatable<AI.DSP.IIR.IirSpecificationReport>
+    {
+        public IirSpecificationReport(double PassbandRippleDb, double StopbandAttenuationDb, bool PassbandMet, bool StopbandMet) { }
+        public bool PassbandMet { get; init; }
+        public double PassbandRippleDb { get; init; }
+        public bool Satisfied { get; }
+        public double StopbandAttenuationDb { get; init; }
+        public bool StopbandMet { get; init; }
+    }
+    public sealed class SecondOrderSections
+    {
+        public SecondOrderSections(AI.DataStructs.Algebraic.Matrix coefficients) { }
+        public AI.DataStructs.Algebraic.Matrix Coefficients { get; }
+        public bool IsStable { get; }
+        public AI.DataStructs.WithComplexElements.ComplexVector Poles { get; }
+        public int SectionCount { get; }
+        public AI.DataStructs.WithComplexElements.ComplexVector Zeros { get; }
+        public AI.DSP.IIR.SosFilter CreateFilter(AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public AI.DataStructs.Algebraic.Vector Filter(AI.DataStructs.Algebraic.Vector signal) { }
+        public AI.DataStructs.Algebraic.Vector FilterZeroPhase(AI.DataStructs.Algebraic.Vector signal) { }
+        public AI.DataStructs.WithComplexElements.ComplexVector FrequencyResponse(AI.DataStructs.Algebraic.Vector frequencies, double sampleRate) { }
+        public AI.DataStructs.Algebraic.Vector GroupDelay(AI.DataStructs.Algebraic.Vector frequencies, double sampleRate) { }
+        public AI.DataStructs.Algebraic.Vector MagnitudeDb(AI.DataStructs.Algebraic.Vector frequencies, double sampleRate) { }
+        public AI.DataStructs.Algebraic.Vector Phase(AI.DataStructs.Algebraic.Vector frequencies, double sampleRate) { }
+        public System.Numerics.Complex Response(double frequency, double sampleRate) { }
+        public AI.DSP.IIR.IIRFilter ToIirFilter() { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "B",
+                "A"})]
+        public System.ValueTuple<AI.DataStructs.Algebraic.Vector, AI.DataStructs.Algebraic.Vector> ToTransferFunction() { }
+        public AI.DSP.IIR.IirSpecificationReport Verify(AI.DSP.IIR.IirSpecification specification, int gridPoints = 2048) { }
+        public static AI.DSP.IIR.SecondOrderSections FromZeroPoleGain(AI.DSP.IIR.ZeroPoleGain digital) { }
+    }
+    public sealed class SosFilter : AI.DSP.Multirate.MultirateBlock
+    {
+        public SosFilter(AI.DSP.IIR.SecondOrderSections sections, AI.DSP.Multirate.Arithmetic arithmetic = 0, AI.DSP.Multirate.Q16Options options = null) { }
+        public override double Delay { get; }
+        public override AI.DSP.Multirate.OperationCount OperationsPerOutput { get; }
+        public override double RateFactor { get; }
+        public AI.DSP.IIR.SecondOrderSections Sections { get; }
+    }
+    public sealed class ZeroPoleGain
+    {
+        public ZeroPoleGain(AI.DataStructs.WithComplexElements.ComplexVector zeros, AI.DataStructs.WithComplexElements.ComplexVector poles, double gain) { }
+        public double Gain { get; }
+        public bool IsStableDigital { get; }
+        public AI.DataStructs.WithComplexElements.ComplexVector Poles { get; }
+        public AI.DataStructs.WithComplexElements.ComplexVector Zeros { get; }
     }
 }
 namespace AI.DSP.Modulation

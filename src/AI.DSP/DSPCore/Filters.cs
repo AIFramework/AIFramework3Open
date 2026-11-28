@@ -114,6 +114,7 @@ public static class Filters
     /// <param name="fd">Частота дискретизации</param>
     /// <param name="order">Порядок фильтра</param>
     /// <returns>Фильтрованный сигнал</returns>
+    [System.Obsolete("АЧХ аналогового Баттерворта, наложенная через БПФ всего сигнала (без предыскажения, не потоково); используйте AI.DSP.IIR.IirDesign и SecondOrderSections.FilterZeroPhase.")]
     public static Vector FilterLowButterworthCFH(Vector signal, double sr, int fd, int order = 3)
     {
         ComplexVector kw = ButterworthLowCFH(signal.Count, sr, fd, order);
@@ -127,6 +128,7 @@ public static class Filters
     /// <param name="fd">Частота дискретизации</param>
     /// <param name="order">Порядок фильтра</param>
     /// <returns>Фильтрованный сигнал</returns>
+    [System.Obsolete("АЧХ аналогового Баттерворта, наложенная через БПФ всего сигнала (без предыскажения, не потоково); используйте AI.DSP.IIR.IirDesign и SecondOrderSections.FilterZeroPhase.")]
     public static Vector FilterLowButterworthAFH(Vector signal, double sr, int fd, int order = 3)
     {
         Vector kw = ButterworthLowAFH(signal.Count, sr, fd, order);
@@ -312,6 +314,7 @@ public static class Filters
     /// <param name="sr">Частота среза</param>
     /// <param name="fd">Частота дискретизации</param>
     /// <param name="order">Порядок фильтра</param>
+    [System.Obsolete("АЧХ аналогового Баттерворта, наложенная через БПФ всего сигнала (без предыскажения, не потоково); используйте AI.DSP.IIR.IirDesign и SecondOrderSections.FilterZeroPhase.")]
     public static Vector ButterworthLowAFH(int Count, double sr, int fd, int order)
     {
         Vector freq = Signal.Frequency(Count, fd);
@@ -325,6 +328,7 @@ public static class Filters
     /// <param name="sr">Частота среза</param>
     /// <param name="fd">Частота дискретизации</param>
     /// <param name="order">Порядок фильтра</param>
+    [System.Obsolete("АЧХ аналогового Баттерворта, наложенная через БПФ всего сигнала (без предыскажения, не потоково); используйте AI.DSP.IIR.IirDesign и SecondOrderSections.FilterZeroPhase.")]
     public static ComplexVector ButterworthLowCFH(int Count, double sr, int fd, int order)
     {
         Vector freq = Signal.Frequency(Count, fd);

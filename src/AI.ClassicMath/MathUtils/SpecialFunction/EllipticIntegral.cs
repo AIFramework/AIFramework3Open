@@ -6,7 +6,11 @@ namespace AI.MathUtils.SpecialFunction;
 /// <summary>
 /// Эллиптические интегралы
 /// </summary>
+/// <remarks>
+/// Приближение отрезком ряда неверно при больших k: K(0,9) = 2,73 вместо 2,2805. Точный расчёт — <see cref="EllipticFunctions.CompleteK"/>.
+/// </remarks>
 [Serializable]
+[Obsolete("Приближённый расчёт; используйте EllipticFunctions.CompleteK(k * k) — среднее арифметико-геометрическое.")]
 public class EllipticIntegral
 {
     /// <summary>

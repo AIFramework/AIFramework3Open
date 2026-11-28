@@ -7,6 +7,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
     /// BiQuad filter base class
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     public class BiQuadFilter : IirFilter64
     {
         /// <summary>

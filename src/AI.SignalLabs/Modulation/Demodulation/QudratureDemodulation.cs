@@ -1,5 +1,4 @@
-﻿using AI.BackEnds.DSP.NWaves.Filters.Butterworth;
-using AI.DataStructs.Algebraic;
+﻿using AI.DataStructs.Algebraic;
 using AI.DataStructs.WithComplexElements;
 using AI.DSP.DSPCore;
 using AI.DSP.IIR;
@@ -48,11 +47,10 @@ public class QudratureDemodulation
         _useSrrc = false;
 
         double fCut = cutoffFrequency > 0 ? cutoffFrequency : f0 / 4.0;
-        double fCNorm = fCut / sr;
-
-        var filter = new LowPassFilter(fCNorm, 7);
-        _filterI = new IIRFilter(filter._a, filter._b);
-        _filterQ = new IIRFilter(filter._a, filter._b);
+        // Цифровой Баттерворт 7-го порядка: тот же, что NWaves LowPassFilter (сверено со scipy), без удвоенных буферов
+        SecondOrderSections sections = IirDesign.Design(IirFamily.Butterworth, IirBandType.LowPass, 7, sr, new Vector(fCut)).Sections;
+        _filterI = sections.ToIirFilter();
+        _filterQ = sections.ToIirFilter();
     }
 
     /// <summary>

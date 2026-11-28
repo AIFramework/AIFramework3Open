@@ -7,6 +7,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevII
     /// <summary>
     /// Прототип фильтра Чебышёва 2го рода
     /// </summary>
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevII); здесь коэффициенты не совпадают с эталоном scipy.")]
     public static class PrototypeChebyshevII
     {
         /// <summary>

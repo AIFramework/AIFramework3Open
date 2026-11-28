@@ -9,6 +9,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Butterworth
     /// Режекторный фильтр Баттервордта
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья второго порядка.")]
     public class BandStopFilter : IirFilter64
     {
         /// <summary>

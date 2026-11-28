@@ -9,6 +9,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevI
     /// Полосовой фильтр Чебышёва первого рода
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevI); здесь при чётном порядке АЧХ поднята на неравномерность над 0 дБ.")]
     public class BandPassFilter : IirFilter64
     {
         /// <summary>

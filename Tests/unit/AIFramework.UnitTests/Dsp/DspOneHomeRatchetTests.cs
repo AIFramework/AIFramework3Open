@@ -10,7 +10,7 @@ namespace AIFramework.UnitTests.Dsp;
 /// </summary>
 public sealed partial class DspOneHomeRatchetTests
 {
-    private static readonly string[] Homes = ["src/AI.DSP/Multirate/", "src/AI.DSP/IIR/"];
+    private static readonly string[] Homes = ["src/AI.DSP/Multirate/", "src/AI.DSP/IIR/", "src/AI.ClassicMath/MathUtils/SpecialFunction/"];
 
     // Унаследованные файлы; список только сокращается
     private static readonly HashSet<string> Legacy =
@@ -39,6 +39,7 @@ public sealed partial class DspOneHomeRatchetTests
             .SelectMany(d => Directory.EnumerateFiles(d, "*.cs", SearchOption.AllDirectories))
             .Select(p => Path.GetRelativePath(root, p).Replace('\\', '/'))
             .Where(p => !p.Split('/').Any(part => part is "bin" or "obj" or "bin-light" or "obj-light"))
+            .Where(p => !p.EndsWith(".g.cs", StringComparison.Ordinal))   // сгенерированные сниппеты документации
             .Where(p => !Homes.Any(h => p.StartsWith(h, StringComparison.Ordinal)) && !Legacy.Contains(p))
             .Where(p => DesignType().IsMatch(File.ReadAllText(Path.Combine(root, p))))];
 

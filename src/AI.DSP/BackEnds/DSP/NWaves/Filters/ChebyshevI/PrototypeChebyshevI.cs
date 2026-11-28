@@ -7,6 +7,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevI
     /// <summary>
     /// Прототип фильтра Чебшёва первого рода
     /// </summary>
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevI); здесь при чётном порядке АЧХ поднята на неравномерность над 0 дБ.")]
     public static class PrototypeChebyshevI
     {
         /// <summary>

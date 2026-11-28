@@ -33,7 +33,7 @@ public sealed class ChapterThreeScenarioTests
 
         // Таблица 3.3: ОСШ синтезированной схемы относительно стандартной
         double snr = ResamplingMetrics.SnrFromCorrelation(ResamplingMetrics.MaxNormalizedCrossCorrelation(s1, s2));
-        Assert.InRange(snr, row.GetProperty("syn_SNR").GetDouble() - 0.05, row.GetProperty("syn_SNR").GetDouble() + 0.05);
+        Assert.InRange(snr, row.GetProperty("syn_SNR").GetDouble() - 0.01, row.GetProperty("syn_SNR").GetDouble() + 0.01);
 
         // Контроль эталона: стандартная схема относительно идеального сигнала
         var ideal = new Vector(DspGolden.TestSignal(ft, s1.Count / (double)ft, tones, phases, 0.18).Take(s1.Count));
@@ -43,7 +43,7 @@ public sealed class ChapterThreeScenarioTests
         // Таблица 3.4: шум квантования Q16 (умножение автора)
         double dn = ResamplingMetrics.QuantizationNoiseVariance(s2q, s2);
         double expectedDn = row.GetProperty("syn_DN").GetDouble();
-        Assert.InRange(dn, expectedDn * 0.97, expectedDn * 1.03);
+        Assert.InRange(dn, expectedDn * 0.995, expectedDn * 1.005);
 
         // Таблица 3.2: в double ИГФ считается скользящими суммами, как в экспериментах, и затраты совпадают
         Assert.Equal(row.GetProperty("syn_mults").GetDouble(), syn.OperationsPerOutput.Multiplications * ft, 0);

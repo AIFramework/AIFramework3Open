@@ -10,6 +10,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.ChebyshevII
     /// </summary>
     [Serializable]
 
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.ChebyshevII); здесь коэффициенты не совпадают с эталоном scipy.")]
     public class LowPassFilter : IirFilter64
     {
         /// <summary>

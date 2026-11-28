@@ -8,6 +8,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.BiQuad
     /// audio-eq-cookbook by R.Bristow-Johnson and WebAudio API.
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.IIR.Biquad: те же формулы RBJ, тип SecondOrderSections.")]
     public class AllPassFilter : BiQuadFilter
     {
         /// <summary>

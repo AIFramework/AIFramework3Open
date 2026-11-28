@@ -9,6 +9,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Butterworth
     /// Полосовой фильтр Баттервордта.
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья второго порядка.")]
     public class BandPassFilter : IirFilter64
     {
         /// <summary>

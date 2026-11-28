@@ -6,6 +6,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Butterworth
     /// <summary>
     /// Прототип фильтра Баттервордта
     /// </summary>
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья второго порядка.")]
     public static class PrototypeButterworth
     {
         /// <summary>

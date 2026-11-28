@@ -83,7 +83,9 @@ public static class FastHilbert
     private static Tuple<Vector, Vector> ComputeIQ(Vector st, double fd, double f0)
     {
         double _2pi = Math.PI * 2;
+#pragma warning disable CS0618 // КЧХ Баттерворта через БПФ — часть прежнего алгоритма преобразования Гильберта
         ComplexVector complexVector = Filters.ButterworthLowCFH(st.Count, f0, (int)fd, 5);
+#pragma warning restore CS0618
 
         Vector cos = new Vector(st.Count);
         Vector sin = new Vector(st.Count);

@@ -9,6 +9,7 @@ namespace AI.BackEnds.DSP.NWaves.Filters.Butterworth
     /// Фильтр Баттервордта верхних частот
     /// </summary>
     [Serializable]
+    [System.Obsolete("Используйте AI.DSP.IIR.IirDesign (IirFamily.Butterworth): дизайн по ТЗ, звенья второго порядка.")]
     public class HighPassFilter : IirFilter64
     {
         /// <summary>

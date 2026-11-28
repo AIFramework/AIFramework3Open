@@ -144,6 +144,7 @@ public static class DspModule
     }
 
     [ScriptFn("butterworth", "Фильтр Баттерворта нижних частот", Example = "signal |> dsp.butterworth(cutoff: 800, fs: 8000, order: 3)")]
+    [System.Obsolete("АЧХ аналогового Баттерворта через БПФ; цифровой фильтр по ТЗ — AI.DSP.IIR.IirDesign.")]
     public static Vector Butterworth(
         [ScriptParam("сигнал")] Vector signal,
         [ScriptParam("частота среза")] double cutoff,

@@ -4,6 +4,7 @@ using AI.DataStructs.WithComplexElements;
 using AI.DSP.Analyse;
 using AI.DSP.DSPCore;
 using AI.DSP.FIR;
+using AI.DSP.IIR;
 using AI.DSP.Multirate;
 using AI.Charts.JS;
 using AiFrameworkDemo.Core;
@@ -85,7 +86,9 @@ public static class DspDemoRunner
                 double fSig = N("fSig", 100), fInterf = N("fInterf", 600),
                        fCut = N("fCut", 300), noise = N("noise", 0.1);
                 var raw      = Sin(t, 1, fSig) + Sin(t, 0.7, fInterf) + WhiteNoise(n, noise);
-                var filtered = Filters.FilterLowButterworthAFH(raw, fCut, fd, order: 4);
+                fCut = Math.Min(fCut, 0.45 * fd);
+                var filtered = IirDesign.Design(IirFamily.Butterworth, IirBandType.LowPass, 4, fd, new Vector(fCut))
+                    .Sections.FilterZeroPhase(raw);
                 TrimToMatch(ref t, ref filtered);
 
                 cv.ChartName = $"ФНЧ Баттерворта (fср={fCut} Гц)";
@@ -174,6 +177,27 @@ public static class DspDemoRunner
                 cv.LabelX = "Время, с"; cv.LabelY = "Амплитуда";
                 cv.AddPlot(tm, new Vector(reference.Take(m)), "Стандартная схема (Кайзер 80 дБ)", new SKColor(100, 140, 255, 180));
                 cv.AddPlot(tm, new Vector(y.Take(m)), "ИГФ + корректор + Фэрроу", new SKColor(255, 200, 80));
+                break;
+            }
+
+            // -- БИХ ПО ТЗ -----------------------------------------------------
+            case "iir_spec":
+            {
+                double fp = N("fp", 45), fst = N("fst", 55), rp = N("rp", 1), rs = N("rs", 40);
+                var family = (IirFamily)Clamp((int)N("family", 3), 0, 3);
+                double nyq = fd / 2.0;
+                fp = Math.Min(fp, 0.9 * nyq);
+                fst = Math.Clamp(fst, fp + 1, 0.98 * nyq);
+                IirSpecification spec = IirSpecification.LowPass(fd, fp, fst, rp, Math.Max(rs, rp + 1));
+                IirFilterDesign design = IirDesign.Design(family, spec);
+                IirSpecificationReport report = design.Verify(spec);
+                var freqs = new Vector(Enumerable.Range(0, 400).Select(i => nyq * i / 400.0));
+                var mag = design.Sections.MagnitudeDb(freqs, fd).Transform(v => Math.Max(v, -120));
+
+                cv.ChartName = $"{family}: порядок {design.Order}, в полосе {report.PassbandRippleDb:F2} дБ, " +
+                               $"затухание {report.StopbandAttenuationDb:F1} дБ";
+                cv.LabelX = "Частота, Гц"; cv.LabelY = "АЧХ, дБ";
+                cv.AddPlot(freqs, mag, "АЧХ", new SKColor(255, 200, 80));
                 break;
             }
 

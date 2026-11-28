@@ -550,6 +550,19 @@ namespace AI.MathUtils.ODE
 }
 namespace AI.MathUtils.SpecialFunction
 {
+    public static class EllipticFunctions
+    {
+        public static double CompleteK(double m) { }
+        public static double CompleteKm1(double p) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Sn",
+                "Cn",
+                "Dn",
+                "Phi"})]
+        public static System.ValueTuple<double, double, double, double> Jacobi(double u, double m) { }
+    }
+    [System.Obsolete("Приближённый расчёт; используйте EllipticFunctions.CompleteK(k * k) — среднее ари" +
+        "фметико-геометрическое.")]
     [System.Serializable]
     public class EllipticIntegral
     {
