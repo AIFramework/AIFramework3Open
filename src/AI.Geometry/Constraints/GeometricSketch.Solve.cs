@@ -92,7 +92,7 @@ public sealed partial class GeometricSketch
         if (found.Count == 0)
             return [best!];
 
-        return found.OrderBy(solution => Distance(solution.FullValues, guess)).ToList();
+        return found.OrderBy(solution => AI.Distances.BaseDist.EuclideanDistance(solution.FullValues, guess)).ToList();
     }
 
     private SketchSolution SolveFrom(double[] start, double tolerance, double scale)
@@ -308,15 +308,5 @@ public sealed partial class GeometricSketch
             max = Math.Max(max, Math.Abs(a[i] - b[i]));
 
         return max;
-    }
-
-    private static double Distance(double[] a, double[] b)
-    {
-        double sum = 0;
-
-        for (int i = 0; i < a.Length; i++)
-            sum += (a[i] - b[i]) * (a[i] - b[i]);
-
-        return Math.Sqrt(sum);
     }
 }

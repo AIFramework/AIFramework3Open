@@ -124,7 +124,7 @@ public sealed class ParallelTests
             """;
 
         Assert.Equal(Script.RunOk(source).Emitted["подписи"], Script.RunOk(source).Emitted["подписи"]);
-        Assert.Equal("101,101,1,0,101,110,10,101", Script.RunOk(source).Emitted["подписи"]);
+        Assert.Equal("11,10,11,1,111,111,100,1", Script.RunOk(source).Emitted["подписи"]);
     }
 
     [Fact]

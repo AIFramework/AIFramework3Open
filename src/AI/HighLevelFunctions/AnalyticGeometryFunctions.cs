@@ -20,11 +20,14 @@ public static class AnalyticGeometryFunctions
     public static double Cos(Vector vector1, Vector vector2)
     {
         EnsureSameDimensions(vector1, vector2);
-        double norm1 = NormVect(vector1);
-        double norm2 = NormVect(vector2);
-        if (norm1 == 0 || norm2 == 0)
+
+        // Формула одна — BaseDist.CosineSimilarity; здесь нулевой вектор — ошибка вызова
+        double cos = AI.Distances.BaseDist.CosineSimilarity(vector1, vector2);
+
+        if (double.IsNaN(cos) && !vector1.ContainsNan() && !vector2.ContainsNan())
             throw new ArgumentException("Невозможно вычислить угол для нулевого вектора.");
-        return Dot(vector1, vector2) / (norm1 * norm2);
+
+        return cos;
     }
 
     /// <summary>
@@ -108,10 +111,8 @@ public static class AnalyticGeometryFunctions
     /// <summary>
     /// Вычисляет расстояние между точками A и B.
     /// </summary>
-    public static double DistanceFromAToB(Vector pointA, Vector pointB)
-    {
-        return NormVect(VectorFromAToB(pointA, pointB));
-    }
+    [Obsolete("Используйте AI.Distances.BaseDist.EuclideanDistance — единственную реализацию.")]
+    public static double DistanceFromAToB(Vector pointA, Vector pointB) => AI.Distances.BaseDist.EuclideanDistance(pointA, pointB);
 
     /// <summary>
     /// Поворачивает вектор вокруг начала координат в плоскости, определяемой индексами осей indAx1 и indAx2.

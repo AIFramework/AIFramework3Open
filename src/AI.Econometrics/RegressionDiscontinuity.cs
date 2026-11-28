@@ -199,7 +199,7 @@ public static class RegressionDiscontinuity
 
         foreach (double quantile in new[] { 0.25, 0.75 })
         {
-            double fake = EconMath.Quantile(sortedRunning, quantile);
+            double fake = AI.Statistics.Quantile.OfSorted(sortedRunning, quantile);
             if (Math.Abs(fake - cutoff) < h) continue;
 
             var side = observations
@@ -288,8 +288,8 @@ public static class RegressionDiscontinuity
     private static double RuleOfThumbBandwidth(IReadOnlyList<RddObservation> observations, double cutoff)
     {
         double[] distances = [.. observations.Select(o => Math.Abs(o.Running - cutoff)).OrderBy(v => v)];
-        double median = EconMath.Quantile(distances, 0.5);
-        double spread = EconMath.Quantile(distances, 0.75) - EconMath.Quantile(distances, 0.25);
+        double median = AI.Statistics.Quantile.OfSorted(distances, 0.5);
+        double spread = AI.Statistics.Quantile.OfSorted(distances, 0.75) - AI.Statistics.Quantile.OfSorted(distances, 0.25);
 
         double scale = Math.Max(Math.Max(median, spread), 1e-9);
         return scale * Math.Pow(observations.Count, -0.2) * 2.5;

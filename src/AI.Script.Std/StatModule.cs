@@ -3,6 +3,7 @@ using AI.DataStructs.Algebraic;
 using AI.Script.Binding;
 using AI.Script.Runtime;
 using AI.Script.Semantics;
+using AI.Statistics;
 
 namespace AI.Script.Std;
 
@@ -43,16 +44,7 @@ public static partial class StatModule
         if (q is < 0 or > 1)
             throw new ScriptError(DiagnosticCodes.BadOperand, "stat.quantile: уровень должен лежать в [0, 1]");
 
-        double[] data = v.ToArray();
-        Array.Sort(data);
-
-        if (data.Length == 1) return data[0];
-
-        double position = q * (data.Length - 1);
-        int low = (int)Math.Floor(position);
-        int high = (int)Math.Ceiling(position);
-
-        return low == high ? data[low] : data[low] + ((data[high] - data[low]) * (position - low));
+        return AI.Statistics.Quantile.Of(v.ToArray(), q);
     }
 
     [ScriptFn("zscore", "Z-нормировка выборки", Example = "v |> stat.zscore()")]
@@ -60,10 +52,7 @@ public static partial class StatModule
     {
         _ = Require(v, "zscore");
 
-        double mean = v.Mean();
-        double std = v.Std();
-
-        return std == 0 ? v.Transform(x => x - mean) : v.Transform(x => (x - mean) / std);
+        return new Vector(Statistic.ZScores(v.ToArray()));
     }
 
     [ScriptFn("minmax", "Нормировка выборки на отрезок [0, 1]", Example = "v |> stat.minmax()")]
@@ -71,10 +60,7 @@ public static partial class StatModule
     {
         _ = Require(v, "minmax");
 
-        double min = v.Min();
-        double span = v.Max() - min;
-
-        return span == 0 ? v.Transform(_ => 0.0) : v.Transform(x => (x - min) / span);
+        return new Vector(Statistic.MinMaxScale(v.ToArray()));
     }
 
     [ScriptFn("corr", "Коэффициент корреляции Пирсона", Example = "stat.corr(x, y)")]
@@ -84,23 +70,7 @@ public static partial class StatModule
     {
         RequirePair(x, y, "corr");
 
-        double meanX = x.Mean();
-        double meanY = y.Mean();
-        double covariance = 0, varianceX = 0, varianceY = 0;
-
-        for (int i = 0; i < x.Count; i++)
-        {
-            double dx = x[i] - meanX;
-            double dy = y[i] - meanY;
-
-            covariance += dx * dy;
-            varianceX += dx * dx;
-            varianceY += dy * dy;
-        }
-
-        double denominator = Math.Sqrt(varianceX * varianceY);
-
-        return denominator == 0 ? 0 : covariance / denominator;
+        return Statistic.CorrelationCoefficient(x, y);
     }
 
     [ScriptFn("rmse", "Среднеквадратичная ошибка", Example = "stat.rmse(y, pred)")]
@@ -148,34 +118,29 @@ public static partial class StatModule
         return total == 0 ? 0 : 1 - (residual / total);
     }
 
-    [ScriptFn("hist", "Гистограмма: границы и частоты", Example = "stat.hist(v, bins: 20)")]
+    [ScriptFn("hist", "Гистограмма: границы и счётчики (либо плотность)", Example = "stat.hist(v, bins: 20)")]
     public static ScriptRecord Histogram(
         [ScriptParam("выборка")] Vector v,
-        [ScriptParam("число интервалов")] int bins = 10)
+        [ScriptParam("число интервалов")] int bins = 10,
+        [ScriptParam("плотность вместо счётчиков: площадь под гистограммой равна 1")] bool density = false)
     {
         _ = Require(v, "hist");
 
         if (bins < 1) throw new ScriptError(DiagnosticCodes.BadOperand, "stat.hist: интервалов должно быть не меньше одного");
 
-        double min = v.Min();
-        double max = v.Max();
-        double width = max - min;
+        (double[] edges, double[] counts) = Statistic.HistogramCounts(v.ToArray(), bins);
 
-        var edges = new Vector(bins + 1);
-        var counts = new Vector(bins);
-
-        for (int i = 0; i <= bins; i++) edges[i] = width == 0 ? min : min + (width * i / bins);
-
-        for (int i = 0; i < v.Count; i++)
+        if (density)
         {
-            int bin = width == 0 ? 0 : (int)((v[i] - min) / width * bins);
-            counts[Math.Clamp(bin, 0, bins - 1)]++;
+            double total = counts.Sum();
+
+            for (int i = 0; i < bins; i++) counts[i] = total > 0 ? counts[i] / (total * (edges[i + 1] - edges[i])) : 0;
         }
 
         return ScriptRecord.From(
         [
-            new KeyValuePair<string, ScriptValue>("edges", ScriptValue.Vec(edges)),
-            new KeyValuePair<string, ScriptValue>("counts", ScriptValue.Vec(counts)),
+            new KeyValuePair<string, ScriptValue>("edges", ScriptValue.Vec(new Vector(edges))),
+            new KeyValuePair<string, ScriptValue>("counts", ScriptValue.Vec(new Vector(counts))),
         ]);
     }
 
@@ -360,20 +325,11 @@ public static partial class StatModule
             if (clusters[j] != cluster) continue;
             if (skipSelf && j == index) continue;
 
-            sum += Distance(rows[index], rows[j]);
+            sum += AI.Distances.BaseDist.EuclideanDistance(rows[index], rows[j]);
             count++;
         }
 
         return count == 0 ? 0 : sum / count;
-    }
-
-    private static double Distance(Vector a, Vector b)
-    {
-        double sum = 0;
-
-        for (int i = 0; i < a.Count && i < b.Count; i++) sum += (a[i] - b[i]) * (a[i] - b[i]);
-
-        return Math.Sqrt(sum);
     }
 
     // --- метрики сигналов ---

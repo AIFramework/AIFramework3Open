@@ -99,7 +99,7 @@ public class NonCorrelatedGaussian : IDistribution
     /// </summary>
     public static Dictionary<string, double> FitMaximumLikelihood(ReadOnlySpan<double> data)
     {
-        var (mean, variance, _) = StatUtils.Welford(data, skipNaN: true, unbiased: false);
+        var (mean, variance, _) = StatUtils.MeanAndVariance(data, skipNaN: true, unbiased: false);
         return new Dictionary<string, double>
         {
             [KeyMean] = mean,
@@ -125,7 +125,7 @@ public class NonCorrelatedGaussian : IDistribution
         for (int d = 0; d < dim; d++)
         {
             for (int k = 0; k < samples.Count; k++) buf[k] = samples[k][d];
-            var (m, v, _) = StatUtils.Welford(buf, skipNaN: true, unbiased: false);
+            var (m, v, _) = StatUtils.MeanAndVariance(buf, skipNaN: true, unbiased: false);
             mean[d] = m;
             std[d] = Math.Sqrt(v);
         }

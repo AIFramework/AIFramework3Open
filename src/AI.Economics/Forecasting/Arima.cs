@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AI.DataStructs.Algebraic;
 using AI.Econometrics.Numerics;
+using AI.Statistics;
 
 namespace AI.Economics.Forecasting;
 
@@ -524,21 +525,12 @@ public sealed class Arima
             var differenced = new double[current.Length - lag];
             for (int t = lag; t < current.Length; t++) differenced[t - lag] = current[t] - current[t - lag];
 
-            if (Variance(differenced) >= Variance(current) * 0.95) break;
+            if (StatUtils.MeanAndVariance(differenced, skipNaN: false).variance >= StatUtils.MeanAndVariance(current, skipNaN: false).variance * 0.95) break;
 
             current = differenced;
             order++;
         }
 
         return order;
-    }
-
-    private static double Variance(double[] values)
-    {
-        if (values.Length < 2) return 0;
-        double mean = values.Average();
-        double sum = 0;
-        foreach (double v in values) sum += (v - mean) * (v - mean);
-        return sum / (values.Length - 1);
     }
 }

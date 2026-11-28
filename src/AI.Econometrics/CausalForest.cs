@@ -285,7 +285,7 @@ public static class CausalForest
 
             foreach (double quantile in new[] { 0.25, 0.5, 0.75 })
             {
-                double threshold = EconMath.Quantile(values, quantile);
+                double threshold = AI.Statistics.Quantile.OfSorted(values, quantile);
 
                 var left = node.Structure.Where(i => features[i, feature] <= threshold).ToList();
                 var right = node.Structure.Where(i => features[i, feature] > threshold).ToList();

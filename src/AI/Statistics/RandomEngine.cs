@@ -57,31 +57,35 @@ public static class RandomEngine
 
     #region Нормальное N(0,1) через полярный Box-Muller
 
-    // Кэшируем вторую сгенерированную величину Box-Muller'а на поток.
-    // Полярный метод выдаёт две независимые N(0,1) за одну итерацию —
-    // берём вторую бесплатно.
-    // Кэш привязан к конкретному экземпляру Random (_spareOwner):
-    // иначе seed-ный генератор мог бы получить значение из потока
-    // ЧУЖОГО генератора, ломая документированную детерминированность.
-    [ThreadStatic]
-    private static double _sparedGaussian;
-    [ThreadStatic]
-    private static bool _hasSpared;
-    [ThreadStatic]
-    private static Random _spareOwner;
+    // Полярный метод выдаёт две независимые N(0, 1) за итерацию; вторая откладывается и отдаётся
+    // следующим вызовом. Запас хранится при самом экземпляре Random, а не при потоке: генератор с
+    // зерном даёт одну и ту же последовательность, на каком бы потоке ни продолжился расчёт
+    // (асинхронный код, параллельные стадии AI-скрипта). Запас, привязанный к потоку, при смене
+    // потока терялся, и последовательность зависела от планировщика.
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Random, Spare> s_spares = new();
+
+    private sealed class Spare
+    {
+        public double Value;
+        public bool Has;
+    }
 
     /// <summary>
-    /// Стандартная нормальная величина N(0, 1). Полярный Box-Muller
-    /// с кэшированием второй компоненты.
+    /// Стандартная нормальная величина N(0, 1) — единственный нормальный генератор фреймворка.
     /// </summary>
+    /// <remarks>
+    /// Полярный метод Бокса — Мюллера (Марсальи) с запасом второй величины. Последовательность
+    /// определяется только состоянием <paramref name="rng"/> и не зависит от потока.
+    /// </remarks>
+    /// <param name="rng">Источник равномерных чисел; одним экземпляром нельзя пользоваться из двух потоков сразу.</param>
     public static double NextGaussian(Random rng)
     {
-        // Используем кэш только если он был создан именно этим RNG —
-        // это сохраняет детерминированность seed-ных генераторов.
-        if (_hasSpared && ReferenceEquals(_spareOwner, rng))
+        Spare spare = s_spares.GetOrCreateValue(rng);
+
+        if (spare.Has)
         {
-            _hasSpared = false;
-            return _sparedGaussian;
+            spare.Has = false;
+            return spare.Value;
         }
 
         double u, v, s;
@@ -93,9 +97,8 @@ public static class RandomEngine
         } while (s >= 1.0 || s == 0.0);
 
         double mul = Math.Sqrt(-2.0 * Math.Log(s) / s);
-        _sparedGaussian = v * mul;
-        _hasSpared = true;
-        _spareOwner = rng;
+        spare.Value = v * mul;
+        spare.Has = true;
         return u * mul;
     }
 

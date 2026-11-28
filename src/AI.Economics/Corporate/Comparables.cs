@@ -5,6 +5,7 @@ using AI.DataStructs.Algebraic;
 using AI.Econometrics;
 using AI.Insights;
 using AI.Econometrics.Numerics;
+using AI.Statistics;
 
 namespace AI.Economics.Corporate;
 
@@ -277,12 +278,12 @@ public static class Comparables
         if (clean.Length == 0)
             return new MultipleStatistic(name, double.NaN, double.NaN, double.NaN, 0, double.NaN);
 
-        double median = EconMath.Quantile(clean, 0.5);
+        double median = AI.Statistics.Quantile.OfSorted(clean, 0.5);
 
         return new MultipleStatistic(
             name, median,
-            EconMath.Quantile(clean, 0.25),
-            EconMath.Quantile(clean, 0.75),
+            AI.Statistics.Quantile.OfSorted(clean, 0.25),
+            AI.Statistics.Quantile.OfSorted(clean, 0.75),
             clean.Length,
             basis > 0 ? median * basis : double.NaN);
     }
@@ -317,11 +318,8 @@ public static class Comparables
     private static double Spread(IEnumerable<double> values)
     {
         double[] array = [.. values];
-        if (array.Length < 2) return 1;
 
-        double mean = array.Average();
-        double variance = array.Sum(v => (v - mean) * (v - mean)) / (array.Length - 1);
-
-        return Math.Max(Math.Sqrt(variance), 1e-6);
+        // Одной точки для масштаба мало; нулевой размах заменяется малым числом, чтобы на него можно было делить
+        return array.Length < 2 ? 1 : Math.Max(Math.Sqrt(StatUtils.MeanAndVariance(array, skipNaN: false).variance), 1e-6);
     }
 }

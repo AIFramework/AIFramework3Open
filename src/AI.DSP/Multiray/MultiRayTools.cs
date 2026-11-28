@@ -47,7 +47,7 @@ public class MultiRayTools
     /// Расстояние между двумя объектами
     /// </summary>
     public static double GetDist(GeometrySignalObject go1, GeometrySignalObject go2) =>
-        AnalyticGeometryFunctions.DistanceFromAToB(go1.Coordinates, go2.Coordinates);
+        AI.Distances.BaseDist.EuclideanDistance(go1.Coordinates, go2.Coordinates);
 
     /// <summary>
     /// Разность времени прихода сигнала от точки привязки до двух объектов

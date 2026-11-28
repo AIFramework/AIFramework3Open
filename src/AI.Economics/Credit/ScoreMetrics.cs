@@ -313,7 +313,7 @@ public static class ScoreMetrics
         double[] sortedExpected = [.. expected.OrderBy(v => v)];
         var boundaries = new Vector(bins - 1);
         for (int b = 1; b < bins; b++)
-            boundaries[b - 1] = EconMath.Quantile(sortedExpected, (double)b / bins);
+            boundaries[b - 1] = AI.Statistics.Quantile.OfSorted(sortedExpected, (double)b / bins);
 
         var expectedShares = new Vector(bins);
         var actualShares = new Vector(bins);
@@ -353,24 +353,10 @@ public static class ScoreMetrics
     private static double RankAuc(Vector scores, IReadOnlyList<bool> defaults)
     {
         int n = scores.Count;
-        var ordered = Enumerable.Range(0, n)
-            .OrderBy(i => scores[i])
-            .ToArray();
 
-        // Средние ранги для совпадающих значений: без этого AUC смещается
-        // на моделях с дискретной шкалой баллов
-        var ranks = new double[n];
-        int index = 0;
-        while (index < n)
-        {
-            int end = index;
-            while (end + 1 < n && Math.Abs(scores[ordered[end + 1]] - scores[ordered[index]]) < 1e-12) end++;
-
-            double averageRank = ((index + end) / 2.0) + 1;
-            for (int k = index; k <= end; k++) ranks[ordered[k]] = averageRank;
-
-            index = end + 1;
-        }
+        // Средние ранги у совпадающих баллов (Statistic.AverageRanks): без этого AUC смещается
+        // на моделях с дискретной шкалой
+        double[] ranks = AI.Statistics.Statistic.AverageRanks(scores.ToArray());
 
         double badRankSum = 0;
         int bad = 0;

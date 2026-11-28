@@ -4,6 +4,7 @@ using System.Linq;
 using AI.DataStructs.Algebraic;
 using AI.Insights;
 using AI.Econometrics.Numerics;
+using AI.Statistics;
 
 namespace AI.Economics.Forecasting;
 
@@ -334,7 +335,7 @@ public static class StlDecomposition
     {
         int n = remainder.Length;
         double[] absolute = [.. remainder.Select(Math.Abs).OrderBy(v => v)];
-        double median = absolute[n / 2];
+        double median = AI.Statistics.Quantile.OfSorted(absolute, 0.5);
         double scale = 6 * median;
 
         var weights = new double[n];
@@ -355,27 +356,18 @@ public static class StlDecomposition
     /// </summary>
     private static double Strength(double[] remainder, double[] withComponent)
     {
-        double varianceRemainder = Variance(remainder);
-        double varianceTotal = Variance(withComponent);
+        double varianceRemainder = StatUtils.MeanAndVariance(remainder, skipNaN: false).variance;
+        double varianceTotal = StatUtils.MeanAndVariance(withComponent, skipNaN: false).variance;
         if (varianceTotal < 1e-12) return 0;
 
         return Math.Max(0, 1 - (varianceRemainder / varianceTotal));
     }
 
-    private static double Variance(double[] values)
-    {
-        if (values.Length < 2) return 0;
-        double mean = values.Average();
-        double sum = 0;
-        foreach (double v in values) sum += (v - mean) * (v - mean);
-        return sum / (values.Length - 1);
-    }
-
     private static List<int> FindOutliers(double[] remainder)
     {
         double[] sorted = [.. remainder.OrderBy(v => v)];
-        double q1 = EconMath.Quantile(sorted, 0.25);
-        double q3 = EconMath.Quantile(sorted, 0.75);
+        double q1 = AI.Statistics.Quantile.OfSorted(sorted, 0.25);
+        double q3 = AI.Statistics.Quantile.OfSorted(sorted, 0.75);
         double iqr = q3 - q1;
 
         var outliers = new List<int>();

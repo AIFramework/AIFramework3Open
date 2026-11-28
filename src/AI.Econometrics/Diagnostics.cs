@@ -4,6 +4,7 @@ using System.Linq;
 using AI.DataStructs.Algebraic;
 using AI.Insights;
 using AI.Econometrics.Numerics;
+using AI.Statistics;
 
 namespace AI.Econometrics;
 
@@ -285,22 +286,16 @@ public static class Diagnostics
         ArgumentNullException.ThrowIfNull(residuals);
 
         int n = residuals.Count;
-        double mean = residuals.Average();
-        double m2 = 0, m3 = 0, m4 = 0;
+        double[] values = residuals.ToArray();
 
-        for (int i = 0; i < n; i++)
-        {
-            double d = residuals[i] - mean;
-            double d2 = d * d;
-            m2 += d2;
-            m3 += d2 * d;
-            m4 += d2 * d2;
-        }
+        // Моментные оценки (делитель n) — как в исходном определении критерия; у остатков без
+        // разброса они не определены, и критерий отклонения от нормальности не видит
+        double skewness = Statistic.Skewness(values);
+        double excess = Statistic.ExcessKurtosis(values);
 
-        m2 /= n; m3 /= n; m4 /= n;
+        if (double.IsNaN(skewness)) skewness = 0;
 
-        double skewness = m2 > 0 ? m3 / Math.Pow(m2, 1.5) : 0;
-        double kurtosis = m2 > 0 ? m4 / (m2 * m2) : 3;
+        double kurtosis = double.IsNaN(excess) ? 3 : excess + 3;
         double statistic = n / 6.0 * ((skewness * skewness) + ((kurtosis - 3) * (kurtosis - 3) / 4.0));
         double p = Distributions.ChiSquarePValue(statistic, 2);
 
@@ -437,7 +432,7 @@ public static class Diagnostics
     }
 
     /// <summary>Сумма квадратов остатков.</summary>
-    private static double Rss(Vector residuals)
+    internal static double Rss(Vector residuals)
     {
         double sum = 0;
         for (int i = 0; i < residuals.Count; i++) sum += residuals[i] * residuals[i];

@@ -4,6 +4,7 @@ using System.Linq;
 using AI.DataStructs.Algebraic;
 using AI.Insights;
 using AI.Econometrics.Numerics;
+using AI.Statistics;
 
 namespace AI.Econometrics;
 
@@ -457,14 +458,7 @@ public static class StateSpace
         return statistic;
     }
 
-    /// <summary>Выборочная дисперсия ряда.</summary>
-    private static double Variance(Vector series)
-    {
-        double mean = series.Average();
-        double sum = 0;
-
-        for (int i = 0; i < series.Count; i++) sum += (series[i] - mean) * (series[i] - mean);
-
-        return Math.Max(sum / Math.Max(1, series.Count - 1), 1e-12);
-    }
+    /// <summary>Выборочная дисперсия ряда — масштаб для подбора дисперсий; не меньше 1e-12, чтобы на неё можно было умножать.</summary>
+    private static double Variance(Vector series) =>
+        Math.Max(StatUtils.MeanAndVariance(series.ToArray(), skipNaN: false).variance, 1e-12);
 }

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using AI.Statistics;
 
 namespace AI.DataStructs.Algebraic;
 
@@ -193,19 +194,7 @@ public partial class Tensor
     /// <summary>
     /// Дисперсия
     /// </summary>
-    public double Dispersion()
-    {
-        double mean = Mean();
-        double summ = 0;
-        int len = Shape.Count;
-
-        for (int i = 0; i < len; i++)
-        {
-            summ += Math.Pow(Data[i] - mean, 2);
-        }
-
-        return summ / (Shape.Count - 1);
-    }
+    public double Dispersion() => Statistic.CalcVariance(this);
 
     /// <summary>
     /// Среднеквадратичное отклонение
@@ -219,10 +208,7 @@ public partial class Tensor
     /// <summary>
     /// Среднеквадратичное отклонение
     /// </summary>
-    public double Std()
-    {
-        return Math.Sqrt(Dispersion());
-    }
+    public double Std() => Statistic.CalcStd(this);
 
     #endregion
 

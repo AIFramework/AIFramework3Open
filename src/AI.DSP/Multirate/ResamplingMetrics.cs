@@ -1,5 +1,6 @@
 using System;
 using AI.DataStructs.Algebraic;
+using AI.Statistics;
 
 namespace AI.DSP.Multirate;
 
@@ -30,22 +31,12 @@ public static class ResamplingMetrics
 
         double[] a = reference.ToArray();
         double[] b = test.ToArray();
-        double meanX = Mean(a, edge, len);
-        double varX = Variance(a, edge, len, meanX);
         double best = 0;
 
+        // Нормированная взаимная корреляция на сдвиге k — модуль коэффициента Пирсона двух окон
         for (int k = -maxShift; k <= maxShift; k++)
         {
-            int start = edge - k;
-            double meanY = Mean(b, start, len);
-            double varY = Variance(b, start, len, meanY);
-            double cov = 0;
-            for (int i = 0; i < len; i++)
-            {
-                cov += (a[edge + i] - meanX) * (b[start + i] - meanY);
-            }
-
-            double r = Math.Abs(cov / (len - 1)) / Math.Sqrt(varX * varY);
+            double r = Math.Abs(Statistic.Pearson(a.AsSpan(edge, len), b.AsSpan(edge - k, len)));
             best = Math.Max(best, r);
         }
 
@@ -82,30 +73,7 @@ public static class ResamplingMetrics
     /// </summary>
     public static double QuantizationSnr(Vector fixedPoint, Vector floatingPoint)
     {
-        double power = Variance(floatingPoint.ToArray(), 0, floatingPoint.Count, Mean(floatingPoint.ToArray(), 0, floatingPoint.Count));
+        double power = StatUtils.MeanAndVariance(floatingPoint.ToArray(), skipNaN: false).variance;
         return 10 * Math.Log10(power / QuantizationNoiseVariance(fixedPoint, floatingPoint));
-    }
-
-    private static double Mean(double[] x, int start, int len)
-    {
-        double s = 0;
-        for (int i = 0; i < len; i++)
-        {
-            s += x[start + i];
-        }
-
-        return s / len;
-    }
-
-    private static double Variance(double[] x, int start, int len, double mean)
-    {
-        double s = 0;
-        for (int i = 0; i < len; i++)
-        {
-            double d = x[start + i] - mean;
-            s += d * d;
-        }
-
-        return s / (len - 1);
     }
 }

@@ -221,14 +221,14 @@ public static class ConformalPrediction
             // Поправка на конечность выборки: квантиль берётся с запасом,
             // иначе покрытие систематически ниже заявленного
             double level = Math.Min(1.0, (1 - alpha) * (1 + (1.0 / absolute.Length)));
-            double radius = EconMath.Quantile(absolute, level);
+            double radius = AI.Statistics.Quantile.OfSorted(absolute, level);
 
             lower[h] = final.PointForecast[h] - radius;
             upper[h] = final.PointForecast[h] + radius;
             width[h] = 2 * radius;
 
             foreach (double q in quantileSeries.Keys.ToList())
-                quantileSeries[q][h] = final.PointForecast[h] + EconMath.Quantile(signed, q);
+                quantileSeries[q][h] = final.PointForecast[h] + AI.Statistics.Quantile.OfSorted(signed, q);
 
             foreach (double error in errorsByStep[h])
             {

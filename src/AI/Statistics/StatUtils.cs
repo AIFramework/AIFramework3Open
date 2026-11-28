@@ -80,19 +80,29 @@ public static class StatUtils
 
     #endregion
 
-    #region Welford (один проход, NaN-aware)
+    #region Среднее и дисперсия
 
     /// <summary>
-    /// Одно-проходное устойчивое вычисление среднего и дисперсии.
-    /// Пропускает NaN, возвращает число валидных элементов.
+    /// Среднее, дисперсия и число значений выборки.
     /// </summary>
-    /// <param name="data">Исходные данные</param>
-    /// <param name="skipNaN">Игнорировать ли NaN</param>
-    /// <param name="unbiased">true -> деление на (n-1), иначе на n</param>
-    public static (double mean, double variance, int count) Welford(
+    /// <remarks>
+    /// <para>
+    /// Два прохода: сначала среднее, затем сумма квадратов отклонений с поправкой на остаток
+    /// суммы отклонений: <c>Σd² − (Σd)²/n</c>. Поправка убирает ошибку округления самого среднего,
+    /// поэтому результат точен до последних знаков и на данных с большим сдвигом — там, где
+    /// формула <c>E[x²] − E[x]²</c> теряет всё, а однопроходная схема Уэлфорда — семь знаков из шестнадцати.
+    /// </para>
+    /// <para>
+    /// Выборка без значений даёт <c>(0, 0, 0)</c>, из одного значения — нулевую дисперсию.
+    /// </para>
+    /// </remarks>
+    /// <param name="data">Выборка.</param>
+    /// <param name="skipNaN">Не включать <c>NaN</c> в расчёт.</param>
+    /// <param name="unbiased">Выборочная дисперсия (делитель n − 1) вместо генеральной (n).</param>
+    public static (double mean, double variance, int count) MeanAndVariance(
         ReadOnlySpan<double> data, bool skipNaN = true, bool unbiased = true)
     {
-        double mean = 0.0, m2 = 0.0;
+        double sum = 0.0;
         int n = 0;
 
         for (int i = 0; i < data.Length; i++)
@@ -101,17 +111,37 @@ public static class StatUtils
             if (skipNaN && double.IsNaN(x)) continue;
 
             n++;
-            double delta = x - mean;
-            mean += delta / n;
-            m2 += delta * (x - mean);
+            sum += x;
         }
 
         if (n == 0) return (0.0, 0.0, 0);
+
+        double mean = sum / n;
+
         if (n == 1) return (mean, 0.0, 1);
 
-        double denom = unbiased ? (n - 1) : n;
-        return (mean, m2 / denom, n);
+        double squares = 0.0, rest = 0.0;
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            double x = data[i];
+            if (skipNaN && double.IsNaN(x)) continue;
+
+            double d = x - mean;
+            squares += d * d;
+            rest += d;
+        }
+
+        double m2 = Math.Max(0.0, squares - (rest * rest / n));
+
+        return (mean, m2 / (unbiased ? n - 1 : n), n);
     }
+
+    /// <summary>Среднее, дисперсия и число значений.</summary>
+    [Obsolete("Используйте StatUtils.MeanAndVariance: два прохода точнее на данных со сдвигом.")]
+    public static (double mean, double variance, int count) Welford(
+        ReadOnlySpan<double> data, bool skipNaN = true, bool unbiased = true)
+        => MeanAndVariance(data, skipNaN, unbiased);
 
     #endregion
 

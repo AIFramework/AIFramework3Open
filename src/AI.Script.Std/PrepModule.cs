@@ -245,10 +245,7 @@ public static class PrepModule
     {
         if (sigma <= 0) return 0;
 
-        double u1 = 1.0 - context.Random.NextDouble();
-        double u2 = context.Random.NextDouble();
-
-        return sigma * Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
+        return sigma * AI.Statistics.RandomEngine.NextGaussian(context.Random);
     }
 
     private static Vector ColumnOf(Matrix data, int index)

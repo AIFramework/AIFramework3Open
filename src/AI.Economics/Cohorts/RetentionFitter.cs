@@ -233,14 +233,14 @@ public static class RetentionFitter
         {
             for (int b = 0; b < curves.Count; b++) column[b] = curves[b][t];
             Array.Sort(column);
-            lower[t] = EconMath.Quantile(column, alpha);
-            upper[t] = EconMath.Quantile(column, 1.0 - alpha);
+            lower[t] = AI.Statistics.Quantile.OfSorted(column, alpha);
+            upper[t] = AI.Statistics.Quantile.OfSorted(column, 1.0 - alpha);
         }
 
         double[] sortedLife = [.. lifetimes.OrderBy(v => v)];
         return (lower, upper,
-            EconMath.Quantile(sortedLife, alpha),
-            EconMath.Quantile(sortedLife, 1.0 - alpha));
+            AI.Statistics.Quantile.OfSorted(sortedLife, alpha),
+            AI.Statistics.Quantile.OfSorted(sortedLife, 1.0 - alpha));
     }
 
     /// <summary>Число элементов отсортированного массива, строго меньших порога.</summary>

@@ -131,7 +131,7 @@ public static partial class AiDemoRunner
                 double nrm = AnalyticGeometryFunctions.NormVect(proj);
                 double ang = AnalyticGeometryFunctions.AngleVect(A, B) * 180 / Math.PI;
                 double dot = AnalyticGeometryFunctions.Dot(A, B);
-                double dst = AnalyticGeometryFunctions.DistanceFromAToB(A, B);
+                double dst = AI.Distances.BaseDist.EuclideanDistance(A, B);
                 double maxAbs = Math.Max(Math.Max(Math.Abs(ax), Math.Abs(ay)), Math.Max(Math.Abs(bx), Math.Abs(by))) + 1;
                 cv.ChartName = $"Проекция A->B:  |proj|={nrm:F3}  угол={ang:F2}°  A·B={dot:F3}";
                 cv.LabelX = "x"; cv.LabelY = "y";

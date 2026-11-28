@@ -217,15 +217,17 @@ public static class ValueAtRisk
             throw new ArgumentException("Уровень доверия должен лежать между 0,5 и 1.", nameof(confidence));
 
         int n = returns.Count;
-        double mean = returns.Average();
-        double variance = returns.Sum(r => (r - mean) * (r - mean)) / (n - 1);
-        double sigma = Math.Sqrt(Math.Max(variance, 0));
+        double[] sample = returns.ToArray();
+        (double mean, double variance, _) = StatUtils.MeanAndVariance(sample, skipNaN: false);
+        double sigma = Math.Sqrt(variance);
 
-        double m3 = returns.Sum(r => Math.Pow(r - mean, 3)) / n;
-        double m4 = returns.Sum(r => Math.Pow(r - mean, 4)) / n;
+        // Моментные оценки g₁ и g₂ из ядра; у ряда без разброса они не определены — берётся нормальный случай
+        double skewness = Statistic.Skewness(sample);
+        double excess = Statistic.ExcessKurtosis(sample);
 
-        double skewness = sigma > 0 ? m3 / Math.Pow(sigma, 3) : 0;
-        double kurtosis = sigma > 0 ? m4 / Math.Pow(sigma, 4) : 3;
+        if (double.IsNaN(skewness)) skewness = 0;
+
+        double kurtosis = double.IsNaN(excess) ? 3 : excess + 3;
 
         double scale = Math.Sqrt(horizon);
 
@@ -273,7 +275,7 @@ public static class ValueAtRisk
         ArgumentNullException.ThrowIfNull(returns);
 
         double[] sorted = [.. returns.OrderBy(r => r)];
-        return -EconMath.Quantile(sorted, 1 - confidence);
+        return -AI.Statistics.Quantile.OfSorted(sorted, 1 - confidence);
     }
 
     /// <summary>Средний убыток за порогом по историческим данным.</summary>
@@ -370,7 +372,7 @@ public static class ValueAtRisk
         }
 
         Array.Sort(draws);
-        double var = -EconMath.Quantile(draws, 1 - confidence);
+        double var = -AI.Statistics.Quantile.OfSorted(draws, 1 - confidence);
         double threshold = -var;
 
         var tail = draws.Where(d => d <= threshold).ToList();

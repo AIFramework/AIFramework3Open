@@ -56,7 +56,7 @@ public static class OutlierTests
 
         int n = data.Length;
         double mean = data.Average();
-        double std = SampleStd(data, mean);
+        double std = Math.Sqrt(StatUtils.MeanAndVariance(data, skipNaN: false).variance);
 
         if (std <= 0)
             return new OutlierResult(false, 0, data[0], 0, GrubbsCritical(n, alpha), alpha, "Критерий Граббса");
@@ -164,11 +164,5 @@ public static class OutlierTests
     {
         var table = confidence >= 0.99 ? DixonQ99 : DixonQ95;
         return table[n - 3];
-    }
-
-    private static double SampleStd(double[] data, double mean)
-    {
-        double sum = data.Sum(v => (v - mean) * (v - mean));
-        return Math.Sqrt(sum / (data.Length - 1));
     }
 }

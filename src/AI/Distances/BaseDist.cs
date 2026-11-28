@@ -78,29 +78,86 @@ public static class BaseDist
     }
 
     /// <summary>
-    /// Косинусное расстояние
+    /// Косинус со знаком минус: чем ближе направления векторов, тем меньше значение.
     /// </summary>
-    public static double CosDist(IAlgebraicStructure<double> a, IAlgebraicStructure<double> b)
-    {
-        double cos = ((Vector)a.Data).Cos(b.Data);
-        return -cos;
-    }
+    /// <remarks>
+    /// Не расстояние: значения лежат в [−1; 1], у совпадающих направлений — −1, а не 0. Годится там,
+    /// где нужен только порядок (ближайший сосед, сортировка по близости). Косинусное расстояние в
+    /// обычном смысле — <c>1 − <see cref="Cos"/></c>.
+    /// </remarks>
+    public static double NegativeCosine(IAlgebraicStructure<double> a, IAlgebraicStructure<double> b) => -Cos(a, b);
+
+    /// <summary>Косинус со знаком минус.</summary>
+    [Obsolete("Имя вводило в заблуждение: это −cos, а не расстояние. Используйте BaseDist.NegativeCosine либо 1 − BaseDist.Cos.")]
+    public static double CosDist(IAlgebraicStructure<double> a, IAlgebraicStructure<double> b) => NegativeCosine(a, b);
+
     /// <summary>
-    /// Квадрат эвклидова расстояния
+    /// Косинусная близость двух векторов: скалярное произведение, делённое на произведение длин.
     /// </summary>
-    public static double SquareEucl(IAlgebraicStructure<double> a, IAlgebraicStructure<double> b)
+    /// <remarks>
+    /// Единственная реализация формулы. У нулевого вектора направления нет, и близость не
+    /// определена: возвращается <paramref name="whenUndefined"/> — по умолчанию <c>NaN</c>. Вызывающий,
+    /// которому в этом случае нужен ноль (поиск по вложениям), говорит это явно.
+    /// </remarks>
+    /// <param name="a">Первый вектор.</param>
+    /// <param name="b">Второй вектор той же длины.</param>
+    /// <param name="whenUndefined">Что вернуть, если один из векторов нулевой.</param>
+    /// <exception cref="ArgumentException">Длины векторов различаются.</exception>
+    public static double CosineSimilarity(ReadOnlySpan<double> a, ReadOnlySpan<double> b, double whenUndefined = double.NaN)
     {
+        if (a.Length != b.Length)
+            throw new ArgumentException($"Длины векторов различаются: {a.Length} и {b.Length}", nameof(b));
+
+        double dot = 0, normA = 0, normB = 0;
+
+        for (int i = 0; i < a.Length; i++)
+        {
+            dot += a[i] * b[i];
+            normA += a[i] * a[i];
+            normB += b[i] * b[i];
+        }
+
+        return normA == 0 || normB == 0 ? whenUndefined : dot / (Math.Sqrt(normA) * Math.Sqrt(normB));
+    }
+
+    /// <inheritdoc cref="CosineSimilarity(ReadOnlySpan{double}, ReadOnlySpan{double}, double)"/>
+    public static double CosineSimilarity(IAlgebraicStructure<double> a, IAlgebraicStructure<double> b, double whenUndefined = double.NaN)
+        => CosineSimilarity(a.Data.AsSpan(0, a.Shape.Count), b.Data.AsSpan(0, b.Shape.Count), whenUndefined);
+
+    /// <summary>Евклидово расстояние между двумя точками.</summary>
+    /// <exception cref="ArgumentException">Размерности точек различаются.</exception>
+    public static double EuclideanDistance(ReadOnlySpan<double> a, ReadOnlySpan<double> b) => Math.Sqrt(SquaredEuclidean(a, b));
+
+    /// <summary>Квадрат евклидова расстояния — единственная реализация суммы квадратов разностей.</summary>
+    /// <remarks>
+    /// Имя отдельное от <c>SquareEucl</c>: у того есть комплексная перегрузка, и вызов с двумя
+    /// векторами между ними неоднозначен.
+    /// </remarks>
+    /// <exception cref="ArgumentException">Размерности точек различаются.</exception>
+    public static double SquaredEuclidean(ReadOnlySpan<double> a, ReadOnlySpan<double> b)
+    {
+        if (a.Length != b.Length)
+            throw new ArgumentException($"Размерности точек различаются: {a.Length} и {b.Length}", nameof(b));
+
         double sum = 0;
 
-        for (int i = 0; i < a.Shape.Count; i++)
+        for (int i = 0; i < a.Length; i++)
         {
-            double dif = a.Data[i] - b.Data[i];
+            double dif = a[i] - b[i];
             sum += dif * dif;
         }
 
-
         return sum;
     }
+
+    /// <summary>
+    /// Квадрат эвклидова расстояния
+    /// </summary>
+    public static double SquareEucl(IAlgebraicStructure<double> a, IAlgebraicStructure<double> b) => SquaredEuclidean(a, b);
+
+    /// <inheritdoc cref="SquaredEuclidean(ReadOnlySpan{double}, ReadOnlySpan{double})"/>
+    public static double SquaredEuclidean(IAlgebraicStructure<double> a, IAlgebraicStructure<double> b)
+        => SquaredEuclidean(a.Data.AsSpan(0, a.Shape.Count), b.Data.AsSpan(0, b.Shape.Count));
 
 
     /// <summary>

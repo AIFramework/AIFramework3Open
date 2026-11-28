@@ -147,35 +147,23 @@ public partial class Matrix
     /// <summary>
     /// Р”РёСЃРїРµСЂСЃРёСЏ
     /// </summary>
-    public double Dispersion()
-    {
-        double m = 0, sq = 0, n = 0;
-        int len = Shape.Count;
+    public double Dispersion() => Statistic.CalcVariance(this);
 
-        for (int i = 0; i < len; i++)
-        {
-            if (!double.IsNaN(Data[i]))
-            {
-                sq += Data[i] * Data[i];
-                m += Data[i];
-                n++;
-            }
-
-        }
-
-        n = n > 0 ? n : AISettings.GlobalEps;
-        m /= n;
-        sq /= n;
-
-        return sq - (m * m);
-    }
+    /// <summary>
+    /// Дисперсия всех элементов матрицы: выборочная (n − 1) либо генеральная (n).
+    /// </summary>
+    /// <param name="population">Генеральная дисперсия (делитель n).</param>
+    public double Dispersion(bool population) => Statistic.CalcVariance(this, population);
     /// <summary>
     /// РЎСЂРµРґРЅРµРєРІР°РґСЂР°С‚РёС‡РЅРѕРµ РѕС‚РєР»РѕРЅРµРЅРёРµ
     /// </summary>
-    public double Std()
-    {
-        return Math.Sqrt(Dispersion());
-    }
+    public double Std() => Statistic.CalcStd(this);
+
+    /// <summary>
+    /// Среднеквадратичное отклонение всех элементов: выборочное (n − 1) либо генеральное (n).
+    /// </summary>
+    /// <param name="population">Генеральное отклонение (делитель n).</param>
+    public double Std(bool population) => Statistic.CalcStd(this, population);
     /// <summary>
     /// РђРґР°РјР°СЂРѕРІРѕ РїСЂРѕРёР·РІРµРґРµРЅРёРµ(РїРѕСЌР»РµРјРµРЅС‚РЅРѕРµ)
     /// </summary>
@@ -271,27 +259,16 @@ public partial class Matrix
     /// <returns></returns>
     public Matrix Minimax(double maxValue = 1, double minValue = 0)
     {
-        double min = Min();
-        double max = Max();
-        double range = max - min;
+        // Нормировка на [0; 1] — Statistic.MinMaxScale (матрица без размаха переходит в нули);
+        // здесь только растяжение на maxValue и сдвиг на minValue
+        double[] scaled = Statistic.MinMaxScale(Data.AsSpan(0, Shape.Count));
+        var result = new Matrix(Height, Width);
 
-        // Р—Р°С‰РёС‚Р° РѕС‚ РґРµР»РµРЅРёСЏ РЅР° РЅРѕР»СЊ: РµСЃР»Рё РІСЃРµ СЌР»РµРјРµРЅС‚С‹ РѕРґРёРЅР°РєРѕРІС‹Рµ
-        if (Math.Abs(range) < double.Epsilon)
-        {
-            // Р’РѕР·РІСЂР°С‰Р°РµРј РјР°С‚СЂРёС†Сѓ, Р·Р°РїРѕР»РЅРµРЅРЅСѓСЋ СЃСЂРµРґРЅРёРј Р·РЅР°С‡РµРЅРёРµРј РґРёР°РїР°Р·РѕРЅР°
-            double midValue = (maxValue + minValue) / 2.0;
-            return new Matrix(Height, Width) + midValue;
-        }
+        for (int i = 0; i < scaled.Length; i++) result.Data[i] = (maxValue * scaled[i]) - minValue;
 
-        double denom = range / maxValue;
-        min += minValue * denom;
-
-        return (this - min) / denom;
+        return result;
     }
 
-    /// <summary>
-    ///  РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РјР°С‚СЂРёС†С‹ РєР°Рє РІРµРєС‚РѕСЂР°
-    /// </summary>
     public Vector LikeVector()
     {
         if (Height != 1)

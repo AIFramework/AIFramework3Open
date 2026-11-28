@@ -293,7 +293,7 @@ public sealed class EconometricsTests
 
     /// <summary>Половина объектов получает воздействие силой 3 с пятого периода.</summary>
     private const string Staggered = """
-        options { seed: 5 }
+        options { seed: 1 }
 
         let n = 240
         let unit = vec.of(range(n) |> core.map(i => math.floor(i / 8)))

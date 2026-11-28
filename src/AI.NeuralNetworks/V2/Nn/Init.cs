@@ -42,10 +42,7 @@ public static class Init
         var span = t.AsSpan<float>();
         for (int i = 0; i < span.Length; i++)
         {
-            double u1 = 1.0 - rng.NextDouble();
-            double u2 = 1.0 - rng.NextDouble();
-            float z = (float)(Math.Sqrt(-2 * Math.Log(u1)) * Math.Cos(2 * Math.PI * u2));
-            span[i] = mean + std * z;
+            span[i] = mean + std * (float)AI.Statistics.RandomEngine.NextGaussian(rng);
         }
         return t;
     }

@@ -52,7 +52,7 @@ public partial class Statistic
         // Списочный бэкинг Vector -> Span без копирования.
         ReadOnlySpan<double> span = CollectionsMarshal.AsSpan(_vector);
 
-        var (mean, variance, _) = StatUtils.Welford(span, skipNaN: true, unbiased: true);
+        var (mean, variance, _) = StatUtils.MeanAndVariance(span, skipNaN: true, unbiased: true);
         Expected = mean;
         Variance = variance;
         STD = Math.Sqrt(variance);

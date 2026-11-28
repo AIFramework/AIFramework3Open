@@ -54,19 +54,6 @@ internal static class Embeddings
                 $"длины векторов различаются: {a.Count} и {b.Count}");
         }
 
-        double dot = 0;
-        double normA = 0;
-        double normB = 0;
-
-        for (int i = 0; i < a.Count; i++)
-        {
-            dot += a[i] * b[i];
-            normA += a[i] * a[i];
-            normB += b[i] * b[i];
-        }
-
-        double norm = Math.Sqrt(normA) * Math.Sqrt(normB);
-
-        return norm == 0 ? 0 : dot / norm;
+        return AI.Distances.BaseDist.CosineSimilarity(a, b, whenUndefined: 0);
     }
 }

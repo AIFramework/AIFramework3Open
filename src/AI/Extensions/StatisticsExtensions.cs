@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AI.Statistics;
 
 namespace AI.Extensions;
 
@@ -91,132 +92,49 @@ public static class StatisticsExtensions
     /// </summary>
     /// <param name="array">Массив</param>
     /// <returns></returns>
-    public static double Disp(this double[] array)
-    {
-        double mean = array.Mean();
-        double disp = 0;
-
-        for (int i = 0; i < array.Length; i++)
-        {
-            disp += Math.Pow(array[i] - mean, 2);
-        }
-
-        return disp / (array.Length - 1.0);
-    }
+    public static double Disp(this double[] array) => Statistic.CalcVariance(array);
     /// <summary>
     /// Дисперсия (\sigma^2) в массиве
     /// </summary>
     /// <param name="array">Массив</param>
     /// <returns></returns>
 
-    public static double Disp(this float[] array)
-    {
-        double mean = array.Mean();
-        double disp = 0;
-
-        for (int i = 0; i < array.Length; i++)
-        {
-            disp += Math.Pow(array[i] - mean, 2);
-        }
-
-
-        return disp / (array.Length - 1.0);
-    }
+    public static double Disp(this float[] array) => Statistic.CalcVariance(Array.ConvertAll(array, value => (double)value));
 
     /// <summary>
     /// Дисперсия (\sigma^2) в массиве
     /// </summary>
     /// <param name="array">Массив</param>
     /// <returns></returns>
-    public static double Disp(this short[] array)
-    {
-        double mean = array.Mean();
-        double disp = 0;
-
-        for (int i = 0; i < array.Length; i++)
-        {
-            disp += Math.Pow(array[i] - mean, 2);
-        }
-
-
-        return disp / (array.Length - 1.0);
-    }
+    public static double Disp(this short[] array) => Statistic.CalcVariance(Array.ConvertAll(array, value => (double)value));
 
     /// <summary>
     /// Дисперсия (\sigma^2) в массиве
     /// </summary>
     /// <param name="array">Массив</param>
     /// <returns></returns>
-    public static double Disp(this int[] array)
-    {
-        double mean = array.Mean();
-        double disp = 0;
-
-        for (int i = 0; i < array.Length; i++)
-        {
-            disp += Math.Pow(array[i] - mean, 2);
-        }
-
-
-        return disp / (array.Length - 1.0);
-    }
+    public static double Disp(this int[] array) => Statistic.CalcVariance(Array.ConvertAll(array, value => (double)value));
 
     /// <summary>
     /// Дисперсия (\sigma^2) в массиве
     /// </summary>
     /// <param name="array">Массив</param>
     /// <returns></returns>
-    public static double Disp(this decimal[] array)
-    {
-        double mean = array.Mean();
-        double disp = 0;
-
-        for (int i = 0; i < array.Length; i++)
-        {
-            disp += Math.Pow((double)array[i] - mean, 2);
-        }
-
-
-        return disp / (array.Length - 1.0);
-    }
+    public static double Disp(this decimal[] array) => Statistic.CalcVariance(Array.ConvertAll(array, value => (double)value));
 
     /// <summary>
     /// Дисперсия (\sigma^2) в массиве
     /// </summary>
     /// <param name="array">Массив</param>
     /// <returns></returns>
-    public static double Disp(this long[] array)
-    {
-        double mean = array.Mean();
-        double disp = 0;
-
-        for (int i = 0; i < array.Length; i++)
-        {
-            disp += Math.Pow(array[i] - mean, 2);
-        }
-
-
-        return disp / (array.Length - 1.0);
-    }
+    public static double Disp(this long[] array) => Statistic.CalcVariance(Array.ConvertAll(array, value => (double)value));
 
     /// <summary>
     /// Дисперсия (\sigma^2) в массиве
     /// </summary>
     /// <param name="array">Массив</param>
     /// <returns></returns>
-    public static double Disp(this byte[] array)
-    {
-        double mean = array.Mean();
-        double disp = 0;
-
-        for (int i = 0; i < array.Length; i++)
-        {
-            disp += Math.Pow(array[i] - mean, 2);
-        }
-
-
-        return disp / (array.Length - 1.0);
-    }
+    public static double Disp(this byte[] array) => Statistic.CalcVariance(Array.ConvertAll(array, value => (double)value));
     #endregion
 
     #region STD

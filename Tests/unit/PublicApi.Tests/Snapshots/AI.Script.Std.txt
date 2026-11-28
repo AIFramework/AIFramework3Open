@@ -1103,8 +1103,8 @@ namespace AI.Script.Std
         public static AI.Script.Runtime.ScriptTable Counts([AI.Script.Binding.ScriptParam("выборка")] AI.Script.Runtime.ScriptList values) { }
         [AI.Script.Binding.ScriptFn("f1", "F-мера: среднее гармоническое точности и полноты", Example="stat.f1(y, pred, beta: 1)")]
         public static double F1([AI.Script.Binding.ScriptParam("истинные метки")] AI.DataStructs.Algebraic.Vector y, [AI.Script.Binding.ScriptParam("предсказанные метки")] AI.DataStructs.Algebraic.Vector pred, [AI.Script.Binding.ScriptParam("вес полноты относительно точности")] double beta = 1) { }
-        [AI.Script.Binding.ScriptFn("hist", "Гистограмма: границы и частоты", Example="stat.hist(v, bins: 20)")]
-        public static AI.Script.Runtime.ScriptRecord Histogram([AI.Script.Binding.ScriptParam("выборка")] AI.DataStructs.Algebraic.Vector v, [AI.Script.Binding.ScriptParam("число интервалов")] int bins = 10) { }
+        [AI.Script.Binding.ScriptFn("hist", "Гистограмма: границы и счётчики (либо плотность)", Example="stat.hist(v, bins: 20)")]
+        public static AI.Script.Runtime.ScriptRecord Histogram([AI.Script.Binding.ScriptParam("выборка")] AI.DataStructs.Algebraic.Vector v, [AI.Script.Binding.ScriptParam("число интервалов")] int bins = 10, [AI.Script.Binding.ScriptParam("плотность вместо счётчиков: площадь под гистограммой равна 1")] bool density = false) { }
         [AI.Script.Binding.ScriptFn("kappa", "Каппа Коэна: согласие оценок сверх случайного, от -1 до 1", Example="stat.kappa(x, y, weights: \"linear\")")]
         public static double Kappa([AI.Script.Binding.ScriptParam("оценки первого")] AI.DataStructs.Algebraic.Vector a, [AI.Script.Binding.ScriptParam("оценки второго")] AI.DataStructs.Algebraic.Vector b, [AI.Script.Binding.ScriptParam("веса расхождений: quadratic, linear либо none")] string weights = "quadratic") { }
         [AI.Script.Binding.ScriptFn("mae", "Средняя абсолютная ошибка", Example="stat.mae(y, pred)")]

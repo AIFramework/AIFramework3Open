@@ -183,7 +183,7 @@ public static class BaselineCorrection
             differences[i - 1] = Math.Abs(signal[i] - signal[i - 1]);
 
         Array.Sort(differences);
-        double median = differences[differences.Length / 2];
+        double median = AI.Statistics.Quantile.OfSorted(differences, 0.5);
 
         // Разности соседних отсчётов имеют СКО σ·√2, медиана их модуля равна
         // 0.6745·σ·√2 = 0.9539·σ - отсюда и множитель

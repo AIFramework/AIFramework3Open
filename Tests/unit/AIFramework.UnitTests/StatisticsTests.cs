@@ -36,8 +36,8 @@ public class StatisticsTests
     {
         var input = new Vector(3.0, 1.0, 2.0, 5.0, 4.0);
 
-        Assert.Equal(1.0, Quantile.FastQuantile(input, 0.0));
-        Assert.Equal(5.0, Quantile.FastQuantile(input, 1.0));
+        Assert.Equal(1.0, Quantile.Of(input.ToArray(), 0.0));
+        Assert.Equal(5.0, Quantile.Of(input.ToArray(), 1.0));
     }
 
     // ------------------------ RandNorm(short) ---------------------------

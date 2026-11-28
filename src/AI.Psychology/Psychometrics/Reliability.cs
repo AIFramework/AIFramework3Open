@@ -115,9 +115,9 @@ public static class Reliability
     {
         (int n, int k) = Require(scores);
 
-        double[] itemVariance = Enumerable.Range(0, k).Select(j => Variance(Column(scores, j))).ToArray();
+        double[] itemVariance = Enumerable.Range(0, k).Select(j => StatUtils.MeanAndVariance([.. Column(scores, j)], skipNaN: false).variance).ToArray();
         double[] totals = Enumerable.Range(0, n).Select(i => Enumerable.Range(0, k).Sum(j => scores[i, j])).ToArray();
-        double totalVariance = Variance(totals);
+        double totalVariance = StatUtils.MeanAndVariance([.. totals], skipNaN: false).variance;
         double alpha = Alpha(k, itemVariance.Sum(), totalVariance);
 
         double[,] correlation = FactorAnalysis.CorrelationMatrix(scores);
@@ -136,7 +136,7 @@ public static class Reliability
         for (int j = 0; j < k; j++)
         {
             double[] rest = Enumerable.Range(0, n).Select(i => totals[i] - scores[i, j]).ToArray();
-            alphaIfDeleted[j] = k > 2 ? Alpha(k - 1, itemVariance.Sum() - itemVariance[j], Variance(rest)) : double.NaN;
+            alphaIfDeleted[j] = k > 2 ? Alpha(k - 1, itemVariance.Sum() - itemVariance[j], StatUtils.MeanAndVariance([.. rest], skipNaN: false).variance) : double.NaN;
             itemTotal[j] = Statistic.CorrelationCoefficient(new Vector(Column(scores, j)), new Vector(rest));
         }
 
@@ -167,8 +167,8 @@ public static class Reliability
     {
         (int n, int k) = Require(scores);
 
-        double items = Enumerable.Range(0, k).Sum(j => Variance(Column(scores, j)));
-        double total = Variance(Enumerable.Range(0, n).Select(i => Enumerable.Range(0, k).Sum(j => scores[i, j])).ToArray());
+        double items = Enumerable.Range(0, k).Sum(j => StatUtils.MeanAndVariance([.. Column(scores, j)], skipNaN: false).variance);
+        double total = StatUtils.MeanAndVariance([.. Enumerable.Range(0, n).Select(i => Enumerable.Range(0, k).Sum(j => scores[i, j])).ToArray()], skipNaN: false).variance;
 
         return Alpha(k, items, total);
     }
@@ -202,13 +202,6 @@ public static class Reliability
 
     private static double[] Column(double[,] scores, int j)
         => Enumerable.Range(0, scores.GetLength(0)).Select(i => scores[i, j]).ToArray();
-
-    private static double Variance(IReadOnlyList<double> values)
-    {
-        double mean = values.Average();
-
-        return values.Sum(v => (v - mean) * (v - mean)) / (values.Count - 1);
-    }
 
     private static (int Respondents, int Items) Require(double[,] scores)
     {

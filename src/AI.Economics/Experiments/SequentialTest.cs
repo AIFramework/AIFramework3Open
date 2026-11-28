@@ -271,7 +271,7 @@ public static class SequentialTest
             if (stopping < 0 && best <= alpha) stopping = k;
         }
 
-        double pooledVariance = (Variance(control, n) / n) + (Variance(treatment, n) / n);
+        double pooledVariance = (StatUtils.MeanAndVariance(control.ToArray().AsSpan(0, n), skipNaN: false).variance / n) + (StatUtils.MeanAndVariance(treatment.ToArray().AsSpan(0, n), skipNaN: false).variance / n);
         double fixedZ = pooledVariance > 0 ? effects[n - 1] / Math.Sqrt(pooledVariance) : 0;
 
         return new SequentialTestResult
@@ -343,22 +343,11 @@ public static class SequentialTest
             ExpectedLossChoosingA = lossA / draws,
             PosteriorMeanA = alphaA / (alphaA + betaA),
             PosteriorMeanB = alphaB / (alphaB + betaB),
-            CredibleLow = EconMath.Quantile(differences, 0.025),
-            CredibleHigh = EconMath.Quantile(differences, 0.975),
+            CredibleLow = AI.Statistics.Quantile.OfSorted(differences, 0.025),
+            CredibleHigh = AI.Statistics.Quantile.OfSorted(differences, 0.975),
             LossThreshold = lossThreshold,
             TrialsA = trialsA,
             TrialsB = trialsB,
         };
-    }
-
-    private static double Variance(Vector values, int count)
-    {
-        double mean = 0;
-        for (int i = 0; i < count; i++) mean += values[i];
-        mean /= count;
-
-        double sum = 0;
-        for (int i = 0; i < count; i++) sum += (values[i] - mean) * (values[i] - mean);
-        return count > 1 ? sum / (count - 1) : 0;
     }
 }

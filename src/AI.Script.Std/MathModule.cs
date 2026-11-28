@@ -193,9 +193,6 @@ public static class MathModule
         [ScriptParam("среднее")] double mean = 0,
         [ScriptParam("среднеквадратичное отклонение")] double std = 1)
     {
-        double u1 = 1.0 - context.Random.NextDouble();
-        double u2 = context.Random.NextDouble();
-
-        return mean + (std * Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2));
+        return AI.Statistics.RandomEngine.NextGaussian(context.Random, mean, std);
     }
 }

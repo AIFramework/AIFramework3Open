@@ -2,6 +2,7 @@ using AI.DataStructs.Algebraic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AI.Statistics;
 
 namespace AI.DataPrepaire.DataNormalizers;
 
@@ -20,36 +21,35 @@ public class ZNormalizer : Normalizer
     /// </summary>
     public double[] Std { get; set; }
 
-    private double _eps = 1e-200;
 
 
     /// <summary>
-    /// Обучение преобразователя
+    /// Запоминает среднее и выборочное отклонение (делитель n − 1) каждой компоненты.
     /// </summary>
-    /// <param name="data">Набор данных</param>
+    /// <remarks>
+    /// Считает <see cref="StatUtils.MeanAndVariance"/> — ту же дисперсию, что и остальной фреймворк.
+    /// У компоненты без разброса отклонение равно нулю, и <see cref="Transform"/> переводит её в ноль.
+    /// </remarks>
     public override void Train(IEnumerable<IAlgebraicStructure<double>> data)
     {
         IAlgebraicStructure<double>[] algebraicStructures = (data is IAlgebraicStructure<double>[]) ? data as IAlgebraicStructure<double>[] : data.ToArray();
-        Mean = new double[algebraicStructures[0].Shape.Count];
-        Std = new double[algebraicStructures[0].Shape.Count];
 
-        for (int i = 0; i < algebraicStructures.Length; i++)
+        if (algebraicStructures.Length == 0)
+            throw new ArgumentException("Нормировщику нужен хотя бы один пример.", nameof(data));
+
+        int size = algebraicStructures[0].Shape.Count;
+
+        Mean = new double[size];
+        Std = new double[size];
+
+        var column = new double[algebraicStructures.Length];
+
+        for (int j = 0; j < size; j++)
         {
-            double[] dat = algebraicStructures[i].Data;
+            for (int i = 0; i < column.Length; i++) column[i] = algebraicStructures[i].Data[j];
 
-            for (int j = 0; j < Std.Length; j++)
-            {
-                Mean[j] += dat[j];
-                Std[j] += dat[j] * dat[j];
-            }
-        }
-
-        for (int i = 0; i < Std.Length; i++)
-        {
-            Mean[i] /= algebraicStructures.Length;
-            double variance = (Std[i] / algebraicStructures.Length) - (Mean[i] * Mean[i]);
-            variance = Math.Max(variance, 0);
-            Std[i] = variance < _eps ? _eps : Math.Sqrt(variance);
+            (Mean[j], double variance, _) = StatUtils.MeanAndVariance(column, skipNaN: false);
+            Std[j] = Math.Sqrt(variance);
         }
     }
 
@@ -60,18 +60,15 @@ public class ZNormalizer : Normalizer
     {
         if (Mean == null) return data;
 
-        if (data is Vector)
+        // Вектор не изменяется на месте — возвращается новый; остальные структуры правятся на месте, как прежде
+        IAlgebraicStructure<double> result = data is Vector vector ? vector.Clone() : data;
+
+        for (int i = 0; i < result.Data.Length; i++)
         {
-            return ((data as Vector) - Mean) / Std;
+            result.Data[i] = Std[i] > 0 ? (data.Data[i] - Mean[i]) / Std[i] : 0.0;
         }
 
-        IAlgebraicStructure<double> dat = data;
-
-        for (int i = 0; i < data.Data.Length; i++)
-            dat.Data[i] = (data.Data[i] - Mean[i]) / Std[i];
-
-        return dat;
-
+        return result;
     }
 
     /// <summary>

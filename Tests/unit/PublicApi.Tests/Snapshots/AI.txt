@@ -111,6 +111,7 @@ namespace AI.DataStructs.Algebraic
         public AI.DataStructs.Algebraic.Matrix AdamarProduct(AI.DataStructs.Algebraic.Matrix matrix) { }
         public AI.DataStructs.Algebraic.Matrix Copy() { }
         public double Dispersion() { }
+        public double Dispersion(bool population) { }
         public bool Equals(AI.DataStructs.Algebraic.Matrix other) { }
         public override bool Equals(object obj) { }
         public byte[] GetBytes() { }
@@ -134,6 +135,7 @@ namespace AI.DataStructs.Algebraic
         public void Save(string path) { }
         public void SaveAsText(string path) { }
         public double Std() { }
+        public double Std(bool population) { }
         public double Sum() { }
         public void Swap(int i, int j, int dimension) { }
         public override string ToString() { }
@@ -858,9 +860,14 @@ namespace AI.Distances
     public static class BaseDist
     {
         public static double Cos(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        [System.Obsolete("Имя вводило в заблуждение: это −cos, а не расстояние. Используйте BaseDist.Negati" +
+            "veCosine либо 1 − BaseDist.Cos.")]
         public static double CosDist(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
         public static double CosDistRelu(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        public static double CosineSimilarity(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b, double whenUndefined = NaN) { }
+        public static double CosineSimilarity(System.ReadOnlySpan<double> a, System.ReadOnlySpan<double> b, double whenUndefined = NaN) { }
         public static double EuclideanDistance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> A, AI.DataStructs.Algebraic.IAlgebraicStructure<double> B) { }
+        public static double EuclideanDistance(System.ReadOnlySpan<double> a, System.ReadOnlySpan<double> b) { }
         public static double EuclideanDistanceC(AI.DataStructs.WithComplexElements.ComplexVector A, AI.DataStructs.WithComplexElements.ComplexVector B) { }
         public static double JaccardCoef<T>(System.Collections.Generic.HashSet<T> set1, System.Collections.Generic.HashSet<T> set2) { }
         public static double JaccardCoefMin<T>(System.Collections.Generic.HashSet<T> set1, System.Collections.Generic.HashSet<T> set2) { }
@@ -869,8 +876,11 @@ namespace AI.Distances
         public static double LinfDist(AI.DataStructs.Algebraic.IAlgebraicStructure<double> A, AI.DataStructs.Algebraic.IAlgebraicStructure<double> B) { }
         public static double LpDist(AI.DataStructs.Algebraic.IAlgebraicStructure<double> A, AI.DataStructs.Algebraic.IAlgebraicStructure<double> B, int p) { }
         public static double ManhattanDistance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        public static double NegativeCosine(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
         public static double SquareEucl(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
         public static System.Numerics.Complex SquareEucl(AI.DataStructs.WithComplexElements.ComplexVector a, AI.DataStructs.WithComplexElements.ComplexVector b) { }
+        public static double SquaredEuclidean(AI.DataStructs.Algebraic.IAlgebraicStructure<double> a, AI.DataStructs.Algebraic.IAlgebraicStructure<double> b) { }
+        public static double SquaredEuclidean(System.ReadOnlySpan<double> a, System.ReadOnlySpan<double> b) { }
     }
     [System.Serializable]
     public static class DistancesBetweenDistributions { }
@@ -1011,6 +1021,7 @@ namespace AI.HighLevelFunctions
     {
         public static double AngleVect(AI.DataStructs.Algebraic.Vector vector1, AI.DataStructs.Algebraic.Vector vector2) { }
         public static double Cos(AI.DataStructs.Algebraic.Vector vector1, AI.DataStructs.Algebraic.Vector vector2) { }
+        [System.Obsolete("Используйте AI.Distances.BaseDist.EuclideanDistance — единственную реализацию.")]
         public static double DistanceFromAToB(AI.DataStructs.Algebraic.Vector pointA, AI.DataStructs.Algebraic.Vector pointB) { }
         public static double Dot(AI.DataStructs.Algebraic.Vector vector1, AI.DataStructs.Algebraic.Vector vector2) { }
         public static System.Numerics.Complex Dot(AI.DataStructs.WithComplexElements.ComplexVector vector1, AI.DataStructs.WithComplexElements.ComplexVector vector2) { }
@@ -1236,8 +1247,24 @@ namespace AI.Statistics
     {
         public Quantile(AI.DataStructs.Algebraic.IAlgebraicStructure<double> structureDouble) { }
         public AI.DataStructs.Algebraic.Vector SortVec { get; }
-        public double GetQuantile(double q) { }
+        public double GetQuantile(double q, AI.Statistics.QuantileMethod method = 7) { }
+        [System.Obsolete("Используйте Quantile.Of: одна реализация с явным правилом (по умолчанию тип 7).")]
         public static double FastQuantile(AI.DataStructs.Algebraic.IAlgebraicStructure<double> structure, double q) { }
+        public static double Median(System.ReadOnlySpan<double> values) { }
+        public static double Of(System.ReadOnlySpan<double> values, double q, AI.Statistics.QuantileMethod method = 7) { }
+        public static double OfSorted(System.ReadOnlySpan<double> sorted, double q, AI.Statistics.QuantileMethod method = 7) { }
+    }
+    public enum QuantileMethod
+    {
+        InvertedCdf = 1,
+        AveragedInvertedCdf = 2,
+        ClosestObservation = 3,
+        InterpolatedInvertedCdf = 4,
+        Hazen = 5,
+        Weibull = 6,
+        Linear = 7,
+        MedianUnbiased = 8,
+        NormalUnbiased = 9,
     }
     [System.Serializable]
     public class QuickSelection<T>
@@ -1402,8 +1429,14 @@ namespace AI.Statistics
         public static double LogSumExp(System.ReadOnlySpan<double> logs) { }
         public static double LogSumExp(double a, double b) { }
         public static int LowerBound(System.ReadOnlySpan<double> sortedAsc, double value) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "mean",
+                "variance",
+                "count"})]
+        public static System.ValueTuple<double, double, int> MeanAndVariance(System.ReadOnlySpan<double> data, bool skipNaN = true, bool unbiased = true) { }
         public static double SafeLog(double x, double eps = 1E-300) { }
         public static double SafeStd(double std) { }
+        [System.Obsolete("Используйте StatUtils.MeanAndVariance: два прохода точнее на данных со сдвигом.")]
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "mean",
                 "variance",
@@ -1419,28 +1452,42 @@ namespace AI.Statistics
         public double MinValue { get; }
         public double STD { get; }
         public double Variance { get; }
+        [System.Obsolete("Используйте Statistic.Skewness(data, biasCorrected): оценщик назван явно.")]
         public double Asymmetry() { }
         public double CentralMoment(int n) { }
+        [System.Obsolete("Используйте Statistic.ExcessKurtosis(data, biasCorrected): оценщик назван явно.")]
         public double Excess() { }
         public AI.Statistics.Histogramm Histogramm(int bins) { }
         public double InitialMoment(int n) { }
         public double RandNorm() { }
+        public static double[] AverageRanks(System.ReadOnlySpan<double> data) { }
         public static double CalcStd(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double CalcStd(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array, bool population) { }
+        public static double CalcStd(System.ReadOnlySpan<double> data, bool population = false) { }
         public static double CalcVariance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double CalcVariance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array, bool population) { }
+        public static double CalcVariance(System.ReadOnlySpan<double> data, bool population = false) { }
         public static double CorrelationCoefficient(AI.DataStructs.Algebraic.IAlgebraicStructure<double> X, AI.DataStructs.Algebraic.IAlgebraicStructure<double> Y) { }
         public static double CorrelationCoefficient(AI.DataStructs.Algebraic.Vector x, AI.DataStructs.Algebraic.Vector y) { }
         public static double Cov(AI.DataStructs.Algebraic.IAlgebraicStructure<double> xS, AI.DataStructs.Algebraic.IAlgebraicStructure<double> yS) { }
+        public static double Cov(AI.DataStructs.Algebraic.IAlgebraicStructure<double> xS, AI.DataStructs.Algebraic.IAlgebraicStructure<double> yS, bool population) { }
+        public static double Cov(System.ReadOnlySpan<double> x, System.ReadOnlySpan<double> y, bool population = false) { }
         public static double DivFreq(AI.DataStructs.Algebraic.Vector signal) { }
         public static AI.DataStructs.Algebraic.Vector EnsembleDispersion(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors) { }
         public static AI.DataStructs.Algebraic.Vector EnsembleDispersion(AI.DataStructs.Algebraic.Vector[] ensemble, AI.DataStructs.Algebraic.Vector mean) { }
         public static AI.DataStructs.Algebraic.Vector EnsembleStd(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> ensemble) { }
         public static AI.DataStructs.Algebraic.Vector EnsembleStd(AI.DataStructs.Algebraic.Vector[] ensemble, AI.DataStructs.Algebraic.Vector mean) { }
+        public static double ExcessKurtosis(System.ReadOnlySpan<double> data, bool biasCorrected = false) { }
         public static double ExpectedValue(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
         public static double ExpectedValueAbs(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
         public static double ExpectedValueAbsNotCheckNaN(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
         public static double ExpectedValueNotCheckNaN(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
         public static double Gauss(System.Random rng) { }
         public static double Gauss2(System.Random rng, int iter) { }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Edges",
+                "Counts"})]
+        public static System.ValueTuple<double[], double[]> HistogramCounts(System.ReadOnlySpan<double> data, int bins) { }
         public static AI.DataStructs.Algebraic.Vector MaxEnergeVector(AI.DataStructs.Algebraic.Vector[] ens) { }
         public static AI.DataStructs.Algebraic.Vector MaxEns(AI.DataStructs.Algebraic.Vector[] ensemble) { }
         public static double MaximalValue(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
@@ -1450,7 +1497,9 @@ namespace AI.Statistics
         public static double MeanStep(AI.DataStructs.Algebraic.Vector vector, double eps = 5E-324) { }
         public static double MeanStep2(AI.DataStructs.Algebraic.Vector vector, double eps = 5E-324) { }
         public static AI.DataStructs.Algebraic.Vector MeanVector(System.Collections.Generic.IEnumerable<AI.DataStructs.Algebraic.Vector> vectors) { }
+        public static double[] MinMaxScale(System.ReadOnlySpan<double> data) { }
         public static double MinimalValue(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }
+        public static double Pearson(System.ReadOnlySpan<double> x, System.ReadOnlySpan<double> y) { }
         public static double RMS(AI.DataStructs.Algebraic.Vector vect) { }
         public static AI.DataStructs.Algebraic.Vector RandNorm(int n) { }
         public static AI.DataStructs.Algebraic.Matrix RandNorm(short n) { }
@@ -1462,6 +1511,7 @@ namespace AI.Statistics
         public static AI.DataStructs.Algebraic.Vector RandNormP(int n, int iter = 100) { }
         public static AI.DataStructs.Algebraic.Vector RandNormP(int n, System.Random rng, int iter = 100) { }
         public static double SimpleMeanFreq(AI.DataStructs.Algebraic.Vector signal) { }
+        public static double Skewness(System.ReadOnlySpan<double> data, bool biasCorrected = false) { }
         public static AI.DataStructs.Algebraic.Vector UniformDistribution(int n) { }
         public static AI.DataStructs.Algebraic.Matrix UniformDistribution(short n) { }
         public static AI.DataStructs.Algebraic.Matrix UniformDistribution(int m, int n) { }
@@ -1469,6 +1519,7 @@ namespace AI.Statistics
         public static AI.DataStructs.Algebraic.Tensor UniformDistribution(int h, int w, int d) { }
         public static AI.DataStructs.Algebraic.Matrix UniformDistribution(int m, int n, System.Random random) { }
         public static AI.DataStructs.Algebraic.Tensor UniformDistribution(int h, int w, int d, System.Random random) { }
+        public static double[] ZScores(System.ReadOnlySpan<double> data, bool population = false) { }
         [System.Obsolete("Используйте CalcVariance (латинская С). Метод оставлен для обратной совместимости" +
             ".", false)]
         public static double СalcVariance(AI.DataStructs.Algebraic.IAlgebraicStructure<double> array) { }

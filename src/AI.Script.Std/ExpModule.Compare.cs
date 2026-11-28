@@ -265,14 +265,7 @@ public static partial class ExpModule
         return drawn;
     }
 
-    private static double Quantile(double[] sorted, double level)
-    {
-        if (sorted.Length == 0) return double.NaN;
-
-        int index = (int)Math.Round(level * (sorted.Length - 1), MidpointRounding.AwayFromZero);
-
-        return sorted[Math.Clamp(index, 0, sorted.Length - 1)];
-    }
+    private static double Quantile(double[] sorted, double level) => AI.Statistics.Quantile.OfSorted(sorted, level);
 
     /// <summary>Размер эффекта Коэна: во сколько разброса укладывается разница средних.</summary>
     private static double Effect(double[] best, double[] second)
@@ -285,15 +278,7 @@ public static partial class ExpModule
         return spread > 0 ? (Mean(best) - Mean(second)) / spread : double.NaN;
     }
 
-    private static double Variance(double[] sample)
-    {
-        double mean = Mean(sample);
-        double sum = 0;
-
-        foreach (double value in sample) sum += (value - mean) * (value - mean);
-
-        return sum / (sample.Length - 1);
-    }
+    private static double Variance(double[] sample) => AI.Statistics.Statistic.CalcVariance(sample);
 
     /// <summary>Сводка по одному варианту.</summary>
     private readonly record struct Summary(string Name, double[] Values, double Mean, double Lower, double Upper);

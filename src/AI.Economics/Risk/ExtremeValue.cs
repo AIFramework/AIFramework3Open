@@ -183,7 +183,7 @@ public static class ExtremeValue
 
         // Работаем с убытками как с положительными величинами
         double[] losses = [.. returns.Select(r => -r).OrderBy(v => v)];
-        double threshold = EconMath.Quantile(losses, thresholdQuantile);
+        double threshold = AI.Statistics.Quantile.OfSorted(losses, thresholdQuantile);
 
         double[] excesses = [.. losses.Where(l => l > threshold).Select(l => l - threshold)];
 
@@ -210,7 +210,7 @@ public static class ExtremeValue
                 : double.PositiveInfinity;
 
             quantiles.Add((level, var, double.IsFinite(shortfall) ? shortfall : var * 2));
-            empirical.Add((level, EconMath.Quantile(losses, level)));
+            empirical.Add((level, AI.Statistics.Quantile.OfSorted(losses, level)));
         }
 
         return new ExtremeValueResult
@@ -261,7 +261,7 @@ public static class ExtremeValue
         for (int i = 0; i < points; i++)
         {
             double quantile = 0.5 + (i * 0.45 / Math.Max(1, points - 1));
-            double threshold = EconMath.Quantile(losses, quantile);
+            double threshold = AI.Statistics.Quantile.OfSorted(losses, quantile);
 
             var excesses = losses.Where(l => l > threshold).Select(l => l - threshold).ToList();
             if (excesses.Count < 5) continue;

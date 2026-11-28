@@ -308,7 +308,7 @@ public static class EM
 
         int firstIdx = rng.Next(n);
         centers[0] = data[firstIdx].Clone();
-        for (int i = 0; i < n; i++) d2[i] = SqDist(data[i], centers[0]);
+        for (int i = 0; i < n; i++) d2[i] = AI.Distances.BaseDist.SquaredEuclidean(data[i], centers[0]);
 
         for (int c = 1; c < k; c++)
         {
@@ -333,23 +333,12 @@ public static class EM
             centers[c] = data[picked].Clone();
             for (int i = 0; i < n; i++)
             {
-                double cand = SqDist(data[i], centers[c]);
+                double cand = AI.Distances.BaseDist.SquaredEuclidean(data[i], centers[c]);
                 if (cand < d2[i]) d2[i] = cand;
             }
         }
 
         return centers;
-    }
-
-    private static double SqDist(Vector a, Vector b)
-    {
-        double s = 0;
-        for (int i = 0; i < a.Count; i++)
-        {
-            double d = a[i] - b[i];
-            s += d * d;
-        }
-        return s;
     }
 
     // mean возвращается наружу: используется как сдвиг для центрирования

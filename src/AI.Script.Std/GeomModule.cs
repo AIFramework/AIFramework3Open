@@ -157,11 +157,7 @@ public static class GeomModule
         if (a.Count != b.Count)
             throw new ScriptError(DiagnosticCodes.SizeMismatch, $"geom.distance: размерности {a.Count} и {b.Count}");
 
-        double sum = 0;
-
-        for (int i = 0; i < a.Count; i++) sum += (a[i] - b[i]) * (a[i] - b[i]);
-
-        return Math.Sqrt(sum);
+        return AI.Distances.BaseDist.EuclideanDistance(a, b);
     }
 
     [ScriptFn("centroid", "Центр масс набора точек", Example = "geom.centroid(points)")]

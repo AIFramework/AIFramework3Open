@@ -208,17 +208,24 @@ public partial class Vector
     /// </summary>
     public static Vector[] ScaleData(Vector[] data)
     {
-        Vector mean = Statistic.MeanVector(data);
-        Vector std = Statistic.EnsembleDispersion(data);
-        std = FunctionsForEachElements.Sqrt(std);
-        std = std.Transform(x => x == 0 ? 1e-10 : x);
+        if (data.Length == 0) return [];
 
         Vector[] vects = new Vector[data.Length];
-        for (int i = 0; i < data.Length; i++)
+        for (int i = 0; i < data.Length; i++) vects[i] = new Vector(data[i].Count);
+
+        // Каждая компонента нормируется своей выборкой по ансамблю — Statistic.ZScores;
+        // компонента без разброса переходит в нули
+        var column = new double[data.Length];
+
+        for (int j = 0; j < data[0].Count; j++)
         {
-            vects[i] = data[i] - mean;
-            vects[i] /= std;
+            for (int i = 0; i < data.Length; i++) column[i] = data[i][j];
+
+            double[] scores = Statistic.ZScores(column);
+
+            for (int i = 0; i < data.Length; i++) vects[i][j] = scores[i];
         }
+
         return vects;
     }
 

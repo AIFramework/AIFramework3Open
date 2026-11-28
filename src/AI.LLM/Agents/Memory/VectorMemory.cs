@@ -84,21 +84,9 @@ public sealed class VectorMemory : IAgentMemory, IRecallMemory
         return scored.Count == 0 ? null : string.Join("\n---\n", scored.Select(s => s.Text));
     }
 
-    private static double CosineSimilarity(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b)
-    {
-        if (a.Count != b.Count) return 0;
-
-        double dot = 0, normA = 0, normB = 0;
-        for (int i = 0; i < a.Count; i++)
-        {
-            dot += a[i] * b[i];
-            normA += a[i] * a[i];
-            normB += b[i] * b[i];
-        }
-
-        var denom = Math.Sqrt(normA * normB);
-        return denom < 1e-12 ? 0 : dot / denom;
-    }
+    /// <summary>Близость для поиска в памяти: у несравнимых векторов (другая длина, нулевой) она равна нулю.</summary>
+    private static double CosineSimilarity(AI.DataStructs.Algebraic.Vector a, AI.DataStructs.Algebraic.Vector b) =>
+        a.Count != b.Count ? 0 : AI.Distances.BaseDist.CosineSimilarity(a, b, whenUndefined: 0);
 
     private sealed record MemoryEntry(string Text, AI.DataStructs.Algebraic.Vector Vector);
 }

@@ -351,16 +351,7 @@ public static class FactorAnalysis
         if (first.Count != second.Count || first.Count == 0)
             throw new ArgumentException("Столбцы должны быть одной ненулевой длины", nameof(second));
 
-        double xy = 0, xx = 0, yy = 0;
-
-        for (int i = 0; i < first.Count; i++)
-        {
-            xy += first[i] * second[i];
-            xx += first[i] * first[i];
-            yy += second[i] * second[i];
-        }
-
-        return xx == 0 || yy == 0 ? 0 : xy / Math.Sqrt(xx * yy);
+        return AI.Distances.BaseDist.CosineSimilarity([.. first], [.. second], whenUndefined: 0);
     }
 
     // Квадраты множественных корреляций через обратную матрицу из собственного разложения;

@@ -23,7 +23,7 @@ public static partial class StatModule
     {
         RequirePair(x, y, "spearman");
 
-        return Correlation(Ranks(x), Ranks(y));
+        return Correlation(new Vector(AI.Statistics.Statistic.AverageRanks(x.ToArray())), new Vector(AI.Statistics.Statistic.AverageRanks(y.ToArray())));
     }
 
     /// <summary>
@@ -83,28 +83,6 @@ public static partial class StatModule
 
         // Оба оценщика поставили всем одно и то же: согласие полное, случайному взяться неоткуда.
         return chance == 0 ? 1 : 1 - (disagreement / chance);
-    }
-
-    /// <summary>Ранги со средним рангом у равных значений.</summary>
-    private static Vector Ranks(Vector values)
-    {
-        int[] order = [.. Enumerable.Range(0, values.Count).OrderBy(i => values[i])];
-        var ranks = new double[values.Count];
-
-        for (int start = 0; start < order.Length;)
-        {
-            int end = start;
-
-            while (end + 1 < order.Length && values[order[end + 1]] == values[order[start]]) end++;
-
-            double rank = ((start + end) / 2.0) + 1;
-
-            for (int k = start; k <= end; k++) ranks[order[k]] = rank;
-
-            start = end + 1;
-        }
-
-        return new Vector(ranks);
     }
 
     private static int[] Categories(Vector values, string name)

@@ -31,7 +31,7 @@ public static class Polyline
     /// </summary>
     public static double Distance(Vector point, Vector[] vertices)
     {
-        return Math.Sqrt(SquaredDistance(point, ClosestPoint(point, vertices)));
+        return Math.Sqrt(AI.Distances.BaseDist.SquaredEuclidean(point, ClosestPoint(point, vertices)));
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ public static class Polyline
         Require(vertices);
 
         Vector best = vertices[0];
-        double bestSquared = SquaredDistance(point, best);
+        double bestSquared = AI.Distances.BaseDist.SquaredEuclidean(point, best);
 
         for (int i = 1; i < vertices.Length; i++)
         {
@@ -52,7 +52,7 @@ public static class Polyline
                 ? vertices[i]
                 : PointSegment.ClosestPoint(point, link);
 
-            double squared = SquaredDistance(point, candidate);
+            double squared = AI.Distances.BaseDist.SquaredEuclidean(point, candidate);
             if (squared < bestSquared)
             {
                 best = candidate;
@@ -62,12 +62,6 @@ public static class Polyline
 
         // Копия: вершина ломаной принадлежит вызывающему, и правка результата не должна её менять
         return new Vector(best);
-    }
-
-    private static double SquaredDistance(Vector a, Vector b)
-    {
-        var diff = a - b;
-        return Vector.Dot(diff, diff);
     }
 
     private static void Require(Vector[] vertices)

@@ -12,18 +12,10 @@ public partial class Vector
     /// <summary>
     /// Нормализация вектора от 0 до 1
     /// </summary>
-    public Vector Minimax()
-    {
-        double max = Max();
-        double min = Min();
-        double range = max - min;
-
-        if (Math.Abs(range) < double.Epsilon)
-            return new Vector(Count) + 0.5;
-
-        double d = 1.0 / range;
-        return Transform(x => (x - min) * d);
-    }
+    /// <remarks>
+    /// Считает <see cref="Statistic.MinMaxScale"/>: вектор без размаха переходит в нули.
+    /// </remarks>
+    public Vector Minimax() => new Vector(Statistic.MinMaxScale(((IAlgebraicStructure<double>)this).Data.AsSpan(0, Count)));
 
     /// <summary>
     /// Минимальное значение (NaN игнорируются)
@@ -127,16 +119,10 @@ public partial class Vector
     /// <summary>
     /// Z-нормализация (среднее = 0, СКО = 1)
     /// </summary>
-    public Vector ZNormalise()
-    {
-        double mean = Mean();
-        double std = Std();
-
-        if (std < double.Epsilon)
-            return new Vector(Count);
-
-        return (Clone() - mean) / std;
-    }
+    /// <remarks>
+    /// Считает <see cref="Statistic.ZScores"/>: отклонение выборочное, постоянный вектор переходит в нули.
+    /// </remarks>
+    public Vector ZNormalise() => new Vector(Statistic.ZScores(((IAlgebraicStructure<double>)this).Data.AsSpan(0, Count)));
 
     /// <summary>
     /// Нормализация с заданными средним и СКО

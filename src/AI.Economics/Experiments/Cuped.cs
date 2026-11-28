@@ -3,6 +3,7 @@ using System.Linq;
 using AI.DataStructs.Algebraic;
 using AI.Insights;
 using AI.Econometrics.Numerics;
+using AI.Statistics;
 
 namespace AI.Economics.Experiments;
 
@@ -169,8 +170,8 @@ public static class Cuped
         (double rawEffect, double rawSe, double rawP) = Compare([.. controlPost], [.. treatmentPost]);
         (double adjEffect, double adjSe, double adjP) = Compare(controlAdjusted, treatmentAdjusted);
 
-        double rawVariance = Variance([.. controlPost]) + Variance([.. treatmentPost]);
-        double adjVariance = Variance(controlAdjusted) + Variance(treatmentAdjusted);
+        double rawVariance = StatUtils.MeanAndVariance([.. controlPost], skipNaN: false).variance + StatUtils.MeanAndVariance([.. treatmentPost], skipNaN: false).variance;
+        double adjVariance = StatUtils.MeanAndVariance(controlAdjusted, skipNaN: false).variance + StatUtils.MeanAndVariance(treatmentAdjusted, skipNaN: false).variance;
 
         return new CupedResult
         {
@@ -195,21 +196,12 @@ public static class Cuped
         return result;
     }
 
-    private static double Variance(double[] values)
-    {
-        if (values.Length < 2) return 0;
-        double mean = values.Average();
-        double sum = 0;
-        foreach (double v in values) sum += (v - mean) * (v - mean);
-        return sum / (values.Length - 1);
-    }
-
     /// <summary>Сравнение средних двух групп по критерию Уэлча.</summary>
     private static (double Effect, double StandardError, double PValue) Compare(
         double[] control, double[] treatment)
     {
         double effect = treatment.Average() - control.Average();
-        double se = Math.Sqrt((Variance(control) / control.Length) + (Variance(treatment) / treatment.Length));
+        double se = Math.Sqrt((StatUtils.MeanAndVariance(control, skipNaN: false).variance / control.Length) + (StatUtils.MeanAndVariance(treatment, skipNaN: false).variance / treatment.Length));
         double z = se > 0 ? effect / se : 0;
         double p = Distributions.NormalPValue(z);
         return (effect, se, p);

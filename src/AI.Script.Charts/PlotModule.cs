@@ -158,19 +158,10 @@ public static class PlotModule
         if (bins < 1)
             throw new ScriptError(DiagnosticCodes.BadOperand, "plot.hist: интервалов должно быть не меньше одного");
 
-        double min = sample.Min();
-        double width = sample.Max() - min;
-
+        (double[] edges, double[] counts) = AI.Statistics.Statistic.HistogramCounts(sample.ToArray(), bins);
         var centers = new double[bins];
-        var counts = new double[bins];
 
-        for (int i = 0; i < bins; i++) centers[i] = width == 0 ? min : min + (width * (i + 0.5) / bins);
-
-        for (int i = 0; i < sample.Count; i++)
-        {
-            int bin = width == 0 ? 0 : (int)((sample[i] - min) / width * bins);
-            counts[Math.Clamp(bin, 0, bins - 1)]++;
-        }
+        for (int i = 0; i < bins; i++) centers[i] = (edges[i] + edges[i + 1]) / 2;
 
         var draft = new PlotDraft(title, xlabel, "частота");
         draft.Bar(centers, counts, null);

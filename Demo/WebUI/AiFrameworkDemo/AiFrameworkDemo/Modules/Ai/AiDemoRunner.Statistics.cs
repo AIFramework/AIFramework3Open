@@ -46,7 +46,7 @@ public static partial class AiDemoRunner
                     DrawVLine(cv, ciMean.Upper, yMax * 0.7, "CI μ верхн.", Palette[5], 2);
                 }
 
-                textOut = BuildDescriptiveReport(stat, q1, med, q3, stat.Asymmetry(), stat.Excess(), Statistic.RMS(sample), sample, dist, showCi, n);
+                textOut = BuildDescriptiveReport(stat, q1, med, q3, Statistic.Skewness(sample.ToArray()), Statistic.ExcessKurtosis(sample.ToArray()), Statistic.RMS(sample), sample, dist, showCi, n);
                 break;
             }
             case "histogram_pdf":
@@ -120,7 +120,7 @@ public static partial class AiDemoRunner
                 sb.AppendLine("  +---------+------------+");
                 sb.AppendLine();
                 sb.AppendLine($"  IQR (Q3 − Q1):  {(q3 - q1):F4}");
-                sb.AppendLine($"  FastQuantile(0.5) = {Quantile.FastQuantile(sample, 0.5):F4}");
+                sb.AppendLine($"  Медиана = {Quantile.Median(sample.ToArray()):F4}");
                 textOut = sb.ToString();
                 break;
             }
@@ -240,7 +240,7 @@ public static partial class AiDemoRunner
                 var rng = new Random((int)N("seed", 42));
                 var sample = GenerateSample(dist, n, mu, sig, rng);
                 var stat = new Statistic(sample);
-                double skew = stat.Asymmetry(), kurt = stat.Excess();
+                double skew = Statistic.Skewness(sample.ToArray()), kurt = Statistic.ExcessKurtosis(sample.ToArray());
 
                 var jb = StatInference.JarqueBeraTest(skew, kurt, n);
 

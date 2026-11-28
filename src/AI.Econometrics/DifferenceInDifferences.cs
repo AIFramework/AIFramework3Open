@@ -258,7 +258,7 @@ public static class DifferenceInDifferences
         double point = TwoWayOnce(observations);
         double[] draws = ClusterBootstrap(observations, samples, seed, TwoWayOnce);
 
-        return (point, StandardDeviation(draws));
+        return (point, Math.Sqrt(StatUtils.MeanAndVariance(draws, skipNaN: false).variance));
     }
 
     /// <summary>Одна оценка по двусторонним фиксированным эффектам.</summary>
@@ -314,7 +314,7 @@ public static class DifferenceInDifferences
         double point = RobustOnce(observations);
         double[] draws = ClusterBootstrap(observations, samples, seed, RobustOnce);
 
-        return (point, StandardDeviation(draws));
+        return (point, Math.Sqrt(StatUtils.MeanAndVariance(draws, skipNaN: false).variance));
     }
 
     /// <summary>Одна устойчивая оценка: средневзвешенный эффект по парам «когорта — период».</summary>
@@ -381,7 +381,7 @@ public static class DifferenceInDifferences
                 sample => EventEffect(sample, relative));
 
             int count = observations.Count(o => o.FirstTreatedPeriod > 0 && o.RelativePeriod == relative);
-            points.Add(new EventStudyPoint(relative, point, StandardDeviation(draws), count));
+            points.Add(new EventStudyPoint(relative, point, Math.Sqrt(StatUtils.MeanAndVariance(draws, skipNaN: false).variance), count));
         }
 
         return points;
@@ -476,16 +476,5 @@ public static class DifferenceInDifferences
         }
 
         return [.. draws];
-    }
-
-    /// <summary>Выборочное стандартное отклонение.</summary>
-    private static double StandardDeviation(double[] values)
-    {
-        if (values.Length < 2) return 0;
-
-        double mean = values.Average();
-        double variance = values.Sum(v => (v - mean) * (v - mean)) / (values.Length - 1);
-
-        return Math.Sqrt(Math.Max(variance, 0));
     }
 }

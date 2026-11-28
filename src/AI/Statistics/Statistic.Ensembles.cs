@@ -52,14 +52,34 @@ public partial class Statistic
         return Math.Sqrt(s / vect.Count);
     }
 
-    /// <summary>Несмещённая дисперсия по ансамблю (покомпонентно).</summary>
+    /// <summary>Выборочная дисперсия по ансамблю: для каждой компоненты — <see cref="CalcVariance(ReadOnlySpan{double}, bool)"/>.</summary>
     public static Vector EnsembleDispersion(IEnumerable<Vector> vectors)
     {
         Vector[] ensemble = vectors.ToArray();
-        return EnsembleDispersion(ensemble, MeanVector(ensemble));
+
+        if (ensemble.Length == 0) return new Vector();
+
+        var result = new Vector(ensemble[0].Count);
+        var column = new double[ensemble.Length];
+
+        for (int j = 0; j < result.Count; j++)
+        {
+            for (int i = 0; i < ensemble.Length; i++) column[i] = ensemble[i][j];
+
+            result[j] = CalcVariance(column);
+        }
+
+        return result;
     }
 
-    /// <summary>Несмещённая дисперсия по ансамблю с заданным средним.</summary>
+    /// <summary>
+    /// Средний квадрат отклонения компонент от ЗАДАННОГО вектора (делитель n − 1).
+    /// </summary>
+    /// <remarks>
+    /// Не дисперсия в строгом смысле: центр подаёт вызывающий, и он может не совпадать со средним
+    /// ансамбля (отклонение от эталона, от прошлого среднего). Дисперсию ансамбля считает
+    /// перегрузка без второго аргумента.
+    /// </remarks>
     public static Vector EnsembleDispersion(Vector[] ensemble, Vector mean)
     {
         if (ensemble.Length == 0) return new Vector();

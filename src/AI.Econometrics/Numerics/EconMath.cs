@@ -168,30 +168,6 @@ internal static class EconMath
         return inv;
     }
 
-    /// <summary>
-    /// Выборочный квантиль по методу линейной интерполяции (тип 7, как в R и NumPy).
-    /// </summary>
-    /// <param name="sorted">Отсортированный по возрастанию массив.</param>
-    /// <param name="q">Уровень квантиля из отрезка [0; 1].</param>
-    public static double Quantile(double[] sorted, double q)
-    {
-        if (sorted.Length == 0) return double.NaN;
-        if (sorted.Length == 1) return sorted[0];
-
-        double pos = q * (sorted.Length - 1);
-        int lo = (int)Math.Floor(pos);
-        int hi = (int)Math.Ceiling(pos);
-        if (lo < 0) lo = 0;
-        if (hi > sorted.Length - 1) hi = sorted.Length - 1;
-
-        // Равенство границ проверяется отдельно: массив может содержать
-        // бесконечности (например, «деньги не кончились»), и разность
-        // inf - inf дала бы NaN вместо самой бесконечности
-        if (lo == hi || sorted[lo].Equals(sorted[hi])) return sorted[lo];
-
-        return sorted[lo] + ((pos - lo) * (sorted[hi] - sorted[lo]));
-    }
-
     /// <summary>Ограничение значения отрезком.</summary>
     public static double Clamp(double v, double min, double max) => v < min ? min : v > max ? max : v;
 }

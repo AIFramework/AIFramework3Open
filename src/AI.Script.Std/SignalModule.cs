@@ -108,10 +108,7 @@ public static class SignalModule
 
         for (int i = 0; i < count; i++)
         {
-            double u1 = 1.0 - context.Random.NextDouble();
-            double u2 = context.Random.NextDouble();
-
-            result[i] = mean + (sigma * Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2));
+            result[i] = AI.Statistics.RandomEngine.NextGaussian(context.Random, mean, sigma);
         }
 
         return result;

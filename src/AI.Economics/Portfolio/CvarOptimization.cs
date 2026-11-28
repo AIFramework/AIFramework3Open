@@ -320,7 +320,7 @@ public static class CvarOptimization
 
         Array.Sort(losses);
 
-        double var = EconMath.Quantile(losses, confidence);
+        double var = AI.Statistics.Quantile.OfSorted(losses, confidence);
         var tail = losses.Where(l => l >= var).ToList();
 
         tailCount = tail.Count;

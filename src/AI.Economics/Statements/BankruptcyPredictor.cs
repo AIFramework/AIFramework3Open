@@ -435,13 +435,12 @@ public sealed class BankruptcyPredictor
 
         for (int j = 0; j < k; j++)
         {
-            double mean = raw.Average(r => r[j]);
-            double variance = raw.Length > 1
-                ? raw.Sum(r => (r[j] - mean) * (r[j] - mean)) / (raw.Length - 1)
-                : 1;
+            double[] column = [.. raw.Select(r => r[j])];
+            (double mean, double variance, _) = AI.Statistics.StatUtils.MeanAndVariance(column, skipNaN: false);
 
+            // Масштаб хранится для новых данных, поэтому ноль заменяется малым числом: на него будут делить
             _means[j] = mean;
-            _deviations[j] = Math.Max(Math.Sqrt(variance), 1e-9);
+            _deviations[j] = raw.Length > 1 ? Math.Max(Math.Sqrt(variance), 1e-9) : 1;
 
             var healthy = raw.Where((_, i) => !labels[i]).Select(r => r[j]).ToList();
             var bankrupt = raw.Where((_, i) => labels[i]).Select(r => r[j]).ToList();

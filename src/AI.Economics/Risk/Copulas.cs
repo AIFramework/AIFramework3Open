@@ -208,7 +208,7 @@ public static class Copulas
         double[] v = PseudoObservations(second);
 
         double tau = KendallTau(first, second);
-        double pearson = Pearson(first, second);
+        double pearson = Statistic.CorrelationCoefficient(first, second);
 
         var comparison = new List<(CopulaFamily, double, double)>();
 
@@ -323,25 +323,6 @@ public static class Copulas
         for (int r = 0; r < n; r++) ranks[order[r]] = (r + 1.0) / (n + 1.0);
 
         return ranks;
-    }
-
-    /// <summary>Линейная корреляция.</summary>
-    private static double Pearson(Vector first, Vector second)
-    {
-        int n = Math.Min(first.Count, second.Count);
-        double meanFirst = first.Average(), meanSecond = second.Average();
-        double covariance = 0, varianceFirst = 0, varianceSecond = 0;
-
-        for (int i = 0; i < n; i++)
-        {
-            double a = first[i] - meanFirst, b = second[i] - meanSecond;
-            covariance += a * b;
-            varianceFirst += a * a;
-            varianceSecond += b * b;
-        }
-
-        double denominator = Math.Sqrt(varianceFirst * varianceSecond);
-        return denominator > 0 ? covariance / denominator : 0;
     }
 
     /// <summary>Оценивает параметр семейства по методу максимального правдоподобия.</summary>

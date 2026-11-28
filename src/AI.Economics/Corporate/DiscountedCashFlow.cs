@@ -490,9 +490,9 @@ public static class DiscountedCashFlow
         {
             Name = input.Name,
             MeanEquityValue = mean,
-            MedianEquityValue = sorted.Length > 0 ? EconMath.Quantile(sorted, 0.5) : 0,
-            LowerPercentile = sorted.Length > 0 ? EconMath.Quantile(sorted, 0.1) : 0,
-            UpperPercentile = sorted.Length > 0 ? EconMath.Quantile(sorted, 0.9) : 0,
+            MedianEquityValue = sorted.Length > 0 ? AI.Statistics.Quantile.OfSorted(sorted, 0.5) : 0,
+            LowerPercentile = sorted.Length > 0 ? AI.Statistics.Quantile.OfSorted(sorted, 0.1) : 0,
+            UpperPercentile = sorted.Length > 0 ? AI.Statistics.Quantile.OfSorted(sorted, 0.9) : 0,
             StandardDeviation = Math.Sqrt(Math.Max(variance, 0)),
             ProbabilityOfLoss = sorted.Length > 0 ? (double)sorted.Count(v => v < 0) / sorted.Length : 0,
             BaseCase = baseCase,

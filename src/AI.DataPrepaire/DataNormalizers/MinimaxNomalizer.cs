@@ -80,7 +80,6 @@ public class MinimaxNomalizer : Normalizer
         for (int i = 0; i < Min.Length; i++)
         {
             MaxMinusMin[i] = Max[i] - Min[i];
-            MaxMinusMin[i] = MaxMinusMin[i] == 0 ? double.Epsilon : MaxMinusMin[i];
         }
     }
 
@@ -92,17 +91,15 @@ public class MinimaxNomalizer : Normalizer
     {
         if (Min == null) return data;
 
-        if (data is Vector)
+        // Правило нулевого размаха — как у Statistic.MinMaxScale: компонента без размаха переходит в ноль
+        IAlgebraicStructure<double> result = data is Vector vector ? vector.Clone() : data;
+
+        for (int i = 0; i < result.Data.Length; i++)
         {
-            return ((data as Vector) - Min) / MaxMinusMin;
+            result.Data[i] = MaxMinusMin[i] > 0 ? (data.Data[i] - Min[i]) / MaxMinusMin[i] : 0.0;
         }
 
-        IAlgebraicStructure<double> dat = data;
-
-        for (int i = 0; i < data.Data.Length; i++)
-            dat.Data[i] = (data.Data[i] - Min[i]) / MaxMinusMin[i];
-
-        return dat;
+        return result;
     }
 
 }

@@ -266,7 +266,7 @@ public static class QuantileRegression
 
         double baseline = 0;
         double[] sorted = [.. response.OrderBy(v => v)];
-        double reference = EconMath.Quantile(sorted, quantile);
+        double reference = AI.Statistics.Quantile.OfSorted(sorted, quantile);
         foreach (double value in response) baseline += Loss(value - reference, quantile);
 
         double[] errors = Bootstrap(design, response, quantile, bootstrapSamples, seed, k);

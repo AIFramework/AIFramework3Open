@@ -537,6 +537,6 @@ public static class MarketingMixModel
     {
         if (values.Length == 0) return 1.0;
         double[] sorted = [.. values.OrderBy(v => v)];
-        return EconMath.Quantile(sorted, 0.5);
+        return AI.Statistics.Quantile.OfSorted(sorted, 0.5);
     }
 }

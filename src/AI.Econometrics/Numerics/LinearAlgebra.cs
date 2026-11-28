@@ -1,6 +1,7 @@
 using System;
 using AI.ClassicMath.MatrixUtils;
 using AI.DataStructs.Algebraic;
+using AI.Statistics;
 
 namespace AI.Econometrics.Numerics;
 
@@ -175,25 +176,21 @@ internal static class LinearAlgebra
     public static double[,] Covariance(double[,] data, bool sample = true)
     {
         int n = data.GetLength(0), k = data.GetLength(1);
-        var means = new double[k];
+        var columns = new double[k][];
 
         for (int j = 0; j < k; j++)
         {
-            double sum = 0;
-            for (int i = 0; i < n; i++) sum += data[i, j];
-            means[j] = sum / n;
+            columns[j] = new double[n];
+            for (int i = 0; i < n; i++) columns[j][i] = data[i, j];
         }
 
-        double divisor = sample && n > 1 ? n - 1 : n;
         var covariance = new double[k, k];
 
+        // Каждый элемент — ковариация пары столбцов из ядра (Statistic.Cov); своей формулы здесь нет
         for (int a = 0; a < k; a++)
             for (int b = a; b < k; b++)
             {
-                double sum = 0;
-                for (int i = 0; i < n; i++) sum += (data[i, a] - means[a]) * (data[i, b] - means[b]);
-
-                double value = sum / divisor;
+                double value = Statistic.Cov(columns[a], columns[b], population: !sample);
                 covariance[a, b] = value;
                 covariance[b, a] = value;
             }

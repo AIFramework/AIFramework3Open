@@ -3,6 +3,7 @@ using AI.DataStructs.Algebraic;
 using AI.Script.Binding;
 using AI.Script.Runtime;
 using AI.Script.Semantics;
+using AI.Statistics;
 
 namespace AI.Script.Std;
 
@@ -318,12 +319,9 @@ public static class MatModule
 
         for (int j = 0; j < m.Width; j++)
         {
-            Vector column = ColumnOf(m, j);
-            double mean = column.Mean();
-            double std = column.Std();
+            double[] scores = Statistic.ZScores(ColumnOf(m, j).ToArray());
 
-            for (int i = 0; i < m.Height; i++)
-                result[i, j] = std == 0 ? m[i, j] - mean : (m[i, j] - mean) / std;
+            for (int i = 0; i < m.Height; i++) result[i, j] = scores[i];
         }
 
         return result;
@@ -336,12 +334,9 @@ public static class MatModule
 
         for (int j = 0; j < m.Width; j++)
         {
-            Vector column = ColumnOf(m, j);
-            double min = column.Min();
-            double span = column.Max() - min;
+            double[] scaled = Statistic.MinMaxScale(ColumnOf(m, j).ToArray());
 
-            for (int i = 0; i < m.Height; i++)
-                result[i, j] = span == 0 ? 0 : (m[i, j] - min) / span;
+            for (int i = 0; i < m.Height; i++) result[i, j] = scaled[i];
         }
 
         return result;

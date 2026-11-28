@@ -85,6 +85,177 @@ public sealed partial class MathOneHomeRatchetTests
     public void PhysicalConstants_AreWrittenOnce() =>
         AssertRatchet("числа физических и геоконстант — в AI.Units.PhysicalConstants и EarthConstants", ConstantLiteral(), s_constantLiterals);
 
+    // --- описательная статистика, ГСЧ, расстояния ---
+
+    private const string Definition = @"\b(?:public|private|internal|protected)\s+(?:static\s+)?(?:override\s+)?[\w<>\[\],.? ]*?\b(?:";
+
+    /// <summary>Дисперсия и среднеквадратичное отклонение.</summary>
+    private static readonly Dictionary<string, int> s_variance = new(StringComparer.Ordinal)
+    {
+        // Дом: Statistic.CalcVariance / CalcStd поверх StatUtils.MeanAndVariance (два прохода с поправкой;
+        // он возвращает кортеж, и шаблон определения его не считает)
+        ["src/AI/Statistics/Statistic.Descriptive.cs"] = 6,
+        // Обёртки над каноном под привычными именами типов и расширений массивов
+        ["src/AI/DataStructs/Algebraic/Vector.Statistics.cs"] = 2,
+        ["src/AI/DataStructs/Algebraic/Vector.Factory.cs"] = 1,
+        ["src/AI/DataStructs/Algebraic/Matrix.Methods.cs"] = 4,
+        ["src/AI/Extensions/StatisticsExtensions.cs"] = 14,
+        // Tensor: две обёртки и две функции «вокруг заданного среднего» — центр подаёт вызывающий
+        ["src/AI/DataStructs/Algebraic/Tensor.Methods.cs"] = 4,
+        // Взвешенная дисперсия — другая формула (веса), а не копия
+        ["src/AI/Statistics/WeightedStatistics.cs"] = 1,
+        // Привязки функций скрипта stat.std, stat.var, mat.std и расчёт в exp.compare — вызывают канон
+        ["src/AI.Script.Std/StatModule.cs"] = 2,
+        ["src/AI.Script.Std/MatModule.cs"] = 1,
+        ["src/AI.Script.Std/ExpModule.Compare.cs"] = 1,
+        // Канон плюс правило края своей задачи (нижняя граница масштаба), одной строкой
+        ["src/AI.Econometrics/StateSpace.cs"] = 1,
+        ["src/AI.Economics/Corporate/Comparables.cs"] = 1,
+        // Совпадение имени: ts.var — векторная авторегрессия, Var — имя переменной в символьной
+        // библиотеке, Variance(time) — дисперсия процесса Орнштейна — Уленбека по формуле,
+        // Spread — разброс задержек лучей и разброс частот волновода
+        ["src/AI.Script.Std/TsModule.cs"] = 1,
+        ["src/AI.Solvers.Math/Libs/SymbolicLib.cs"] = 1,
+        ["src/AI.Simulation/Stochastic/OrnsteinUhlenbeckProcess.cs"] = 1,
+        ["src/AI.Microwave/Propagation/MultipathChannel.cs"] = 1,
+        ["src/AI.Microwave/Models/RectangularWaveguide.cs"] = 1,
+    };
+
+    [Fact]
+    public void Variance_IsDefinedInOneHome() => AssertRatchet(
+        "дисперсия и СКО — Statistic.CalcVariance / StatUtils.MeanAndVariance",
+        new Regex(Definition + "Variance|Var|Std|StdDev|StandardDeviation|Dispersion|Disp|SampleStd|SampleVariance|CalcVariance|CalcStd|MeanAndVariance|Welford|Spread)\\s*\\("),
+        s_variance);
+
+    /// <summary>Выборочный квантиль и медиана.</summary>
+    private static readonly Dictionary<string, int> s_quantile = new(StringComparer.Ordinal)
+    {
+        // Дом: Quantile.Of, OfSorted, Median; GetQuantile экземпляра и [Obsolete] FastQuantile — обёртки
+        ["src/AI/Statistics/Quantile.cs"] = 5,
+        // Взвешенный квантиль — другая формула (обращение взвешенной функции распределения)
+        ["src/AI/Statistics/WeightedStatistics.cs"] = 1,
+        ["src/AI.Microwave/Coverage/CoverageResults.cs"] = 1,
+        // Квантиль модели (смеси гауссиан), а не выборки
+        ["src/AI/Statistics/MixtureModeling/GaussianMixture.cs"] = 1,
+        // Привязки stat.quantile, stat.median, расчёт exp.compare, медиана с правилом пустого входа — вызывают канон
+        ["src/AI.Script.Std/StatModule.cs"] = 2,
+        ["src/AI.Script.Std/ExpModule.Compare.cs"] = 1,
+        ["src/AI.Economics/Marketing/MarketingMixModel.cs"] = 1,
+        // Совпадение имени: квантильная регрессия и медианный фильтр изображения (окно 3×3 и скользящее)
+        ["src/AI.Script.Std/RegressModule.cs"] = 1,
+        ["src/AI.Script.Vision/CvModule.cs"] = 1,
+        ["src/AI.ComputerVision/ComputerVision/Filters.cs"] = 1,
+        ["src/AI.ImageEditor/Filters/Convolution.cs"] = 1,
+    };
+
+    [Fact]
+    public void Quantile_IsDefinedInOneHome() => AssertRatchet(
+        "квантиль и медиана — AI.Statistics.Quantile",
+        new Regex(Definition + "Quantile|Median|Percentile|FastQuantile|GetQuantile|OfSorted|MedianInPlace|Median9)\\s*\\("),
+        s_quantile);
+
+    /// <summary>Ковариация, корреляция Пирсона, асимметрия, эксцесс, ранги, сумма квадратов остатков.</summary>
+    private static readonly Dictionary<string, int> s_moments = new(StringComparer.Ordinal)
+    {
+        // Дом: Cov ×3, Pearson, CorrelationCoefficient ×2, Skewness, ExcessKurtosis, [Obsolete] Asymmetry и Excess, AverageRanks
+        ["src/AI/Statistics/Statistic.Descriptive.cs"] = 11,
+        // Ковариационная матрица столбцов — элементы считает Statistic.Cov; сжатие к диагонали поверх неё
+        ["src/AI.Econometrics/Numerics/LinearAlgebra.cs"] = 1,
+        ["src/AI.Economics/Portfolio/MeanVariance.cs"] = 1,
+        // Привязка stat.corr
+        ["src/AI.Script.Std/StatModule.cs"] = 1,
+        // Совпадение имени: корреляционная функция случайного поля и корреляция фаз лучей — формулы моделей
+        ["src/AI/Statistics/SpatialRandomField.cs"] = 1,
+        ["src/AI.Microwave/Propagation/MultipathChannel.cs"] = 1,
+        // Сумма квадратов остатков — одна на эконометрику
+        ["src/AI.Econometrics/Diagnostics.cs"] = 1,
+    };
+
+    [Fact]
+    public void CovarianceCorrelationMomentsRanks_AreDefinedInOneHome() => AssertRatchet(
+        "ковариация, Пирсон, асимметрия, эксцесс, ранги, RSS — AI.Statistics.Statistic",
+        new Regex(Definition + "Cov|Covariance|Pearson|CorrelationCoefficient|Correlation|Skewness|Kurtosis|ExcessKurtosis|Asymmetry|Excess|Ranks|AverageRanks|RankData|Rss)\\s*\\("),
+        s_moments);
+
+    /// <summary>Z-нормировка и min-max.</summary>
+    private static readonly Dictionary<string, int> s_scaling = new(StringComparer.Ordinal)
+    {
+        // Дом: Statistic.ZScores и MinMaxScale
+        ["src/AI/Statistics/Statistic.Descriptive.cs"] = 2,
+        // Обёртки над каноном: Vector.ZNormalise, Vector.Minimax, Vector.ScaleData, Matrix.Minimax
+        ["src/AI/DataStructs/Algebraic/Vector.Statistics.cs"] = 2,
+        ["src/AI/DataStructs/Algebraic/Vector.Factory.cs"] = 1,
+        ["src/AI/DataStructs/Algebraic/Matrix.Methods.cs"] = 1,
+        // Привязки stat.zscore/minmax, mat.zscore/minmax; prep.zscore/minmax запоминают среднее и отклонение из канона
+        ["src/AI.Script.Std/StatModule.cs"] = 2,
+        ["src/AI.Script.Std/MatModule.cs"] = 2,
+        ["src/AI.Script.Std/PrepModule.cs"] = 2,
+        // Сохранённые масштабы моделей: отклонение из канона, применяются к новым данным
+        ["src/AI.Economics/Statements/BankruptcyPredictor.cs"] = 1,
+        ["src/AI.ML/DataHandling/DataSets/VectorDataset.cs"] = 1,
+        // Перевод сырого балла в z по заданным норме и отклонению — формула шкалы, не нормировка выборки
+        ["src/AI.Psychology/Psychometrics/StandardScores.cs"] = 1,
+    };
+
+    [Fact]
+    public void Scaling_IsDefinedInOneHome() => AssertRatchet(
+        "z-нормировка и min-max — Statistic.ZScores и Statistic.MinMaxScale",
+        new Regex(Definition + "ZScore|ZScores|ZNormalise|ZNormalize|Standardize|MinMax|MinMaxScale|Minimax|ScaleData)\\s*\\("),
+        s_scaling);
+
+    /// <summary>Формула Бокса — Мюллера: корень из −2·ln.</summary>
+    private static readonly Dictionary<string, int> s_gaussian = new(StringComparer.Ordinal)
+    {
+        // Дом: NextGaussian (полярный метод) и рэлеевская величина рядом
+        ["src/AI/Statistics/RandomEngine.cs"] = 2,
+        // Хвост приближения Акклама для нормального квантиля — та же запись, другая функция
+        ["src/AI/Statistics/StatInference.cs"] = 1,
+    };
+
+    [Fact]
+    public void GaussianGenerator_IsOne() => AssertRatchet(
+        "нормальный генератор — RandomEngine.NextGaussian", new Regex(@"Math\.Sqrt\(-2(?:\.0)? \* Math\.Log\("), s_gaussian);
+
+    /// <summary>Евклидово расстояние и косинусная мера.</summary>
+    private static readonly Dictionary<string, int> s_distance = new(StringComparer.Ordinal)
+    {
+        // Дом: EuclideanDistance ×2, EuclideanDistanceC, SquaredEuclidean ×2, SquareEucl ×2, CosineSimilarity ×2, NegativeCosine, [Obsolete] CosDist
+        ["src/AI/Distances/BaseDist.cs"] = 11,
+        // [Obsolete]-адаптер DistanceFromAToB
+        ["src/AI/HighLevelFunctions/AnalyticGeometryFunctions.cs"] = 1,
+        // Канон плюс своё правило несравнимых векторов (поиск по вложениям: близость 0)
+        ["src/AI.LLM/Agents/Memory/VectorMemory.cs"] = 1,
+        ["src/AI.Script.Llm/Embeddings.cs"] = 1,
+        // Тензорная функция потерь с автоградом — другая вычислительная цель
+        ["src/AI.NeuralNetworks/V2/Losses/EmbeddingLosses.cs"] = 1,
+    };
+
+    [Fact]
+    public void Distances_AreDefinedInOneHome() => AssertRatchet(
+        "евклидово расстояние и косинус — AI.Distances.BaseDist",
+        new Regex(Definition + "EuclideanDistance|EuclideanDistanceC|SquareEucl|SquaredEuclidean|SqDist|SquaredDistance|CosineSimilarity|Cosine|CosDist|NegativeCosine|DistanceFromAToB)\\s*\\("),
+        s_distance);
+
+    /// <summary>Гистограмма.</summary>
+    private static readonly Dictionary<string, int> s_histogram = new(StringComparer.Ordinal)
+    {
+        // Дом: Statistic.HistogramCounts (возвращает кортеж, шаблон его не считает); здесь — Histogramm
+        // экземпляра, который нормирует его счётчики
+        ["src/AI/Statistics/Statistic.Descriptive.cs"] = 1,
+        // Тип результата Histogramm (конструкторы)
+        ["src/AI/Statistics/Hist.cs"] = 2,
+        // Привязки stat.hist и plot.hist — вызывают канон; cv.histogram — гистограмма яркости изображения по 256 уровням
+        ["src/AI.Script.Std/StatModule.cs"] = 1,
+        ["src/AI.Script.Charts/PlotModule.cs"] = 1,
+        ["src/AI.Script.Vision/CvModule.cs"] = 1,
+    };
+
+    [Fact]
+    public void Histogram_IsDefinedInOneHome() => AssertRatchet(
+        "гистограмма — Statistic.HistogramCounts",
+        new Regex(Definition + "Histogram|Histogramm|HistogramCounts)\\s*\\("),
+        s_histogram);
+
     // --- механика храповика ---
 
     private static void AssertRatchet(string concept, Regex pattern, IReadOnlyDictionary<string, int> allowed)

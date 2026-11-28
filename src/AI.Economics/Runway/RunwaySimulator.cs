@@ -209,9 +209,9 @@ public static class RunwaySimulator
         for (int m = 0; m <= horizon; m++)
         {
             Array.Sort(cashByMonth[m]);
-            p10[m] = EconMath.Quantile(cashByMonth[m], 0.10);
-            p50[m] = EconMath.Quantile(cashByMonth[m], 0.50);
-            p90[m] = EconMath.Quantile(cashByMonth[m], 0.90);
+            p10[m] = AI.Statistics.Quantile.OfSorted(cashByMonth[m], 0.10);
+            p50[m] = AI.Statistics.Quantile.OfSorted(cashByMonth[m], 0.50);
+            p90[m] = AI.Statistics.Quantile.OfSorted(cashByMonth[m], 0.90);
             survival[m] = (double)alive[m] / paths;
         }
 
@@ -221,15 +221,15 @@ public static class RunwaySimulator
         return new RunwayResult
         {
             DeterministicRunwayMonths = startBurn > 0 ? input.Cash / startBurn : double.PositiveInfinity,
-            CashOutP10 = EconMath.Quantile(cashOut, 0.10),
-            CashOutP50 = EconMath.Quantile(cashOut, 0.50),
-            CashOutP90 = EconMath.Quantile(cashOut, 0.90),
+            CashOutP10 = AI.Statistics.Quantile.OfSorted(cashOut, 0.10),
+            CashOutP50 = AI.Statistics.Quantile.OfSorted(cashOut, 0.50),
+            CashOutP90 = AI.Statistics.Quantile.OfSorted(cashOut, 0.90),
             SurvivalProbability = (double)survived / paths,
             ProbabilityCashOutIn6 = Fraction(cashOut, 6),
             ProbabilityCashOutIn12 = Fraction(cashOut, 12),
             ProbabilityBreakEven = (double)brokeEven / paths,
             MedianBreakEvenMonth = breakEven.Count > paths / 2
-                ? EconMath.Quantile([.. breakEven], 0.5)
+                ? AI.Statistics.Quantile.OfSorted([.. breakEven], 0.5)
                 : double.NaN,
             CashP10 = new Vector(p10),
             CashP50 = new Vector(p50),

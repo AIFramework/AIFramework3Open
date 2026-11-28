@@ -393,7 +393,7 @@ public static class VectorAutoregression
             RegressionResult unrestricted = LinearRegression.FitDesign(
                 full, response, fullNames, new RegressionOptions { AddIntercept = false }, "полная");
 
-            double rssFull = Rss(unrestricted.Residuals);
+            double rssFull = Diagnostics.Rss(unrestricted.Residuals);
 
             for (int source = 0; source < k; source++)
             {
@@ -422,7 +422,7 @@ public static class VectorAutoregression
                     restricted, response, restrictedNames,
                     new RegressionOptions { AddIntercept = false }, "ограниченная");
 
-                double rssRestricted = Rss(limited.Residuals);
+                double rssRestricted = Diagnostics.Rss(limited.Residuals);
                 int df = rows - fullColumns;
 
                 double f = df > 0 && rssFull > 0
@@ -487,13 +487,5 @@ public static class VectorAutoregression
             logDeterminant += 2 * Math.Log(Math.Max(chol[i, i], 1e-150));
 
         return Math.Exp(logDeterminant);
-    }
-
-    /// <summary>Сумма квадратов остатков.</summary>
-    private static double Rss(Vector residuals)
-    {
-        double sum = 0;
-        for (int i = 0; i < residuals.Count; i++) sum += residuals[i] * residuals[i];
-        return sum;
     }
 }

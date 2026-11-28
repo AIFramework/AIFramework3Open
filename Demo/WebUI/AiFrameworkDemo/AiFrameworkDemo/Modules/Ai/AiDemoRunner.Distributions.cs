@@ -45,8 +45,8 @@ public static partial class AiDemoRunner
                 sb.AppendLine($"  среднее:   {stU.Expected,10:F4}  {stN.Expected,10:F4}    0.5000    0.0000");
                 sb.AppendLine($"  дисперсия: {stU.Variance,10:F4}  {stN.Variance,10:F4}    0.0833    1.0000");
                 sb.AppendLine($"  СКО:       {stU.STD,10:F4}  {stN.STD,10:F4}    0.2887    1.0000");
-                sb.AppendLine($"  асимм.:    {stU.Asymmetry(),10:F4}  {stN.Asymmetry(),10:F4}    0.0000    0.0000");
-                sb.AppendLine($"  эксцесс:   {stU.Excess(),10:F4}  {stN.Excess(),10:F4}   -1.2000    0.0000");
+                sb.AppendLine($"  асимм.:    {Statistic.Skewness(uni.ToArray()),10:F4}  {Statistic.Skewness(nor.ToArray()),10:F4}    0.0000    0.0000");
+                sb.AppendLine($"  эксцесс:   {Statistic.ExcessKurtosis(uni.ToArray()),10:F4}  {Statistic.ExcessKurtosis(nor.ToArray()),10:F4}   -1.2000    0.0000");
                 textOut = sb.ToString();
                 break;
             }
@@ -207,7 +207,7 @@ public static partial class AiDemoRunner
 
                 var sb = new StringBuilder();
                 sb.AppendLine($"> Cauchy: среднее/дисперсия не определены. Медиана ≈ {loc:F2}");
-                sb.AppendLine($"  Выборочная медиана: {Quantile.FastQuantile(cauchySample, 0.5):F4}");
+                sb.AppendLine($"  Выборочная медиана: {Quantile.Median(cauchySample.ToArray()):F4}");
                 sb.AppendLine();
                 sb.AppendLine($"> Laplace(μ={loc:F1}, b={bLaplace:F1})");
                 sb.AppendLine($"  среднее:  {stL.Expected:F4}  (теор. {loc:F4})");
